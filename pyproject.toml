@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "crdt-merge"
+version = "0.1.0"
+description = "Conflict-free merge, dedup and sync for DataFrames, JSON and datasets — powered by CRDTs"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+authors = [{name = "Ryan Gillespie", email = "leer@optitransfer.ch"}]
+keywords = ["crdt", "merge", "dedup", "dataframe", "conflict-free", "datasets"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Database",
+]
+dependencies = []
+
+[project.optional-dependencies]
+pandas = ["pandas>=1.5"]
+polars = ["polars>=0.19"]
+datasets = ["datasets>=2.0"]
+all = ["pandas>=1.5", "polars>=0.19", "datasets>=2.0"]
+dev = ["pytest>=7", "hypothesis>=6.80"]
+
+[project.urls]
+Homepage = "https://github.com/mgillr/crdt-merge"
+Repository = "https://github.com/mgillr/crdt-merge"
+Issues = "https://github.com/mgillr/crdt-merge/issues"
+
+[tool.setuptools.packages.find]
+include = ["crdt_merge*"]
