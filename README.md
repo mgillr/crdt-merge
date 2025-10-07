@@ -1,3 +1,7 @@
+[![PyPI version](https://img.shields.io/pypi/v/crdt-merge.svg)](https://pypi.org/project/crdt-merge/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![HF Space](https://img.shields.io/badge/🤗-Live%20Demo-blue)](https://huggingface.co/spaces/Optitransfer/crdt-merge)
+
 <div align="center">
 
 # 🔀 crdt-merge
