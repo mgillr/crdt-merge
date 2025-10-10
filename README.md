@@ -1,22 +1,33 @@
-[![PyPI version](https://img.shields.io/pypi/v/crdt-merge.svg)](https://pypi.org/project/crdt-merge/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![HF Space](https://img.shields.io/badge/🤗-Live%20Demo-blue)](https://huggingface.co/spaces/Optitransfer/crdt-merge)
-
 <div align="center">
 
 # 🔀 crdt-merge
 
 **Conflict-free merge, dedup & sync for DataFrames, JSON and datasets — powered by CRDTs**
 
+[![PyPI](https://img.shields.io/pypi/v/crdt-merge.svg)](https://pypi.org/project/crdt-merge/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Tests: 75/75](https://img.shields.io/badge/tests-75%2F75-brightgreen.svg)](https://github.com/mgillr/crdt-merge)
+[![Tests: 1,083 passed](https://img.shields.io/badge/tests-1%2C083%20passed-brightgreen.svg)](https://github.com/mgillr/crdt-merge)
 
 **Merge any two datasets in one function call. No conflicts. No coordination. No data loss.**
 
-[Quick Start](#-quick-start) • [Why CRDTs](#-why-crdts) • [Benchmarks](#-benchmarks) • [API Reference](#-api-reference) • [HuggingFace Demo](https://huggingface.co/spaces/Optitransfer/crdt-merge)
+[Quick Start](#-quick-start) • [Why CRDTs](#-why-crdts) • [Benchmarks](#-benchmarks) • [API Reference](#-api-reference) • [All Languages](#-available-in-every-language)
 
 </div>
+
+---
+
+## 🌐 Available in Every Language
+
+| Language | Package | Install | Repo |
+|---|---|---|---|
+| **Python** 🐍 | `crdt-merge` | `pip install crdt-merge` | **You are here** |
+| **TypeScript** | `crdt-merge` | `npm install crdt-merge` | [crdt-merge-ts](https://github.com/mgillr/crdt-merge-ts) |
+| **Rust** 🦀 | `crdt-merge` | `cargo add crdt-merge` | [crdt-merge-rs](https://github.com/mgillr/crdt-merge-rs) |
+| **Java** ☕ | `io.optitransfer:crdt-merge` | Maven / Gradle | [crdt-merge-java](https://github.com/mgillr/crdt-merge-java) |
+| **CLI** 🖥️ | included in Rust | `cargo install crdt-merge` | [crdt-merge-rs](https://github.com/mgillr/crdt-merge-rs) |
+
+> **[🤗 Try it in the browser →](https://huggingface.co/spaces/Optitransfer/crdt-merge)**
 
 ---
 
@@ -211,6 +222,6 @@ MIT — use it for anything.
 
 Built with math, not hope. 🧬
 
-**[⭐ Star on GitHub](https://github.com/mgillr/crdt-merge)** • **[🤗 Try on HuggingFace](https://huggingface.co/spaces/Optitransfer/crdt-merge)**
+**[⭐ Star on GitHub](https://github.com/mgillr/crdt-merge)** • **[🤗 Try on HuggingFace](https://huggingface.co/spaces/Optitransfer/crdt-merge)** • **[📦 PyPI](https://pypi.org/project/crdt-merge/)**
 
 </div>
