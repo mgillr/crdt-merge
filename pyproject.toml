@@ -7,7 +7,7 @@ name = "crdt-merge"
 version = "0.1.0"
 description = "Conflict-free merge, dedup and sync for DataFrames, JSON and datasets — powered by CRDTs"
 readme = "README.md"
-license = {text = "MIT"}
+license = {text = "Apache-2.0"}
 requires-python = ">=3.9"
 authors = [{name = "Ryan Gillespie", email = "leer@optitransfer.ch"}]
 keywords = ["crdt", "merge", "dedup", "dataframe", "conflict-free", "datasets"]
@@ -15,7 +15,7 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Database",
