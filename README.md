@@ -6,7 +6,7 @@
 
 [![PyPI](https://img.shields.io/pypi/v/crdt-merge.svg)](https://pypi.org/project/crdt-merge/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Tests: 1,083 passed](https://img.shields.io/badge/tests-1%2C083%20passed-brightgreen.svg)](https://github.com/mgillr/crdt-merge)
 
 **Merge any two datasets in one function call. No conflicts. No coordination. No data loss.**
@@ -191,8 +191,7 @@ Deduplicate a HuggingFace Dataset. Requires `pip install crdt-merge[datasets]`.
 Distributed dedup index backed by CRDT OR-Set. Multiple workers build indices independently, then merge.
 
 ### `MinHashDedup(num_hashes=128, threshold=0.5)`
-
-Locality-sensitive hashing for O(n) near-duplicate detection at scale.
+РLocality-sensitive hashing for O(n) near-duplicate detection at scale.
 
 ## 🏗️ Use Cases
 
@@ -209,12 +208,16 @@ PRs welcome! Run tests with:
 
 ```bash
 pip install -e ".[dev]"
-pytest tests/ -v
+ pytest tests/ -v
 ```
 
 ## 📄 License
 
-MIT — use it for anything.
+Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.
+
+Copyright 2026 Ryan Gillespie / Optitransfer. See [NOTICE](NOTICE) for attribution requirements.
+
+For commercial licensing inquiries: leer@optitransfer.ch
 
 ---
 
@@ -222,6 +225,6 @@ MIT — use it for anything.
 
 Built with math, not hope. 🧬
 
-**[⭐ Star on GitHub](https://github.com/mgillr/crdt-merge)** • **[🤗 Try on HuggingFace](https://huggingface.co/spaces/Optitransfer/crdt-merge)** • **[📦 PyPI](https://pypi.org/project/crdt-merge/)**
+**[⭑ Star on GitHub](https://github.com/mgillr/crdt-merge)** • **[🤗 Try on HuggingFace](https://huggingface.co/spaces/Optitransfer/crdt-merge)** • **[📦 PyPI](https://pypi.org/project/crdt-merge/)**
 
 </div>
