@@ -4,35 +4,47 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "crdt-merge"
-version = "0.2.0"
-description = "Conflict-free merge, dedup and sync for DataFrames, JSON and datasets — powered by CRDTs"
+version = "0.3.0"
+description = "The Merge Algebra Toolkit — composable, streaming, verified CRDT merge for datasets"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.9"
 authors = [{name = "Ryan Gillespie", email = "leer@optitransfer.ch"}]
-keywords = ["crdt", "merge", "dedup", "dataframe", "conflict-free", "datasets"]
+keywords = [
+    "crdt", "merge", "dedup", "dataframe", "conflict-free", "datasets",
+    "streaming", "schema", "conflict-resolution", "distributed-systems",
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Database",
+    "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = []
 
 [project.optional-dependencies]
+# Zero deps core. Optional accelerators for heavy workloads:
+fast = ["orjson>=3.9", "xxhash>=3.0"]
 pandas = ["pandas>=1.5"]
 polars = ["polars>=0.19"]
 datasets = ["datasets>=2.0"]
-all = ["pandas>=1.5", "polars>=0.19", "datasets>=2.0"]
+all = ["pandas>=1.5", "polars>=0.19", "datasets>=2.0", "orjson>=3.9", "xxhash>=3.0"]
 dev = ["pytest>=7", "hypothesis>=6.80"]
 
 [project.urls]
 Homepage = "https://github.com/mgillr/crdt-merge"
 Repository = "https://github.com/mgillr/crdt-merge"
 Issues = "https://github.com/mgillr/crdt-merge/issues"
+Documentation = "https://github.com/mgillr/crdt-merge#readme"
+Changelog = "https://github.com/mgillr/crdt-merge/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 include = ["crdt_merge*"]
