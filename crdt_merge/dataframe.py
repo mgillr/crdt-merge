@@ -1,3 +1,8 @@
+# Copyright 2026 Ryan Gillespie
+# SPDX-License-Identifier: Apache-2.0
+#
+# Commercial licensing: data@optitransfer.ch, rgillespie83@icloud.com
+
 """
 CRDT-powered DataFrame merge — conflict-free merge of any two DataFrames.
 
