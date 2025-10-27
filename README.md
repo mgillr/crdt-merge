@@ -7,7 +7,7 @@
 [![PyPI](https://img.shields.io/pypi/v/crdt-merge.svg)](https://pypi.org/project/crdt-merge/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Tests: 1,347+ passed](https://img.shields.io/badge/tests-1%2C347%2B%20passed-brightgreen.svg)](https://github.com/mgillr/crdt-merge)
+[![Tests: 133 passed](https://img.shields.io/badge/tests-133%20passed-brightgreen.svg)](https://github.com/mgillr/crdt-merge)
 
 **Merge any two datasets in one function call. No conflicts. No coordination. No data loss.**
 
@@ -398,7 +398,7 @@ Licensed under the [Apache License, Version 2.0](LICENSE).
 
 Copyright 2024–2026 Ryan Gillespie / Optitransfer. See [NOTICE](NOTICE) for attribution requirements.
 
-For commercial licensing inquiries: **leer@optitransfer.ch**
+For commercial licensing inquiries: **rgillespie83@icloud.com**, **data@optitransfer.ch**
 
 ---
 
