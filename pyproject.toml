@@ -9,7 +9,7 @@ description = "The Merge Algebra Toolkit — composable, streaming, verified CRD
 readme = "README.md"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.9"
-authors = [{name = "Ryan Gillespie", email = "leer@optitransfer.ch"}]
+authors = [{name = "Ryan Gillespie", email = "rgillespie83@icloud.com"}]
 keywords = [
     "crdt", "merge", "dedup", "dataframe", "conflict-free", "datasets",
     "streaming", "schema", "conflict-resolution", "distributed-systems",
