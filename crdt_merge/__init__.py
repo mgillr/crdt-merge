@@ -41,7 +41,7 @@ Usage:
     merged = merge_datasets("user/dataset-a", "user/dataset-b", key="id")
 """
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 # Core CRDT types
 from .core import GCounter, PNCounter, LWWRegister, ORSet, LWWMap
@@ -75,3 +75,12 @@ def dedup_dataset(*args, **kwargs):
     """Deduplicate a HuggingFace Dataset. Requires: pip install crdt-merge[datasets]"""
     from .datasets_ext import dedup_dataset as _dedup
     return _dedup(*args, **kwargs)
+
+# v0.4.0: Merge Provenance & Lineage
+from .provenance import (
+    merge_with_provenance, MergeDecision, MergeRecord,
+    ProvenanceLog, export_provenance,
+)
+
+# v0.4.0: CRDT Verification Decorator
+from .verify import verified_merge, CRDTVerificationError
