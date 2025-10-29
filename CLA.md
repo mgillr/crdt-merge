@@ -26,4 +26,4 @@ You retain all rights to your contribution. This CLA does not transfer ownership
 
 **By opening a pull request, you acknowledge that you have read and agree to the terms of this CLA.**
 
-For questions, contact: **leer@optitransfer.ch**
+For questions, contact: **rgillespie83@icloud.com**, **data@optitransfer.ch**
