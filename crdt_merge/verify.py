@@ -244,8 +244,9 @@ def verify_convergence(
     """
     Prove: N replicas merging the same set of values in ANY order converge.
 
-    Generates N random values, creates all possible merge orderings,
-    and verifies they all produce the same result.
+    Generates N random values, merges them in three different orderings
+    (left-to-right, right-to-left, random shuffle), and verifies all
+    orderings produce the same result.
     """
     eq = eq_fn or _are_equal
     failures = 0
@@ -255,31 +256,28 @@ def verify_convergence(
     for i in range(trials):
         values = [gen_fn() for _ in range(num_replicas)]
         try:
-            # Merge left-to-right
-            lr = values[0]
-            for v in values[1:]:
-                lr = merge_fn(lr, v)
+            # Helper: merge a list of values in given order
+            def _merge_order(indices):
+                result = values[indices[0]]
+                for idx in indices[1:]:
+                    result = merge_fn(result, values[idx])
+                return result
 
-            # Merge right-to-left
-            rl = values[-1]
-            for v in reversed(values[:-1]):
-                rl = merge_fn(rl, v)
+            # Three orderings that cover all elements
+            lr = _merge_order(list(range(num_replicas)))
+            rl = _merge_order(list(reversed(range(num_replicas))))
+            shuffled = list(range(num_replicas))
+            random.shuffle(shuffled)
+            rand = _merge_order(shuffled)
 
-            # Merge from middle out
-            mid = len(values) // 2
-            mo = values[mid]
-            for j in range(1, len(values)):
-                idx = mid + j if (mid + j) < len(values) else mid - (j - (len(values) - mid))
-                if 0 <= idx < len(values) and idx != mid:
-                    mo = merge_fn(mo, values[idx])
-
-            if not (eq(lr, rl) and eq(lr, mo)):
+            if not (eq(lr, rl) and eq(lr, rand)):
                 failures += 1
                 if first_failure is None:
                     first_failure = {
                         "trial": i,
                         "left_to_right": repr(lr),
                         "right_to_left": repr(rl),
+                        "random_order": repr(rand),
                     }
         except Exception as e:
             failures += 1
@@ -320,3 +318,86 @@ def verify_crdt(
         commutativity=comm, associativity=assoc, idempotency=idemp,
         convergence=conv, total_trials=total, total_duration_ms=total_ms,
     )
+
+
+# ─── v0.4.0: @verified_merge decorator ───────────────────────────────────────
+
+from functools import wraps
+
+
+def verified_merge(
+    merge_fn=None,
+    *,
+    gen_fn: Optional[Callable] = None,
+    trials: int = 100,
+    eq_fn: Optional[Callable[[Any, Any], bool]] = None,
+    on_fail: str = "raise",
+):
+    """
+    Decorator that verifies a merge function satisfies CRDT laws at decoration time.
+
+    Verification runs ONCE when the function is defined — not on every call.
+    The verification result is stored on the function as ._crdt_verified.
+
+    Args:
+        gen_fn: Generator function that produces random test values. REQUIRED.
+        trials: Number of random trials per property (default: 100).
+        eq_fn: Custom equality function. Default: deep equality.
+        on_fail: "raise" (default) to raise on failure, "warn" to just attach result.
+
+    Usage:
+        import random
+        from crdt_merge.verify import verified_merge
+
+        # As decorator with arguments
+        @verified_merge(gen_fn=lambda: random.randint(0, 100), trials=500)
+        def my_max_merge(a, b):
+            return max(a, b)
+
+        assert my_max_merge._crdt_verified.passed
+
+        # The decorated function works normally
+        result = my_max_merge(3, 7)  # returns 7
+
+    Raises:
+        ValueError: If gen_fn is not provided.
+        CRDTVerificationError: If on_fail="raise" and verification fails.
+    """
+    def decorator(fn):
+        if gen_fn is None:
+            raise ValueError(
+                "@verified_merge requires gen_fn — a callable that produces "
+                "random test values. Example: gen_fn=lambda: random.randint(0, 100)"
+            )
+
+        # Run verification at decoration time (ONCE)
+        result = verify_crdt(fn, gen_fn, trials=trials, eq_fn=eq_fn)
+
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            return fn(*args, **kwargs)
+
+        wrapper._crdt_verified = result
+        wrapper._crdt_verification_summary = result.summary()
+
+        if not result.passed:
+            if on_fail == "raise":
+                raise CRDTVerificationError(
+                    f"CRDT verification failed for {fn.__name__}:\n{result.summary()}"
+                )
+            # on_fail == "warn" — attach but don't raise
+
+        return wrapper
+
+    # Support both @verified_merge and @verified_merge(...)
+    if merge_fn is not None:
+        # Called without arguments — but gen_fn is required, so error
+        raise ValueError(
+            "@verified_merge requires gen_fn. Use: @verified_merge(gen_fn=...)"
+        )
+    return decorator
+
+
+class CRDTVerificationError(Exception):
+    """Raised when a merge function fails CRDT property verification."""
+    pass
