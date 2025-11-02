@@ -9,11 +9,11 @@
 [![PyPI](https://img.shields.io/pypi/v/crdt-merge.svg)](https://pypi.org/project/crdt-merge/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Tests: 175 passed](https://img.shields.io/badge/tests-133%20passed-brightgreen.svg)](https://github.com/mgillr/crdt-merge)
+[![Tests: 175 passed](https://img.shields.io/badge/tests-175%20passed-brightgreen.svg)](https://github.com/mgillr/crdt-merge)
 
 **Merge any two datasets in one function call. No conflicts. No coordination. No data loss.**
 
-[Quick Start](#-quick-start) • [What's New in v0.3.0](#-whats-new-in-v030) • [Strategies](#-composable-merge-strategies) • [Streaming](#-streaming-merge) • [Benchmarks](#-benchmarks) • [API Reference](#-api-reference) • [All Languages](#-available-in-every-language)
+[Quick Start](#-quick-start) • [What's New in v0.4.0](#-whats-new-in-v040) • [Strategies](#-composable-merge-strategies) • [Streaming](#-streaming-merge) • [Provenance](#-merge-provenance--audit-trails) • [Benchmarks](#-benchmarks) • [API Reference](#-api-reference) • [All Languages](#-available-in-every-language)
 
 </div>
 
@@ -33,18 +33,30 @@
 
 ---
 
-## 🆕 What's New in v0.3.0
+## 🆕 What's New in v0.4.0
 
-> **"The Trust Release"** — from simple merge to composable merge toolkit
+> **"The Trust Release"** — every merge decision is now auditable and verifiable
 
 | Feature | What It Does | Why It Matters |
 |---------|-------------|----------------|
-| 🎯 **[Composable Merge Strategies](#-composable-merge-strategies)** | Define per-column merge rules (LWW, MaxWins, UnionSet, Priority…) | True CRDT commutativity — order never matters |
-| 🌊 **[Streaming Merge](#-streaming-merge)** | O(batch_size) memory instead of O(n) | Merge 1M+ rows in 3 MB of RAM |
-| 🔬 **Verification Engine** | Prove CRDT guarantees hold on YOUR data | Trust, don't hope ✅ |
-| 📊 **Delta Sync** | Only sync what changed since last merge | 95%+ bandwidth savings ✅ |
+| 🔍 **[Merge Provenance](#-merge-provenance--audit-trails)** | Full audit trail of every merge decision — which source won, what changed, why | Compliance, debugging, trust |
+| ✅ **[@verified_merge Decorator](#-verified-merge-decorator)** | Wrap any merge with automatic CRDT property checks | Prove correctness, don't hope |
+| ⚡ **[16x Streaming Speedup](#-streaming-merge)** | `merge_stream` flat at ~400K rows/s regardless of scale | Was degrading 110K → 23K in v0.3.0 |
+| 🐛 **Convergence Fix** | `verify_convergence` no longer false-flags valid CRDTs | Accurate verification |
 
-**100% backward compatible** — all existing `merge()`, `dedup()`, `diff()` APIs work exactly as before.
+**100% backward compatible** — all existing APIs work exactly as before. 11 modules, 2,820 lines, 175 tests.
+
+<details>
+<summary>📋 What shipped in v0.3.0 "The Schema Release"</summary>
+
+| Feature | What It Does | Why It Matters |
+|---------|-------------|----------------|
+| 🎯 **Composable Merge Strategies** | Define per-column merge rules (LWW, MaxWins, UnionSet, Priority…) | True CRDT commutativity — order never matters |
+| 🌊 **Streaming Merge** | O(batch_size) memory instead of O(n) | Merge 1M+ rows in 3 MB of RAM |
+| 📊 **Delta Sync** | Only sync what changed since last merge | 95%+ bandwidth savings |
+| 🔬 **Verification Engine** | Prove CRDT guarantees hold on YOUR data | Foundation for v0.4.0 decorator |
+
+</details>
 
 <details>
 <summary>📋 Version History</summary>
@@ -52,7 +64,7 @@
 | Version | Codename | Highlights |
 |---------|----------|------------|
 | **v0.4.0** | The Trust Release | Merge provenance, @verified_merge decorator, 16x streaming speedup |
-| **v0.3.0** | The Schema Release | Composable strategies, streaming merge, 1M+ row scale |
+| **v0.3.0** | The Schema Release | Composable strategies, streaming merge, delta sync, 1M+ row scale |
 | **v0.2.0** | IP Protection | Apache-2.0 license, patent protection, all 4 languages |
 | **v0.1.0** | Launch | Core merge, dedup, diff, CRDT types, 5 modules |
 
@@ -145,7 +157,7 @@ print(changes["summary"])
 
 ## 🎯 Composable Merge Strategies
 
-> **New in v0.3.0** — Define exactly how each column resolves conflicts
+> **Since v0.3.0** — Define exactly how each column resolves conflicts
 
 Instead of "B always wins", define per-column merge rules:
 
@@ -184,9 +196,62 @@ merged = schema.resolve_all(dataset_a, dataset_b, key="_id", timestamp_col="_ts"
 
 ---
 
+## 🔍 Merge Provenance & Audit Trails
+
+> **New in v0.4.0** — Know exactly what happened in every merge
+
+Every merge decision is now traceable. Track which source won each row, what fields changed, and why:
+
+```python
+from crdt_merge.provenance import merge_with_provenance
+
+result, log = merge_with_provenance(base_df, incoming_df, key="id")
+
+# Inspect every decision
+for decision in log.decisions:
+    print(f"Row {decision.key}: {decision.source} won — {decision.reason}")
+
+# Export as DataFrame for analysis
+audit_df = log.to_dataframe()
+
+# Export as JSON for compliance logs
+audit_json = log.to_json()
+```
+
+**Use cases:** regulatory compliance, debugging merge anomalies, building trust with stakeholders who need to know *why* a value changed.
+
+---
+
+## ✅ Verified Merge Decorator
+
+> **New in v0.4.0** — Prove your merges are mathematically correct
+
+Wrap any merge function with automatic CRDT property verification:
+
+```python
+from crdt_merge.verify import verified_merge
+import crdt_merge
+
+@verified_merge
+def my_merge(a, b, **kwargs):
+    return crdt_merge.merge(a, b, **kwargs)
+
+# Automatically checks on every call:
+# ✅ Idempotency:    merge(A, A) == A
+# ✅ Commutativity:  merge(A, B) == merge(B, A)
+# ✅ Associativity:  merge(merge(A, B), C) == merge(A, merge(B, C))
+result = my_merge(df_a, df_b, key="id")
+```
+
+Use `@verified_merge` in your test suite or staging environment to mathematically prove your merge pipeline preserves CRDT guarantees.
+
+---
+
 ## 🌊 Streaming Merge
 
-> **New in v0.3.0** — Merge datasets larger than your RAM
+> **Since v0.3.0** — Merge datasets larger than your RAM
+> 
+> **v0.4.0 upgrade:** `merge_stream` now delivers **16x faster throughput** at scale — flat ~400K rows/s regardless of dataset size (was degrading from 110K → 23K rows/s in v0.3.0)
 
 ```python
 from crdt_merge.streaming import merge_stream, merge_sorted_stream
@@ -204,13 +269,15 @@ for batch in merge_sorted_stream(sorted_gen_a(), sorted_gen_b(), key="_id"):
     write_batch(batch)  # each batch is batch_size rows, memory stays flat
 ```
 
-### Memory Model
+### Memory & Throughput Model
 
-| Approach | Memory | Scale Limit |
-|----------|--------|-------------|
-| `merge()` | O(n) — grows with data | ~2M rows (8GB RAM) |
-| `merge_stream()` | O(batch_size) — configurable | Unlimited (disk-bound) |
-| `merge_sorted_stream()` | O(batch_size) — **constant** | Unlimited (disk-bound) |
+| Approach | Memory | Throughput (v0.4.0) | Scale Limit |
+|----------|--------|---------------------|-------------|
+| `merge()` | O(n) — grows with data | ~55K rows/s | ~2M rows (8GB RAM) |
+| `merge_stream()` | O(batch_size) — configurable | **~400K rows/s (flat)** ⚡ | Unlimited (disk-bound) |
+| `merge_sorted_stream()` | O(batch_size) — **constant** | ~200K rows/s | Unlimited (disk-bound) |
+
+> **v0.3.0 → v0.4.0 improvement:** `merge_stream` suffered from two hidden performance bugs (per-batch GC sweep + per-row column reallocation). v0.4.0 removed both — throughput is now scale-independent.
 
 At 1M rows, `merge_sorted_stream` uses **3 MB** regardless of input size. The classic `merge()` would need **688 MB**.
 
@@ -232,7 +299,7 @@ Three mathematical guarantees (proven, not hoped):
 
 This means: **zero coordination, zero locks, zero conflicts.** Two workers can independently edit a dataset and merge later — the result is mathematically guaranteed correct.
 
-> **Note:** The core `merge()` function uses "B-wins" overlay semantics (like `git merge remote`). For true order-independent commutativity, use `MergeSchema` with `LWW()` — see [Composable Merge Strategies](#-composable-merge-strategies).
+> **Architectural note:** The core `merge()` function uses "B-wins" overlay semantics (like `git merge remote`). For true order-independent commutativity, use `MergeSchema` with `LWW()` — see [Composable Merge Strategies](#-composable-merge-strategies). Both approaches are valid for different use cases.
 
 ### Built-in CRDT Types
 
@@ -273,6 +340,17 @@ Tested in sandbox (1.9 GB RAM):
 | **Delta compute** | 500K rows | 953K rows/sec | Minimal | Near 1M/sec — sync is instant |
 | **Delta apply** | 500K → 500K | 253K rows/sec | Proportional | Full round-trip |
 | **CRDT verification** | 500 trials | All pass | - | Commutativity, associativity, idempotency ✅ |
+
+### v0.4.0 Streaming Performance (16x improvement)
+
+| Scale | v0.3.0 | v0.4.0 | Improvement |
+|-------|--------|--------|-------------|
+| 100K rows | 110K rows/s | 430K rows/s | +288% |
+| 500K rows | 64K rows/s | 393K rows/s | +513% |
+| 1M rows | 41K rows/s | 410K rows/s | +906% |
+| 2M rows | 23K rows/s | 393K rows/s | **+1,572%** |
+
+> v0.3.0 `merge_stream` degraded linearly as data grew. v0.4.0 holds flat — the throughput line is a ruler.
 
 > **[📓 Run A100 Stress Tests →](notebooks/crdt_merge_stress_a100.ipynb)** Push past sandbox limits with 80GB GPU RAM
 
@@ -357,44 +435,44 @@ merged_all = schema.resolve_all(dataset_a, dataset_b, key="_id", timestamp_col="
 | `LongestWins()` | No args | Longest string wins |
 | `Custom(fn)` | `fn(a, b, ts_a, ts_b) → value` | Your function |
 
-#
-### 🔍 Merge Provenance & Audit Trails (v0.4.0+)
+### Provenance (since v0.4.0)
 
-Track every merge decision with full audit capability:
+#### `merge_with_provenance(base, incoming, key, timestamp_col=None)`
 
-```python
-from crdt_merge.provenance import merge_with_provenance
+Merge two datasets with full audit trail. Returns `(merged_df, ProvenanceLog)`.
 
-result, log = merge_with_provenance(base_df, incoming_df, key="id")
+- **ProvenanceLog.decisions**: List of `MergeDecision` objects — one per row
+- **ProvenanceLog.to_dataframe()**: Export audit trail as DataFrame
+- **ProvenanceLog.to_json()**: Export as JSON for compliance systems
 
-# Every row records: which source won, what changed, why
-for decision in log.decisions:
-    print(f"Row {decision.key}: {decision.source} won — {decision.reason}")
+#### `MergeDecision`
 
-# Export audit trail
-log.to_dataframe()  # DataFrame of all decisions
-log.to_json()       # JSON audit log
-```
+| Field | Type | Description |
+|-------|------|-------------|
+| `key` | any | Row key value |
+| `source` | str | `"base"`, `"incoming"`, or `"both"` |
+| `reason` | str | Human-readable explanation |
+| `fields_changed` | list | Which columns were modified |
 
-### ✅ Verified Merge Decorator (v0.4.0+)
+### Verification (since v0.3.0, enhanced v0.4.0)
 
-Wrap any merge function with automatic CRDT property verification:
+#### `@verified_merge` (v0.4.0+)
 
-```python
-from crdt_merge.verify import verified_merge
+Decorator that wraps a merge function with automatic CRDT property checks. Verifies idempotency, commutativity, and associativity on every call.
 
-@verified_merge
-def my_merge(a, b, **kwargs):
-    return crdt_merge.merge(a, b, **kwargs)
+#### `verify_convergence(merge_fn, datasets, key)` 
 
-# Automatically checks: idempotency, commutativity, associativity
-result = my_merge(df_a, df_b, key="id")
-```
-## Streaming (since v0.3.0)
+Test convergence across multiple dataset permutations. Returns verification report.
+
+#### `verify_crdt_properties(merge_fn, dataset_a, dataset_b, key)`
+
+Check all three CRDT properties (commutative, associative, idempotent) on a pair of datasets.
+
+### Streaming (since v0.3.0, optimized v0.4.0)
 
 #### `merge_stream(a, b, key="_id", batch_size=5000)`
 
-Batched merge for large datasets. Yields lists of merged rows. O(batch_size) memory.
+Batched merge for large datasets. Yields lists of merged rows. O(batch_size) memory. **v0.4.0: 16x faster at scale.**
 
 #### `merge_sorted_stream(a_iter, b_iter, key="_id", batch_size=5000)`
 
@@ -403,6 +481,20 @@ True streaming merge for pre-sorted generators. Constant memory regardless of in
 #### `StreamStats`
 
 Attached to stream results via `.stats` — tracks `batches_emitted`, `rows_emitted`, `peak_memory_mb`, `elapsed_sec`.
+
+### Delta Sync (since v0.3.0)
+
+#### `Delta(added, removed, modified)`
+
+Represents changes between two dataset versions. Compute with `compute_delta()`, apply with `apply_delta()`.
+
+#### `compute_delta(old, new, key)`
+
+Compute the delta between two versions. Returns a `Delta` object.
+
+#### `apply_delta(base, delta, key)`
+
+Apply a delta to a base dataset to reconstruct the new version.
 
 ---
 
@@ -416,6 +508,8 @@ Attached to stream results via `.stats` — tracks `batches_emitted`, `rows_emit
 - **Offline-first apps**: Sync data between devices that were offline for days
 - **Edge computing**: Stream-merge sensor data from thousands of IoT nodes in constant memory
 - **Multi-tenant SaaS**: Per-column merge strategies let different teams own different fields
+- **Audit & compliance**: Full provenance trails for regulated industries (v0.4.0+)
+- **CI/CD pipelines**: `@verified_merge` in tests to prove correctness before deploy (v0.4.0+)
 
 ## 🤝 Contributing
 
