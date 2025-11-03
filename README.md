@@ -6,7 +6,7 @@
 
 *Latest: v0.4.0 "The Trust Release" — merge provenance, verified merges, 16x streaming speedup*
 
-[![PyPI](https://img.shields.io/pypi/v/crdt-merge.svg)](https://pypi.org/project/crdt-merge/)
+[![PyPI v0.4.0](https://img.shields.io/badge/pypi-v0.4.0-orange.svg)](https://pypi.org/project/crdt-merge/0.4.0/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Tests: 175 passed](https://img.shields.io/badge/tests-175%20passed-brightgreen.svg)](https://github.com/mgillr/crdt-merge)
