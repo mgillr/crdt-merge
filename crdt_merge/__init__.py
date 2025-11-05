@@ -41,7 +41,7 @@ Usage:
     merged = merge_datasets("user/dataset-a", "user/dataset-b", key="id")
 """
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 
 # Core CRDT types
 from .core import GCounter, PNCounter, LWWRegister, ORSet, LWWMap
@@ -84,3 +84,5 @@ from .provenance import (
 
 # v0.4.0: CRDT Verification Decorator
 from .verify import verified_merge, CRDTVerificationError
+from .wire import serialize, deserialize, peek_type, wire_size, serialize_batch, deserialize_batch, WireError
+from .probabilistic import MergeableHLL, MergeableBloom, MergeableCMS
