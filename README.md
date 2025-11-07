@@ -5,13 +5,13 @@
 [![PyPI](https://img.shields.io/badge/pypi-v0.5.0-orange)](https://pypi.org/project/crdt-merge/0.5.0/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-255%20passed-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-412%20passed-brightgreen)](tests/)
 
 > Define your schema. Compose your strategies. Merge your data. Prove it's correct. Audit where every value came from. Stream it at any scale. Serialize across languages. Zero dependencies.
 
 ---
 
-**Navigation:** [What's New in v0.5.0](#-whats-new-in-v050) · [Quick Start](#-quick-start) · [Wire Format](#-cross-language-wire-format) · [Probabilistic CRDTs](#-probabilistic-crdts) · [Provenance](#-merge-provenance--audit-trails) · [Verified Merge](#-verified-merge-decorator) · [Strategies](#-composable-merge-strategies) · [Streaming](#-streaming-merge) · [Benchmarks](#-benchmarks) · [API Reference](#-api-reference)
+**Navigation:** [What's New in v0.5.0](#-whats-new-in-v050) · [Quick Start](#-quick-start) · [Wire Format](#-cross-language-wire-format) · [Probabilistic CRDTs](#-probabilistic-crdts) · [Provenance](#-merge-provenance--audit-trails) · [Verified Merge](#-verified-merge-decorator) · [Strategies](#-composable-merge-strategies) · [Streaming](#-streaming-merge) · [Benchmarks](#-benchmarks) · [Test Results](TEST_RESULTS.md) · [API Reference](#-api-reference)
 
 ---
 
@@ -348,7 +348,7 @@ Throughput is now **flat** regardless of dataset size — the v0.3.0 degradation
 | v0.2.0 | IP Protection | 5 | 791 | 133 | Cross-language parity |
 | v0.3.0 | The Schema Release | 8 | 1,578 | 133 | Strategies + Streaming + Delta |
 | v0.4.0 | The Trust Release | 11 | 2,820 | 175 | Provenance + Verification + 16x streaming |
-| **v0.5.0** | **The Protocol Release** | **13** | **3,790** | **255** | **Wire format + Probabilistic CRDTs** |
+| **v0.5.0** | **The Protocol Release** | **13** | **3,790** | **412** | **Wire format + Probabilistic CRDTs** |
 
 ---
 
