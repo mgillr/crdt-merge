@@ -19,7 +19,7 @@ Usage:
         score=MaxWins(),
         tags=UnionSet(),
     )
-    merged = merge(df_a, df_b, key="id", schema=schema)
+    merged, log = merge_with_provenance(df_a, df_b, key="id", schema=schema)
 
     # Streaming merge — O(batch_size) memory (NEW in v0.3.0)
     from crdt_merge.streaming import merge_stream
@@ -58,7 +58,7 @@ from .json_merge import merge_dicts, merge_json_lines
 
 # v0.3.0: Composable Merge Strategies
 from .strategies import (
-    MergeStrategy, LWW, MaxWins, MinWins, UnionSet, Priority,
+    MergeStrategy, LWW, LongestWins, MaxWins, MinWins, UnionSet, Priority,
     Concat, Custom, MergeSchema,
 )
 
