@@ -4,9 +4,10 @@
 # Commercial licensing: data@optitransfer.ch, rgillespie83@icloud.com
 
 """
-Streaming Merge Pipeline — O(batch_size) memory merge for unlimited scale.
+Streaming Merge Pipeline — generator-based merge for large-scale datasets.
 
-Generator-based processing: never loads entire datasets into memory.
+Processes source_a lazily in batches; source_b is indexed in memory for lookups.
+Memory: O(|source_b| + batch_size). Use when source_a >> source_b.
 Configurable batch_size controls the memory/throughput tradeoff.
 
 v0.4.0 optimizations:
