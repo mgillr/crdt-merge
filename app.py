@@ -3,6 +3,7 @@ crdt-merge — HuggingFace Space Demo
 Conflict-free merge, dedup & sync for DataFrames and datasets.
 """
 
+# Requires: gradio>=4.0,<5.0
 import gradio as gr
 import pandas as pd
 import json
