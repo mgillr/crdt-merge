@@ -1,1 +1,4 @@
-pandas>=1.5
+# crdt-merge has ZERO required dependencies.
+# pandas is optional — only needed for DataFrame merge operations.
+# Install with: pip install crdt-merge[pandas]
+# pandas>=1.5
