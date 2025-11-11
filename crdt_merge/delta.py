@@ -210,51 +210,63 @@ def apply_delta(
     return list(index.values())
 
 
-def compose_deltas(*deltas: Delta) -> Delta:
+def compose_deltas(*deltas: Delta, key: Optional[str] = None) -> Delta:
     """
     Compose multiple deltas into one: delta(1→2) ⊔ delta(2→3) == delta(1→3).
 
     This is the key composability property of δ-CRDTs.
     The result contains the net effect of all deltas applied in order.
+
+    Args:
+        *deltas: Delta objects to compose in order.
+        key: Field name used as record key. Required for correct cross-delta
+             cancellation (e.g., add-then-remove netting to nothing).
+             If not provided, falls back to content hashing which cannot
+             cancel operations across deltas.
     """
     if not deltas:
         return Delta()
 
-    # Track the net effect
-    net_added: Dict[str, dict] = {}  # key → record
-    net_modified: Dict[str, dict] = {}  # key → record
+    # Track the net effect — all dicts keyed by string key values
+    net_added: Dict[str, dict] = {}  # str(key_value) → record
+    net_modified: Dict[str, dict] = {}  # str(key_value) → record
     net_removed: Set[str] = set()
+
+    def _record_key(record: dict) -> str:
+        """Extract a consistent string key from a record."""
+        if key and key in record:
+            return str(record[key])
+        # Fallback: content hash (cannot match removal keys)
+        return hashlib.sha256(str(sorted(record.items())).encode()).hexdigest()[:16]
 
     for delta in deltas:
         # Process removals first
         for k in delta.removed:
-            net_added.pop(k, None)
-            net_modified.pop(k, None)
-            net_removed.add(k)
+            k_str = str(k)
+            if k_str in net_added:
+                # Was added in a prior delta, now removed → net effect: nothing
+                del net_added[k_str]
+            else:
+                # Genuinely removed (may also cancel a prior modification)
+                net_modified.pop(k_str, None)
+                net_removed.add(k_str)
 
         # Process modifications
         for r in delta.modified:
-            # Find the key value — need to determine which field is the key
-            # Use the first field that was in removed/added as hint, or first field
-            k = None
-            for field, val in r.items():
-                k = str(val)
-                break
-            # Store by a content hash since we don't know the key field name
-            rkey = hashlib.sha256(str(sorted(r.items())).encode()).hexdigest()[:16]
-
+            rkey = _record_key(r)
             if rkey in net_removed:
                 # Was removed then modified — it's back, treat as add
                 net_removed.discard(rkey)
                 net_added[rkey] = r
             elif rkey in net_added:
+                # Was added then modified — update the addition
                 net_added[rkey] = r
             else:
                 net_modified[rkey] = r
 
         # Process additions
         for r in delta.added:
-            rkey = hashlib.sha256(str(sorted(r.items())).encode()).hexdigest()[:16]
+            rkey = _record_key(r)
             net_removed.discard(rkey)
             net_added[rkey] = r
 
