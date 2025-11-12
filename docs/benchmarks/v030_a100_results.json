@@ -1,0 +1,641 @@
+{
+  "version": "0.3.0",
+  "date": "2026-03-25T00:00:00",
+  "platform": "Google Colab A100",
+  "ram_gb": 83.5,
+  "total_measurements": 173,
+  "notebook": "notebooks/crdt_merge_stress_a100.ipynb",
+  "summary": {
+    "suites": 8,
+    "failures": 0,
+    "crdt_properties_verified": 18,
+    "max_scale_rows": 100000000,
+    "min_memory_at_100m": "10.8 MB"
+  },
+  "results": [
+    {
+      "suite": "core",
+      "test": "merge",
+      "scale": 100000,
+      "metric": "throughput",
+      "value": 41943,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "core",
+      "test": "merge",
+      "scale": 100000,
+      "metric": "peak_mb",
+      "value": 31.9,
+      "unit": "MB"
+    },
+    {
+      "suite": "core",
+      "test": "merge",
+      "scale": 500000,
+      "metric": "throughput",
+      "value": 40696,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "core",
+      "test": "merge",
+      "scale": 500000,
+      "metric": "peak_mb",
+      "value": 172.5,
+      "unit": "MB"
+    },
+    {
+      "suite": "core",
+      "test": "merge",
+      "scale": 1000000,
+      "metric": "throughput",
+      "value": 40142,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "core",
+      "test": "merge",
+      "scale": 1000000,
+      "metric": "peak_mb",
+      "value": 343.9,
+      "unit": "MB"
+    },
+    {
+      "suite": "core",
+      "test": "merge",
+      "scale": 2000000,
+      "metric": "throughput",
+      "value": 39577,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "core",
+      "test": "merge",
+      "scale": 2000000,
+      "metric": "peak_mb",
+      "value": 688.4,
+      "unit": "MB"
+    },
+    {
+      "suite": "core",
+      "test": "merge",
+      "scale": 5000000,
+      "metric": "throughput",
+      "value": 39287,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "core",
+      "test": "merge",
+      "scale": 5000000,
+      "metric": "peak_mb",
+      "value": 1513.6,
+      "unit": "MB"
+    },
+    {
+      "suite": "core",
+      "test": "merge",
+      "scale": 10000000,
+      "metric": "throughput",
+      "value": 38989,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "core",
+      "test": "merge",
+      "scale": 10000000,
+      "metric": "peak_mb",
+      "value": 3030.5,
+      "unit": "MB"
+    },
+    {
+      "suite": "strategies",
+      "test": "resolve_row",
+      "scale": 100000,
+      "metric": "throughput",
+      "value": 43977,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "strategies",
+      "test": "resolve_row",
+      "scale": 500000,
+      "metric": "throughput",
+      "value": 42806,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "strategies",
+      "test": "resolve_row",
+      "scale": 1000000,
+      "metric": "throughput",
+      "value": 42177,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "strategies",
+      "test": "resolve_row",
+      "scale": 5000000,
+      "metric": "throughput",
+      "value": 42628,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "merge_stream",
+      "test": "batched",
+      "scale": 100000,
+      "metric": "throughput",
+      "value": 21253,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "merge_stream",
+      "test": "batched",
+      "scale": 100000,
+      "metric": "peak_mb",
+      "value": 111.1,
+      "unit": "MB"
+    },
+    {
+      "suite": "merge_stream",
+      "test": "batched",
+      "scale": 500000,
+      "metric": "throughput",
+      "value": 19042,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "merge_stream",
+      "test": "batched",
+      "scale": 500000,
+      "metric": "peak_mb",
+      "value": 552.9,
+      "unit": "MB"
+    },
+    {
+      "suite": "merge_stream",
+      "test": "batched",
+      "scale": 1000000,
+      "metric": "throughput",
+      "value": 17196,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "merge_stream",
+      "test": "batched",
+      "scale": 1000000,
+      "metric": "peak_mb",
+      "value": 1106.6,
+      "unit": "MB"
+    },
+    {
+      "suite": "merge_stream",
+      "test": "batched",
+      "scale": 2000000,
+      "metric": "throughput",
+      "value": 14372,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "merge_stream",
+      "test": "batched",
+      "scale": 2000000,
+      "metric": "peak_mb",
+      "value": 2220.0,
+      "unit": "MB"
+    },
+    {
+      "suite": "merge_stream",
+      "test": "batched",
+      "scale": 5000000,
+      "metric": "throughput",
+      "value": 9717,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "merge_stream",
+      "test": "batched",
+      "scale": 5000000,
+      "metric": "peak_mb",
+      "value": 5517.8,
+      "unit": "MB"
+    },
+    {
+      "suite": "sorted_stream",
+      "test": "constant_mem",
+      "scale": 100000,
+      "metric": "throughput",
+      "value": 25509,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "sorted_stream",
+      "test": "constant_mem",
+      "scale": 100000,
+      "metric": "peak_mb",
+      "value": 10.6,
+      "unit": "MB"
+    },
+    {
+      "suite": "sorted_stream",
+      "test": "constant_mem",
+      "scale": 500000,
+      "metric": "throughput",
+      "value": 25395,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "sorted_stream",
+      "test": "constant_mem",
+      "scale": 500000,
+      "metric": "peak_mb",
+      "value": 10.6,
+      "unit": "MB"
+    },
+    {
+      "suite": "sorted_stream",
+      "test": "constant_mem",
+      "scale": 1000000,
+      "metric": "throughput",
+      "value": 25380,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "sorted_stream",
+      "test": "constant_mem",
+      "scale": 1000000,
+      "metric": "peak_mb",
+      "value": 10.6,
+      "unit": "MB"
+    },
+    {
+      "suite": "sorted_stream",
+      "test": "constant_mem",
+      "scale": 5000000,
+      "metric": "throughput",
+      "value": 24913,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "sorted_stream",
+      "test": "constant_mem",
+      "scale": 5000000,
+      "metric": "peak_mb",
+      "value": 10.7,
+      "unit": "MB"
+    },
+    {
+      "suite": "sorted_stream",
+      "test": "constant_mem",
+      "scale": 10000000,
+      "metric": "throughput",
+      "value": 24779,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "sorted_stream",
+      "test": "constant_mem",
+      "scale": 10000000,
+      "metric": "peak_mb",
+      "value": 10.7,
+      "unit": "MB"
+    },
+    {
+      "suite": "sorted_stream",
+      "test": "constant_mem",
+      "scale": 50000000,
+      "metric": "throughput",
+      "value": 23261,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "sorted_stream",
+      "test": "constant_mem",
+      "scale": 50000000,
+      "metric": "peak_mb",
+      "value": 10.8,
+      "unit": "MB"
+    },
+    {
+      "suite": "sorted_stream",
+      "test": "constant_mem",
+      "scale": 100000000,
+      "metric": "throughput",
+      "value": 22830,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "sorted_stream",
+      "test": "constant_mem",
+      "scale": 100000000,
+      "metric": "peak_mb",
+      "value": 10.8,
+      "unit": "MB"
+    },
+    {
+      "suite": "batch_tune",
+      "test": "bs_500",
+      "scale": 1000000,
+      "metric": "throughput",
+      "value": 26994,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "batch_tune",
+      "test": "bs_500",
+      "scale": 1000000,
+      "metric": "peak_mb",
+      "value": 0.5,
+      "unit": "MB"
+    },
+    {
+      "suite": "batch_tune",
+      "test": "bs_1000",
+      "scale": 1000000,
+      "metric": "throughput",
+      "value": 25658,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "batch_tune",
+      "test": "bs_1000",
+      "scale": 1000000,
+      "metric": "peak_mb",
+      "value": 1.1,
+      "unit": "MB"
+    },
+    {
+      "suite": "batch_tune",
+      "test": "bs_5000",
+      "scale": 1000000,
+      "metric": "throughput",
+      "value": 25149,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "batch_tune",
+      "test": "bs_5000",
+      "scale": 1000000,
+      "metric": "peak_mb",
+      "value": 5.3,
+      "unit": "MB"
+    },
+    {
+      "suite": "batch_tune",
+      "test": "bs_10000",
+      "scale": 1000000,
+      "metric": "throughput",
+      "value": 25364,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "batch_tune",
+      "test": "bs_10000",
+      "scale": 1000000,
+      "metric": "peak_mb",
+      "value": 10.6,
+      "unit": "MB"
+    },
+    {
+      "suite": "batch_tune",
+      "test": "bs_100000",
+      "scale": 1000000,
+      "metric": "throughput",
+      "value": 25518,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "batch_tune",
+      "test": "bs_100000",
+      "scale": 1000000,
+      "metric": "peak_mb",
+      "value": 106.2,
+      "unit": "MB"
+    },
+    {
+      "suite": "delta",
+      "test": "compute",
+      "scale": 100000,
+      "metric": "throughput",
+      "value": 27153,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "delta",
+      "test": "apply",
+      "scale": 100000,
+      "metric": "throughput",
+      "value": 205108,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "delta",
+      "test": "compute",
+      "scale": 1000000,
+      "metric": "throughput",
+      "value": 26616,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "delta",
+      "test": "apply",
+      "scale": 1000000,
+      "metric": "throughput",
+      "value": 195007,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "delta",
+      "test": "compute",
+      "scale": 5000000,
+      "metric": "throughput",
+      "value": 26003,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "delta",
+      "test": "apply",
+      "scale": 5000000,
+      "metric": "throughput",
+      "value": 190151,
+      "unit": "rows/s"
+    },
+    {
+      "suite": "verify_core",
+      "test": "set_eq",
+      "scale": 100,
+      "metric": "commutativity",
+      "value": 1,
+      "unit": "bool"
+    },
+    {
+      "suite": "verify_core",
+      "test": "set_eq",
+      "scale": 100,
+      "metric": "associativity",
+      "value": 1,
+      "unit": "bool"
+    },
+    {
+      "suite": "verify_core",
+      "test": "set_eq",
+      "scale": 100,
+      "metric": "idempotency",
+      "value": 1,
+      "unit": "bool"
+    },
+    {
+      "suite": "verify_core",
+      "test": "set_eq",
+      "scale": 1000,
+      "metric": "commutativity",
+      "value": 1,
+      "unit": "bool"
+    },
+    {
+      "suite": "verify_core",
+      "test": "set_eq",
+      "scale": 1000,
+      "metric": "associativity",
+      "value": 1,
+      "unit": "bool"
+    },
+    {
+      "suite": "verify_core",
+      "test": "set_eq",
+      "scale": 1000,
+      "metric": "idempotency",
+      "value": 1,
+      "unit": "bool"
+    },
+    {
+      "suite": "verify_lww",
+      "test": "val_eq",
+      "scale": 100,
+      "metric": "commutativity",
+      "value": 1,
+      "unit": "bool"
+    },
+    {
+      "suite": "verify_lww",
+      "test": "val_eq",
+      "scale": 100,
+      "metric": "associativity",
+      "value": 1,
+      "unit": "bool"
+    },
+    {
+      "suite": "verify_lww",
+      "test": "val_eq",
+      "scale": 100,
+      "metric": "idempotency",
+      "value": 1,
+      "unit": "bool"
+    },
+    {
+      "suite": "verify_lww",
+      "test": "val_eq",
+      "scale": 1000,
+      "metric": "commutativity",
+      "value": 1,
+      "unit": "bool"
+    },
+    {
+      "suite": "verify_lww",
+      "test": "val_eq",
+      "scale": 1000,
+      "metric": "associativity",
+      "value": 1,
+      "unit": "bool"
+    },
+    {
+      "suite": "verify_lww",
+      "test": "val_eq",
+      "scale": 1000,
+      "metric": "idempotency",
+      "value": 1,
+      "unit": "bool"
+    },
+    {
+      "suite": "convergence",
+      "test": "5_replicas",
+      "scale": 1000,
+      "metric": "converged",
+      "value": 1,
+      "unit": "bool"
+    },
+    {
+      "suite": "convergence",
+      "test": "5_replicas",
+      "scale": 10000,
+      "metric": "converged",
+      "value": 1,
+      "unit": "bool"
+    },
+    {
+      "suite": "convergence",
+      "test": "5_replicas",
+      "scale": 100000,
+      "metric": "converged",
+      "value": 1,
+      "unit": "bool"
+    },
+    {
+      "suite": "convergence",
+      "test": "5_replicas",
+      "scale": 500000,
+      "metric": "converged",
+      "value": 1,
+      "unit": "bool"
+    },
+    {
+      "suite": "memory",
+      "test": "merge_On",
+      "scale": 100000,
+      "metric": "peak_mb",
+      "value": 137.8,
+      "unit": "MB"
+    },
+    {
+      "suite": "memory",
+      "test": "merge_On",
+      "scale": 1000000,
+      "metric": "peak_mb",
+      "value": 1341.9,
+      "unit": "MB"
+    },
+    {
+      "suite": "memory",
+      "test": "merge_On",
+      "scale": 10000000,
+      "metric": "peak_mb",
+      "value": 13219.5,
+      "unit": "MB"
+    },
+    {
+      "suite": "memory",
+      "test": "sorted_stream_Obatch",
+      "scale": 100000,
+      "metric": "peak_mb",
+      "value": 10.6,
+      "unit": "MB"
+    },
+    {
+      "suite": "memory",
+      "test": "sorted_stream_Obatch",
+      "scale": 1000000,
+      "metric": "peak_mb",
+      "value": 10.6,
+      "unit": "MB"
+    },
+    {
+      "suite": "memory",
+      "test": "sorted_stream_Obatch",
+      "scale": 100000000,
+      "metric": "peak_mb",
+      "value": 10.8,
+      "unit": "MB"
+    }
+  ]
+}
