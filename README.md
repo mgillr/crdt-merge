@@ -330,15 +330,25 @@ Throughput is now **flat** regardless of dataset size — the v0.3.0 degradation
 
 ## 📊 Benchmarks
 
-### Core Operations
+### A100 Stress Test Results (v0.3.0 Baseline)
 
-| Operation | Throughput | Dataset |
-|-----------|-----------|---------|
-| GCounter merge | 1.2M ops/s | 100 nodes |
-| Dict merge | 850K ops/s | 10 fields |
-| Dedup (exact) | 500K items/s | 10K items |
-| Streaming merge | 400K rows/s | Any size |
-| ORSet operations | 200K ops/s | 10K elements |
+Tested on Google Colab A100 (83.5 GB RAM) — **173 measurements, 8 suites, zero failures**.
+
+| Operation | Throughput | Memory | Scale |
+|-----------|----------:|-------:|------:|
+| `merge()` | 40K rows/s | O(n) | 10M rows |
+| `resolve_row()` | 43K rows/s | 0 MB | 5M rows |
+| `merge_sorted_stream()` | **23K rows/s** | **10.8 MB** | **100M rows** |
+| `merge_stream()` | 21K→10K rows/s | O(n) | 5M rows |
+| Delta compute | 26K rows/s | O(n) | 5M rows |
+| Delta apply | **200K rows/s** | O(delta) | 5M rows |
+
+**CRDT Properties Verified**: Commutativity ✅ Associativity ✅ Idempotency ✅ (6,000 trials)
+**Convergence**: 5 replicas × 10 orderings → identical results at 500K rows ✅
+
+> 🏆 `merge_sorted_stream()` processes **100M rows in 10.8 MB** — constant memory at any scale.
+
+📓 [Notebooks](notebooks/) · 📈 [Full Results](docs/benchmarks/)
 
 ### Version History
 
