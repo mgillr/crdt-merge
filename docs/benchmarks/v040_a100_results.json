@@ -1,0 +1,393 @@
+{
+  "version": "0.4.0",
+  "measurements": [
+    {
+      "suite": "provenance",
+      "test": "basic_merge_rows",
+      "value": 3,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "provenance",
+      "test": "total_rows",
+      "value": 3,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "provenance",
+      "test": "merged_rows",
+      "value": 1,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "provenance",
+      "test": "unique_a_rows",
+      "value": 1,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "provenance",
+      "test": "unique_b_rows",
+      "value": 1,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "provenance",
+      "test": "total_conflicts",
+      "value": 2,
+      "unit": "conflicts",
+      "passed": true
+    },
+    {
+      "suite": "provenance",
+      "test": "json_export",
+      "value": 1950,
+      "unit": "bytes",
+      "passed": true
+    },
+    {
+      "suite": "provenance",
+      "test": "json_parseable",
+      "value": true,
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "provenance",
+      "test": "csv_export",
+      "value": 459,
+      "unit": "bytes",
+      "passed": true
+    },
+    {
+      "suite": "provenance",
+      "test": "summary_available",
+      "value": 281,
+      "unit": "chars",
+      "passed": true
+    },
+    {
+      "suite": "provenance",
+      "test": "to_dict",
+      "value": 1192,
+      "unit": "chars",
+      "passed": true
+    },
+    {
+      "suite": "provenance",
+      "test": "schema_provenance_rows",
+      "value": 150,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "provenance",
+      "test": "schema_merged_count",
+      "value": 50,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "provenance",
+      "test": "schema_duration_ms",
+      "value": 1.62,
+      "unit": "ms",
+      "passed": true
+    },
+    {
+      "suite": "provenance",
+      "test": "scale_10k_rows",
+      "value": 15000,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "provenance",
+      "test": "scale_10k_time_ms",
+      "value": 162.3,
+      "unit": "ms",
+      "passed": true
+    },
+    {
+      "suite": "provenance",
+      "test": "scale_10k_conflicts",
+      "value": 9995,
+      "unit": "conflicts",
+      "passed": true
+    },
+    {
+      "suite": "verify",
+      "test": "crdt_verification_passed",
+      "value": true,
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "verify",
+      "test": "commutativity",
+      "value": "Verify(commutativity): \u2705 PASS in 33.8ms",
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "verify",
+      "test": "associativity",
+      "value": "Verify(associativity): \u2705 PASS in 58.6ms",
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "verify",
+      "test": "idempotency",
+      "value": "Verify(idempotency): \u2705 PASS in 14.3ms",
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "verify",
+      "test": "convergence",
+      "value": "Verify(convergence): \u2705 PASS in 157.8ms",
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "verify",
+      "test": "total_trials",
+      "value": 400,
+      "unit": "trials",
+      "passed": true
+    },
+    {
+      "suite": "verify",
+      "test": "total_duration_ms",
+      "value": 264.3,
+      "unit": "ms",
+      "passed": true
+    },
+    {
+      "suite": "verify",
+      "test": "convergence_50trials",
+      "value": true,
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "verify",
+      "test": "convergence_failures",
+      "value": 0,
+      "unit": "failures",
+      "passed": true
+    },
+    {
+      "suite": "verify",
+      "test": "convergence_time_ms",
+      "value": 80.6,
+      "unit": "ms",
+      "passed": true
+    },
+    {
+      "suite": "verify",
+      "test": "decorator_works",
+      "value": 13,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "streaming",
+      "test": "sorted_basic_rows",
+      "value": 1500,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "streaming",
+      "test": "sorted_batches",
+      "value": 1,
+      "unit": "batches",
+      "passed": true
+    },
+    {
+      "suite": "streaming",
+      "test": "sorted_stats_rows_processed",
+      "value": 1500,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "streaming",
+      "test": "sorted_stats_rows_merged",
+      "value": 500,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "streaming",
+      "test": "unsorted_basic_rows",
+      "value": 1500,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "streaming",
+      "test": "unsorted_stats_rows_merged",
+      "value": 500,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "streaming",
+      "test": "batch_control_batches",
+      "value": 8,
+      "unit": "batches",
+      "passed": true
+    },
+    {
+      "suite": "streaming",
+      "test": "batch_control_peak",
+      "value": 0,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "streaming",
+      "test": "schema_stream_rows",
+      "value": 1500,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "streaming",
+      "test": "scale_100k_rows",
+      "value": 150000,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "streaming",
+      "test": "scale_100k_time_ms",
+      "value": 126.0,
+      "unit": "ms",
+      "passed": true
+    },
+    {
+      "suite": "streaming",
+      "test": "scale_100k_rows_per_sec",
+      "value": 1192978.0,
+      "unit": "rows/s",
+      "passed": true
+    },
+    {
+      "suite": "streaming",
+      "test": "sorted_100k_peak_mb",
+      "value": 66.5,
+      "unit": "MB",
+      "passed": true
+    },
+    {
+      "suite": "streaming",
+      "test": "sorted_100k_rows",
+      "value": 150000,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "sanity",
+      "test": "core_merge",
+      "value": 3,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "sanity",
+      "test": "lww_correct",
+      "value": "b",
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "sanity",
+      "test": "diff_works",
+      "value": 268,
+      "unit": "chars",
+      "passed": true
+    },
+    {
+      "suite": "sanity",
+      "test": "gcounter_merge",
+      "value": 8,
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "sanity",
+      "test": "pncounter_merge",
+      "value": 7,
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "sanity",
+      "test": "lww_register",
+      "value": "world",
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "sanity",
+      "test": "orset_merge",
+      "value": 3,
+      "unit": "elements",
+      "passed": true
+    },
+    {
+      "suite": "sanity",
+      "test": "lwwmap_merge",
+      "value": "val2",
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "sanity",
+      "test": "maxwins_strategy",
+      "value": 20,
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "sanity",
+      "test": "delta_compute",
+      "value": 2,
+      "unit": "changes",
+      "passed": true
+    },
+    {
+      "suite": "sanity",
+      "test": "delta_apply",
+      "value": 3,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "sanity",
+      "test": "scale_50k_rows",
+      "value": 75000,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "sanity",
+      "test": "scale_50k_time_ms",
+      "value": 346.1,
+      "unit": "ms",
+      "passed": true
+    }
+  ],
+  "total": 55,
+  "passed": 55,
+  "failed": 0
+}
