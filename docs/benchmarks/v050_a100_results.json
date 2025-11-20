@@ -1,0 +1,365 @@
+{
+  "version": "0.5.0",
+  "measurements": [
+    {
+      "suite": "wire",
+      "test": "gcounter_serialize",
+      "value": 89,
+      "unit": "bytes",
+      "passed": true
+    },
+    {
+      "suite": "wire",
+      "test": "gcounter_peek_type",
+      "value": "g_counter",
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "wire",
+      "test": "gcounter_roundtrip",
+      "value": 300,
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "wire",
+      "test": "gcounter_wire_size",
+      "value": {
+        "total_bytes": 89,
+        "header_bytes": 12,
+        "payload_bytes": 77,
+        "compressed": false,
+        "protocol_version": 1,
+        "type_name": "g_counter"
+      },
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "wire",
+      "test": "pncounter_roundtrip",
+      "value": 30,
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "wire",
+      "test": "pncounter_peek",
+      "value": "pn_counter",
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "wire",
+      "test": "lww_register_roundtrip",
+      "value": "hello",
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "wire",
+      "test": "lww_register_timestamp",
+      "value": 42.0,
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "wire",
+      "test": "orset_roundtrip",
+      "value": 3,
+      "unit": "elements",
+      "passed": true
+    },
+    {
+      "suite": "wire",
+      "test": "lwwmap_roundtrip_name",
+      "value": "Alice",
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "wire",
+      "test": "lwwmap_roundtrip_age",
+      "value": 30,
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "wire",
+      "test": "batch_serialize",
+      "value": 327,
+      "unit": "bytes",
+      "passed": true
+    },
+    {
+      "suite": "wire",
+      "test": "batch_deserialize",
+      "value": 3,
+      "unit": "objects",
+      "passed": true
+    },
+    {
+      "suite": "wire",
+      "test": "batch_gcounter_value",
+      "value": 5,
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "compression",
+      "test": "gcounter_raw_size",
+      "value": 2132,
+      "unit": "bytes",
+      "passed": true
+    },
+    {
+      "suite": "compression",
+      "test": "gcounter_compressed_size",
+      "value": 595,
+      "unit": "bytes",
+      "passed": true
+    },
+    {
+      "suite": "compression",
+      "test": "gcounter_ratio",
+      "value": 0.279,
+      "unit": "x",
+      "passed": true
+    },
+    {
+      "suite": "compression",
+      "test": "gcounter_compressed_roundtrip",
+      "value": 495000,
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "compression",
+      "test": "lwwmap_raw_size",
+      "value": 186867,
+      "unit": "bytes",
+      "passed": true
+    },
+    {
+      "suite": "compression",
+      "test": "lwwmap_compressed_size",
+      "value": 11058,
+      "unit": "bytes",
+      "passed": true
+    },
+    {
+      "suite": "compression",
+      "test": "lwwmap_ratio",
+      "value": 0.059,
+      "unit": "x",
+      "passed": true
+    },
+    {
+      "suite": "compression",
+      "test": "lwwmap_compressed_roundtrip",
+      "value": "value_0value_0value_0value_0value_0value_0value_0value_0value_0value_0",
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "compression",
+      "test": "serialize_1k_ops_ms",
+      "value": 40.7,
+      "unit": "ms",
+      "passed": true
+    },
+    {
+      "suite": "compression",
+      "test": "deserialize_1k_ops_ms",
+      "value": 49.4,
+      "unit": "ms",
+      "passed": true
+    },
+    {
+      "suite": "probabilistic",
+      "test": "hll_cardinality",
+      "value": 8056.0,
+      "unit": "estimated",
+      "passed": true
+    },
+    {
+      "suite": "probabilistic",
+      "test": "hll_error_pct",
+      "value": 0.7,
+      "unit": "%",
+      "passed": true
+    },
+    {
+      "suite": "probabilistic",
+      "test": "hll_standard_error",
+      "value": 0.0081,
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "probabilistic",
+      "test": "hll_size_bytes",
+      "value": 16384,
+      "unit": "bytes",
+      "passed": true
+    },
+    {
+      "suite": "probabilistic",
+      "test": "hll_roundtrip",
+      "value": 8056.0,
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "probabilistic",
+      "test": "bloom_true_positives",
+      "value": 8000,
+      "unit": "/8000",
+      "passed": true
+    },
+    {
+      "suite": "probabilistic",
+      "test": "bloom_false_positive_rate",
+      "value": 0.0,
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "probabilistic",
+      "test": "bloom_estimated_fp",
+      "value": 0.0032,
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "probabilistic",
+      "test": "bloom_size_bytes",
+      "value": 11982,
+      "unit": "bytes",
+      "passed": true
+    },
+    {
+      "suite": "probabilistic",
+      "test": "bloom_roundtrip",
+      "value": true,
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "probabilistic",
+      "test": "cms_popular_estimate",
+      "value": 100,
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "probabilistic",
+      "test": "cms_rare_estimate",
+      "value": 1,
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "probabilistic",
+      "test": "cms_total",
+      "value": 101,
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "probabilistic",
+      "test": "cms_size_bytes",
+      "value": 112000,
+      "unit": "bytes",
+      "passed": true
+    },
+    {
+      "suite": "probabilistic",
+      "test": "cms_roundtrip",
+      "value": 100,
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "probabilistic",
+      "test": "hll_1m_cardinality",
+      "value": 1003157.0,
+      "unit": "estimated",
+      "passed": true
+    },
+    {
+      "suite": "probabilistic",
+      "test": "hll_1m_error_pct",
+      "value": 0.32,
+      "unit": "%",
+      "passed": true
+    },
+    {
+      "suite": "probabilistic",
+      "test": "hll_1m_add_time_ms",
+      "value": 2613.0,
+      "unit": "ms",
+      "passed": true
+    },
+    {
+      "suite": "probabilistic",
+      "test": "hll_1m_size_bytes",
+      "value": 16384,
+      "unit": "bytes",
+      "passed": true
+    },
+    {
+      "suite": "sanity",
+      "test": "core_merge",
+      "value": 3,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "sanity",
+      "test": "provenance",
+      "value": 3,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "sanity",
+      "test": "delta",
+      "value": 2,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "sanity",
+      "test": "streaming",
+      "value": 1500,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "sanity",
+      "test": "verify_crdt",
+      "value": true,
+      "unit": "",
+      "passed": true
+    },
+    {
+      "suite": "sanity",
+      "test": "scale_50k",
+      "value": 75000,
+      "unit": "rows",
+      "passed": true
+    },
+    {
+      "suite": "sanity",
+      "test": "scale_50k_ms",
+      "value": 343.9,
+      "unit": "ms",
+      "passed": true
+    }
+  ],
+  "total": 50,
+  "passed": 50,
+  "failed": 0
+}
