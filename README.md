@@ -7,32 +7,32 @@
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-423%20passed-brightgreen)](tests/)
 
-> Define your schema. Compose your strategies. Merge your data. Prove it's correct. Audit where every value came from. Stream it at any scale. Serialize across languages. Zero dependencies.
+> Define your schema. Compose your strategies. Merge your data. Prove it's correct. Audit where every value came from. Stream it at any scale. Serialize for the wire. Zero dependencies.
 
 ---
 
-**Navigation:** [What's New in v0.5.0](#-whats-new-in-v050) · [Quick Start](#-quick-start) · [Wire Format](#-cross-language-wire-format) · [Probabilistic CRDTs](#-probabilistic-crdts) · [Provenance](#-merge-provenance--audit-trails) · [Verified Merge](#-verified-merge-decorator) · [Strategies](#-composable-merge-strategies) · [Streaming](#-streaming-merge) · [Benchmarks](#-benchmarks) · [Test Results](TEST_RESULTS.md) · [API Reference](#-api-reference)
+**Navigation:** [What's New in v0.5.0](#-whats-new-in-v050) · [Quick Start](#-quick-start) · [Wire Format](#-binary-wire-format) · [Probabilistic CRDTs](#-probabilistic-crdts) · [Provenance](#-merge-provenance--audit-trails) · [Verified Merge](#-verified-merge-decorator) · [Strategies](#-composable-merge-strategies) · [Streaming](#-streaming-merge) · [Benchmarks](#-benchmarks--a100-stress-tests) · [Cross-Language](#-cross-language-ports) · [Test Results](TEST_RESULTS.md) · [API Reference](#-api-reference)
 
 ---
 
 ## 🆕 What's New in v0.5.0
 
-**"The Protocol Release"** — Cross-language interop + probabilistic data structures with CRDT merge semantics.
+**"The Protocol Release"** — compact binary wire format for network-efficient CRDT exchange, plus probabilistic data structures with full CRDT merge semantics.
 
 | Feature | Description | Lines |
 |---------|-------------|-------|
-| 🔌 **Cross-Language Wire Format** | Binary serialize/deserialize all CRDT types — polyglot interop | 475 |
-| 🎲 **Probabilistic CRDTs** | MergeableHLL, MergeableBloom, MergeableCMS — approximate at scale | 493 |
+| 🔌 **Binary Wire Format** | Compact serialize/deserialize for all CRDT types — the foundation for cross-language interop | 475 |
+| 🎲 **Probabilistic CRDTs** | MergeableHLL, MergeableBloom, MergeableCMS — approximate data structures that merge correctly | 493 |
 
 ### New capabilities:
 
 ```python
-# Wire Format — serialize any CRDT to bytes, deserialize in any language
+# Wire Format — serialize any CRDT to a compact binary representation
 from crdt_merge import serialize, deserialize, GCounter
 
 gc = GCounter("node1")
 gc.increment("node1", 100)
-wire_bytes = serialize(gc, compress=True)  # compact binary
+wire_bytes = serialize(gc, compress=True)  # compact binary with zlib
 restored = deserialize(wire_bytes)         # → GCounter with value 100
 
 # Probabilistic CRDTs — space-efficient merge across distributed nodes
@@ -58,7 +58,7 @@ print(merged.contains("192.168.1.1"))
 ### Complete feature matrix:
 
 | Module | Feature | Version | CRDT Properties |
-|--------|---------|---------|-----------------|
+|--------|---------|---------|-----------------| 
 | `core` | GCounter, PNCounter, LWWRegister, ORSet, LWWMap | v0.1.0 | ✅ C/A/I |
 | `dataframe` | `merge()`, `diff()` — list-of-dict merge | v0.1.0 | ✅ C/A/I |
 | `dedup` | Exact, fuzzy, MinHash deduplication | v0.1.0 | — |
@@ -103,11 +103,13 @@ print(merged.value)  # 15
 
 ---
 
-## 🔌 Cross-Language Wire Format
+## 🔌 Binary Wire Format
 
 *New in v0.5.0*
 
-Binary interchange format for polyglot distributed systems. Serialize any CRDT type in Python, deserialize in TypeScript, Rust, or Java (and vice versa).
+Compact binary serialization for all CRDT types. The wire format defines a deterministic byte layout that any language implementation can read and write — making it the foundation for cross-language CRDT exchange.
+
+When a Python node serializes a GCounter into 89 bytes, any implementation that speaks the same wire protocol (TypeScript, Rust, Java) can deserialize those bytes, merge locally, and serialize back. The format handles compression, type tagging, and version negotiation.
 
 ```python
 from crdt_merge import serialize, deserialize, peek_type, wire_size
@@ -116,12 +118,12 @@ from crdt_merge import GCounter, PNCounter, LWWRegister, ORSet, LWWMap
 # Serialize any CRDT type
 gc = GCounter("node1")
 gc.increment("node1", 42)
-data = serialize(gc)                    # 40 bytes
+data = serialize(gc)                    # 89 bytes
 data_compressed = serialize(gc, compress=True)  # ~30 bytes with zlib
 
 # Peek at type without deserializing (for routing)
 peek_type(data)   # → 'g_counter'
-wire_size(data)   # → {'total_bytes': 40, 'type_name': 'g_counter', ...}
+wire_size(data)   # → {'total_bytes': 89, 'type_name': 'g_counter', ...}
 
 # Deserialize back to the correct Python type
 restored = deserialize(data)
@@ -146,7 +148,7 @@ VERSION: Protocol version (uint16 big-endian, currently 1)
 TYPE:    CRDT type tag (uint8)
 FLAGS:   bit 0 = zlib compressed
 LENGTH:  Payload length (uint32 big-endian)
-PAYLOAD: Compact binary-encoded data
+PAYLOAD: Compact binary-encoded CRDT state
 ```
 
 **Supported types:** GCounter (0x01), PNCounter (0x02), LWWRegister (0x03), ORSet (0x04), LWWMap (0x05), Delta (0x10), Generic dict/list (0x20).
@@ -157,7 +159,7 @@ PAYLOAD: Compact binary-encoded data
 
 *New in v0.5.0*
 
-Approximate data structures that trade exact precision for massive space savings — while maintaining **all CRDT properties** (commutativity, associativity, idempotency). Perfect for distributed analytics without central aggregation.
+Approximate data structures that trade exact precision for massive space savings — while maintaining **all CRDT merge properties** (commutativity, associativity, idempotency). Each structure's natural merge operation is already a valid CRDT join, so they work correctly in distributed systems without coordination.
 
 ### MergeableHLL — Cardinality Estimation
 
@@ -328,11 +330,13 @@ Throughput is now **flat** regardless of dataset size — the v0.3.0 degradation
 
 ---
 
-## 📊 Benchmarks
+## 📊 Benchmarks & A100 Stress Tests
 
-### A100 Stress Test Results (v0.3.0 Baseline)
+Every release is stress-tested on Google Colab A100 (40 GB VRAM, 83.5 GB RAM). All results are machine-verifiable — raw JSON and notebooks are in the repo.
 
-Tested on Google Colab A100 (83.5 GB RAM) — **173 measurements, 8 suites, zero failures**.
+### v0.3.0 Baseline — 173 measurements, zero failures
+
+The foundational stress test. 2+ hours on A100, covering core operations at extreme scale.
 
 | Operation | Throughput | Memory | Scale |
 |-----------|----------:|-------:|------:|
@@ -348,9 +352,82 @@ Tested on Google Colab A100 (83.5 GB RAM) — **173 measurements, 8 suites, zero
 
 > 🏆 `merge_sorted_stream()` processes **100M rows in 10.8 MB** — constant memory at any scale.
 
-📓 [Notebooks](notebooks/) · 📈 [Full Results](docs/benchmarks/)
+### v0.4.0 "The Trust Release" — 55 measurements, zero failures
 
-### Version History
+Validates provenance tracking, CRDT property verification, and streaming improvements.
+
+| Suite | Key Result | Detail |
+|-------|-----------|--------|
+| **Provenance** | 10K rows in 162ms | 9,995 conflicts tracked with full audit trail |
+| **Verify** | 400 trials, 0 failures | All 4 CRDT properties proven in 264ms |
+| **Streaming** | **1,192,978 rows/s** | 100K sorted stream merge at 66.5 MB peak |
+| **Sanity** | 50K rows in 346ms | All core types + delta + strategies verified |
+
+**Formal CRDT verification on A100:**
+
+| Property | Result | Time |
+|----------|:------:|-----:|
+| Commutativity | ✅ PASS | 33.8ms |
+| Associativity | ✅ PASS | 58.6ms |
+| Idempotency | ✅ PASS | 14.3ms |
+| Convergence (50 trials) | ✅ PASS | 80.6ms |
+
+### v0.5.0 "The Protocol Release" — 50 measurements, zero failures
+
+Validates binary wire format, compression efficiency, and probabilistic CRDT accuracy.
+
+| Suite | Key Result | Detail |
+|-------|-----------|--------|
+| **Wire Format** | All 5 types roundtrip | GCounter: 89 bytes (12 header + 77 payload) |
+| **Compression** | **94% size reduction** | LWWMap: 186 KB → 11 KB with zlib |
+| **Probabilistic** | 0.32% error at 1M items | HLL: 16 KB constant memory at any cardinality |
+| **Sanity** | 50K rows in 344ms | Zero regression from v0.4.0 baseline |
+
+**Compression ratios (A100-verified):**
+
+| CRDT Type | Raw Size | Compressed | Reduction |
+|-----------|:--------:|:----------:|:---------:|
+| GCounter (1K ops) | 2,132 bytes | 595 bytes | **72%** |
+| LWWMap (1K entries) | 186,867 bytes | 11,058 bytes | **94%** |
+
+**Probabilistic CRDT accuracy (A100-verified):**
+
+| Structure | Items | Estimate | Error | Memory |
+|-----------|------:|:--------:|:-----:|-------:|
+| HyperLogLog | 8,000 | 8,056 | 0.70% | 16 KB |
+| HyperLogLog | 1,000,000 | 1,003,157 | **0.32%** | 16 KB |
+| Bloom Filter | 8,000 | 8,000/8,000 TP | 0% FP | 12 KB |
+| Count-Min Sketch | 101 | exact | 0% | 112 KB |
+
+### Cumulative A100 Results
+
+| Version | Measurements | Pass Rate | Focus |
+|---------|:-----------:|:---------:|-------|
+| v0.3.0 | 173 | **100%** | Core scaling to 100M rows |
+| v0.4.0 | 55 | **100%** | Trust: provenance + verification |
+| v0.5.0 | 50 | **100%** | Protocol: wire format + probabilistic |
+| **Total** | **278** | **100%** | **Zero failures across all releases** |
+
+📓 [Notebooks](notebooks/) · 📈 [Raw Results (JSON)](docs/benchmarks/)
+
+---
+
+## 🌐 Cross-Language Ports
+
+The Python package is the reference implementation. The v0.5.0 wire format defines the canonical byte layout for cross-language CRDT exchange — a Python node can serialize a GCounter, send it over the network, and a Rust or TypeScript node that implements the same wire protocol can deserialize and merge it.
+
+| Language | Package | Version | Status |
+|----------|---------|---------|--------|
+| **Python** | [`crdt-merge`](https://pypi.org/project/crdt-merge/) | v0.5.0 | ✅ Reference implementation |
+| TypeScript | [`crdt-merge`](https://www.npmjs.com/package/crdt-merge) | v0.2.0 | Core CRDTs — wire format planned |
+| Rust | [`crdt-merge`](https://crates.io/crates/crdt-merge) | v0.2.0 | Core CRDTs + CLI — wire format planned |
+| Java | [`crdt-merge-java`](https://github.com/mgillr/crdt-merge-java) | v0.2.0 | Core CRDTs — wire format planned |
+
+**Porting roadmap:** Each port needs to implement the wire format byte layout from v0.5.0 so that `serialize()` in Python produces bytes that `deserialize()` in Rust/TypeScript/Java can read, and vice versa. The cross-language interop test: Python serialize → Rust deserialize → merge → serialize → Python deserialize must roundtrip perfectly.
+
+---
+
+## 📈 Version History
 
 | Version | Codename | Modules | Lines | Tests | Key Innovation |
 |---------|----------|---------|-------|-------|----------------|
@@ -358,7 +435,7 @@ Tested on Google Colab A100 (83.5 GB RAM) — **173 measurements, 8 suites, zero
 | v0.2.0 | IP Protection | 5 | 791 | 133 | Cross-language parity |
 | v0.3.0 | The Schema Release | 8 | 1,578 | 133 | Strategies + Streaming + Delta |
 | v0.4.0 | The Trust Release | 11 | 2,820 | 175 | Provenance + Verification + 16x streaming |
-| **v0.5.0** | **The Protocol Release** | **13** | **3,790** | **412** | **Wire format + Probabilistic CRDTs** |
+| **v0.5.0** | **The Protocol Release** | **13** | **3,790** | **423** | **Wire format + Probabilistic CRDTs** |
 
 ---
 
@@ -428,12 +505,14 @@ Apache 2.0 — see [LICENSE](LICENSE). Copyright 2026 Ryan Gillespie.
 - **@verified_merge** — prove custom merge functions are valid CRDTs
 - **16x streaming speedup** — flat at 400K rows/s regardless of size
 - **Bug fix** — `verify_convergence` middle-out algorithm corrected
+- **A100 validated** — 55 measurements, provenance scales to 10K rows in 162ms
 
 ### v0.3.0 — "The Schema Release"
 - **8 composable merge strategies** + `MergeSchema` DSL
 - **Streaming merge pipeline** — O(batch_size) memory
 - **Delta-state dataset sync** — O(changes) bandwidth
 - **290% throughput improvement** (core merge: 310K → 850K ops/s)
+- **A100 validated** — 173 measurements, 100M rows in 10.8 MB constant memory
 
 ### v0.2.0 — "IP Protection"
 - Cross-language parity: Python, TypeScript, Rust, Java
