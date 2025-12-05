@@ -10,6 +10,8 @@ Merge two HF datasets directly by name or Dataset objects.
 """
 
 from __future__ import annotations
+
+__all__ = ["merge_datasets", "dedup_dataset"]
 from typing import Any, Dict, List, Optional
 
 
@@ -35,6 +37,18 @@ def merge_datasets(
     Returns:
         Merged HF Dataset
     """
+    # DEF-012: Validate input types before importing heavy deps
+    if not isinstance(dataset_a, str) and not hasattr(dataset_a, 'to_pandas'):
+        raise TypeError(
+            f"dataset_a must be a HuggingFace Dataset or dataset name (str), "
+            f"got {type(dataset_a).__name__}. For DataFrames, use crdt_merge.merge() instead."
+        )
+    if not isinstance(dataset_b, str) and not hasattr(dataset_b, 'to_pandas'):
+        raise TypeError(
+            f"dataset_b must be a HuggingFace Dataset or dataset name (str), "
+            f"got {type(dataset_b).__name__}. For DataFrames, use crdt_merge.merge() instead."
+        )
+
     from datasets import Dataset, load_dataset
 
     # Load if string names provided
