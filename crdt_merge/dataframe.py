@@ -19,15 +19,24 @@ Usage:
 """
 
 from __future__ import annotations
+
+__all__ = ["merge", "diff"]
 import hashlib
 import time
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 from .core import LWWRegister
+from .strategies import MergeSchema
 
 
 def _to_records(df: Any) -> Tuple[List[Dict[str, Any]], List[str], str]:
-    """Convert pandas or polars DataFrame to list of dicts. Returns (records, columns, lib)."""
+    """Convert pandas or polars DataFrame to list of dicts. Returns (records, columns, lib).
+
+    DEF-022 NOTE: This conversion is the main performance bottleneck.
+    For simple LWW merges, a pandas-native path using pd.merge() + vectorized
+    conflict resolution would be 10-50× faster. See v0.6.0 roadmap for
+    Arrow-native merge optimization (ArrowMerge).
+    """
     lib = type(df).__module__.split('.')[0]
     if lib == 'pandas':
         return df.to_dict('records'), list(df.columns), 'pandas'
@@ -72,6 +81,7 @@ def merge(
     key: Optional[str] = None,
     timestamp_col: Optional[str] = None,
     prefer: str = "latest",
+    schema: Optional['MergeSchema'] = None,
     dedup: bool = True,
     fuzzy_dedup: bool = False,
     fuzzy_threshold: float = 0.85,
@@ -85,6 +95,9 @@ def merge(
         key: Column to match rows on. If None, performs append + dedup.
         timestamp_col: Column with timestamps for LWW resolution. If None, df_b wins ties.
         prefer: "latest" (default) or "a" or "b" — how to resolve conflicts when no timestamp.
+        schema: Optional MergeSchema for per-column conflict resolution strategies.
+            When provided, overrides the 'prefer' parameter for matched rows.
+            Example: MergeSchema(default=LWW(), score=MaxWins(), tags=UnionSet())
         dedup: If True, remove exact duplicate rows in output.
         fuzzy_dedup: If True, also remove near-duplicate rows (requires key).
         fuzzy_threshold: Similarity threshold for fuzzy dedup (0.0 to 1.0).
@@ -96,6 +109,27 @@ def merge(
     records_b, cols_b, lib_b = _to_records(df_b)
 
     all_columns = list(dict.fromkeys(cols_a + [c for c in cols_b if c not in cols_a]))
+
+    # DEF-002: Validate prefer parameter (prevents silent wrong-winner behavior from typos)
+    _VALID_PREFER = ("a", "b", "latest")
+    if prefer not in _VALID_PREFER:
+        raise ValueError(
+            f"Invalid prefer='{prefer}'. Must be one of: {_VALID_PREFER}"
+        )
+
+    # DEF-001: Validate key column exists (prevents silent empty results from typos)
+    # Skip validation for empty inputs — empty merge is always valid
+    if key is not None and cols_a and cols_b:
+        if key not in cols_a:
+            raise KeyError(
+                f"Key column '{key}' not found in first DataFrame. "
+                f"Available columns: {cols_a}"
+            )
+        if key not in cols_b:
+            raise KeyError(
+                f"Key column '{key}' not found in second DataFrame. "
+                f"Available columns: {cols_b}"
+            )
 
     if key is None:
         # No key: append all rows then dedup
@@ -130,7 +164,11 @@ def merge(
             merged.append(row_b)
         else:
             # Both sides have this key — CRDT merge per cell
-            merged_row = _merge_rows(row_a, row_b, all_columns, timestamp_col, prefer)
+            # DEF-003: Use MergeSchema when provided (overrides prefer)
+            if schema is not None:
+                merged_row = schema.resolve_row(row_a, row_b, timestamp_col=timestamp_col)
+            else:
+                merged_row = _merge_rows(row_a, row_b, all_columns, timestamp_col, prefer)
             merged.append(merged_row)
 
     if dedup:
