@@ -16,6 +16,10 @@ to the same correct state — no coordination, no locks, no conflicts.
 """
 
 from __future__ import annotations
+
+__all__ = [
+    "GCounter", "PNCounter", "LWWRegister", "ORSet", "LWWMap",
+]
 import copy
 import time
 import uuid
@@ -39,6 +43,7 @@ class GCounter:
         return sum(self._counts.values())
 
     def increment(self, node_id: str, amount: int = 1) -> None:
+        """Increment the counter for a node. Note: amount=0 is accepted but is a no-op."""
         if amount < 0:
             raise ValueError("GCounter only supports non-negative increments")
         self._counts[node_id] = self._counts.get(node_id, 0) + amount
@@ -178,6 +183,8 @@ class ORSet:
         return tag
 
     def remove(self, element: Hashable) -> None:
+        """Remove an element. Silent if element doesn't exist (intentional CRDT semantics —
+        remove is idempotent, unlike Python set.remove() which raises KeyError)."""
         if element in self._elements:
             self._elements[element] = set()
 
@@ -240,6 +247,8 @@ class LWWMap:
         return reg.value if reg else default
 
     def delete(self, key: str, timestamp: Optional[float] = None) -> None:
+        """Delete a key. Creates a tombstone even for non-existent keys
+        (intentional CRDT semantics — tombstones ensure distributed consistency)."""
         ts = timestamp or time.time()
         self._tombstones[key] = ts
 
