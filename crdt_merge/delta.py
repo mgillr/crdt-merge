@@ -28,6 +28,10 @@ Usage:
 """
 
 from __future__ import annotations
+
+__all__ = [
+    "Delta", "DeltaStore", "compute_delta", "apply_delta", "compose_deltas",
+]
 import copy
 import hashlib
 import time
@@ -224,6 +228,12 @@ def compose_deltas(*deltas: Delta, key: Optional[str] = None) -> Delta:
              If not provided, falls back to content hashing which cannot
              cancel operations across deltas.
     """
+    if not deltas:
+        return Delta()
+
+    # DEF-007: Handle list argument — compose_deltas([d1, d2]) should work
+    if len(deltas) == 1 and isinstance(deltas[0], (list, tuple)):
+        deltas = tuple(deltas[0])
     if not deltas:
         return Delta()
 
