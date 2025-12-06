@@ -12,6 +12,8 @@ LWW Register — if both sides set a value, the one with the later timestamp
 """
 
 from __future__ import annotations
+
+__all__ = ["merge_dicts", "merge_json_lines"]
 import copy
 import time
 from typing import Any, Dict, List, Optional
@@ -45,6 +47,11 @@ def merge_dicts(
             result[key] = copy.deepcopy(val_b)
         elif key not in b:
             result[key] = copy.deepcopy(val_a)
+        # DEF-004: None = missing (CRDT identity element). Never overwrite real data with None.
+        elif val_b is None and val_a is not None:
+            result[key] = copy.deepcopy(val_a)
+        elif val_a is None and val_b is not None:
+            result[key] = copy.deepcopy(val_b)
         elif isinstance(val_a, dict) and isinstance(val_b, dict):
             result[key] = merge_dicts(val_a, val_b, ts_a, ts_b, full_path)
         elif isinstance(val_a, list) and isinstance(val_b, list):
