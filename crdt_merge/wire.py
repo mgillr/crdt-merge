@@ -40,7 +40,8 @@ Type tags:
     0x10: Delta
     0x20: Generic (any JSON-serializable dict/list)
 
-The payload uses a compact binary encoding for primitives:
+The payload uses a custom compact binary encoding (NOT JSON, NOT MessagePack).
+This is a purpose-built format optimized for CRDT objects:
     0x00: None
     0x01: True
     0x02: False
@@ -55,6 +56,11 @@ The payload uses a compact binary encoding for primitives:
 
 New in v0.5.0.
 """
+
+__all__ = [
+    "serialize", "deserialize", "peek_type", "wire_size",
+    "serialize_batch", "deserialize_batch", "WireError",
+]
 
 import struct
 import zlib
