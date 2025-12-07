@@ -31,6 +31,11 @@ Usage:
 """
 
 from __future__ import annotations
+
+__all__ = [
+    "MergeStrategy", "LWW", "LongestWins", "MaxWins", "MinWins",
+    "UnionSet", "Concat", "Priority", "Custom", "MergeSchema",
+]
 import copy
 import time
 from typing import Any, Callable, Dict, List, Optional, Union
@@ -192,6 +197,8 @@ _STRATEGY_REGISTRY: Dict[str, type] = {
     "Concat": Concat,
     "Priority": Priority,
     "LongestWins": LongestWins,
+    # DEF-011: Custom is NOT in registry — deserialization must fail explicitly
+    # rather than silently falling back to LWW
 }
 
 
@@ -285,13 +292,28 @@ class MergeSchema:
     @classmethod
     def from_dict(cls, d: dict) -> MergeSchema:
         """Deserialize schema from dict."""
+        # DEF-010: Don't mutate input dict — use .get() and filter, not .pop()
+        d = dict(d)  # shallow copy to avoid mutating caller's dict
         default_info = d.pop("__default__", {"strategy": "LWW"})
-        default_cls = _STRATEGY_REGISTRY.get(default_info["strategy"], LWW)
+        default_cls = _STRATEGY_REGISTRY.get(default_info.get("strategy", "LWW"), LWW)
         default = default_cls()
 
         strategies = {}
         for field, info in d.items():
-            strat_cls = _STRATEGY_REGISTRY.get(info["strategy"], LWW)
+            strat_name = info["strategy"]
+            strat_cls = _STRATEGY_REGISTRY.get(strat_name)
+            # DEF-011: Raise on unknown strategies instead of silent LWW fallback
+            if strat_cls is None:
+                if strat_name == "Custom":
+                    raise ValueError(
+                        f"Cannot deserialize Custom strategy for field '{field}'. "
+                        f"Custom strategies require a function reference that cannot "
+                        f"be serialized. Re-create the schema with the Custom function."
+                    )
+                raise ValueError(
+                    f"Unknown strategy '{strat_name}' for field '{field}'. "
+                    f"Known strategies: {list(_STRATEGY_REGISTRY.keys())}"
+                )
             if strat_cls == UnionSet:
                 strategies[field] = UnionSet(separator=info.get("separator", ","))
             elif strat_cls == Concat:
