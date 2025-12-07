@@ -33,6 +33,11 @@ Usage:
 """
 
 from __future__ import annotations
+
+__all__ = [
+    "merge_with_provenance", "MergeDecision", "MergeRecord",
+    "ProvenanceLog", "export_provenance",
+]
 import json
 import time
 from dataclasses import dataclass, field, asdict
@@ -241,6 +246,7 @@ def merge_with_provenance(
     df_a, df_b, key: str = "id",
     schema: Optional[MergeSchema] = None,
     timestamp_col: Optional[str] = None,
+    as_dataframe: bool = False,
 ) -> Tuple:
     """
     Merge two DataFrames/list-of-dicts and return full provenance audit trail.
@@ -258,8 +264,9 @@ def merge_with_provenance(
 
     Returns:
         Tuple of (merged_data, ProvenanceLog).
-        merged_data is a list of dicts (always — even if inputs were DataFrames).
-        Convert back to DataFrame with pd.DataFrame(merged_data) if needed.
+        merged_data is a list of dicts by default.
+        If as_dataframe=True and inputs were DataFrames, returns a DataFrame.
+        Set as_dataframe=True for consistency with merge() return type.
     """
     start = time.time()
     default_strategy = LWW()
@@ -312,6 +319,15 @@ def merge_with_provenance(
     log.total_rows = len(merged_rows)
     log.duration_ms = (time.time() - start) * 1000
 
+    # DEF-006: Optionally return as DataFrame for consistency with merge()
+    if as_dataframe:
+        try:
+            if hasattr(df_a, 'to_dict'):  # pandas DataFrame
+                import pandas as pd
+                return pd.DataFrame(merged_rows), log
+        except Exception:
+            pass  # Fall through to list[dict] return
+
     return merged_rows, log
 
 
@@ -330,12 +346,16 @@ def export_provenance(log: ProvenanceLog, format: str = "json") -> str:
     """
     Export provenance log to JSON or CSV string.
 
+    Note: Returns a string, not a dict. For a dict representation,
+    use log.to_dict() instead.
+
     Args:
         log: The ProvenanceLog to export.
         format: "json" or "csv".
 
     Returns:
-        String in the requested format.
+        str: JSON or CSV string representation.
+            For dict output, use ProvenanceLog.to_dict() directly.
     """
     if format == "json":
         return json.dumps(log.to_dict(), indent=2, default=str)
