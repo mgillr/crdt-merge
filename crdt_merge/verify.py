@@ -30,6 +30,13 @@ Usage:
 """
 
 from __future__ import annotations
+
+__all__ = [
+    "verify_crdt", "verify_commutative", "verify_associative",
+    "verify_idempotent", "verify_convergence",
+    "verified_merge", "CRDTVerificationError",
+    "VerificationResult", "CRDTVerification",
+]
 import random
 import time
 from dataclasses import dataclass, field
@@ -334,7 +341,9 @@ def verified_merge(
     on_fail: str = "raise",
 ):
     """
-    Decorator that verifies a merge function satisfies CRDT laws at decoration time.
+    **DECORATOR** — not a merge function! Apply to your custom merge function.
+
+    Verifies a merge function satisfies CRDT laws at decoration time.
 
     Verification runs ONCE when the function is defined — not on every call.
     The verification result is stored on the function as ._crdt_verified.
