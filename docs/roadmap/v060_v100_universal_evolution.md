@@ -142,7 +142,121 @@ If this roundtrip passes for every CRDT type, the protocol engine is correct. Pe
 
 ---
 
-## 4. The Five Releases: v0.6.0 → v1.0.0
+## 4. The Complete Evolution: v0.1.0 → v1.0.0
+
+### v0.1.0 — "The Launch Release" 🌱
+
+**Codename:** Origin
+**Theme:** Core merge algebra — prove the concept
+**Zero breaking changes:** N/A — first release
+
+The beginning. A single module with a single function: `merge()`. Last-Writer-Wins conflict resolution for tabular data. The question answered: *can CRDT semantics work for batch dataset reconciliation?* Yes.
+
+---
+
+### v0.2.0 — "The IP Protection Release" 🛡️
+
+**Codename:** Foundation
+**Theme:** Establish cross-language presence, protect the intellectual property
+**Zero breaking changes:** All additive
+
+Published to 4 package registries simultaneously (PyPI, npm, crates.io, Maven Central). Basic CRDTs: GCounter, PNCounter, LWWRegister, LWWMap, ORSet. The "plant the flag" release — establish prior art across every major ecosystem.
+
+| Metric | Value |
+|--------|-------|
+| **Languages** | Python, TypeScript, Rust, Java |
+| **Lines** | 1,578 |
+| **Tests** | 133 |
+
+---
+
+### v0.3.0 — "The Schema Release" 📐
+
+**Codename:** Composability
+**Theme:** Per-field merge strategies — the category-defining innovation
+**Zero breaking changes:** All additive
+
+Introduced `MergeSchema` — the composable per-field strategy DSL. Also: delta sync for bandwidth-efficient replication, streaming merge for O(batch_size) memory. This is the release that made crdt-merge unique.
+
+| Feature | What It Does |
+|---------|-------------|
+| **MergeSchema** | Per-field strategy DSL (MaxWins, MinWins, UnionSet, LWW, etc.) |
+| **Delta sync** | Compute + apply deltas — only send what changed |
+| **Streaming merge** | Generator-based O(batch_size) memory merge |
+
+| Metric | Value |
+|--------|-------|
+| **Lines** | 2,820 |
+| **Tests** | 175 |
+
+---
+
+### v0.4.0 — "The Trust Release" 🔍
+
+**Codename:** Auditability
+**Theme:** Know WHY every merge decision was made
+**Zero breaking changes:** All additive
+
+Two modules that transform crdt-merge from "useful library" to "auditable infrastructure": per-field provenance (every merge decision logged with who/what/why/which-strategy) and runtime CRDT verification (`@verified_merge` proves custom merge functions satisfy CRDT laws).
+
+| Feature | What It Does |
+|---------|-------------|
+| **Provenance** | Per-field audit trail: source, strategy, winner, original values |
+| **Verification** | Runtime proof that merge functions satisfy commutativity, associativity, idempotency |
+
+| Metric | Value |
+|--------|-------|
+| **Lines** | 2,820 |
+| **Tests** | 175 |
+
+---
+
+### v0.5.0 — "The Protocol Release" 📡
+
+**Codename:** Interop
+**Theme:** Cross-language wire format — the universal protocol
+**Zero breaking changes:** All additive
+
+The release that made crdt-merge a protocol, not just a library. Compact binary wire format (serialize → compress → transmit → decompress → deserialize). Probabilistic CRDTs (HyperLogLog, Bloom filter, Count-Min Sketch). Deduplication engine. Fuzzy matching. 13 modules, 3,790 lines, 423 tests.
+
+| Feature | What It Does |
+|---------|-------------|
+| **Wire format** | Compact binary serialization for all CRDT types |
+| **Compression** | zlib + zstd, 5-10× reduction |
+| **Probabilistic CRDTs** | MergeableHLL, MergeableBloom, MergeableCMS |
+| **Deduplication** | Exact + fuzzy dedup with configurable thresholds |
+
+| Metric | Value |
+|--------|-------|
+| **Modules** | 13 |
+| **Lines** | 3,790 |
+| **Tests** | 423 |
+
+---
+
+### v0.5.1 — "The Hotfix Release" 🔧
+
+**Theme:** Fix critical API gaps before any new feature work
+**Release timing:** IMMEDIATE
+**Zero breaking changes:** All fixes are additive validation + parameter additions
+
+The flagship `merge()` function now accepts `MergeSchema` for per-field strategies. Plus: input validation (key/prefer), None handling in `merge_dicts()`, `__all__` exports across all 13 modules, docstring improvements. 24 defects resolved from documentation audit.
+
+| Fix | What It Does |
+|-----|-------------|
+| **merge() + MergeSchema** | Flagship function now uses the flagship feature |
+| **Key validation** | `KeyError` on non-existent key column |
+| **Prefer validation** | `ValueError` on invalid prefer values |
+| **None handling** | `merge_dicts()` treats None as missing |
+| **`__all__` exports** | All 13 modules export clean public APIs |
+
+| Metric | Value |
+|--------|-------|
+| **Lines** | ~3,880 |
+| **Tests** | ~438 |
+| **Defects fixed** | 24 |
+
+---
 
 ### v0.6.0 — "The Distributed Release" 🌐
 
@@ -226,8 +340,8 @@ if tree_a.root_hash != tree_b.root_hash:
 | **Conflict-free by design** | Uses existing merge strategies | All CRDT properties preserved at network level |
 
 #### What This Enables
-- **MembraneDB**: Multi-region deployment — EU, US, Asia warehouses sync automatically
-- **HiveGuard**: Threat intel gossip — IOCs propagate across all security nodes
+- **Multi-region sync**: EU, US, Asia warehouses sync automatically via gossip
+- **Threat intelligence**: Security IOCs propagate across all nodes in a mesh
 - **Edge computing**: Laptop/phone collects data offline → syncs to cloud via gossip
 
 #### Test Targets
@@ -995,10 +1109,10 @@ What makes this a universal platform — features nobody else has, all in one li
 
 ---
 
-## 8. What This Means for the Product Stack
+## 8. The Ecosystem Effect
 
 ```
-crdt-merge v1.0.0 (Apache-2.0, open, moated, 20+ languages)
+crdt-merge v1.0.0 (Apache-2.0, open, 20+ languages)
     │
     │  Python reference + libcrdt_merge protocol engine
     │
@@ -1009,16 +1123,14 @@ crdt-merge v1.0.0 (Apache-2.0, open, moated, 20+ languages)
     ├── crdt-merge-airflow (orchestration)
     └── crdt-merge-langchain (AI agents)
         ↓ all used by
-    MembraneDB (BSL/proprietary, $9-$999/mo)
-        ↓ used by
-    Enterprise clients (healthcare, finance, logistics, defense, AI)
+    Applications built on the crdt-merge protocol
 ```
 
-The free core (crdt-merge) builds the ecosystem.  
+The open core builds the ecosystem.  
 The protocol engine creates universal access.  
 The integrations make it sticky.  
 The wire format creates network effects.  
-The products (MembraneDB) monetize it.
+The standard wins.
 
 ---
 
