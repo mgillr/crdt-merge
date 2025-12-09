@@ -127,9 +127,9 @@ These build the moat. Provenance makes it enterprise-ready. Verification makes i
 ### Phase 3 — v0.5.0 "The Protocol Release" (8-10 weeks after)
 **Ship: Innovations 2 + 5 (Delta Sync + Wire Format)**
 
-These enable the distributed systems use case. Delta sync reduces bandwidth. Wire format enables polyglot architectures. Together they unlock MembraneDB's next generation.
+These enable the distributed systems use case. Delta sync reduces bandwidth. Wire format enables polyglot architectures. Together they unlock the next generation of applications built on crdt-merge.
 
-**Why these third:** They're infrastructure. They don't change the developer-facing API dramatically, but they enable the networked product layer (MembraneDB, HiveGuard, etc.).
+**Why these third:** They're infrastructure. They don't change the developer-facing API dramatically, but they enable the networked product layer built on top of the protocol.
 
 ### Phase 4 — v1.0.0 "The Platform Release"
 **Ship: Stability + Documentation + Innovation 7 (Probabilistic, if time)**
@@ -147,7 +147,7 @@ v1.0 is a stability milestone, not a feature milestone. All innovations stable a
 | **Competitive Risk of Waiting** | Low today, but DSON (Helsing) is closest and moving fast in defense sector | ✅ Go now |
 | **Resource Cost** | 7 innovations × 4 languages = 28 surfaces. Needs discipline. | ⚠️ Go with Python-first strategy |
 | **Brand Risk** | Releasing immature features hurts more than waiting. Each release must be solid. | ⚠️ Go with quality gates |
-| **Revenue Impact** | Every v1.0 feature directly benefits MembraneDB's enterprise pitch | ✅ Go |
+| **Revenue Impact** | Every v1.0 feature directly strengthens the enterprise value proposition | ✅ Go |
 | **Community Signal** | A public roadmap with rapid execution builds developer trust faster than any marketing | ✅ Go |
 
 **Overall: SHIP IT.** But ship it in phases, Python-first, with the verification toolkit as the crown jewel.
