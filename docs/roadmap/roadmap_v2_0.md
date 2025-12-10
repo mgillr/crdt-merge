@@ -1,0 +1,1545 @@
+# crdt-merge Roadmap v2.0 — The Definitive Evolution
+
+**Version:** 2.0  
+**Date:** March 28, 2026  
+**Contact:** rgillespie83@icloud.com · data@optitransfer.ch  
+**License:** Apache-2.0  
+**Copyright:** Copyright 2026 Ryan Gillespie
+
+---
+
+## Overview & Philosophy
+
+**crdt-merge** is a comprehensive CRDT merge toolkit — a full solution engine (with multi-language ports) that brings mathematically-proven Conflict-Free Replicated Data Type (CRDT) merge semantics to every merge problem in computing — from tabular data reconciliation to ML model weight merging to compliance-grade audit trails.
+
+It is the **go-to CRDT framework**: a single package that ships the algorithms, strategies, verification, provenance, and tooling needed to merge anything, correctly, with proof.
+
+### Core Tenets
+
+1. **Zero dependencies.** The Python core depends on nothing but the standard library. Optional accelerators (Arrow, torch) are lazy-imported.
+2. **Toolkit, not infrastructure.** No database. No networking. No persistence. Those are product-layer concerns built on top. crdt-merge is the *merge engine* you embed anywhere — products are built on it, not in it.
+3. **Additive evolution.** Every release is backwards-compatible. No breaking changes, ever.
+4. **Python is the reference implementation.** The Rust protocol engine is a thin (~1,000-line) translator, not a rewrite. Everything starts here.
+5. **Formal foundations.** Every merge strategy — tabular or model — is verified against CRDT laws (commutativity, associativity, idempotency) at runtime via `verify_crdt()`.
+6. **Provenance by default.** Every merge operation can produce a full audit trail — who contributed what, when, and how conflicts were resolved. From row-level to parameter-level.
+
+### What Makes This Unique
+
+No other toolkit unifies tabular data merging, model weight merging, and compliance auditing under a single algebraic framework with CRDT guarantees. The competitive landscape is fragmented:
+
+- **CRDT libraries** (Yjs, Automerge, Loro) focus on collaborative text/document editing
+- **Model merging tools** (MergeKit, FusionBench) have zero CRDT guarantees and no provenance
+- **Data merge tools** don't exist as a category — people write ad-hoc pandas code
+- **Compliance tools** operate at the policy layer, not the data layer
+
+crdt-merge is the **complete merge toolkit** that sits beneath all of these — one package, every merge algorithm, formal guarantees, full provenance, enterprise compliance. Everything else is built on top.
+
+---
+
+## Quick Reference Table
+
+| Version | Codename | Key Features | Est. LOC | Est. Tests | Status |
+|---------|----------|-------------|----------|-----------|--------|
+| **v0.5.1** | The Hotfix Release | Core merge, MergeSchema, delta sync, dedup, probabilistic, HF integration | 4,028 | 425 | ✅ COMPLETE |
+| **v0.6.0** | The Performance Release | Arrow-native merge, schema evolution, gossip protocol, vector clocks, Merkle trees | ~6,200 | ~720 | 🔧 Next |
+| **v0.7.0** | The Integration Release | MergeQL (SQL), data stack connectors, self-merging Parquet, conflict visualization | ~9,500 | ~1,100 | 📋 Planned |
+| **v0.8.0** | The Intelligence Release | ModelCRDT (20+ strategies), protocol engine, FFI/WASM, LoRA merging, evolutionary merge | ~14,500 | ~1,800 | 📋 Planned |
+| **v0.9.0** | The Enterprise Release | UnmergeEngine, model unmerging, encryption, RBAC, observability, compliance | ~17,000 | ~2,200 | 📋 Planned |
+| **v1.0.0** | The Platform Release | API freeze, formal spec, security audit, comprehensive docs, certification | ~18,000 | ~2,500 | 📋 Planned |
+
+---
+
+## v0.5.1 — "The Hotfix Release" ✅ COMPLETE
+
+**Status:** Released · **LOC:** 4,028 · **Tests:** 425 (422 pass, 2 skip, 1 xfail) · **Wheel:** 21 KB · **Deps:** 0
+
+### What Shipped
+
+**Core Merge Engine (13 modules):**
+- 8 merge strategies: `LWW`, `MaxWins`, `MinWins`, `UnionSet`, `Concat`, `Priority`, `LongestWins`, `Custom`
+- `MergeSchema` DSL for per-field strategy assignment
+- `merge()`, `merge_with_provenance()`, `merge_stream()`, `merge_sorted_stream()`
+- Delta sync: `compute_delta()`, `apply_delta()`, `compose_deltas()`
+- `verify_crdt()` and `verified_merge()` — runtime CRDT law verification
+- Wire protocol with compression
+
+**Deduplication:**
+- Exact dedup
+- Fuzzy dedup (Dice coefficient)
+- MinHash locality-sensitive hashing
+
+**Probabilistic Data Structures:**
+- `MergeableHLL` — cardinality estimation
+- `MergeableBloom` — set membership
+- `MergeableCMS` — frequency estimation
+
+**Integrations:**
+- HuggingFace Datasets native integration
+- JSON deep merge (`merge_dicts`)
+- Structural diff
+
+**Quality:**
+- All 24 defects identified and fixed
+- Zero regressions
+- Published: PyPI, npm (v0.2.0), crates.io (v0.2.0), Java source (v0.2.0)
+
+### Competitive Position at v0.5.1
+
+| Capability | crdt-merge | Yjs (21.5K ⭐) | Automerge (6.1K ⭐) | MergeKit (6.9K ⭐) |
+|-----------|-----------|----------------|---------------------|-------------------|
+| Tabular data merge | ✅ | ❌ | ❌ | ❌ |
+| Per-field strategy | ✅ | ❌ | ❌ | ❌ |
+| CRDT verification | ✅ | Implicit | Implicit | ❌ |
+| Provenance tracking | ✅ | ❌ | ❌ | ❌ |
+| Delta sync | ✅ | ✅ | ✅ | ❌ |
+| Zero deps | ✅ | ❌ | ❌ | ❌ (torch, etc.) |
+| Model merging | ❌ (v0.8) | ❌ | ❌ | ✅ |
+
+---
+
+## v0.6.0 — "The Performance Release" (Arrow + Schema Evolution)
+
+**Target LOC:** ~6,200 (+2,172) · **Target Tests:** ~720 (+295) · **Breaking Changes:** 0
+
+This release makes crdt-merge *fast* by adding Apache Arrow as an optional backend, and *resilient* by handling schema drift automatically. It also lays the distributed foundation with gossip, vector clocks, and Merkle trees.
+
+### Arrow-Native Merge (~800 lines)
+
+```python
+import pyarrow as pa
+from crdt_merge.arrow import ArrowMerge
+
+# Zero-copy merge on Arrow tables
+left = pa.table({"id": [1, 2], "value": [10, 20]})
+right = pa.table({"id": [2, 3], "value": [25, 30]})
+
+result = ArrowMerge(schema).merge(left, right)
+# Returns Arrow table — no pandas conversion overhead
+```
+
+**Features:**
+- Zero-copy merge operations on `pa.Table` and `pa.RecordBatch`
+- Columnar merge strategies (vectorized, no row iteration)
+- Streaming merge for Arrow IPC files
+- Memory-mapped merge for datasets larger than RAM
+- Automatic fallback to pure-Python when Arrow unavailable
+- Benchmark target: 10x faster than dict-of-dicts for 1M+ rows
+
+### Schema Evolution (~300 lines)
+
+```python
+from crdt_merge.schema_evolution import evolve_schema, SchemaPolicy
+
+# Automatically reconcile schema drift
+merged_schema = evolve_schema(
+    old={"id": "int", "name": "str"},
+    new={"id": "int", "name": "str", "email": "str", "age": "int"},
+    policy=SchemaPolicy.UNION  # or INTERSECTION, LEFT, RIGHT
+)
+```
+
+**Features:**
+- Column addition/removal detection
+- Type widening (int32 → int64, float32 → float64)
+- Configurable policies: `UNION`, `INTERSECTION`, `LEFT_PRIORITY`, `RIGHT_PRIORITY`
+- Default value injection for missing columns
+- Schema compatibility checking
+- Integration with Arrow schema metadata
+
+### Gossip Protocol (~400 lines)
+
+```python
+from crdt_merge.gossip import GossipState, anti_entropy
+
+# Library provides gossip STATE MANAGEMENT — transport is your concern
+state = GossipState(node_id="node-1")
+state.update("key", value, clock)
+
+# Generate anti-entropy digest for sync
+digest = state.digest()
+missing = anti_entropy(local_digest, remote_digest)
+```
+
+**Features:**
+- Push, pull, and push-pull anti-entropy
+- Configurable fanout and sync intervals (state only — scheduling is product-layer)
+- Digest generation for efficient bandwidth usage
+- Crdt-aware state management (merges incoming state using registered strategies)
+- No networking — crdt-merge provides the state machine, you provide transport
+
+### Vector Clocks (~200 lines)
+
+```python
+from crdt_merge.clocks import VectorClock
+
+vc1 = VectorClock({"a": 3, "b": 1})
+vc2 = VectorClock({"a": 2, "b": 4})
+
+merged = vc1.merge(vc2)  # {"a": 3, "b": 4}
+print(vc1.compare(vc2))  # Ordering.CONCURRENT
+```
+
+**Features:**
+- Increment, merge, compare operations
+- Causality detection (happened-before, concurrent, equal)
+- Compact serialization
+- Dotted version vectors for scalability
+- Interval tree clocks (optional, for dynamic node sets)
+
+### Merkle Trees (~400 lines)
+
+```python
+from crdt_merge.merkle import MerkleTree, merkle_diff
+
+tree1 = MerkleTree.from_records(dataset_a, key="id")
+tree2 = MerkleTree.from_records(dataset_b, key="id")
+
+diff = merkle_diff(tree1, tree2)
+# Returns minimal set of keys that differ — O(log n) comparison
+```
+
+**Features:**
+- SHA-256 based content hashing
+- Incremental tree updates (insert/update/delete without full rebuild)
+- Efficient diff: O(log n) comparison for finding divergent records
+- Configurable branching factor
+- Serialization/deserialization for sync
+
+### Additional v0.6.0 Features
+
+**Async Merge (~150 lines):**
+```python
+from crdt_merge.async_merge import amerge, amerge_stream
+
+result = await amerge(left, right, schema)
+async for batch in amerge_stream(source, schema):
+    process(batch)
+```
+
+**Multi-Key Merge (~120 lines):**
+- Composite key support for merge operations
+- Hierarchical key resolution (primary + secondary)
+
+**Parallel Merge (~200 lines):**
+- Thread-pool based parallel merge for large datasets
+- Configurable chunk size and worker count
+- Automatic fallback to sequential for small datasets
+
+### Unicorn Features Delivered at v0.6.0
+
+- **#0: Per-field merge strategies** — v0.5.1 ✅
+- **#1: Formal CRDT verification** — v0.5.1 ✅
+
+### Competitive Position at v0.6.0
+
+| Capability | crdt-merge v0.6 | Delta Lake (8K+ ⭐) | Iceberg (7K+ ⭐) | Polars (35K+ ⭐) |
+|-----------|-----------------|---------------------|-----------------|-----------------|
+| Arrow-native merge | ✅ | Internal | Internal | ✅ (different purpose) |
+| Schema evolution | ✅ | ✅ | ✅ | Partial |
+| CRDT guarantees | ✅ | ❌ | ❌ | ❌ |
+| Gossip state mgmt | ✅ | ❌ | ❌ | ❌ |
+| Vector clocks | ✅ | ❌ | ❌ | ❌ |
+| Zero mandatory deps | ✅ | ❌ | ❌ | ❌ |
+
+---
+
+## v0.7.0 — "The Integration Release" (MergeQL + Data Stack)
+
+**Target LOC:** ~9,500 (+3,300) · **Target Tests:** ~1,100 (+380) · **Breaking Changes:** 0
+
+This release brings SQL-based merge operations and integrations with the modern data stack, making crdt-merge accessible to the massive SQL-literate audience.
+
+### MergeQL — SQL Merge Interface (~500 lines)
+
+```python
+from crdt_merge.mergeql import MergeQL
+
+mql = MergeQL()
+
+# Register sources
+mql.register("customers_east", east_data)
+mql.register("customers_west", west_data)
+
+# SQL-based merge with CRDT semantics
+result = mql.execute("""
+    MERGE customers_east, customers_west
+    ON id
+    STRATEGY LWW FOR updated_at, name, email
+    STRATEGY MaxWins FOR revenue
+    STRATEGY UnionSet FOR tags
+""")
+```
+
+**Features:**
+- SQL-like DSL for merge operations (powered by DuckDB when available, pure-Python fallback)
+- `MERGE ... ON ... STRATEGY` syntax for intuitive per-field strategy assignment
+- Subquery support for filtered merges
+- `EXPLAIN MERGE` for merge plan inspection
+- Provenance columns automatically appended
+- Compatible with CRDV formalism (SIGMOD 2025) — the first implementation of CRDT+SQL theory
+
+**Why this matters:** The CRDV paper (Kleppmann et al., SIGMOD 2025) established the theory for CRDT-aware SQL operations. Nobody has implemented it. MergeQL is the first practical implementation, giving crdt-merge an academic citation advantage.
+
+### Data Stack Connectors
+
+**crdt-merge-kafka (~400 lines):**
+```python
+from crdt_merge.connectors.kafka import KafkaMergeConsumer
+
+consumer = KafkaMergeConsumer(
+    topics=["events-east", "events-west"],
+    schema=my_schema,
+    group_id="merge-group"
+)
+for merged_batch in consumer.consume_and_merge():
+    sink.write(merged_batch)
+```
+
+**crdt-merge-flink (~350 lines):**
+- Custom Flink `MergeFunction` for streaming merge
+- Watermark-aware merge with late data handling
+- State backend integration for incremental merge
+
+**crdt-merge-dbt (~300 lines):**
+```sql
+-- models/merged_customers.sql
+{{ config(materialized='incremental') }}
+
+{{ crdt_merge(
+    sources=['stg_customers_east', 'stg_customers_west'],
+    key='customer_id',
+    strategies={'name': 'LWW', 'revenue': 'MaxWins', 'tags': 'UnionSet'}
+) }}
+```
+
+**crdt-merge-airflow (~250 lines):**
+- `CRDTMergeOperator` for Airflow DAGs
+- Sensor for merge-readiness detection
+- XCom integration for merge provenance
+
+**crdt-merge-langchain (~200 lines):**
+- `CRDTMergeTool` for LangChain agents
+- Merge-as-a-tool for AI data pipelines
+- Provenance-aware RAG merge (merge retrieved contexts with CRDT guarantees)
+
+**crdt-merge-server (~300 lines):**
+- Lightweight HTTP wrapper for crdt-merge operations
+- REST and gRPC endpoints
+- Batch merge API
+- Health/readiness probes
+
+### Self-Merging Parquet (~400 lines)
+
+```python
+from crdt_merge.parquet import SelfMergingParquet
+
+# Parquet files that know how to merge themselves
+smp = SelfMergingParquet("customers.parquet", schema=my_schema)
+smp.ingest("customers_update.parquet")
+# Merge strategy metadata embedded in Parquet file metadata
+```
+
+**Features:**
+- Merge schema stored in Parquet metadata
+- Automatic conflict resolution on append
+- Compaction with provenance preservation
+- Compatible with Delta Lake, Iceberg, Hudi table formats
+
+### Conflict Topology Visualization (~250 lines)
+
+```python
+from crdt_merge.viz import ConflictTopology
+
+topo = ConflictTopology.from_merge(result)
+topo.to_json()  # D3-compatible conflict graph
+topo.summary()  # "147 conflicts across 12 fields, 3 clusters"
+```
+
+**Features:**
+- Conflict frequency heatmaps (field × source matrix)
+- Temporal conflict patterns
+- Conflict clustering (which sources consistently disagree?)
+- JSON/CSV export for external visualization tools
+
+### Unicorn Features Delivered at v0.7.0
+
+- **#2: SQL-based merge** (MergeQL) — FIRST implementation of CRDV theory
+
+### Competitive Position at v0.7.0
+
+| Capability | crdt-merge v0.7 | Electric SQL (10K ⭐) | Gun.js (19K ⭐) | OrbitDB (8.8K ⭐) |
+|-----------|-----------------|----------------------|----------------|------------------|
+| SQL merge syntax | ✅ (MergeQL) | ✅ (different approach) | ❌ | ❌ |
+| Data stack connectors | ✅ (Kafka, Flink, dbt, Airflow) | ❌ | ❌ | ❌ |
+| Self-merging files | ✅ | ❌ | ❌ | ❌ |
+| Conflict visualization | ✅ | ❌ | ❌ | ❌ |
+| Library (embeddable) | ✅ | ❌ (server) | ❌ (framework) | ❌ (database) |
+
+---
+
+## v0.8.0 — "The Intelligence Release" (ModelCRDT + Protocol Engine)
+
+**Target LOC:** ~14,500 (+5,000) · **Target Tests:** ~1,800 (+700) · **Breaking Changes:** 0
+
+This is the transformative release. crdt-merge enters the model merging space — the hottest area in ML tooling (200+ papers, NeurIPS 2025 competition, $100M+ in startup funding) — and brings something nobody else has: **CRDT guarantees, per-parameter provenance, and formal verification for model weight merging.**
+
+---
+
+### The Model Merging Frontier (2023–2026)
+
+Model merging has exploded from a niche technique to a fundamental ML workflow:
+
+- **200+ papers** cataloged in the Awesome-Model-Merging repository (700 ⭐, actively maintained)
+- **ACM Computing Surveys 2026**: 41-page comprehensive survey (Yang et al.) establishing taxonomy
+- **ICLR 2026**: 8+ model merging papers accepted (MergOPT, AdaRank, DC-Merge)
+- **NeurIPS 2025**: Dedicated LLM Merging Competition
+- **ICML 2025**: NegMerge paper introducing weight negation for unlearning
+- **MergeKit**: 6,919 ⭐ with 260 open issues and LGPL-3.0 license (copyleft friction)
+- **FusionBench**: JMLR 2025 — standardized benchmark for model merging
+- **Mergenetic**: New evolutionary merging library (2025)
+
+**The gap crdt-merge fills:** Every existing tool treats model merging as a one-shot operation. None provide:
+- Provenance tracking (which model contributed which parameters?)
+- Formal merge guarantees (is this merge commutative? Can I reorder?)
+- Conflict detection (where do models disagree most?)
+- Reversibility (can I undo a merge contributor?)
+- CRDT-verified merge operations
+
+ModelCRDT is not a MergeKit clone. It's a **CRDT-native model merge engine** that brings the same algebraic rigor crdt-merge applies to tabular data into the model weight space.
+
+---
+
+### Strategy Catalog — 20+ Strategies with Academic Citations
+
+ModelCRDT ships with 25 merge strategies organized into 8 categories. Each strategy is implemented as a `ModelMergeStrategy` class with a common interface, CRDT property verification, and provenance output.
+
+#### Category 1: Basic Strategies (4)
+
+**1. Weight Averaging (`WeightAverage`)**
+- **Paper:** Classic, widely used since FedAvg (McMahan et al., 2017)
+- **Operation:** θ_merged = Σ(αᵢ · θᵢ) where Σαᵢ = 1
+- **CRDT Properties:** ✅ Commutative, ✅ Associative, ✅ Idempotent (with normalization)
+- **Use case:** General-purpose multi-model fusion, federated learning aggregation
+- **Parameters:** `weights: list[float]` (per-model importance)
+
+**2. SLERP (`SphericalLinearInterpolation`)**
+- **Paper:** Shoemake 1985 (quaternions); applied to LLMs 2024 (popularized by MergeKit community)
+- **Operation:** SLERP(θ₁, θ₂, t) = sin((1-t)Ω)/sin(Ω) · θ₁ + sin(tΩ)/sin(Ω) · θ₂
+- **CRDT Properties:** ✅ Commutative (with t=0.5), ⚠️ Pairwise only (not natively associative)
+- **Use case:** Smooth interpolation preserving weight magnitude (avoids "averaging to zero")
+- **Parameters:** `t: float` (interpolation factor, 0.0–1.0)
+
+**3. Task Arithmetic (`TaskArithmetic`)**
+- **Paper:** Ilharco et al., 2023 — "Editing Models with Task Arithmetic"
+- **Operation:** θ_merged = θ_base + Σ(αᵢ · τᵢ) where τᵢ = θᵢ - θ_base (task vectors)
+- **CRDT Properties:** ✅ Commutative, ✅ Associative (over task vectors)
+- **Use case:** Adding/removing capabilities from a base model
+- **Parameters:** `base_model`, `scaling_coefficients: list[float]`
+
+**4. Linear Interpolation (`LinearInterpolation`)**
+- **Paper:** Wortsman et al., 2022 — "Model soups"
+- **Operation:** θ_merged = (1-t)·θ₁ + t·θ₂
+- **CRDT Properties:** ✅ Commutative (with t=0.5), ⚠️ Pairwise only
+- **Use case:** Simple two-model blending, weight space exploration
+- **Parameters:** `t: float` (interpolation factor)
+
+#### Category 2: Subspace / Sparsification Strategies (9)
+
+**5. TIES-Merging (`TIESMerge`)**
+- **Paper:** Yadav et al., NeurIPS 2023 — "TIES-Merging: Resolving Interference When Merging Models"
+- **Operation:** Trim small-magnitude values → Elect majority sign → Merge disjoint means
+- **CRDT Properties:** ✅ Commutative (sign election is commutative), ✅ Associative
+- **Use case:** Multi-task merging with interference resolution
+- **Parameters:** `density: float` (trim threshold, default 0.2), `majority_sign_method: str`
+
+**6. DARE (`DareDropAndRescale`)**
+- **Paper:** Yu et al., 2024 — "Language Models are Super Mario: Absorbing Abilities from Homologous Models as a Free Lunch"
+- **Operation:** Randomly drop delta parameters with probability p, rescale remaining by 1/(1-p)
+- **CRDT Properties:** ⚠️ Stochastic (seed-deterministic for reproducibility)
+- **Use case:** Reducing parameter interference in multi-model merges
+- **Parameters:** `drop_rate: float` (default 0.9), `seed: int`
+
+**7. DELLA (`DellaDropElectLowRank`)**
+- **Paper:** Bansal, 2024 — "DELLA-Merging: Reducing Interference in Model Merging through Magnitude-Based Sampling"
+- **Operation:** DARE + magnitude-aware drop (low-magnitude params more likely dropped) + low-rank adaptation
+- **CRDT Properties:** ⚠️ Stochastic (seed-deterministic)
+- **Use case:** Higher quality than DARE for heterogeneous model sets
+- **Parameters:** `drop_rate: float`, `epsilon: float`, `seed: int`
+
+**8. DARE-TIES (`DareTiesHybrid`)**
+- **Paper:** Community hybrid, 2024
+- **Operation:** DARE dropping + TIES sign election
+- **CRDT Properties:** ⚠️ Stochastic + Commutative sign election
+- **Use case:** Best of both DARE and TIES
+- **Parameters:** `drop_rate: float`, `density: float`, `seed: int`
+
+**9. Model Breadcrumbs (`ModelBreadcrumbs`)**
+- **Paper:** Davari & Belilovsky, 2023 — "Model Breadcrumbs: Scaling Multi-Task Model Merging with Sparse Masks"
+- **Operation:** Sparse binary masks + task vector aggregation
+- **CRDT Properties:** ✅ Commutative (mask union is commutative)
+- **Use case:** Scaling to 10+ model merges with minimal interference
+- **Parameters:** `sparsity: float`, `mask_method: str`
+
+**10. EMR-Merging (`EMRMerge`)**
+- **Paper:** Huang et al., 2024 — "EMR-Merging: Tuning-Free High-Performance Model Merging"
+- **Operation:** Elect (keep important params) → Mask (remove redundant) → Rescale
+- **CRDT Properties:** ✅ Commutative, ✅ Associative
+- **Use case:** Tuning-free merging — no hyperparameter search needed
+- **Parameters:** `importance_metric: str` (default "magnitude")
+
+**11. STAR (`SpectralTruncationAdaptiveRescaling`)**
+- **Paper:** 2025 — Spectral-domain merge via SVD truncation + adaptive rescaling
+- **Operation:** SVD decompose → truncate low-energy components → rescale → reconstruct
+- **CRDT Properties:** ✅ Commutative (spectral operations commute)
+- **Use case:** Preserving dominant features while removing noise across merges
+- **Parameters:** `rank_fraction: float`, `rescale_method: str`
+
+**12. SVD Knot-Tying (`SVDKnotTying`)**
+- **Paper:** 2024 — Tying singular vectors across models to align merge subspaces
+- **Operation:** Align SVD bases → merge in aligned subspace → reconstruct
+- **CRDT Properties:** ✅ Commutative (after alignment)
+- **Use case:** Cross-architecture merging where weight spaces differ structurally
+- **Parameters:** `alignment_method: str`, `rank: int`
+
+**13. AdaRank (`AdaptiveRankPruning`)**
+- **Paper:** ICLR 2026 — "AdaRank: Adaptive Rank Pruning for Efficient Model Merging"
+- **Operation:** Per-layer adaptive rank selection + pruned merge
+- **CRDT Properties:** ✅ Commutative, ✅ Associative
+- **Use case:** Efficient merging of large models (7B+) by adapting rank per layer
+- **Parameters:** `target_rank: int | "auto"`, `importance: str`
+
+#### Category 3: Weighted / Importance-Based Strategies (4)
+
+**14. Fisher-Weighted Merging (`FisherMerge`)**
+- **Paper:** Matena & Raffel, 2022 — "Merging Models with Fisher-Weighted Averaging"
+- **Operation:** θ_merged = Σ(Fᵢ · θᵢ) / Σ(Fᵢ) where Fᵢ is Fisher information matrix
+- **CRDT Properties:** ✅ Commutative, ✅ Associative
+- **Use case:** Information-theoretically optimal merge (weights by parameter importance)
+- **Parameters:** `fisher_matrices: list[Tensor]` or `compute_fisher: bool`
+- **Note:** Requires a calibration dataset to compute Fisher information
+
+**15. RegMean (`RegressionMean`)**
+- **Paper:** Jin et al., 2023 — "Dataless Knowledge Fusion by Merging Weights of Language Models"
+- **Operation:** Closed-form linear regression solution over weight matrices
+- **CRDT Properties:** ✅ Commutative, ✅ Associative
+- **Use case:** Dataless merging — no calibration data needed
+- **Parameters:** `regularization: float`
+
+**16. AdaMerging (`AdaptiveMerging`)**
+- **Paper:** Yang et al., 2024 — "AdaMerging: Adaptive Model Merging for Multi-Task Learning"
+- **Operation:** Learn task-wise or layer-wise merging coefficients via entropy minimization
+- **CRDT Properties:** ⚠️ Adaptive (coefficients learned, but final merge is commutative)
+- **Use case:** Optimal per-task/per-layer weights without manual tuning
+- **Parameters:** `granularity: "task" | "layer"`, `calibration_data`, `epochs: int`
+
+**17. DAM (`DifferentiableAdaptiveMerging`)**
+- **Paper:** 2024 — Differentiable end-to-end merge coefficient optimization
+- **Operation:** Gradient-based optimization of merge coefficients
+- **CRDT Properties:** ⚠️ Adaptive (same as AdaMerging)
+- **Use case:** Fine-grained merge optimization when calibration data is available
+- **Parameters:** `learning_rate: float`, `steps: int`, `calibration_data`
+
+#### Category 4: Evolutionary Strategies (2)
+
+**18. CMA-ES Evolutionary Merge (`EvolutionaryMerge`)**
+- **Paper:** Sakana AI, 2024; M2N2 (GECCO 2025) — Evolutionary merge optimization
+- **Operation:** CMA-ES black-box optimization over strategy hyperparameters and layer-wise weights
+- **CRDT Properties:** ✅ Final merge uses verified strategy; optimization is meta-level
+- **Use case:** Automatically discovering optimal merge configurations
+- **Parameters:** `population_size: int`, `generations: int`, `fitness_fn: Callable`, `strategy_pool: list[str]`
+
+**19. Mergenetic-Style Genetic Merge (`GeneticMerge`)**
+- **Paper:** Mergenetic library, 2025
+- **Operation:** Genetic algorithm with crossover/mutation over merge configurations
+- **CRDT Properties:** ✅ Final merge uses verified strategy
+- **Use case:** Exploring large strategy spaces with genetic diversity
+- **Parameters:** `population_size: int`, `generations: int`, `mutation_rate: float`, `fitness_fn: Callable`
+
+#### Category 5: Unlearning Strategies (2)
+
+**20. NegMerge (`NegativeMerge`)**
+- **Paper:** ICML 2025 — "NegMerge: Weight Negation for Unlearning"
+- **Operation:** θ_merged = θ_base - α · (θ_toxic - θ_base) — negate unwanted task vectors
+- **CRDT Properties:** ✅ Commutative (negation of task vectors commutes)
+- **Use case:** Removing specific capabilities (toxic behavior, copyrighted knowledge, bias)
+- **Connects to:** UnmergeEngine (v0.9.0) for full audit-trail unlearning
+- **Parameters:** `base_model`, `models_to_remove: list`, `scaling: float`
+
+**21. Split-Unlearn-Merge (`SplitUnlearnMerge`)**
+- **Paper:** 2025 — Sequential split → selective unlearn → re-merge pipeline
+- **Operation:** Split model into subspaces → unlearn targeted knowledge → merge clean subspaces
+- **CRDT Properties:** ✅ Commutative (per-subspace operations)
+- **Use case:** Surgical unlearning that preserves unrelated capabilities
+- **Parameters:** `target_knowledge: str`, `subspace_method: str`
+
+#### Category 6: Post-Calibration Strategies (2)
+
+**22. Weight Scope Alignment (`WeightScopeAlignment`)**
+- **Paper:** 2024 — Aligning weight distribution scopes before merging
+- **Operation:** Normalize weight distributions → align scopes → merge
+- **CRDT Properties:** ✅ Commutative (after alignment)
+- **Use case:** Post-merge calibration to fix distribution mismatch
+- **Parameters:** `scope_method: str`, `target_distribution: str`
+
+**23. Representation Surgery (`RepresentationSurgery`)**
+- **Paper:** 2024 — Post-merge representation space correction
+- **Operation:** Analyze merged representation → identify distortions → apply corrective transforms
+- **CRDT Properties:** Post-processing (applied after any CRDT merge)
+- **Use case:** Fixing representation collapse after aggressive merging
+- **Parameters:** `diagnosis_data`, `correction_method: str`
+
+#### Category 7: Safety-Aware Strategies (2)
+
+**24. SafeMERGE (`SafeMerge`)**
+- **Paper:** 2025 — Safety-preserving model merging
+- **Operation:** Identify safety-critical layers → freeze → merge remaining layers
+- **CRDT Properties:** ✅ Commutative (frozen layers excluded from merge)
+- **Use case:** Merging models while preserving safety alignment
+- **Parameters:** `safety_layers: list[str] | "auto"`, `safety_threshold: float`
+
+**25. LED-Merging (`LEDMerge`)**
+- **Paper:** 2025 — Layer-wise Evaluation-Driven merging
+- **Operation:** Per-layer evaluation → keep best-performing source per layer
+- **CRDT Properties:** ✅ Commutative (max selection commutes)
+- **Use case:** Cherry-picking best layers from each model
+- **Parameters:** `eval_fn: Callable`, `eval_data`
+
+#### Honorable Mentions (Tracked, Not Yet Implemented)
+
+These strategies are tracked in the research registry for potential future addition:
+
+- **MergOPT** (ICLR 2026) — Merge-aware optimizer (training-time, not post-hoc)
+- **DC-Merge** (CVPR 2026) — Directional consistency merge (vision-focused)
+- **Transport and Merge** (2026) — Cross-architecture merging via optimal transport
+
+---
+
+### ModelCRDT Architecture (~2,500 lines)
+
+```
+crdt_merge/
+├── model/
+│   ├── __init__.py           # Public API
+│   ├── core.py               # ModelCRDT class, ModelMergeSchema
+│   ├── strategies/
+│   │   ├── __init__.py       # Strategy registry + plugin discovery
+│   │   ├── base.py           # ModelMergeStrategy ABC
+│   │   ├── basic.py          # WeightAverage, SLERP, TaskArithmetic, LinearInterp
+│   │   ├── subspace.py       # TIES, DARE, DELLA, DARE-TIES, Breadcrumbs, EMR, STAR, SVDKnot, AdaRank
+│   │   ├── weighted.py       # Fisher, RegMean, AdaMerging, DAM
+│   │   ├── evolutionary.py   # CMA-ES, Genetic
+│   │   ├── unlearning.py     # NegMerge, SplitUnlearnMerge
+│   │   ├── calibration.py    # WeightScopeAlignment, RepresentationSurgery
+│   │   └── safety.py         # SafeMERGE, LED-Merging
+│   ├── lora.py               # LoRA/adapter first-class support
+│   ├── pipeline.py           # Multi-stage merge pipelines
+│   ├── evolutionary.py       # CMA-ES/genetic optimizer orchestration
+│   ├── provenance.py         # Per-parameter provenance tracking
+│   ├── heatmap.py            # Conflict heatmaps and layer disagreement
+│   ├── safety.py             # Safety-critical layer detection
+│   ├── continual.py          # Continual/sequential merge
+│   ├── federated.py          # FedAvg/FedProx as CRDT operations
+│   ├── formats.py            # MergeKit config import/export, FusionBench compat
+│   └── gpu.py                # GPU acceleration, lazy torch loading
+```
+
+### Core API
+
+```python
+from crdt_merge.model import ModelCRDT, ModelMergeSchema
+
+# Define merge schema — per-layer strategy assignment (just like tabular!)
+schema = ModelMergeSchema({
+    "embed_tokens": "WeightAverage",
+    "layers.0-15.self_attn": "TIES",
+    "layers.0-15.mlp": "DARE",
+    "layers.16-31.self_attn": "SLERP",
+    "layers.16-31.mlp": "TaskArithmetic",
+    "lm_head": "Fisher",
+    # Glob patterns, ranges, and regex supported
+})
+
+# Initialize ModelCRDT
+mcrdt = ModelCRDT(schema)
+
+# Merge models (lazy torch — import only when called)
+result = mcrdt.merge(
+    models=["path/to/model_a", "path/to/model_b", "path/to/model_c"],
+    base_model="path/to/base",  # Required for task-vector strategies
+    output_path="path/to/merged",
+)
+
+# Merge with full provenance
+result = mcrdt.merge_with_provenance(
+    models=["model_a", "model_b"],
+    base_model="base",
+)
+print(result.provenance)
+# {
+#   "layers.0.self_attn.q_proj": {
+#     "source": "model_a",
+#     "strategy": "TIES",
+#     "contribution_weight": 0.73,
+#     "conflict_score": 0.12,
+#     "trimmed_fraction": 0.42,
+#     "sign_votes": {"positive": 2, "negative": 1}
+#   },
+#   ...
+# }
+
+# Verify CRDT properties
+mcrdt.verify(strategy="TIES", sample_size=100)
+# Checks commutativity: merge(A,B) == merge(B,A) for random parameter subsets
+```
+
+---
+
+### LoRA / Adapter Merging — First-Class Citizen
+
+LoRA merging is the #1 use case for model merging in practice. Most models on HuggingFace are LoRA adapters. crdt-merge treats adapters as first-class objects.
+
+```python
+from crdt_merge.model.lora import LoRAMerge, LoRAMergeSchema
+
+schema = LoRAMergeSchema({
+    "default": "WeightAverage",
+    "q_proj": "TIES",
+    "v_proj": "DARE",
+})
+
+merger = LoRAMerge(schema)
+
+# Merge LoRA adapters directly (no base model needed for adapter-only merge)
+merged_adapter = merger.merge_adapters(
+    adapters=["adapter_a", "adapter_b", "adapter_c"],
+    weights=[0.5, 0.3, 0.2],
+)
+
+# Merge adapters THEN apply to base (two-step)
+merged_adapter = merger.merge_adapters(adapters=[...])
+full_model = merger.apply_to_base(merged_adapter, base_model="base")
+
+# Merge adapters of different ranks (automatic rank harmonization)
+merged = merger.merge_adapters(
+    adapters=[lora_r8, lora_r16, lora_r32],
+    rank_strategy="max",  # or "min", "mean", "adaptive"
+)
+
+# Provenance: which adapter contributed which weights?
+result = merger.merge_adapters_with_provenance(adapters=[...])
+print(result.provenance["q_proj"])
+# → {"adapter_a": 0.52, "adapter_b": 0.31, "adapter_c": 0.17}
+```
+
+**LoRA-Specific Features:**
+- Rank harmonization across mismatched adapters
+- Direct adapter-to-adapter merge (no base model decompression)
+- QLoRA support (quantization-aware merge)
+- Multi-adapter fusion (merge N adapters in one pass)
+- Adapter provenance tracking
+
+---
+
+### Multi-Stage Merge Pipelines
+
+Complex merges often require multiple stages. ModelCRDT provides a pipeline DSL.
+
+```python
+from crdt_merge.model.pipeline import MergePipeline
+
+pipeline = MergePipeline([
+    # Stage 1: Merge domain experts
+    {"name": "merge_code", "strategy": "TIES", "models": ["code_a", "code_b"], "base": "base"},
+    {"name": "merge_math", "strategy": "DARE", "models": ["math_a", "math_b"], "base": "base"},
+    # Stage 2: Combine merged experts
+    {"name": "combine", "strategy": "SLERP", "models": ["$merge_code", "$merge_math"], "t": 0.5},
+    # Stage 3: Post-calibration
+    {"name": "calibrate", "strategy": "WeightScopeAlignment", "models": ["$combine"]},
+])
+
+result = pipeline.execute(output_path="merged_final")
+print(result.pipeline_provenance)  # Full provenance across all stages
+```
+
+**Pipeline Features:**
+- DAG-based pipeline execution (stages can depend on previous stages)
+- Checkpoint/resume (save intermediate models)
+- Pipeline-level provenance (tracks full history across stages)
+- Pipeline templates for common patterns (domain-expert fusion, safety-aware merge, etc.)
+- CRDT properties verified at each stage
+
+---
+
+### Evolutionary Merge
+
+Automatically discover optimal merge configurations using evolutionary optimization.
+
+```python
+from crdt_merge.model.evolutionary import EvolutionaryOptimizer
+
+optimizer = EvolutionaryOptimizer(
+    models=["model_a", "model_b", "model_c"],
+    base_model="base",
+    strategy_pool=["TIES", "DARE", "SLERP", "TaskArithmetic", "WeightAverage"],
+    fitness_fn=my_eval_function,  # Your evaluation function
+    search_space={
+        "layer_strategy": "per_layer",   # Different strategy per layer
+        "weights": "continuous",          # Continuous weight search
+        "hyperparams": "per_strategy",    # Strategy-specific hyperparams
+    },
+)
+
+# CMA-ES optimization
+best_config = optimizer.optimize(
+    method="cma-es",
+    population_size=50,
+    generations=100,
+)
+
+# Execute the discovered optimal merge
+result = best_config.execute(output_path="evolved_merge")
+print(best_config.to_yaml())  # Export config for reproducibility
+```
+
+**Evolutionary Features:**
+- CMA-ES and genetic algorithm backends
+- Per-layer strategy search
+- Continuous weight optimization
+- Hyperparameter co-optimization
+- Reproducible configs (export/import YAML)
+- Fitness function interface (plug in any evaluation)
+
+---
+
+### Per-Parameter Provenance Tracking — 🦄 Unicorn Feature #3
+
+**Nobody has this.** MergeKit produces a merged model with zero information about which source contributed which parameter. ModelCRDT tracks provenance at the individual parameter level.
+
+```python
+result = mcrdt.merge_with_provenance(models=[...])
+
+# Per-parameter provenance
+provenance = result.provenance
+
+# Which model contributed most to layer 12's attention weights?
+layer12_attn = provenance["layers.12.self_attn.q_proj"]
+print(layer12_attn.dominant_source)     # "model_a"
+print(layer12_attn.contribution_map)    # {"model_a": 0.62, "model_b": 0.38}
+print(layer12_attn.conflict_score)      # 0.34 (0=agreement, 1=total conflict)
+print(layer12_attn.strategy_used)       # "TIES"
+print(layer12_attn.params_trimmed)      # 0.42 (fraction of params trimmed)
+
+# Aggregate provenance
+summary = provenance.summary()
+print(summary.overall_conflict)         # 0.21
+print(summary.dominant_model)           # "model_a" (contributed most)
+print(summary.layer_conflict_ranking)   # ["layers.16.mlp", "layers.12.self_attn", ...]
+```
+
+**Why this is unique:** Provenance tracking enables:
+- Audit trails for model merging (EU AI Act compliance)
+- Understanding what each source contributed
+- Debugging merge quality issues
+- Connecting to UnmergeEngine for reversibility
+
+---
+
+### Conflict Heatmaps & Visualization — 🦄 Unicorn Feature #4
+
+```python
+from crdt_merge.model.heatmap import ConflictHeatmap
+
+heatmap = ConflictHeatmap.from_merge(result)
+
+# Layer-level conflict map
+print(heatmap.layer_conflicts)
+# {
+#   "layers.0.self_attn": 0.05,   # Low conflict — models agree
+#   "layers.12.mlp": 0.89,        # High conflict — models disagree heavily
+#   "layers.31.self_attn": 0.45,  # Moderate conflict
+# }
+
+# Export for visualization
+heatmap.to_json("conflict_heatmap.json")   # D3/Plotly compatible
+heatmap.to_csv("conflict_heatmap.csv")
+
+# Parameter-level disagreement (for deep debugging)
+detail = heatmap.parameter_detail("layers.12.mlp.gate_proj")
+print(detail.variance_map)       # Tensor of per-parameter variance
+print(detail.sign_agreement)     # Fraction of params where models agree on sign
+print(detail.magnitude_spread)   # How different the magnitudes are
+```
+
+**Visualization Data Outputs:**
+- Layer × Model conflict matrix (heatmap-ready)
+- Sign agreement maps per layer
+- Magnitude distribution comparisons
+- Conflict clustering (which layers form conflict groups?)
+- Temporal conflict evolution (for continual merge)
+
+---
+
+### Safety-Preserving Merge
+
+```python
+from crdt_merge.model.safety import SafetyAwareMerge
+
+safe_merger = SafetyAwareMerge(
+    safety_layers="auto",  # Auto-detect safety-critical layers
+    # Or explicitly: safety_layers=["layers.0-3.*", "lm_head"]
+    safety_threshold=0.1,  # Max allowed deviation in safety layers
+)
+
+result = safe_merger.merge(
+    models=["model_a", "model_b"],
+    base_model="base_with_safety_alignment",
+)
+
+print(result.safety_report)
+# {
+#   "frozen_layers": ["layers.0.self_attn", "layers.1.self_attn", ...],
+#   "safety_deviation": 0.03,  # Within threshold
+#   "merged_layers": ["layers.4-31.*"],
+#   "safety_preserved": True
+# }
+```
+
+---
+
+### Continual / Sequential Merge
+
+Absorb model updates over time without catastrophic forgetting.
+
+```python
+from crdt_merge.model.continual import ContinualMerge
+
+cm = ContinualMerge(
+    base_model="base",
+    strategy="TIES",
+    memory_budget=0.1,  # Keep 10% of capacity for future merges
+)
+
+# Week 1: Absorb code model
+cm.absorb("code_model_v1", weight=0.3)
+
+# Week 2: Absorb math model
+cm.absorb("math_model_v1", weight=0.2)
+
+# Week 3: Update code model (incremental, not from scratch)
+cm.absorb("code_model_v2", weight=0.3, replace="code_model_v1")
+
+# Export current merged state
+cm.export("current_merged_model")
+
+# Full provenance history
+print(cm.history)
+# [
+#   {"timestamp": "2026-01-15", "model": "code_model_v1", "weight": 0.3},
+#   {"timestamp": "2026-01-22", "model": "math_model_v1", "weight": 0.2},
+#   {"timestamp": "2026-01-29", "model": "code_model_v2", "weight": 0.3, "replaced": "code_model_v1"},
+# ]
+```
+
+---
+
+### Federated Learning Bridge
+
+FedAvg and FedProx are literally weighted averages — they ARE CRDT operations. crdt-merge makes this explicit.
+
+```python
+from crdt_merge.model.federated import FederatedMerge
+
+fed = FederatedMerge(strategy="fedavg")  # or "fedprox", "scaffold"
+
+# Each client sends model update
+fed.submit("client_1", model_update_1, num_samples=1000)
+fed.submit("client_2", model_update_2, num_samples=500)
+fed.submit("client_3", model_update_3, num_samples=2000)
+
+# Aggregate (weighted by sample count, CRDT-verified)
+global_model = fed.aggregate()
+
+# Provenance: exactly which client contributed what
+print(global_model.provenance)
+
+# FedProx: proximal term regularization
+fed_prox = FederatedMerge(strategy="fedprox", mu=0.01)
+```
+
+**Federated Features:**
+- FedAvg (sample-weighted average)
+- FedProx (proximal regularization)
+- Secure aggregation hooks (provide your crypto, we do the merge)
+- Client contribution tracking (provenance)
+- Stragglers handling (partial aggregation)
+
+---
+
+### Plugin Architecture for Community Strategies
+
+```python
+from crdt_merge.model.strategies import register_strategy, ModelMergeStrategy
+
+@register_strategy("my_custom_strategy")
+class MyCustomStrategy(ModelMergeStrategy):
+    """Custom community merge strategy."""
+    
+    def merge(self, models, **kwargs):
+        # Your merge logic here
+        ...
+    
+    @property
+    def crdt_properties(self):
+        return {
+            "commutative": True,
+            "associative": True,
+            "idempotent": False,
+        }
+
+# Now usable in any ModelCRDT schema:
+schema = ModelMergeSchema({"default": "my_custom_strategy"})
+```
+
+**Plugin Features:**
+- `@register_strategy` decorator for zero-boilerplate registration
+- Entry point discovery (`crdt_merge.strategies` entry point group)
+- CRDT property declaration and runtime verification
+- Strategy metadata (paper reference, author, version)
+- Community strategy index (optional)
+
+---
+
+### MergeKit Config Import/Export
+
+Migration from MergeKit is frictionless.
+
+```python
+from crdt_merge.model.formats import import_mergekit_config, export_mergekit_config
+
+# Import existing MergeKit YAML config
+config = import_mergekit_config("mergekit_config.yaml")
+# → Automatically translated to ModelCRDT schema + pipeline
+
+# Run the merge with CRDT guarantees + provenance
+result = config.execute()
+
+# Export back to MergeKit format (for compatibility)
+export_mergekit_config(schema, "mergekit_compatible.yaml")
+```
+
+### FusionBench Compatibility
+
+```python
+from crdt_merge.model.formats import fusionbench_evaluate
+
+# Evaluate merged model using FusionBench benchmarks
+scores = fusionbench_evaluate(
+    merged_model="path/to/merged",
+    benchmarks=["glue", "mmlu", "hellaswag"],
+)
+```
+
+---
+
+### GPU Acceleration
+
+```python
+from crdt_merge.model.gpu import GPUMerge
+
+# Lazy torch import — torch only loaded when GPUMerge is used
+merger = GPUMerge(
+    device="cuda:0",  # or "auto" for multi-GPU
+    dtype="float16",  # Memory-efficient merging
+    chunk_size="auto",  # Automatic chunking for 7B+ models
+)
+
+# Merge 7B models on a single 24GB GPU
+result = merger.merge(
+    models=["7B_model_a", "7B_model_b"],
+    strategy="TIES",
+    offload="cpu",  # Offload inactive layers to CPU
+)
+```
+
+**GPU Features:**
+- Lazy torch import (torch never loaded unless GPU features used)
+- CUDA-aware tensor operations
+- Automatic chunking for models larger than GPU memory
+- CPU offloading for memory-constrained environments
+- Multi-GPU support (model parallel merge)
+- float16/bfloat16 merge precision
+
+---
+
+### Protocol Engine (~1,000 lines, Rust)
+
+The Rust protocol engine (`crdt-merge-rs`) becomes the **universal merge protocol** — a thin translation layer that lets any language call crdt-merge.
+
+```
+┌──────────┐     ┌──────────────────┐     ┌──────────┐
+│  Python   │────▶│                  │◀────│   Java   │
+├──────────┤     │   Rust Protocol  │     ├──────────┤
+│   Node   │────▶│     Engine       │◀────│    Go    │
+├──────────┤     │  (~1,000 lines)  │     ├──────────┤
+│   Swift  │────▶│                  │◀────│   C/C++  │
+└──────────┘     └──────────────────┘     └──────────┘
+                         │
+                    ┌────┴────┐
+                    │  WASM   │ ← Browser/Edge
+                    └─────────┘
+```
+
+**Protocol Engine Features:**
+- Binary wire protocol for merge operations
+- Language-agnostic merge schema serialization
+- FFI wrappers generated for 20+ languages
+- WASM compilation for browser/edge deployment
+- Performance: near-zero overhead for protocol translation
+- NOT a rewrite — Python remains the reference implementation
+
+### FFI Wrappers (~200 lines each, auto-generated)
+
+- Python (native, reference)
+- TypeScript/JavaScript (crdt-merge-ts, update to v0.5.0+)
+- Rust (crdt-merge-rs, protocol engine)
+- Java (crdt-merge-java, update to v0.5.0+)
+- Go, Swift, Kotlin, C#, C/C++, Ruby, PHP, Dart, Elixir, Scala, R, Julia, Zig, Lua, Haskell, OCaml
+
+### WASM Target (~300 lines)
+
+```javascript
+import { CRDTMerge } from 'crdt-merge-wasm';
+
+const merger = new CRDTMerge();
+const result = merger.merge(left, right, schema);
+```
+
+---
+
+### Unicorn Features Delivered at v0.8.0
+
+- **#0: Per-field merge strategies** — v0.5.1 ✅
+- **#1: Formal CRDT verification** — v0.5.1 ✅
+- **#2: SQL-based merge** (MergeQL) — v0.7.0
+- **#3: Per-parameter provenance tracking for model merges** — v0.8.0 🆕
+- **#4: Conflict heatmaps / layer disagreement visualization** — v0.8.0 🆕
+- **#5: CRDT-verified model merging** (25 strategies with formal properties) — v0.8.0 🆕
+- **#6: LoRA-native merge with rank harmonization** — v0.8.0 🆕
+- **#7: Evolutionary merge optimization** — v0.8.0 🆕
+
+### Competitive Position at v0.8.0
+
+| Capability | crdt-merge v0.8 | MergeKit (6.9K ⭐) | FusionBench | Mergenetic |
+|-----------|-----------------|-------------------|-------------|------------|
+| Merge strategies | 25 | ~10 | Eval only | Evolutionary only |
+| CRDT verification | ✅ | ❌ | ❌ | ❌ |
+| Per-param provenance | ✅ | ❌ | ❌ | ❌ |
+| Conflict heatmaps | ✅ | ❌ | ❌ | ❌ |
+| LoRA first-class | ✅ | ✅ | ❌ | ❌ |
+| Evolutionary merge | ✅ | ❌ | ❌ | ✅ |
+| Safety-aware merge | ✅ | ❌ | ❌ | ❌ |
+| Continual merge | ✅ | ❌ | ❌ | ❌ |
+| Federated bridge | ✅ | ❌ | ❌ | ❌ |
+| Plugin architecture | ✅ | ❌ | ❌ | ❌ |
+| MergeKit compat | ✅ (import/export) | Native | ❌ | ❌ |
+| License | Apache-2.0 | LGPL-3.0 ⚠️ | Apache-2.0 | MIT |
+| Tabular + Model merge | ✅ | ❌ (model only) | ❌ (eval only) | ❌ (model only) |
+
+**Key differentiator:** MergeKit is LGPL-3.0, which creates friction for commercial users. crdt-merge is Apache-2.0. Combined with provenance, verification, and tabular+model unification, crdt-merge is the **only production-grade choice** for enterprises.
+
+---
+
+## v0.9.0 — "The Enterprise Release" (UnmergeEngine + Compliance)
+
+**Target LOC:** ~17,000 (+2,500) · **Target Tests:** ~2,200 (+400) · **Breaking Changes:** 0
+
+### UnmergeEngine (~600 lines)
+
+The reverse of merge. Given a merged result and provenance, surgically remove a contributor's data.
+
+```python
+from crdt_merge.unmerge import UnmergeEngine
+
+engine = UnmergeEngine()
+
+# Tabular unmerge: remove a data source
+unmerged = engine.unmerge(
+    merged_data=current_merged,
+    provenance=merge_provenance,
+    remove_source="source_b",
+)
+
+# Verify completeness
+report = engine.verify_unmerge(unmerged, removed_source="source_b")
+print(report.residual_data)  # 0 bytes — complete removal
+```
+
+### Model Unmerging (~400 lines)
+
+Connects to NegMerge (v0.8.0) and provenance tracking for model-level contributor removal.
+
+```python
+from crdt_merge.unmerge import ModelUnmerge
+
+unmerger = ModelUnmerge()
+
+# Remove a model's contribution from a merged model
+clean_model = unmerger.unmerge_model(
+    merged_model="path/to/merged",
+    provenance=merge_provenance,
+    remove_model="toxic_model",
+    method="negmerge",  # or "surgical", "proportional"
+)
+
+# Verify: how much of the removed model's influence remains?
+residual = unmerger.measure_residual(clean_model, "toxic_model")
+print(residual.influence_score)  # 0.02 (near zero)
+```
+
+**Why this matters:** The paper "Towards Reversible Model Merging" (ArXiv 2025) validates this approach. Combined with crdt-merge's per-parameter provenance, this is the most rigorous model unmerging available.
+
+### GDPR "Right to Be Forgotten" for Training Contributions
+
+```python
+from crdt_merge.unmerge import GDPRForget
+
+forget = GDPRForget(engine=UnmergeEngine())
+
+# Data-level: remove all records from a specific contributor
+result = forget.forget_data(
+    merged_data=current,
+    provenance=provenance,
+    contributor="user_12345",
+)
+
+# Model-level: remove training data influence
+result = forget.forget_training_data(
+    model="merged_model",
+    provenance=training_provenance,
+    data_to_forget="user_12345_training_data",
+)
+
+# Generate compliance report
+report = forget.compliance_report()
+print(report.to_pdf())  # Auditor-ready PDF
+```
+
+### Encryption (~300 lines)
+
+```python
+from crdt_merge.encryption import EncryptedMerge
+
+em = EncryptedMerge(key_provider=my_key_provider)
+
+# Merge encrypted data without decrypting
+# (order-preserving encryption for LWW/Max/Min strategies)
+result = em.merge(encrypted_left, encrypted_right, schema)
+```
+
+**Features:**
+- Encrypted merge (merge without decrypting where strategy permits)
+- At-rest encryption for provenance records
+- Key rotation support
+- Audit log encryption
+
+### RBAC — Role-Based Access Control (~200 lines)
+
+```python
+from crdt_merge.rbac import MergePolicy, Role
+
+policy = MergePolicy({
+    Role.ADMIN: {"can_merge": True, "can_unmerge": True, "can_view_provenance": True},
+    Role.ANALYST: {"can_merge": True, "can_unmerge": False, "can_view_provenance": True},
+    Role.VIEWER: {"can_merge": False, "can_unmerge": False, "can_view_provenance": True},
+})
+
+# Enforce at merge time
+result = merge(left, right, schema, policy=policy, role=current_user.role)
+```
+
+### Observability (~300 lines)
+
+```python
+from crdt_merge.observability import MergeMetrics
+
+metrics = MergeMetrics()
+
+# OpenTelemetry-compatible merge tracing
+with metrics.trace_merge("customer_sync") as span:
+    result = merge(left, right, schema)
+    span.set_attribute("conflicts", result.conflict_count)
+    span.set_attribute("records_merged", result.record_count)
+
+# Prometheus-compatible metrics
+metrics.export_prometheus()
+```
+
+**Features:**
+- OpenTelemetry trace integration
+- Prometheus metrics export
+- Merge duration, conflict count, throughput metrics
+- Custom metric hooks
+
+### Compliance Suite (~400 lines)
+
+```python
+from crdt_merge.compliance import ComplianceAuditor
+
+auditor = ComplianceAuditor(framework="gdpr")  # or "hipaa", "sox", "eu_ai_act"
+
+# Audit a merge operation
+audit_result = auditor.audit(merge_provenance)
+
+# Generate compliance report
+report = auditor.generate_report(
+    format="pdf",
+    include_provenance=True,
+    include_data_lineage=True,
+)
+
+# EU AI Act specific: model provenance documentation
+ai_act_report = auditor.ai_act_compliance(
+    model_provenance=model_merge_provenance,
+    training_data_provenance=training_provenance,
+)
+```
+
+### Unicorn Features Delivered at v0.9.0
+
+- **#8: Reversible merge (UnmergeEngine)** — v0.9.0 🆕
+- **#9: Model unmerging with provenance-guided contributor removal** — v0.9.0 🆕
+- **#10: GDPR "right to be forgotten" at the merge layer** — v0.9.0 🆕
+
+### Competitive Position at v0.9.0
+
+| Capability | crdt-merge v0.9 | Ditto ($82M) | Electric SQL (10K ⭐) | PowerSync (646 ⭐) |
+|-----------|-----------------|-------------|----------------------|-------------------|
+| Unmerge/rollback | ✅ (provenance-guided) | ❌ | ❌ | ❌ |
+| Model unmerging | ✅ | ❌ | ❌ | ❌ |
+| GDPR compliance | ✅ (data + model) | Partial | ❌ | ❌ |
+| EU AI Act | ✅ | ❌ | ❌ | ❌ |
+| Encryption | ✅ | ✅ | ❌ | ❌ |
+| RBAC | ✅ | ✅ | ❌ | ❌ |
+| Observability | ✅ | ✅ | ❌ | ❌ |
+| Library (embeddable) | ✅ | ❌ (proprietary) | ❌ (server) | ❌ (service) |
+| Open source | ✅ Apache-2.0 | ❌ | ✅ | ✅ |
+
+---
+
+## v1.0.0 — "The Platform Release" (Freeze + Certify)
+
+**Target LOC:** ~18,000 (+1,000) · **Target Tests:** ~2,500 (+300) · **Breaking Changes:** 0
+
+### API Freeze
+
+- Stable public API — no breaking changes from v1.0 onwards
+- Semantic versioning strictly enforced
+- Deprecation policy: minimum 2 minor versions before removal
+
+### Formal Specification (~200 pages)
+
+```
+crdt-merge-spec/
+├── 01-foundations.md      # CRDT algebra, merge semantics
+├── 02-tabular.md          # Tabular merge specification
+├── 03-model.md            # Model merge specification
+├── 04-protocol.md         # Wire protocol specification
+├── 05-compliance.md       # Compliance guarantees
+├── 06-security.md         # Security model
+└── appendix-proofs.md     # Mathematical proofs of CRDT properties
+```
+
+- Full mathematical specification of all merge operations
+- CRDT property proofs for every strategy
+- Wire protocol specification (for multi-language interop)
+- Security model documentation
+- Target: publishable as academic paper / technical report
+
+### Security Audit
+
+- Third-party security audit of core merge engine
+- Cryptographic review of encryption module
+- Fuzz testing (all strategies, all input types)
+- CVE process established
+
+### Comprehensive Documentation
+
+- Full API reference (auto-generated from docstrings)
+- Tutorial series (beginner → advanced)
+- Architecture guide
+- Migration guides (from MergeKit, from ad-hoc pandas)
+- Performance tuning guide
+- Strategy selection guide (decision tree)
+
+### Multi-Language Parity
+
+- TypeScript (crdt-merge-ts) updated to v1.0 feature parity
+- Rust (crdt-merge-rs) protocol engine stable
+- Java (crdt-merge-java) updated to v1.0 feature parity
+- Go, Swift, C# FFI wrappers tested and documented
+
+### Unicorn Features — Complete List at v1.0
+
+| # | Feature | Version | Status |
+|---|---------|---------|--------|
+| 0 | Per-field merge strategies (MergeSchema) | v0.5.1 | ✅ |
+| 1 | Formal CRDT verification (`verify_crdt`) | v0.5.1 | ✅ |
+| 2 | SQL-based merge (MergeQL / CRDV implementation) | v0.7.0 | 📋 |
+| 3 | Per-parameter provenance tracking (model merges) | v0.8.0 | 📋 |
+| 4 | Conflict heatmaps / layer disagreement visualization | v0.8.0 | 📋 |
+| 5 | CRDT-verified model merging (25 strategies) | v0.8.0 | 📋 |
+| 6 | LoRA-native merge with rank harmonization | v0.8.0 | 📋 |
+| 7 | Evolutionary merge optimization | v0.8.0 | 📋 |
+| 8 | Reversible merge (UnmergeEngine) | v0.9.0 | 📋 |
+| 9 | Model unmerging (provenance-guided) | v0.9.0 | 📋 |
+| 10 | GDPR "right to be forgotten" at merge layer | v0.9.0 | 📋 |
+
+---
+
+## Evolution Summary Table
+
+| Metric | v0.5.1 | v0.6.0 | v0.7.0 | v0.8.0 | v0.9.0 | v1.0.0 |
+|--------|--------|--------|--------|--------|--------|--------|
+| **LOC** | 4,028 | ~6,200 | ~9,500 | ~14,500 | ~17,000 | ~18,000 |
+| **Tests** | 425 | ~720 | ~1,100 | ~1,800 | ~2,200 | ~2,500 |
+| **Modules** | 13 | 19 | 28 | 45 | 52 | 55 |
+| **Merge Strategies (tabular)** | 8 | 8 | 8 | 8 | 8 | 8 |
+| **Merge Strategies (model)** | 0 | 0 | 0 | 25 | 25 | 25+ |
+| **Languages** | 4 | 4 | 4 | 20+ | 20+ | 20+ |
+| **Dependencies (required)** | 0 | 0 | 0 | 0 | 0 | 0 |
+| **Unicorn Features** | 2 | 2 | 3 | 8 | 11 | 11 |
+
+---
+
+## The Build Cascade (Timeline)
+
+```
+2026 Q1  ████████████████████████  v0.5.1 COMPLETE ✅
+         │
+2026 Q2  ████████████████████████  v0.6.0 — Arrow, Schema Evolution, Gossip, Clocks, Merkle
+         │                          Target: June 2026
+         │
+2026 Q3  ████████████████████████  v0.7.0 — MergeQL, Data Stack Connectors, Self-Merging Parquet
+         │                          Target: September 2026
+         │
+2026 Q4  ████████████████████████  v0.8.0 — ModelCRDT (25 strategies), Protocol Engine, FFI/WASM
+  2027   ████████████████████████   Target: January 2027
+         │                          (Largest release — 3-4 month cycle)
+         │
+2027 Q1  ████████████████████████  v0.9.0 — UnmergeEngine, Model Unmerge, Encryption, RBAC
+         │                          Target: April 2027
+         │
+2027 Q2  ████████████████████████  v1.0.0 — API Freeze, Formal Spec, Security Audit, Docs
+                                    Target: July 2027
+```
+
+### Critical Path Dependencies
+
+```
+v0.5.1 ──▶ v0.6.0 ──▶ v0.7.0 ──▶ v0.8.0 ──▶ v0.9.0 ──▶ v1.0.0
+  │           │           │           │           │
+  │           │           │           ├── ModelCRDT depends on Arrow (v0.6)
+  │           │           │           ├── Protocol Engine can start at v0.6
+  │           │           │           └── Evolutionary merge needs fitness eval infra
+  │           │           │
+  │           │           ├── MergeQL depends on DuckDB + Schema Evolution (v0.6)
+  │           │           └── Connectors depend on Arrow + Streaming (v0.6)
+  │           │
+  │           ├── Arrow depends on core merge engine (v0.5.1)
+  │           └── Gossip/Clocks/Merkle are independent modules
+  │
+  └── Foundation: Core merge, MergeSchema, delta sync, dedup, probabilistic
+```
+
+---
+
+## What Makes This Unbeatable
+
+### 1. The Only Unified Merge Kernel
+
+No other toolkit merges tabular data AND model weights under the same algebraic framework. This isn't just marketing — it's architectural:
+
+- Same `MergeSchema` concept for both tabular and model merges
+- Same provenance tracking for both
+- Same CRDT verification for both
+- Same unmerge capability for both
+
+### 2. Zero Dependencies → Maximum Embeddability
+
+At 21 KB wheel size with zero dependencies, crdt-merge embeds anywhere. Compare:
+- MergeKit: requires torch, transformers, safetensors, peft, yaml, ...
+- Yjs: requires its own runtime
+- Automerge: requires WASM runtime
+
+crdt-merge's optional dependencies (Arrow, torch) are lazy-imported only when needed.
+
+### 3. Apache-2.0 → Zero License Friction
+
+MergeKit's LGPL-3.0 creates real friction for commercial users (copyleft triggers on linking). crdt-merge is Apache-2.0 — use it anywhere, in anything, forever.
+
+### 4. Formal Verification → Trust
+
+`verify_crdt()` and `verified_merge()` provide runtime proof that merge operations satisfy CRDT laws. No other merge tool offers this.
+
+### 5. Provenance → Compliance
+
+Per-field (tabular) and per-parameter (model) provenance tracking creates audit trails that satisfy GDPR, EU AI Act, SOX, and HIPAA requirements. This is not a feature competitors can easily retrofit.
+
+### 6. Reversibility → Safety Net
+
+UnmergeEngine + model unmerging means mistakes are recoverable. Merged the wrong model? Remove its contribution. GDPR deletion request? Surgically remove the data. Nobody else can do this.
+
+### 7. Academic Foundation → Credibility
+
+crdt-merge is the first implementation of CRDV theory (SIGMOD 2025). The model merging strategy catalog covers the full 2023-2026 frontier with academic citations. This isn't vaporware — it's built on peer-reviewed science.
+
+### 8. The Moat Gets Deeper With Every Release
+
+Each version adds capabilities that compound:
+- v0.6: Performance (Arrow) makes it viable for production
+- v0.7: SQL (MergeQL) makes it accessible to millions of SQL users
+- v0.8: Model merging makes it essential for ML teams
+- v0.9: Compliance makes it required for enterprises
+- v1.0: Formal spec makes it trustworthy for critical systems
+
+Competitors would need to rebuild 18,000+ lines of algebraically-verified merge logic to catch up.
+
+---
+
+## Appendix: Strategy Quick Reference
+
+| # | Strategy | Category | CRDT? | Paper | Year |
+|---|----------|----------|-------|-------|------|
+| 1 | Weight Averaging | Basic | ✅ C,A,I | McMahan et al. | 2017 |
+| 2 | SLERP | Basic | ⚠️ C | Shoemake | 1985/2024 |
+| 3 | Task Arithmetic | Basic | ✅ C,A | Ilharco et al. | 2023 |
+| 4 | Linear Interpolation | Basic | ⚠️ C | Wortsman et al. | 2022 |
+| 5 | TIES-Merging | Subspace | ✅ C,A | Yadav et al. (NeurIPS) | 2023 |
+| 6 | DARE | Subspace | ⚠️ S | Yu et al. | 2024 |
+| 7 | DELLA | Subspace | ⚠️ S | Bansal | 2024 |
+| 8 | DARE-TIES | Subspace | ⚠️ S,C | Community | 2024 |
+| 9 | Model Breadcrumbs | Subspace | ✅ C | Davari & Belilovsky | 2023 |
+| 10 | EMR-Merging | Subspace | ✅ C,A | Huang et al. | 2024 |
+| 11 | STAR | Subspace | ✅ C | — | 2025 |
+| 12 | SVD Knot-Tying | Subspace | ✅ C | — | 2024 |
+| 13 | AdaRank | Subspace | ✅ C,A | ICLR | 2026 |
+| 14 | Fisher-Weighted | Weighted | ✅ C,A | Matena & Raffel | 2022 |
+| 15 | RegMean | Weighted | ✅ C,A | Jin et al. | 2023 |
+| 16 | AdaMerging | Weighted | ⚠️ A | Yang et al. | 2024 |
+| 17 | DAM | Weighted | ⚠️ A | — | 2024 |
+| 18 | CMA-ES Evolutionary | Evolutionary | ✅ Meta | Sakana AI; GECCO | 2024/2025 |
+| 19 | Genetic Merge | Evolutionary | ✅ Meta | Mergenetic | 2025 |
+| 20 | NegMerge | Unlearning | ✅ C | ICML | 2025 |
+| 21 | Split-Unlearn-Merge | Unlearning | ✅ C | — | 2025 |
+| 22 | Weight Scope Alignment | Calibration | Post | — | 2024 |
+| 23 | Representation Surgery | Calibration | Post | — | 2024 |
+| 24 | SafeMERGE | Safety | ✅ C | — | 2025 |
+| 25 | LED-Merging | Safety | ✅ C | — | 2025 |
+
+**Legend:** C = Commutative, A = Associative, I = Idempotent, S = Stochastic (seed-deterministic), Meta = Meta-level (final merge verified), Post = Post-processing, ⚠️ = Conditional
+
+---
+
+**Contact:** rgillespie83@icloud.com · data@optitransfer.ch  
+**License:** Apache-2.0  
+**Copyright:** Copyright 2026 Ryan Gillespie
