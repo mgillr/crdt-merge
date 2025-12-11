@@ -98,6 +98,16 @@ TAG_HLL         = 0x30
 TAG_BLOOM       = 0x31
 TAG_CMS         = 0x32
 
+# v0.6.0 type tags
+TAG_VECTOR_CLOCK           = 0x40
+TAG_DOTTED_VERSION_VECTOR  = 0x41
+TAG_MERKLE_TREE            = 0x42
+TAG_GOSSIP_STATE           = 0x43
+TAG_GOSSIP_ENTRY           = 0x44
+TAG_SCHEMA_EVOLUTION_RESULT = 0x45
+TAG_SCHEMA_CHANGE          = 0x46
+TAG_MERKLE_DIFF            = 0x47
+
 # Payload encoding tags
 _NONE   = 0x00
 _TRUE   = 0x01
@@ -125,6 +135,15 @@ _TYPE_TO_TAG = {
     'hll': TAG_HLL,
     'bloom': TAG_BLOOM,
     'cms': TAG_CMS,
+    # v0.6.0
+    'vector_clock': TAG_VECTOR_CLOCK,
+    'dotted_version_vector': TAG_DOTTED_VERSION_VECTOR,
+    'merkle_tree': TAG_MERKLE_TREE,
+    'gossip_state': TAG_GOSSIP_STATE,
+    'gossip_entry': TAG_GOSSIP_ENTRY,
+    'schema_evolution_result': TAG_SCHEMA_EVOLUTION_RESULT,
+    'schema_change': TAG_SCHEMA_CHANGE,
+    'merkle_diff': TAG_MERKLE_DIFF,
 }
 
 _TAG_TO_TYPE = {v: k for k, v in _TYPE_TO_TAG.items()}
@@ -240,6 +259,29 @@ def _decode_value(data: bytes, offset: int) -> tuple:
         raise WireError(f"Unknown encoding tag: 0x{tag:02x} at offset {offset - 1}")
 
 
+# ── v0.6.0 JSON-based wire frame builder ──────────────────────────────────
+
+def _build_wire_frame(type_tag: int, payload: bytes, compress: bool = False) -> bytes:
+    """Build a wire-format frame for v0.6.0 JSON-encoded types.
+
+    Args:
+        type_tag: The type tag byte.
+        payload: JSON-encoded payload bytes.
+        compress: If True, apply zlib compression.
+
+    Returns:
+        bytes: Complete wire-format frame.
+    """
+    flags = 0
+    if compress:
+        compressed = zlib.compress(payload, level=6)
+        if len(compressed) < len(payload):
+            payload = compressed
+            flags |= FLAG_COMPRESSED
+    header = struct.pack(_HEADER_FMT, MAGIC, PROTOCOL_VERSION, type_tag, flags, len(payload))
+    return header + payload
+
+
 # ── Public API ─────────────────────────────────────────────────────────────
 
 def serialize(obj: Any, *, compress: bool = False) -> bytes:
@@ -270,6 +312,58 @@ def serialize(obj: Any, *, compress: bool = False) -> bytes:
         True
     """
     # Determine type tag and get dict representation
+    type_name = type(obj).__name__
+
+    # v0.6.0: handle new types via JSON-based serialization
+    if type_name == 'VectorClock':
+        import json as _json
+        from crdt_merge.clocks import VectorClock as _VC
+        payload = _json.dumps(obj.to_dict()).encode()
+        type_tag = TAG_VECTOR_CLOCK
+        return _build_wire_frame(type_tag, payload, compress)
+    elif type_name == 'DottedVersionVector':
+        import json as _json
+        from crdt_merge.clocks import DottedVersionVector as _DVV
+        payload = _json.dumps(obj.to_dict()).encode()
+        type_tag = TAG_DOTTED_VERSION_VECTOR
+        return _build_wire_frame(type_tag, payload, compress)
+    elif type_name == 'MerkleTree':
+        import json as _json
+        from crdt_merge.merkle import MerkleTree as _MT
+        payload = _json.dumps(obj.to_dict()).encode()
+        type_tag = TAG_MERKLE_TREE
+        return _build_wire_frame(type_tag, payload, compress)
+    elif type_name == 'GossipState':
+        import json as _json
+        from crdt_merge.gossip import GossipState as _GS
+        payload = _json.dumps(obj.to_dict()).encode()
+        type_tag = TAG_GOSSIP_STATE
+        return _build_wire_frame(type_tag, payload, compress)
+    elif type_name == 'GossipEntry':
+        import json as _json
+        from crdt_merge.gossip import GossipEntry as _GE
+        payload = _json.dumps(obj.to_dict()).encode()
+        type_tag = TAG_GOSSIP_ENTRY
+        return _build_wire_frame(type_tag, payload, compress)
+    elif type_name == 'SchemaEvolutionResult':
+        import json as _json
+        from crdt_merge.schema_evolution import SchemaEvolutionResult as _SER
+        payload = _json.dumps(obj.to_dict()).encode()
+        type_tag = TAG_SCHEMA_EVOLUTION_RESULT
+        return _build_wire_frame(type_tag, payload, compress)
+    elif type_name == 'SchemaChange':
+        import json as _json
+        from crdt_merge.schema_evolution import SchemaChange as _SC
+        payload = _json.dumps(obj.to_dict()).encode()
+        type_tag = TAG_SCHEMA_CHANGE
+        return _build_wire_frame(type_tag, payload, compress)
+    elif type_name == 'MerkleDiff':
+        import json as _json
+        from crdt_merge.merkle import MerkleDiff as _MD
+        payload = _json.dumps(obj.to_dict()).encode()
+        type_tag = TAG_MERKLE_DIFF
+        return _build_wire_frame(type_tag, payload, compress)
+
     if isinstance(obj, (GCounter, PNCounter, LWWRegister, ORSet, LWWMap, MergeableHLL, MergeableBloom, MergeableCMS)):
         d = obj.to_dict()
         type_tag = _TYPE_TO_TAG[d['type']]
@@ -356,7 +450,44 @@ def deserialize(data: bytes) -> Any:
         except zlib.error as e:
             raise WireError(f"Decompression failed: {e}")
 
-    # Decode payload
+    # v0.6.0: JSON-based types (0x40–0x47) use JSON payload, not compact binary
+    if 0x40 <= type_tag <= 0x47:
+        import json as _json
+        d = _json.loads(payload)
+        if type_tag == TAG_VECTOR_CLOCK:
+            from crdt_merge.clocks import VectorClock
+            return VectorClock.from_dict(d)
+        elif type_tag == TAG_DOTTED_VERSION_VECTOR:
+            from crdt_merge.clocks import DottedVersionVector
+            return DottedVersionVector.from_dict(d)
+        elif type_tag == TAG_MERKLE_TREE:
+            from crdt_merge.merkle import MerkleTree
+            return MerkleTree.from_dict(d)
+        elif type_tag == TAG_GOSSIP_STATE:
+            from crdt_merge.gossip import GossipState
+            return GossipState.from_dict(d)
+        elif type_tag == TAG_GOSSIP_ENTRY:
+            from crdt_merge.gossip import GossipEntry
+            return GossipEntry.from_dict(d)
+        elif type_tag == TAG_SCHEMA_EVOLUTION_RESULT:
+            from crdt_merge.schema_evolution import SchemaEvolutionResult
+            return SchemaEvolutionResult.from_dict(d)
+        elif type_tag == TAG_SCHEMA_CHANGE:
+            from crdt_merge.schema_evolution import SchemaChange
+            return SchemaChange.from_dict(d)
+        elif type_tag == TAG_MERKLE_DIFF:
+            from crdt_merge.merkle import MerkleDiff
+            return MerkleDiff(
+                differing_keys=set(d.get("differing_keys", [])),
+                only_in_left=set(d.get("only_in_left", [])),
+                only_in_right=set(d.get("only_in_right", [])),
+                common_different=set(d.get("common_different", [])),
+                comparisons_made=d.get("comparisons_made", 0),
+            )
+        else:
+            raise WireError(f"Unknown v0.6.0 type tag: 0x{type_tag:02x}")
+
+    # Decode payload (compact binary for v0.5.0 types)
     d, _ = _decode_value(payload, 0)
 
     # Reconstruct object based on type tag

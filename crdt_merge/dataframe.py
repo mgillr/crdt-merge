@@ -27,6 +27,36 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 from .core import LWWRegister
 
 
+def _normalize_key(key: Optional[Union[str, List[str]]]) -> Optional[List[str]]:
+    """Convert key to list form. None → None, 'id' → ['id'], ['id','name'] → ['id','name']."""
+    if key is None:
+        return None
+    if isinstance(key, str):
+        return [key]
+    if isinstance(key, (list, tuple)):
+        if len(key) == 0:
+            raise ValueError("key list must not be empty")
+        return list(key)
+    raise TypeError(f"key must be str, List[str], or None, got {type(key)}")
+
+
+def _make_composite_key(record: Dict[str, Any], key_cols: List[str]) -> Any:
+    """Extract composite key as tuple. Single key returns the raw value for backward compat."""
+    if len(key_cols) == 1:
+        return record.get(key_cols[0])
+    return tuple(record.get(k) for k in key_cols)
+
+
+def _validate_key_columns(records: List[Dict[str, Any]], key_cols: List[str]) -> None:
+    """Validate key columns exist. Raises KeyError with helpful message."""
+    if not records:
+        return
+    first = records[0]
+    missing = [k for k in key_cols if k not in first]
+    if missing:
+        raise KeyError(f"Key columns not found in records: {missing}. Available: {list(first.keys())}")
+
+
 def _to_records(df: Any) -> Tuple[List[Dict[str, Any]], List[str], str]:
     """Convert pandas or polars DataFrame to list of dicts. Returns (records, columns, lib)."""
     lib = type(df).__module__.split('.')[0]
@@ -70,7 +100,7 @@ def _row_hash(row: dict, exclude_keys: Optional[set] = None) -> str:
 def merge(
     df_a: Any,
     df_b: Any,
-    key: Optional[str] = None,
+    key: Optional[Union[str, List[str]]] = None,
     timestamp_col: Optional[str] = None,
     prefer: str = "latest",
     dedup: bool = True,
@@ -99,20 +129,26 @@ def merge(
 
     all_columns = list(dict.fromkeys(cols_a + [c for c in cols_b if c not in cols_a]))
 
-    if key is None:
+    key_cols = _normalize_key(key)
+
+    if key_cols is None:
         # No key: append all rows then dedup
         merged = records_a + records_b
         if dedup:
             merged = _dedup_records(merged, all_columns)
         return _from_records(merged, all_columns, lib_a)
 
+    # Validate key columns exist
+    _validate_key_columns(records_a, key_cols)
+    _validate_key_columns(records_b, key_cols)
+
     # Build index by key for both sides; track None-key rows separately
     index_a: Dict[Any, Dict[str, Any]] = {}
     none_key_rows: List[Dict[str, Any]] = []
     dup_count_a = 0
     for r in records_a:
-        k = r.get(key)
-        if k is None:
+        k = _make_composite_key(r, key_cols)
+        if k is None or (isinstance(k, tuple) and any(v is None for v in k)):
             none_key_rows.append(r)
         elif k in index_a:
             dup_count_a += 1
@@ -123,8 +159,8 @@ def merge(
     index_b: Dict[Any, Dict[str, Any]] = {}
     dup_count_b = 0
     for r in records_b:
-        k = r.get(key)
-        if k is None:
+        k = _make_composite_key(r, key_cols)
+        if k is None or (isinstance(k, tuple) and any(v is None for v in k)):
             none_key_rows.append(r)
         elif k in index_b:
             dup_count_b += 1
@@ -160,10 +196,10 @@ def merge(
     merged.extend(none_key_rows)
 
     if dedup:
-        merged = _dedup_records(merged, all_columns, exclude_keys={key})
+        merged = _dedup_records(merged, all_columns, exclude_keys=set(key_cols))
 
-    if fuzzy_dedup and key:
-        merged = _fuzzy_dedup_records(merged, key, all_columns, fuzzy_threshold)
+    if fuzzy_dedup and key_cols:
+        merged = _fuzzy_dedup_records(merged, key_cols[0], all_columns, fuzzy_threshold)
 
     return _from_records(merged, all_columns, lib_a)
 
@@ -259,7 +295,7 @@ def _fuzzy_dedup_records(
     return unique
 
 
-def diff(df_a: Any, df_b: Any, key: str) -> Dict[str, Any]:
+def diff(df_a: Any, df_b: Any, key: Union[str, List[str]]) -> Dict[str, Any]:
     """
     Show what changed between two DataFrames.
 
@@ -272,8 +308,21 @@ def diff(df_a: Any, df_b: Any, key: str) -> Dict[str, Any]:
     records_a, cols_a, lib_a = _to_records(df_a)
     records_b, cols_b, _ = _to_records(df_b)
 
-    index_a = {r.get(key): r for r in records_a if r.get(key) is not None}
-    index_b = {r.get(key): r for r in records_b if r.get(key) is not None}
+    key_cols = _normalize_key(key)
+    _validate_key_columns(records_a, key_cols)
+    _validate_key_columns(records_b, key_cols)
+
+    index_a: Dict[Any, Dict[str, Any]] = {}
+    for r in records_a:
+        k = _make_composite_key(r, key_cols)
+        if k is not None and not (isinstance(k, tuple) and any(v is None for v in k)):
+            index_a[k] = r
+
+    index_b: Dict[Any, Dict[str, Any]] = {}
+    for r in records_b:
+        k = _make_composite_key(r, key_cols)
+        if k is not None and not (isinstance(k, tuple) and any(v is None for v in k)):
+            index_b[k] = r
 
     added = [r for k, r in index_b.items() if k not in index_a]
     removed = [r for k, r in index_a.items() if k not in index_b]

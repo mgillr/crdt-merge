@@ -86,3 +86,27 @@ from .provenance import (
 from .verify import verified_merge, CRDTVerificationError
 from .wire import serialize, deserialize, peek_type, wire_size, serialize_batch, deserialize_batch, WireError
 from .probabilistic import MergeableHLL, MergeableBloom, MergeableCMS
+
+# v0.6.0: Vector Clocks & Causality
+from .clocks import VectorClock, DottedVersionVector, Ordering
+
+# v0.6.0: Schema Evolution
+from .schema_evolution import (
+    evolve_schema, check_compatibility, widen_type,
+    SchemaPolicy, SchemaChange, SchemaEvolutionResult,
+)
+
+# v0.6.0: Merkle Trees
+from .merkle import MerkleTree, MerkleNode, MerkleDiff, merkle_diff
+
+# v0.6.0: Gossip Protocol
+from .gossip import GossipState, GossipEntry, anti_entropy
+
+# v0.6.0: Arrow Merge Engine
+from .arrow import ArrowMerge, arrow_merge
+
+# v0.6.0: Async Merge
+from .async_merge import amerge, amerge_stream, amerge_sorted_stream
+
+# v0.6.0: Parallel Merge
+from .parallel import parallel_merge, parallel_merge_arrow

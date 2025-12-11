@@ -29,7 +29,7 @@ class TestPackageIntegrity:
         import crdt_merge
         pkg = os.path.dirname(crdt_merge.__file__)
         modules = [f for f in os.listdir(pkg) if f.endswith(".py")]
-        assert len(modules) == 13
+        assert len(modules) == 20
 
     def test_all_modules_importable(self):
         from crdt_merge import core, dataframe, dedup, delta
