@@ -19,7 +19,7 @@ import time
 class TestPackageIntegrity:
     def test_version(self):
         import crdt_merge
-        assert crdt_merge.__version__ == "0.5.0"
+        assert crdt_merge.__version__ == "0.6.0"
 
     def test_from_pypi(self):
         import crdt_merge

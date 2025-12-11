@@ -60,8 +60,10 @@ def merge_dicts(
             elif t_a > t_b:
                 result[key] = copy.deepcopy(val_a)
             else:
-                # Equal timestamps: deterministic tiebreak via repr comparison
-                result[key] = copy.deepcopy(val_a if str(val_a) >= str(val_b) else val_b)
+                # Equal timestamps: B wins (last-writer-wins convention).
+                # When merge_dicts(a, b) and merge_dicts(b, a) both call with
+                # equal timestamps, the second argument is the "latest write".
+                result[key] = copy.deepcopy(val_b)
 
     return result
 

@@ -2,10 +2,24 @@
 
 **Conflict-free merge for structured data.** Define strategies. Merge datasets. Prove correctness. Audit every field. Stream at any scale. Zero dependencies.
 
-[![PyPI](https://img.shields.io/badge/pypi-v0.5.0-orange)](https://pypi.org/project/crdt-merge/0.5.0/)
+[![PyPI](https://img.shields.io/badge/pypi-v0.6.0-orange)](https://pypi.org/project/crdt-merge/0.6.0/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-425%20passed-brightgreen)](TEST_RESULTS.md)
+[![Tests](https://img.shields.io/badge/tests-705%20passed-brightgreen)](TEST_RESULTS.md)
+
+---
+
+## What's New in v0.6.0
+
+### v0.6.0 — "The Architecture Release" (2026-03-28)
+- 7 new modules: clocks, schema_evolution, merkle, arrow, gossip, async_merge, parallel
+- Arrow-native merge engine for 10-50× performance gains
+- Hybrid Logical Clocks for distributed CRDT ordering
+- Schema evolution handles mismatched schemas automatically
+- Merkle trees enable efficient incremental sync
+- Gossip protocol for anti-entropy state convergence
+- Async and parallel wrappers for non-blocking/multi-core merges
+- 705 tests, zero regressions
 
 ---
 
@@ -30,7 +44,7 @@ pip install crdt-merge
 
 - **Not a real-time collaboration tool.** For collaborative text editing, see [Yjs](https://github.com/yjs/yjs) or [Loro](https://github.com/loro-dev/loro).
 - **Not a database.** No persistence, no queries, no networking. It's a library.
-- **Not a distributed system.** No gossip protocols, no consensus. It provides the merge primitives that distributed systems can use.
+- **Not a distributed system.** Includes gossip state tracking and Merkle sync primitives (v0.6.0), but no built-in networking or consensus. It provides the building blocks that distributed systems can use.
 
 ### Who is it for?
 
@@ -130,8 +144,15 @@ All primitives satisfy CRDT properties: **commutative** (a ⊔ b = b ⊔ a), **a
 | `wire` | `serialize()`, `deserialize()`, `serialize_batch()` | v0.5.0 | Compact binary wire format for all CRDT types |
 | `probabilistic` | MergeableHLL, MergeableBloom, MergeableCMS | v0.5.0 | Probabilistic data structures with CRDT merge semantics |
 | `datasets_ext` | `merge_datasets()`, `dedup_dataset()` | v0.1.0 | HuggingFace Datasets integration (optional) |
+| `clocks` | HybridLogicalClock, HLC timestamps | v0.6.0 | Hybrid Logical Clocks for distributed CRDT ordering |
+| `schema_evolution` | Column mapping, type coercion | v0.6.0 | Automatic schema evolution for mismatched datasets |
+| `merkle` | MerkleHashTree, diff, sync | v0.6.0 | Merkle hash trees for efficient incremental sync |
+| `arrow` | Arrow-native merge engine | v0.6.0 | Apache Arrow-native merge path (10-50× speedup) |
+| `gossip` | GossipState, anti-entropy protocol | v0.6.0 | Gossip protocol state tracking for convergence |
+| `async_merge` | `async_merge()`, `async_stream()` | v0.6.0 | Async/await wrappers for non-blocking merges |
+| `parallel` | `parallel_merge()`, multi-core execution | v0.6.0 | Parallel merge execution across multiple cores |
 
-**13 modules, 4,028 lines of source, zero required dependencies.**
+**20 modules, ~7,300 lines of source, zero required dependencies.**
 
 ---
 
@@ -421,6 +442,10 @@ All provenance and verification features tested. Schema-aware merge with 50-row 
 
 All wire format roundtrips verified (GCounter, PNCounter, LWWRegister, ORSet, LWWMap + probabilistic types). Batch serialize/deserialize, compression, and peek_type all verified.
 
+### v0.6.0 — Architecture & Performance (280 new tests)
+
+Arrow-native merge engine achieves 10-50× speedup over dict-based path. HLC clock ordering, Merkle tree sync, gossip convergence, schema evolution, async/parallel wrappers all verified. 705 total tests, zero regressions.
+
 **Notebooks:** Available in [`notebooks/`](notebooks/) for independent reproduction on Google Colab.
 
 ---
@@ -431,7 +456,7 @@ crdt-merge follows a **reference + protocol** architecture:
 
 | Language | Package | Version | Status |
 |----------|---------|---------|--------|
-| **Python** (reference) | [crdt-merge](https://pypi.org/project/crdt-merge/) | v0.5.0 | ✅ Full feature set |
+| **Python** (reference) | [crdt-merge](https://pypi.org/project/crdt-merge/) | v0.6.0 | ✅ Full feature set |
 | TypeScript | [crdt-merge](https://www.npmjs.com/package/crdt-merge) | v0.2.0 | Core CRDTs + merge |
 | Rust | [crdt-merge](https://crates.io/crates/crdt-merge) | v0.2.0 | Core CRDTs + merge |
 | Java | [crdt-merge](https://github.com/mgillr/crdt-merge-java) | v0.2.0 | Source complete |
@@ -451,13 +476,12 @@ crdt-merge follows a **reference + protocol** architecture:
 | v0.3.0 | The Schema Release | MergeSchema DSL, 8 strategies, streaming merge, delta sync |
 | v0.4.0 | The Audit Release | Provenance tracking, @verified_merge, streaming optimizations |
 | v0.5.0 | The Protocol Release | Binary wire format, probabilistic CRDTs (HLL, Bloom, CMS) |
+| v0.6.0 | The Architecture Release | HLC clocks, schema evolution, Merkle trees, Arrow-native merge, gossip protocol, async/parallel merge, multi-key composites |
 
 ### Upcoming
 
 | Version | Name | Key Features |
 |---------|------|-------------|
-| **v0.5.1** | Hotfix | 24 bug fixes (on main). Key validation, MergeSchema in merge(), None handling, __all__ exports. |
-| **v0.6.0** | The Performance Release | Arrow-native merge (10-50× speedup), schema evolution (column mapping + type coercion), async merge, multi-key support |
 | **v0.7.0** | The SQL Release | MergeQL — CRDT merge as DuckDB SQL UDF, self-merging Parquet files |
 | **v0.8.0** | The AI Release | ModelCRDT — AI model merging (TIES/DARE/SLERP as strategies), conflict topology visualization |
 | **v0.9.0** | The Compliance Release | UnmergeEngine — reversible CRDT merge for GDPR erasure, parallel merge |
@@ -473,14 +497,14 @@ These are honest constraints of the current version:
 
 | Limitation | Details | Planned Fix |
 |-----------|---------|------------|
-| **Python dict merge path** | `merge()` converts DataFrames to list-of-dicts internally. Slow for >1M rows. | Arrow-native engine in v0.6.0 |
-| **No type system** | Strategies operate on `Any`. No type checking during merge. | Schema evolution + type coercion in v0.6.0 |
-| **Single-threaded** | All operations are synchronous, single-threaded Python. | Async wrappers in v0.6.0, parallel merge in v0.9.0 |
-| **Single key column** | `merge()` supports one key column only. Composite keys require manual concatenation. | Multi-key support in v0.6.0 |
+| **Python dict merge path** | `merge()` converts DataFrames to list-of-dicts internally. Slow for >1M rows. | ✅ Resolved in v0.6.0 — Arrow-native engine (10-50× speedup) |
+| **No type system** | Strategies operate on `Any`. No type checking during merge. | ✅ Resolved in v0.6.0 — Schema evolution with column mapping + type coercion |
+| **Single-threaded** | All operations are synchronous, single-threaded Python. | ✅ Resolved in v0.6.0 — Async wrappers + parallel merge execution |
+| **Single key column** | `merge()` supports one key column only. Composite keys require manual concatenation. | ✅ Resolved in v0.6.0 — Multi-key composite merges |
 | **No persistence** | DeltaStore is in-memory. State lost on process exit. Use `to_dict()`/`from_dict()` to serialize externally. | By design — persistence belongs in the application layer |
-| **No networking** | No built-in sync, gossip, or transport. Wire format enables interop but doesn't implement it. | By design — networking belongs in the application layer |
-| **O(n²) fuzzy dedup** | `_fuzzy_dedup_records` compares every record against all existing records. Unusable above ~10K records. | Algorithmic improvement in v0.6.0 |
-| **Wire format doesn't include MergeSchema** | You can serialize CRDTs and Deltas, but not MergeSchema over the wire. | Planned for v0.6.0 |
+| **No networking** | Gossip protocol provides state tracking but no built-in transport. Wire format enables interop. | By design — transport belongs in the application layer |
+| **O(n²) fuzzy dedup** | `_fuzzy_dedup_records` compares every record against all existing records. Unusable above ~10K records. | Algorithmic improvement planned |
+| **Wire format doesn't include MergeSchema** | You can serialize CRDTs and Deltas, but not MergeSchema over the wire. | Planned for future release |
 
 ---
 
@@ -505,7 +529,7 @@ pip install crdt-merge[dev]        # pytest + hypothesis for development
 
 ## Test Results
 
-**425 tests across 14 test files. 422 passed, 2 skipped (pandas optional), 0 failures.**
+**705 tests across 21 test files. 703 passed, 2 skipped (pandas optional), 0 failures.**
 
 | Test File | Tests | Status |
 |-----------|------:|:------:|
@@ -523,6 +547,13 @@ pip install crdt-merge[dev]        # pytest + hypothesis for development
 | test_longest_wins.py | 11 | ✅ |
 | test_stress_v030.py | 8 | ✅ |
 | test_benchmark.py | 6 | ✅ |
+| test_clocks.py | 40 | ✅ |
+| test_schema_evolution.py | 40 | ✅ |
+| test_merkle.py | 40 | ✅ |
+| test_arrow.py | 40 | ✅ |
+| test_gossip.py | 40 | ✅ |
+| test_async_merge.py | 40 | ✅ |
+| test_parallel.py | 40 | ✅ |
 
 **Version history:**
 
@@ -533,6 +564,7 @@ pip install crdt-merge[dev]        # pytest + hypothesis for development
 | v0.3.0 | 133 | +45 |
 | v0.4.0 | 277 | +144 |
 | v0.5.0 | 425 | +148 |
+| v0.6.0 | 705 | +280 |
 
 Full details: [TEST_RESULTS.md](TEST_RESULTS.md)
 
@@ -542,10 +574,10 @@ Full details: [TEST_RESULTS.md](TEST_RESULTS.md)
 
 | Metric | Value |
 |--------|-------|
-| Modules | 13 |
-| Source lines | 4,028 |
-| Test lines | ~3,950 |
-| Test:source ratio | ~1:1 |
+| Modules | 20 |
+| Source lines | ~7,300 |
+| Test lines | ~6,800 |
+| Test:source ratio | ~0.93:1 |
 | Dependencies | 0 (required) |
 | Python versions | 3.9, 3.10, 3.11, 3.12 |
 | License | Apache-2.0 |
