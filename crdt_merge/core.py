@@ -16,10 +16,6 @@ to the same correct state — no coordination, no locks, no conflicts.
 """
 
 from __future__ import annotations
-
-__all__ = [
-    "GCounter", "PNCounter", "LWWRegister", "ORSet", "LWWMap",
-]
 import copy
 import time
 import uuid
@@ -43,7 +39,8 @@ class GCounter:
         return sum(self._counts.values())
 
     def increment(self, node_id: str, amount: int = 1) -> None:
-        """Increment the counter for a node. Note: amount=0 is accepted but is a no-op."""
+        if not isinstance(amount, int) or isinstance(amount, bool):
+            raise TypeError(f"GCounter increment amount must be int, got {type(amount).__name__}")
         if amount < 0:
             raise ValueError("GCounter only supports non-negative increments")
         self._counts[node_id] = self._counts.get(node_id, 0) + amount
@@ -131,7 +128,7 @@ class LWWRegister:
         return self._timestamp
 
     def set(self, value: Any, timestamp: Optional[float] = None, node_id: str = "") -> None:
-        ts = timestamp or time.time()
+        ts = timestamp if timestamp is not None else time.time()
         self._value = value
         self._timestamp = ts
         self._node_id = node_id
@@ -183,8 +180,6 @@ class ORSet:
         return tag
 
     def remove(self, element: Hashable) -> None:
-        """Remove an element. Silent if element doesn't exist (intentional CRDT semantics —
-        remove is idempotent, unlike Python set.remove() which raises KeyError)."""
         if element in self._elements:
             self._elements[element] = set()
 
@@ -201,16 +196,31 @@ class ORSet:
         return result
 
     def to_dict(self) -> dict:
-        return {
-            "type": "or_set",
-            "elements": {str(k): list(v) for k, v in self._elements.items()}
-        }
+        import json
+        elements = {}
+        type_map = {}
+        for k, v in self._elements.items():
+            str_key = str(k)
+            elements[str_key] = list(v)
+            # Preserve original type info for non-string keys
+            if not isinstance(k, str):
+                type_map[str_key] = type(k).__name__
+        result = {"type": "or_set", "elements": elements}
+        if type_map:
+            result["element_types"] = type_map
+        return result
 
     @classmethod
     def from_dict(cls, d: dict) -> ORSet:
         s = cls()
+        type_map = d.get("element_types", {})
+        _type_coerce = {"int": int, "float": float, "bool": lambda x: x.lower() == "true"}
         for k, tags in d.get("elements", {}).items():
-            s._elements[k] = set(tags)
+            if k in type_map and type_map[k] in _type_coerce:
+                restored_key = _type_coerce[type_map[k]](k)
+            else:
+                restored_key = k
+            s._elements[restored_key] = set(tags)
         return s
 
     def __repr__(self):
@@ -232,7 +242,7 @@ class LWWMap:
         self._tombstones: Dict[str, float] = {}  # key -> deletion timestamp
 
     def set(self, key: str, value: Any, timestamp: Optional[float] = None, node_id: str = "") -> None:
-        ts = timestamp or time.time()
+        ts = timestamp if timestamp is not None else time.time()
         if key not in self._registers:
             self._registers[key] = LWWRegister()
         self._registers[key].set(value, ts, node_id)
@@ -247,9 +257,7 @@ class LWWMap:
         return reg.value if reg else default
 
     def delete(self, key: str, timestamp: Optional[float] = None) -> None:
-        """Delete a key. Creates a tombstone even for non-existent keys
-        (intentional CRDT semantics — tombstones ensure distributed consistency)."""
-        ts = timestamp or time.time()
+        ts = timestamp if timestamp is not None else time.time()
         self._tombstones[key] = ts
 
     @property

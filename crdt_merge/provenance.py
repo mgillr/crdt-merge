@@ -33,11 +33,6 @@ Usage:
 """
 
 from __future__ import annotations
-
-__all__ = [
-    "merge_with_provenance", "MergeDecision", "MergeRecord",
-    "ProvenanceLog", "export_provenance",
-]
 import json
 import time
 from dataclasses import dataclass, field, asdict
@@ -246,7 +241,6 @@ def merge_with_provenance(
     df_a, df_b, key: str = "id",
     schema: Optional[MergeSchema] = None,
     timestamp_col: Optional[str] = None,
-    as_dataframe: bool = False,
 ) -> Tuple:
     """
     Merge two DataFrames/list-of-dicts and return full provenance audit trail.
@@ -264,9 +258,8 @@ def merge_with_provenance(
 
     Returns:
         Tuple of (merged_data, ProvenanceLog).
-        merged_data is a list of dicts by default.
-        If as_dataframe=True and inputs were DataFrames, returns a DataFrame.
-        Set as_dataframe=True for consistency with merge() return type.
+        merged_data is a list of dicts (always — even if inputs were DataFrames).
+        Convert back to DataFrame with pd.DataFrame(merged_data) if needed.
     """
     start = time.time()
     default_strategy = LWW()
@@ -285,11 +278,20 @@ def merge_with_provenance(
 
     # Process source A
     for row_a in rows_a:
-        k = row_a[key]
+        k = row_a.get(key)
+        if k is None:
+            merged_rows.append(row_a)
+            record = MergeRecord(key=None, origin="unique_a")
+            for col, val in row_a.items():
+                record.decisions.append(MergeDecision(
+                    field=col, source="a_only", strategy="", value=val))
+            log.records.append(record)
+            log.unique_a_rows += 1
+            continue
         if k in b_index:
             row_b = b_index.pop(k)
             if all_cols is None:
-                all_cols = sorted(set(row_a.keys()) | set(row_b.keys()))
+                all_cols = list(dict.fromkeys(list(row_a.keys()) + list(row_b.keys())))
             merged, record = _resolve_with_provenance(
                 row_a, row_b, k, all_cols, schema, timestamp_col, default_strategy
             )
@@ -319,15 +321,6 @@ def merge_with_provenance(
     log.total_rows = len(merged_rows)
     log.duration_ms = (time.time() - start) * 1000
 
-    # DEF-006: Optionally return as DataFrame for consistency with merge()
-    if as_dataframe:
-        try:
-            if hasattr(df_a, 'to_dict'):  # pandas DataFrame
-                import pandas as pd
-                return pd.DataFrame(merged_rows), log
-        except Exception:
-            pass  # Fall through to list[dict] return
-
     return merged_rows, log
 
 
@@ -346,16 +339,12 @@ def export_provenance(log: ProvenanceLog, format: str = "json") -> str:
     """
     Export provenance log to JSON or CSV string.
 
-    Note: Returns a string, not a dict. For a dict representation,
-    use log.to_dict() instead.
-
     Args:
         log: The ProvenanceLog to export.
         format: "json" or "csv".
 
     Returns:
-        str: JSON or CSV string representation.
-            For dict output, use ProvenanceLog.to_dict() directly.
+        String in the requested format.
     """
     if format == "json":
         return json.dumps(log.to_dict(), indent=2, default=str)

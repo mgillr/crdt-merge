@@ -28,10 +28,6 @@ Usage:
 """
 
 from __future__ import annotations
-
-__all__ = [
-    "Delta", "DeltaStore", "compute_delta", "apply_delta", "compose_deltas",
-]
 import copy
 import hashlib
 import time
@@ -222,63 +218,52 @@ def compose_deltas(*deltas: Delta, key: Optional[str] = None) -> Delta:
     The result contains the net effect of all deltas applied in order.
 
     Args:
-        *deltas: Delta objects to compose in order.
-        key: Field name used as record key. Required for correct cross-delta
-             cancellation (e.g., add-then-remove netting to nothing).
-             If not provided, falls back to content hashing which cannot
-             cancel operations across deltas.
+        *deltas: Delta objects to compose.
+        key: Optional key field name for identity tracking. When provided,
+             records are tracked by their key field value instead of content hash.
+             This prevents duplicates when a record is added then modified.
     """
     if not deltas:
         return Delta()
 
-    # DEF-007: Handle list argument — compose_deltas([d1, d2]) should work
-    if len(deltas) == 1 and isinstance(deltas[0], (list, tuple)):
-        deltas = tuple(deltas[0])
-    if not deltas:
-        return Delta()
-
-    # Track the net effect — all dicts keyed by string key values
-    net_added: Dict[str, dict] = {}  # str(key_value) → record
-    net_modified: Dict[str, dict] = {}  # str(key_value) → record
+    # Track the net effect
+    net_added: Dict[str, dict] = {}  # identity → record
+    net_modified: Dict[str, dict] = {}  # identity → record
     net_removed: Set[str] = set()
 
-    def _record_key(record: dict) -> str:
-        """Extract a consistent string key from a record."""
+    def _record_id(record: dict) -> str:
+        """Get a stable identity for a record."""
         if key and key in record:
             return str(record[key])
-        # Fallback: content hash (cannot match removal keys)
         return hashlib.sha256(str(sorted(record.items())).encode()).hexdigest()[:16]
 
     for delta in deltas:
         # Process removals first
         for k in delta.removed:
-            k_str = str(k)
-            if k_str in net_added:
-                # Was added in a prior delta, now removed → net effect: nothing
-                del net_added[k_str]
-            else:
-                # Genuinely removed (may also cancel a prior modification)
-                net_modified.pop(k_str, None)
-                net_removed.add(k_str)
+            net_added.pop(k, None)
+            net_modified.pop(k, None)
+            net_removed.add(k)
 
         # Process modifications
         for r in delta.modified:
-            rkey = _record_key(r)
-            if rkey in net_removed:
+            rid = _record_id(r)
+            if rid in net_removed:
                 # Was removed then modified — it's back, treat as add
-                net_removed.discard(rkey)
-                net_added[rkey] = r
-            elif rkey in net_added:
-                # Was added then modified — update the addition
-                net_added[rkey] = r
+                net_removed.discard(rid)
+                net_added[rid] = r
+            elif rid in net_added:
+                # Was added, now modified — update the add
+                net_added[rid] = r
             else:
-                net_modified[rkey] = r
+                net_modified[rid] = r
 
         # Process additions
         for r in delta.added:
-            rkey = _record_key(r)
-            net_removed.discard(rkey)
-            net_added[rkey] = r
+            rid = _record_id(r)
+            net_removed.discard(rid)
+            # If already in modified, promote to add with new content
+            net_modified.pop(rid, None)
+            net_added[rid] = r
 
     max_version = max((d.version for d in deltas), default=0)
     return Delta(

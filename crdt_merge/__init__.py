@@ -19,7 +19,7 @@ Usage:
         score=MaxWins(),
         tags=UnionSet(),
     )
-    merged, log = merge_with_provenance(df_a, df_b, key="id", schema=schema)
+    merged = merge(df_a, df_b, key="id", schema=schema)
 
     # Streaming merge — O(batch_size) memory (NEW in v0.3.0)
     from crdt_merge.streaming import merge_stream
@@ -39,51 +39,9 @@ Usage:
     # HuggingFace Datasets (requires `pip install crdt-merge[datasets]`)
     from crdt_merge import merge_datasets, dedup_dataset
     merged = merge_datasets("user/dataset-a", "user/dataset-b", key="id")
-
-Which merge function should I use?
-    - merge()                  → Simple merge, returns same type as input.
-                                 Use for: most cases, DataFrames, list-of-dicts.
-    - merge(schema=...)        → Per-column strategies (MaxWins, UnionSet, etc.)
-                                 Use for: domain-specific conflict resolution.
-    - merge_with_provenance()  → Full audit trail of every decision.
-                                 Use for: compliance, debugging, trust.
-    - merge_stream()           → O(batch_size) memory, generator-based.
-                                 Use for: large datasets that don't fit in memory.
-    - merge_sorted_stream()    → O(1) memory if both sources pre-sorted.
-                                 Use for: maximum scalability with sorted data.
-    - merge_dicts()            → Deep JSON/dict merge with LWW semantics.
-                                 Use for: config files, API responses, JSON docs.
 """
 
 __version__ = "0.5.0"
-
-__all__ = [
-    # Core CRDT types
-    "GCounter", "PNCounter", "LWWRegister", "ORSet", "LWWMap",
-    # DataFrame merge
-    "merge", "diff",
-    # Deduplication
-    "dedup", "dedup_records", "DedupIndex", "MinHashDedup",
-    # JSON merge
-    "merge_dicts", "merge_json_lines",
-    # Strategies
-    "MergeStrategy", "LWW", "LongestWins", "MaxWins", "MinWins",
-    "UnionSet", "Priority", "Concat", "Custom", "MergeSchema",
-    # Streaming
-    "merge_stream", "merge_sorted_stream", "StreamStats",
-    # HuggingFace (lazy)
-    "merge_datasets", "dedup_dataset",
-    # Provenance
-    "merge_with_provenance", "MergeDecision", "MergeRecord",
-    "ProvenanceLog", "export_provenance",
-    # Verification
-    "verified_merge", "CRDTVerificationError",
-    # Wire format
-    "serialize", "deserialize", "peek_type", "wire_size",
-    "serialize_batch", "deserialize_batch", "WireError",
-    # Probabilistic
-    "MergeableHLL", "MergeableBloom", "MergeableCMS",
-]
 
 # Core CRDT types
 from .core import GCounter, PNCounter, LWWRegister, ORSet, LWWMap
@@ -100,8 +58,8 @@ from .json_merge import merge_dicts, merge_json_lines
 
 # v0.3.0: Composable Merge Strategies
 from .strategies import (
-    MergeStrategy, LWW, LongestWins, MaxWins, MinWins, UnionSet, Priority,
-    Concat, Custom, MergeSchema,
+    MergeStrategy, LWW, MaxWins, MinWins, UnionSet, Priority,
+    Concat, Custom, LongestWins, MergeSchema,
 )
 
 # v0.3.0: Streaming Merge Pipeline

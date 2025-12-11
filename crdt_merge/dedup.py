@@ -17,10 +17,6 @@ be merged across workers — parallel dedup with zero coordination.
 """
 
 from __future__ import annotations
-
-__all__ = [
-    "dedup_list", "dedup_records", "DedupIndex", "MinHashDedup",
-]
 import hashlib
 import struct
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple

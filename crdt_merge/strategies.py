@@ -31,11 +31,6 @@ Usage:
 """
 
 from __future__ import annotations
-
-__all__ = [
-    "MergeStrategy", "LWW", "LongestWins", "MaxWins", "MinWins",
-    "UnionSet", "Concat", "Priority", "Custom", "MergeSchema",
-]
 import copy
 import time
 from typing import Any, Callable, Dict, List, Optional, Union
@@ -71,7 +66,15 @@ class MaxWins(MergeStrategy):
 
     def resolve(self, val_a: Any, val_b: Any, ts_a: float = 0.0, ts_b: float = 0.0,
                 node_a: str = "a", node_b: str = "b") -> Any:
-        return val_a if val_a >= val_b else val_b
+        if val_a is None:
+            return val_b
+        if val_b is None:
+            return val_a
+        try:
+            return val_a if val_a >= val_b else val_b
+        except TypeError:
+            # Incomparable types: deterministic tiebreak via repr
+            return val_a if str(val_a) >= str(val_b) else val_b
 
 
 class MinWins(MergeStrategy):
@@ -79,7 +82,14 @@ class MinWins(MergeStrategy):
 
     def resolve(self, val_a: Any, val_b: Any, ts_a: float = 0.0, ts_b: float = 0.0,
                 node_a: str = "a", node_b: str = "b") -> Any:
-        return val_a if val_a <= val_b else val_b
+        if val_a is None:
+            return val_b
+        if val_b is None:
+            return val_a
+        try:
+            return val_a if val_a <= val_b else val_b
+        except TypeError:
+            return val_a if str(val_a) <= str(val_b) else val_b
 
 
 class UnionSet(MergeStrategy):
@@ -96,7 +106,7 @@ class UnionSet(MergeStrategy):
         return self.separator.join(merged)
 
     def _to_set(self, val: Any) -> set:
-        if not val:
+        if val is None:
             return set()
         return {s.strip() for s in str(val).split(self.separator) if s.strip()}
 
@@ -145,9 +155,12 @@ class Priority(MergeStrategy):
                 node_a: str = "a", node_b: str = "b") -> Any:
         rank_a = self._index.get(str(val_a), -1)
         rank_b = self._index.get(str(val_b), -1)
-        if rank_a >= rank_b:
+        if rank_a > rank_b:
             return val_a
-        return val_b
+        elif rank_b > rank_a:
+            return val_b
+        # Equal rank: deterministic tiebreak via string comparison for commutativity
+        return val_a if str(val_a) >= str(val_b) else val_b
 
 
 class LongestWins(MergeStrategy):
@@ -197,8 +210,7 @@ _STRATEGY_REGISTRY: Dict[str, type] = {
     "Concat": Concat,
     "Priority": Priority,
     "LongestWins": LongestWins,
-    # DEF-011: Custom is NOT in registry — deserialization must fail explicitly
-    # rather than silently falling back to LWW
+    "Custom": Custom,
 }
 
 
@@ -277,6 +289,13 @@ class MergeSchema:
         """Serialize schema to dict for storage/transmission."""
         d = {}
         for field, strat in self._strategies.items():
+            if isinstance(strat, Custom):
+                import warnings
+                warnings.warn(
+                    f"Custom strategy for field '{field}' cannot be fully serialized. "
+                    f"It will deserialize as LWW. Register a named strategy instead.",
+                    UserWarning, stacklevel=2,
+                )
             entry = {"strategy": strat.__class__.__name__}
             if isinstance(strat, UnionSet):
                 entry["separator"] = strat.separator
@@ -292,28 +311,14 @@ class MergeSchema:
     @classmethod
     def from_dict(cls, d: dict) -> MergeSchema:
         """Deserialize schema from dict."""
-        # DEF-010: Don't mutate input dict — use .get() and filter, not .pop()
-        d = dict(d)  # shallow copy to avoid mutating caller's dict
+        d = dict(d)  # shallow copy to avoid mutating the input
         default_info = d.pop("__default__", {"strategy": "LWW"})
-        default_cls = _STRATEGY_REGISTRY.get(default_info.get("strategy", "LWW"), LWW)
+        default_cls = _STRATEGY_REGISTRY.get(default_info["strategy"], LWW)
         default = default_cls()
 
         strategies = {}
         for field, info in d.items():
-            strat_name = info["strategy"]
-            strat_cls = _STRATEGY_REGISTRY.get(strat_name)
-            # DEF-011: Raise on unknown strategies instead of silent LWW fallback
-            if strat_cls is None:
-                if strat_name == "Custom":
-                    raise ValueError(
-                        f"Cannot deserialize Custom strategy for field '{field}'. "
-                        f"Custom strategies require a function reference that cannot "
-                        f"be serialized. Re-create the schema with the Custom function."
-                    )
-                raise ValueError(
-                    f"Unknown strategy '{strat_name}' for field '{field}'. "
-                    f"Known strategies: {list(_STRATEGY_REGISTRY.keys())}"
-                )
+            strat_cls = _STRATEGY_REGISTRY.get(info["strategy"], LWW)
             if strat_cls == UnionSet:
                 strategies[field] = UnionSet(separator=info.get("separator", ","))
             elif strat_cls == Concat:

@@ -19,24 +19,16 @@ Usage:
 """
 
 from __future__ import annotations
-
-__all__ = ["merge", "diff"]
 import hashlib
 import time
+import warnings
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 from .core import LWWRegister
-from .strategies import MergeSchema
 
 
 def _to_records(df: Any) -> Tuple[List[Dict[str, Any]], List[str], str]:
-    """Convert pandas or polars DataFrame to list of dicts. Returns (records, columns, lib).
-
-    DEF-022 NOTE: This conversion is the main performance bottleneck.
-    For simple LWW merges, a pandas-native path using pd.merge() + vectorized
-    conflict resolution would be 10-50× faster. See v0.6.0 roadmap for
-    Arrow-native merge optimization (ArrowMerge).
-    """
+    """Convert pandas or polars DataFrame to list of dicts. Returns (records, columns, lib)."""
     lib = type(df).__module__.split('.')[0]
     if lib == 'pandas':
         return df.to_dict('records'), list(df.columns), 'pandas'
@@ -81,10 +73,10 @@ def merge(
     key: Optional[str] = None,
     timestamp_col: Optional[str] = None,
     prefer: str = "latest",
-    schema: Optional['MergeSchema'] = None,
     dedup: bool = True,
     fuzzy_dedup: bool = False,
     fuzzy_threshold: float = 0.85,
+    schema: Optional[Any] = None,
 ) -> Any:
     """
     Merge two DataFrames using CRDT semantics — conflict-free, deterministic, order-independent.
@@ -95,9 +87,6 @@ def merge(
         key: Column to match rows on. If None, performs append + dedup.
         timestamp_col: Column with timestamps for LWW resolution. If None, df_b wins ties.
         prefer: "latest" (default) or "a" or "b" — how to resolve conflicts when no timestamp.
-        schema: Optional MergeSchema for per-column conflict resolution strategies.
-            When provided, overrides the 'prefer' parameter for matched rows.
-            Example: MergeSchema(default=LWW(), score=MaxWins(), tags=UnionSet())
         dedup: If True, remove exact duplicate rows in output.
         fuzzy_dedup: If True, also remove near-duplicate rows (requires key).
         fuzzy_threshold: Similarity threshold for fuzzy dedup (0.0 to 1.0).
@@ -110,27 +99,6 @@ def merge(
 
     all_columns = list(dict.fromkeys(cols_a + [c for c in cols_b if c not in cols_a]))
 
-    # DEF-002: Validate prefer parameter (prevents silent wrong-winner behavior from typos)
-    _VALID_PREFER = ("a", "b", "latest")
-    if prefer not in _VALID_PREFER:
-        raise ValueError(
-            f"Invalid prefer='{prefer}'. Must be one of: {_VALID_PREFER}"
-        )
-
-    # DEF-001: Validate key column exists (prevents silent empty results from typos)
-    # Skip validation for empty inputs — empty merge is always valid
-    if key is not None and cols_a and cols_b:
-        if key not in cols_a:
-            raise KeyError(
-                f"Key column '{key}' not found in first DataFrame. "
-                f"Available columns: {cols_a}"
-            )
-        if key not in cols_b:
-            raise KeyError(
-                f"Key column '{key}' not found in second DataFrame. "
-                f"Available columns: {cols_b}"
-            )
-
     if key is None:
         # No key: append all rows then dedup
         merged = records_a + records_b
@@ -138,18 +106,39 @@ def merge(
             merged = _dedup_records(merged, all_columns)
         return _from_records(merged, all_columns, lib_a)
 
-    # Build index by key for both sides
+    # Build index by key for both sides; track None-key rows separately
     index_a: Dict[Any, Dict[str, Any]] = {}
+    none_key_rows: List[Dict[str, Any]] = []
+    dup_count_a = 0
     for r in records_a:
         k = r.get(key)
-        if k is not None:
+        if k is None:
+            none_key_rows.append(r)
+        elif k in index_a:
+            dup_count_a += 1
+            index_a[k] = r  # keep last (backwards compatible)
+        else:
             index_a[k] = r
 
     index_b: Dict[Any, Dict[str, Any]] = {}
+    dup_count_b = 0
     for r in records_b:
         k = r.get(key)
-        if k is not None:
+        if k is None:
+            none_key_rows.append(r)
+        elif k in index_b:
+            dup_count_b += 1
             index_b[k] = r
+        else:
+            index_b[k] = r
+
+    if dup_count_a + dup_count_b > 0:
+        warnings.warn(
+            f"Duplicate keys found: {dup_count_a} in df_a, {dup_count_b} in df_b. "
+            f"Only the last row per key is kept. Deduplicate inputs for deterministic results.",
+            UserWarning,
+            stacklevel=2,
+        )
 
     all_keys = list(dict.fromkeys(list(index_a.keys()) + list(index_b.keys())))
     merged = []
@@ -164,12 +153,11 @@ def merge(
             merged.append(row_b)
         else:
             # Both sides have this key — CRDT merge per cell
-            # DEF-003: Use MergeSchema when provided (overrides prefer)
-            if schema is not None:
-                merged_row = schema.resolve_row(row_a, row_b, timestamp_col=timestamp_col)
-            else:
-                merged_row = _merge_rows(row_a, row_b, all_columns, timestamp_col, prefer)
+            merged_row = _merge_rows(row_a, row_b, all_columns, timestamp_col, prefer, schema)
             merged.append(merged_row)
+
+    # Append rows that had None key values (preserved as unique rows)
+    merged.extend(none_key_rows)
 
     if dedup:
         merged = _dedup_records(merged, all_columns, exclude_keys={key})
@@ -182,7 +170,7 @@ def merge(
 
 def _merge_rows(
     row_a: dict, row_b: dict, columns: List[str],
-    timestamp_col: Optional[str], prefer: str
+    timestamp_col: Optional[str], prefer: str, schema: Optional[Any] = None
 ) -> dict:
     """Merge two rows using LWW Register semantics per cell."""
     result = {}
@@ -200,8 +188,11 @@ def _merge_rows(
         elif val_a == val_b:
             result[col] = val_a
         else:
-            # Conflict — resolve with LWW
-            if timestamp_col:
+            # Conflict — resolve with schema strategy if available
+            if schema is not None:
+                strategy = schema.strategy_for(col)
+                result[col] = strategy.resolve(val_a, val_b, ts_a, ts_b, "a", "b")
+            elif timestamp_col:
                 reg_a = LWWRegister(val_a, ts_a, "a")
                 reg_b = LWWRegister(val_b, ts_b, "b")
                 result[col] = reg_a.merge(reg_b).value

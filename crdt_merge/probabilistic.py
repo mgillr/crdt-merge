@@ -39,8 +39,6 @@ Use cases:
 New in v0.5.0.
 """
 
-__all__ = ["MergeableHLL", "MergeableBloom", "MergeableCMS"]
-
 import hashlib
 import math
 import struct
@@ -331,7 +329,14 @@ class MergeableBloom:
         )
         for i in range(len(self.bits)):
             result.bits[i] = self.bits[i] | other.bits[i]
-        result._count = self._count + other._count  # approximate
+        # Estimate count from bit array popcount (more accurate than additive)
+        bits_set = sum(bin(b).count('1') for b in result.bits)
+        if bits_set < result.size:
+            # Use inverse fill-ratio formula: n ≈ -m * ln(1 - k/m)
+            fill = bits_set / result.size
+            result._count = int(-result.size / max(result.num_hashes, 1) * math.log(max(1 - fill, 1e-10)))
+        else:
+            result._count = max(self._count, other._count)
         return result
 
     def size_bytes(self) -> int:
@@ -432,7 +437,12 @@ class MergeableCMS:
 
     @property
     def total(self) -> int:
-        """Total count of all items added."""
+        """Total count of all items added.
+        
+        Note: After merge, this reflects max(self.total, other.total) per CRDT
+        semantics (register-max). For the combined total across distinct nodes,
+        sum the totals before merging.
+        """
         return self._total
 
     def merge(self, other: 'MergeableCMS') -> 'MergeableCMS':

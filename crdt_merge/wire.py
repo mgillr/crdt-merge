@@ -40,8 +40,7 @@ Type tags:
     0x10: Delta
     0x20: Generic (any JSON-serializable dict/list)
 
-The payload uses a custom compact binary encoding (NOT JSON, NOT MessagePack).
-This is a purpose-built format optimized for CRDT objects:
+The payload uses a compact binary encoding for primitives:
     0x00: None
     0x01: True
     0x02: False
@@ -57,16 +56,12 @@ This is a purpose-built format optimized for CRDT objects:
 New in v0.5.0.
 """
 
-__all__ = [
-    "serialize", "deserialize", "peek_type", "wire_size",
-    "serialize_batch", "deserialize_batch", "WireError",
-]
-
 import struct
 import zlib
 from typing import Any, Optional, Union
 
 from .core import GCounter, PNCounter, LWWRegister, ORSet, LWWMap
+from .probabilistic import MergeableHLL, MergeableBloom, MergeableCMS
 
 # Lazy import to avoid circular
 _delta_module = None
@@ -99,6 +94,9 @@ TAG_ORSET       = 0x04
 TAG_LWWMAP      = 0x05
 TAG_DELTA       = 0x10
 TAG_GENERIC     = 0x20
+TAG_HLL         = 0x30
+TAG_BLOOM       = 0x31
+TAG_CMS         = 0x32
 
 # Payload encoding tags
 _NONE   = 0x00
@@ -124,6 +122,9 @@ _TYPE_TO_TAG = {
     'or_set': TAG_ORSET,
     'lww_map': TAG_LWWMAP,
     'delta': TAG_DELTA,
+    'hll': TAG_HLL,
+    'bloom': TAG_BLOOM,
+    'cms': TAG_CMS,
 }
 
 _TAG_TO_TYPE = {v: k for k, v in _TYPE_TO_TAG.items()}
@@ -269,7 +270,7 @@ def serialize(obj: Any, *, compress: bool = False) -> bytes:
         True
     """
     # Determine type tag and get dict representation
-    if isinstance(obj, (GCounter, PNCounter, LWWRegister, ORSet, LWWMap)):
+    if isinstance(obj, (GCounter, PNCounter, LWWRegister, ORSet, LWWMap, MergeableHLL, MergeableBloom, MergeableCMS)):
         d = obj.to_dict()
         type_tag = _TYPE_TO_TAG[d['type']]
     elif _is_delta(obj):
@@ -372,6 +373,12 @@ def deserialize(data: bytes) -> Any:
     elif type_tag == TAG_DELTA:
         dm = _get_delta_module()
         return dm.Delta.from_dict(d)
+    elif type_tag == TAG_HLL:
+        return MergeableHLL.from_dict(d)
+    elif type_tag == TAG_BLOOM:
+        return MergeableBloom.from_dict(d)
+    elif type_tag == TAG_CMS:
+        return MergeableCMS.from_dict(d)
     elif type_tag == TAG_GENERIC:
         return d
     else:

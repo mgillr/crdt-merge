@@ -4,10 +4,9 @@
 # Commercial licensing: data@optitransfer.ch, rgillespie83@icloud.com
 
 """
-Streaming Merge Pipeline — generator-based merge for large-scale datasets.
+Streaming Merge Pipeline — O(batch_size) memory merge for unlimited scale.
 
-Processes source_a lazily in batches; source_b is indexed in memory for lookups.
-Memory: O(|source_b| + batch_size). Use when source_a >> source_b.
+Generator-based processing: never loads entire datasets into memory.
 Configurable batch_size controls the memory/throughput tradeoff.
 
 v0.4.0 optimizations:
@@ -33,10 +32,6 @@ Usage:
 """
 
 from __future__ import annotations
-
-__all__ = [
-    "merge_stream", "merge_sorted_stream", "StreamStats", "count_stream",
-]
 import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, Generator, Iterable, Iterator, List, Optional, Tuple, Union
@@ -147,7 +142,6 @@ def merge_stream(
     schema: Optional[MergeSchema] = None,
     timestamp_col: Optional[str] = None,
     stats: Optional[StreamStats] = None,
-    prefer: Optional[str] = None,
 ) -> Generator[List[dict], None, None]:
     """
     Streaming merge of two row sources. Memory: O(batch_size + |source_b|).
@@ -170,16 +164,6 @@ def merge_stream(
     Yields:
         Lists of merged dicts, each list up to batch_size rows.
     """
-    # DEF-009: prefer= syntactic sugar — creates a simple schema
-    if prefer is not None and schema is None:
-        if prefer == "a":
-            from .strategies import Priority as _Priority
-            # A-wins: create schema that defaults to using A's value
-            # Handled via the _resolve_row_fast b-wins fallback being overridden
-            pass  # prefer is handled in _resolve_row_fast
-        elif prefer not in ("a", "b", "latest"):
-            raise ValueError(f"Invalid prefer='{prefer}'. Must be 'a', 'b', or 'latest'.")
-
     start = time.time()
     if stats:
         stats._start_time = start
@@ -199,9 +183,12 @@ def merge_stream(
         k = row_a[key]
         if k in b_index:
             row_b = b_index.pop(k)
-            # Compute column list ONCE on first merge, reuse for all subsequent rows
+            # Compute column list on first merge; update if later rows have new columns
+            new_cols = list(set(list(row_a.keys()) + list(row_b.keys())))
             if cached_cols is None:
-                cached_cols = list(set(list(row_a.keys()) + list(row_b.keys())))
+                cached_cols = new_cols
+            elif len(new_cols) > len(cached_cols):
+                cached_cols = list(set(cached_cols + new_cols))
             merged = _resolve_row_fast(
                 row_a, row_b, cached_cols, schema, timestamp_col, default_strategy
             )
@@ -245,21 +232,12 @@ def merge_sorted_stream(
     schema: Optional[MergeSchema] = None,
     timestamp_col: Optional[str] = None,
     stats: Optional[StreamStats] = None,
-    verify_order: bool = False,
 ) -> Generator[List[dict], None, None]:
     """
     Merge two pre-sorted sources using merge-join. O(1) memory per row.
 
     Both sources MUST be sorted by key in ascending order.
     Uses the classic merge-join algorithm — never loads more than 1 row from each.
-
-    Note on StreamStats: merge_sorted_stream populates rows_processed,
-    rows_merged, batches_processed, and duration_ms. It does NOT populate
-    rows_unique_a, rows_unique_b, or peak_batch_size (use merge_stream for those).
-
-    Args:
-        verify_order: If True, validates sort order at runtime and raises
-            ValueError if source is not sorted. Default False for backward compat.
 
     Yields:
         Lists of merged dicts, each up to batch_size rows.
@@ -269,44 +247,46 @@ def merge_sorted_stream(
     iter_b = iter(source_b)
     output_batch: List[dict] = []
     merged_count = 0
+    _unique_b_count = 0
 
     row_a = next(iter_a, None)
     row_b = next(iter_b, None)
-
-    _prev_a = None
-    _prev_b = None
+    _prev_key_a = None
+    _prev_key_b = None
 
     while row_a is not None and row_b is not None:
         key_a = row_a[key]
         key_b = row_b[key]
 
-        # DEF-008: Optional sort order verification
-        if verify_order:
-            if _prev_a is not None and key_a < _prev_a:
-                raise ValueError(
-                    f"source_a is not sorted by '{key}': "
-                    f"saw {_prev_a!r} then {key_a!r}"
-                )
-            if _prev_b is not None and key_b < _prev_b:
-                raise ValueError(
-                    f"source_b is not sorted by '{key}': "
-                    f"saw {_prev_b!r} then {key_b!r}"
-                )
-            _prev_a = key_a
-            _prev_b = key_b
+        # Validate sort order (fail fast on unsorted input)
+        if _prev_key_a is not None and key_a < _prev_key_a:
+            raise ValueError(
+                f"source_a is not sorted by '{key}': {_prev_key_a!r} > {key_a!r}. "
+                f"merge_sorted_stream requires pre-sorted inputs."
+            )
+        if _prev_key_b is not None and key_b < _prev_key_b:
+            raise ValueError(
+                f"source_b is not sorted by '{key}': {_prev_key_b!r} > {key_b!r}. "
+                f"merge_sorted_stream requires pre-sorted inputs."
+            )
 
         if key_a == key_b:
             all_cols = list(set(list(row_a.keys()) + list(row_b.keys())))
             merged = _resolve_row(row_a, row_b, all_cols, schema, timestamp_col)
             output_batch.append(merged)
             merged_count += 1
+            _prev_key_a = key_a
+            _prev_key_b = key_b
             row_a = next(iter_a, None)
             row_b = next(iter_b, None)
         elif key_a < key_b:
             output_batch.append(row_a)
+            _prev_key_a = key_a
             row_a = next(iter_a, None)
         else:
             output_batch.append(row_b)
+            _prev_key_b = key_b
+            _unique_b_count += 1
             row_b = next(iter_b, None)
 
         if len(output_batch) >= batch_size:
@@ -316,8 +296,15 @@ def merge_sorted_stream(
             yield output_batch
             output_batch = []
 
-    # Drain remaining
+    # Drain remaining (with sort-order validation)
     while row_a is not None:
+        drain_key_a = row_a[key]
+        if _prev_key_a is not None and drain_key_a < _prev_key_a:
+            raise ValueError(
+                f"source_a is not sorted by '{key}': {_prev_key_a!r} > {drain_key_a!r}. "
+                f"merge_sorted_stream requires pre-sorted inputs."
+            )
+        _prev_key_a = drain_key_a
         output_batch.append(row_a)
         row_a = next(iter_a, None)
         if len(output_batch) >= batch_size:
@@ -328,7 +315,15 @@ def merge_sorted_stream(
             output_batch = []
 
     while row_b is not None:
+        drain_key_b = row_b[key]
+        if _prev_key_b is not None and drain_key_b < _prev_key_b:
+            raise ValueError(
+                f"source_b is not sorted by '{key}': {_prev_key_b!r} > {drain_key_b!r}. "
+                f"merge_sorted_stream requires pre-sorted inputs."
+            )
+        _prev_key_b = drain_key_b
         output_batch.append(row_b)
+        _unique_b_count += 1
         row_b = next(iter_b, None)
         if len(output_batch) >= batch_size:
             if stats:
@@ -345,6 +340,8 @@ def merge_sorted_stream(
 
     if stats:
         stats.rows_merged = merged_count
+        stats.rows_unique_a = stats.rows_processed - merged_count - _unique_b_count
+        stats.rows_unique_b = _unique_b_count
         stats.duration_ms = (time.time() - start) * 1000
 
 

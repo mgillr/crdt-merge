@@ -30,13 +30,6 @@ Usage:
 """
 
 from __future__ import annotations
-
-__all__ = [
-    "verify_crdt", "verify_commutative", "verify_associative",
-    "verify_idempotent", "verify_convergence",
-    "verified_merge", "CRDTVerificationError",
-    "VerificationResult", "CRDTVerification",
-]
 import random
 import time
 from dataclasses import dataclass, field
@@ -111,8 +104,13 @@ def _are_equal(a: Any, b: Any) -> bool:
     # Handle sets
     if isinstance(a, set):
         return a == b
-    # Handle floats with tolerance
+    # Handle floats with tolerance (including NaN)
     if isinstance(a, float) and isinstance(b, float):
+        import math
+        if math.isnan(a) and math.isnan(b):
+            return True
+        if math.isnan(a) or math.isnan(b):
+            return False
         return abs(a - b) < 1e-10
     return a == b
 
@@ -341,9 +339,7 @@ def verified_merge(
     on_fail: str = "raise",
 ):
     """
-    **DECORATOR** — not a merge function! Apply to your custom merge function.
-
-    Verifies a merge function satisfies CRDT laws at decoration time.
+    Decorator that verifies a merge function satisfies CRDT laws at decoration time.
 
     Verification runs ONCE when the function is defined — not on every call.
     The verification result is stored on the function as ._crdt_verified.

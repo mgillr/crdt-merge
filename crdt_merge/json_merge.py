@@ -12,8 +12,6 @@ LWW Register — if both sides set a value, the one with the later timestamp
 """
 
 from __future__ import annotations
-
-__all__ = ["merge_dicts", "merge_json_lines"]
 import copy
 import time
 from typing import Any, Dict, List, Optional
@@ -47,11 +45,6 @@ def merge_dicts(
             result[key] = copy.deepcopy(val_b)
         elif key not in b:
             result[key] = copy.deepcopy(val_a)
-        # DEF-004: None = missing (CRDT identity element). Never overwrite real data with None.
-        elif val_b is None and val_a is not None:
-            result[key] = copy.deepcopy(val_a)
-        elif val_a is None and val_b is not None:
-            result[key] = copy.deepcopy(val_b)
         elif isinstance(val_a, dict) and isinstance(val_b, dict):
             result[key] = merge_dicts(val_a, val_b, ts_a, ts_b, full_path)
         elif isinstance(val_a, list) and isinstance(val_b, list):
@@ -59,10 +52,16 @@ def merge_dicts(
         elif val_a == val_b:
             result[key] = copy.deepcopy(val_a)
         else:
-            # Conflict: use timestamps if available, else B wins
+            # Conflict: use timestamps if available, deterministic tiebreak for commutativity
             t_a = ts_a.get(full_path, 0.0)
             t_b = ts_b.get(full_path, 0.0)
-            result[key] = copy.deepcopy(val_b if t_b >= t_a else val_a)
+            if t_b > t_a:
+                result[key] = copy.deepcopy(val_b)
+            elif t_a > t_b:
+                result[key] = copy.deepcopy(val_a)
+            else:
+                # Equal timestamps: deterministic tiebreak via repr comparison
+                result[key] = copy.deepcopy(val_a if str(val_a) >= str(val_b) else val_b)
 
     return result
 
