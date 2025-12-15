@@ -110,3 +110,16 @@ from .async_merge import amerge, amerge_stream, amerge_sorted_stream
 
 # v0.6.0: Parallel Merge
 from .parallel import parallel_merge, parallel_merge_arrow
+
+# v0.7.0: MergeQL — SQL-like CRDT merge interface
+from .mergeql import (
+    MergeQL, MergeAST, MergePlan, MergeQLResult,
+    MergeQLSyntaxError, MergeQLValidationError,
+    MergeQLError, MergeQLParser,
+)
+
+# v0.7.0: Accelerators (lazy)
+def _load_accelerators():
+    """Lazy loader for the accelerators sub-package."""
+    from crdt_merge import accelerators as _acc
+    return _acc

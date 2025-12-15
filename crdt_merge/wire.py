@@ -108,6 +108,14 @@ TAG_SCHEMA_EVOLUTION_RESULT = 0x45
 TAG_SCHEMA_CHANGE          = 0x46
 TAG_MERKLE_DIFF            = 0x47
 
+# v0.7.0 type tags
+TAG_MERGEQL_QUERY          = 0x50
+TAG_MERGE_PLAN             = 0x51
+TAG_MERGEQL_RESULT         = 0x52
+TAG_PARQUET_MERGE_META     = 0x53
+TAG_CONFLICT_RECORD        = 0x54
+TAG_CONFLICT_TOPOLOGY      = 0x55
+
 # Payload encoding tags
 _NONE   = 0x00
 _TRUE   = 0x01
@@ -144,6 +152,13 @@ _TYPE_TO_TAG = {
     'schema_evolution_result': TAG_SCHEMA_EVOLUTION_RESULT,
     'schema_change': TAG_SCHEMA_CHANGE,
     'merkle_diff': TAG_MERKLE_DIFF,
+    # v0.7.0
+    'mergeql_query': TAG_MERGEQL_QUERY,
+    'merge_plan': TAG_MERGE_PLAN,
+    'mergeql_result': TAG_MERGEQL_RESULT,
+    'parquet_merge_metadata': TAG_PARQUET_MERGE_META,
+    'conflict_record': TAG_CONFLICT_RECORD,
+    'conflict_topology': TAG_CONFLICT_TOPOLOGY,
 }
 
 _TAG_TO_TYPE = {v: k for k, v in _TYPE_TO_TAG.items()}
@@ -364,6 +379,47 @@ def serialize(obj: Any, *, compress: bool = False) -> bytes:
         type_tag = TAG_MERKLE_DIFF
         return _build_wire_frame(type_tag, payload, compress)
 
+    # v0.7.0: MergeQL, Parquet metadata, Provenance types via JSON
+    if type_name == 'MergeAST':
+        import json as _json
+        from dataclasses import asdict as _asdict
+        d = _asdict(obj)
+        d['__type'] = 'mergeql_query'
+        payload = _json.dumps(d).encode()
+        return _build_wire_frame(TAG_MERGEQL_QUERY, payload, compress)
+    elif type_name == 'MergePlan':
+        import json as _json
+        from dataclasses import asdict as _asdict
+        d = _asdict(obj)
+        d['__type'] = 'merge_plan'
+        payload = _json.dumps(d).encode()
+        return _build_wire_frame(TAG_MERGE_PLAN, payload, compress)
+    elif type_name == 'MergeQLResult':
+        import json as _json
+        from dataclasses import asdict as _asdict
+        d = _asdict(obj)
+        d['__type'] = 'mergeql_result'
+        payload = _json.dumps(d).encode()
+        return _build_wire_frame(TAG_MERGEQL_RESULT, payload, compress)
+    elif type_name == 'ParquetMergeMetadata':
+        import json as _json
+        d = obj.to_dict()
+        d['__type'] = 'parquet_merge_metadata'
+        payload = _json.dumps(d).encode()
+        return _build_wire_frame(TAG_PARQUET_MERGE_META, payload, compress)
+    elif type_name == 'MergeRecord':
+        import json as _json
+        d = obj.to_dict()
+        d['__type'] = 'conflict_record'
+        payload = _json.dumps(d).encode()
+        return _build_wire_frame(TAG_CONFLICT_RECORD, payload, compress)
+    elif type_name == 'ProvenanceLog':
+        import json as _json
+        d = obj.to_dict()
+        d['__type'] = 'conflict_topology'
+        payload = _json.dumps(d).encode()
+        return _build_wire_frame(TAG_CONFLICT_TOPOLOGY, payload, compress)
+
     if isinstance(obj, (GCounter, PNCounter, LWWRegister, ORSet, LWWMap, MergeableHLL, MergeableBloom, MergeableCMS)):
         d = obj.to_dict()
         type_tag = _TYPE_TO_TAG[d['type']]
@@ -449,6 +505,44 @@ def deserialize(data: bytes) -> Any:
             payload = zlib.decompress(payload)
         except zlib.error as e:
             raise WireError(f"Decompression failed: {e}")
+
+    # v0.7.0: JSON-based types (0x50–0x55)
+    if 0x50 <= type_tag <= 0x55:
+        import json as _json
+        d = _json.loads(payload)
+        d.pop('__type', None)
+        if type_tag == TAG_MERGEQL_QUERY:
+            from crdt_merge.mergeql import MergeAST
+            return MergeAST(**d)
+        elif type_tag == TAG_MERGE_PLAN:
+            from crdt_merge.mergeql import MergePlan
+            return MergePlan(**d)
+        elif type_tag == TAG_MERGEQL_RESULT:
+            from crdt_merge.mergeql import MergePlan as _MP, MergeQLResult
+            plan_data = d.pop('plan', {})
+            plan = _MP(**plan_data)
+            return MergeQLResult(plan=plan, **d)
+        elif type_tag == TAG_PARQUET_MERGE_META:
+            from crdt_merge.parquet import ParquetMergeMetadata
+            return ParquetMergeMetadata.from_dict(d)
+        elif type_tag == TAG_CONFLICT_RECORD:
+            from crdt_merge.provenance import MergeRecord, MergeDecision
+            decisions_data = d.pop('decisions', [])
+            decisions = [MergeDecision(**dd) for dd in decisions_data]
+            d.pop('conflict_count', None)
+            return MergeRecord(decisions=decisions, **d)
+        elif type_tag == TAG_CONFLICT_TOPOLOGY:
+            from crdt_merge.provenance import ProvenanceLog, MergeRecord, MergeDecision
+            records_data = d.pop('records', [])
+            records = []
+            for rd in records_data:
+                decs_data = rd.pop('decisions', [])
+                decs = [MergeDecision(**dd) for dd in decs_data]
+                rd.pop('conflict_count', None)
+                records.append(MergeRecord(decisions=decs, **rd))
+            return ProvenanceLog(records=records, **d)
+        else:
+            raise WireError(f"Unknown v0.7.0 type tag: 0x{type_tag:02x}")
 
     # v0.6.0: JSON-based types (0x40–0x47) use JSON payload, not compact binary
     if 0x40 <= type_tag <= 0x47:
