@@ -5,7 +5,7 @@
 [![PyPI](https://img.shields.io/badge/pypi-v0.6.0-orange)](https://pypi.org/project/crdt-merge/0.6.0/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-705%20passed-brightgreen)](TEST_RESULTS.md)
+[![Tests](https://img.shields.io/badge/tests-720%20passed-brightgreen)](TEST_RESULTS.md)
 
 ---
 
@@ -13,13 +13,13 @@
 
 ### v0.6.0 — "The Architecture Release" (2026-03-28)
 - 7 new modules: clocks, schema_evolution, merkle, arrow, gossip, async_merge, parallel
-- Arrow-native merge engine for 10-50× performance gains
+- Arrow-native merge engine — **2.5× measured speedup** on A100 (50M rows)
 - Hybrid Logical Clocks for distributed CRDT ordering
 - Schema evolution handles mismatched schemas automatically
 - Merkle trees enable efficient incremental sync
 - Gossip protocol for anti-entropy state convergence
 - Async and parallel wrappers for non-blocking/multi-core merges
-- 705 tests, zero regressions
+- 720 tests, zero regressions
 
 ---
 
@@ -147,7 +147,7 @@ All primitives satisfy CRDT properties: **commutative** (a ⊔ b = b ⊔ a), **a
 | `clocks` | HybridLogicalClock, HLC timestamps | v0.6.0 | Hybrid Logical Clocks for distributed CRDT ordering |
 | `schema_evolution` | Column mapping, type coercion | v0.6.0 | Automatic schema evolution for mismatched datasets |
 | `merkle` | MerkleHashTree, diff, sync | v0.6.0 | Merkle hash trees for efficient incremental sync |
-| `arrow` | Arrow-native merge engine | v0.6.0 | Apache Arrow-native merge path (10-50× speedup) |
+| `arrow` | Arrow-native merge engine | v0.6.0 | Apache Arrow-native merge path (2.5× measured on A100) |
 | `gossip` | GossipState, anti-entropy protocol | v0.6.0 | Gossip protocol state tracking for convergence |
 | `async_merge` | `async_merge()`, `async_stream()` | v0.6.0 | Async/await wrappers for non-blocking merges |
 | `parallel` | `parallel_merge()`, multi-core execution | v0.6.0 | Parallel merge execution across multiple cores |
@@ -417,36 +417,60 @@ merged_idx = idx_a.merge(idx_b)
 
 ## Benchmarks — A100 Stress Tests
 
-All benchmarks run on Google Colab A100 (83.5 GB RAM). Full results in [`docs/benchmarks/`](docs/benchmarks/).
+All benchmarks run on **NVIDIA A100-SXM4-40GB** (83.5 GB RAM, 12 vCPUs) via Google Colab. **78 benchmarks, all passed.**
 
-### v0.3.0 — Core Performance (173 measurements)
+Full data: [`benchmarks/a100_v060/`](benchmarks/a100_v060/) · Reproduction notebook: [`notebooks/v060_a100_stress_test.ipynb`](notebooks/v060_a100_stress_test.ipynb)
 
-| Operation | Scale | Throughput | Memory | Scaling |
-|-----------|-------|-----------|--------|---------|
-| `merge()` | 100K → 10M rows | 39–42K rows/s | O(n) — 0.3 MB/1K rows | 7% degradation over 100× scale |
-| `resolve_row()` (strategies) | 100K → 5M rows | 42–44K rows/s | Zero overhead | Flat — O(1) per row |
-| `merge_stream()` (batched) | 100K → 5M rows | 9.7–21K rows/s | O(\|source_b\|) | ⚠️ 54% degradation at 5M |
-| `merge_sorted_stream()` | 100K → **100M rows** | **1.05–1.17M rows/s** | **10.8 MB constant** | ✅ 10.5% degradation over 1000× |
+### v0.6.0 — Throughput Ceilings (A100)
 
-**Key findings:**
-- **`merge_sorted_stream()` is the star:** 1.2M rows/s with truly constant 10.8 MB memory at 100M rows. O(1) memory proven at scale.
-- **Core merge is honest O(n):** No hidden quadratics. Stable throughput to 10M rows.
-- **Strategies have zero overhead:** 42–44K rows/s vs 39–42K for raw merge. The DSL is free.
-- **`merge_stream()` caveat:** Loads source_b into memory. Use `merge_sorted_stream()` for truly large-scale work.
+| Operation | Peak Throughput | Scale Tested | Scaling |
+|-----------|----------------|-------------|---------|
+| GCounter increment | **4.14M ops/s** | 10K → 500K | ✅ Flat |
+| VectorClock ops | **1.06M ops/s** | 100K → 2M | ✅ Flat |
+| Streaming merge | **594K rows/s** | 50K → 1M | 🟡 17% degradation |
+| JSON merge (dicts) | **530K ops/s** | 10K → 500K | 🟡 Graceful |
+| Gossip updates | **474K ops/s** | 10K → 200K | 🟡 State growth |
+| JSON lines merge | **456K ops/s** | 10K → 200K | ✅ Nearly flat |
+| HyperLogLog add | **433K ops/s** | 100K → 2M | ✅ Flat |
+| Schema evolution | **443K ops/s** | 1K → 20K cols | ✅ Stable |
+| Dedup strings | **333K ops/s** | 100K → 2M | 🟡 18% degradation |
+| Bloom filter add | **178K ops/s** | 100K → 2M | ✅ Flat |
+| Wire serialize batch | **170K ops/s** | 1K → 50K | ✅ Flat |
+| MergeSchema merge | **149K rows/s** | 10K → 200K | ✅ Improves at scale |
+| Merkle tree build | **138K records/s** | 50K → 1M | 🟡 22% degradation |
+| Provenance merge | **81K rows/s** | 50K → 500K | ✅ Improves at scale |
+| **DataFrame merge** | **77K rows/s** | **100K → 10M** | ✅ **2% degradation** |
 
-### v0.4.0 — Provenance & Verification (55 measurements)
+![Throughput Scaling Grid](benchmarks/a100_v060/throughput_grid.png)
 
-All provenance and verification features tested. Schema-aware merge with 50-row datasets: 1.62ms. Export to JSON/CSV verified.
+### Arrow vs Pandas Merge Performance
 
-### v0.5.0 — Wire Format & Probabilistic (50 measurements)
+| Rows | Arrow | Pandas | Speedup |
+|------|-------|--------|---------|
+| 500,000 | 2.1s | 5.3s | **2.53×** |
+| 5,000,000 | 21.3s | 54.1s | **2.55×** |
+| 50,000,000 | 222.5s | 550.6s | **2.47×** |
 
-All wire format roundtrips verified (GCounter, PNCounter, LWWRegister, ORSet, LWWMap + probabilistic types). Batch serialize/deserialize, compression, and peek_type all verified.
+**Consistent 2.5× speedup** at all scales. Arrow optimizes columnar data movement; per-field strategy resolution remains in Python. End-to-end 10–50× requires pushing strategy resolution into native code (planned for Rust protocol engine).
 
-### v0.6.0 — Architecture & Performance (280 new tests)
+![Arrow vs Pandas](benchmarks/a100_v060/arrow_vs_pandas.png)
 
-Arrow-native merge engine achieves 10-50× speedup over dict-based path. HLC clock ordering, Merkle tree sync, gossip convergence, schema evolution, async/parallel wrappers all verified. 705 total tests, zero regressions.
+### Key Findings
 
-**Notebooks:** Available in [`notebooks/`](notebooks/) for independent reproduction on Google Colab.
+- **GCounter and VectorClock** are the fastest primitives — over 1M ops/s with zero degradation at scale
+- **DataFrame merge** is rock-solid: 77K→75K rows/s from 100K to 10M rows (2% degradation across 100× scale)
+- **MergeSchema and Provenance** actually *improve* at scale as fixed overhead amortizes
+- **Wire protocol**: All 14 CRDT types serialize/deserialize correctly (50 B to 8.2 KB per type)
+- **CRDT verification**: All 5 tested types pass commutativity, associativity, and idempotency laws
+- **100-node gossip**: Converges in 1 round
+- **Parallel merge note**: Python GIL + multiprocessing overhead makes parallel slower than sequential for in-process merges. Parallel shines for I/O-bound and multi-source workloads.
+
+### Previous Versions
+
+**v0.3.0** — Core merge 39–42K rows/s, `merge_sorted_stream()` 1.2M rows/s at O(1) memory (173 measurements).
+**v0.4.0** — Provenance & verification (55 measurements). **v0.5.0** — Wire format & probabilistic (50 measurements).
+
+**Notebooks:** All available in [`notebooks/`](notebooks/) for independent reproduction on Google Colab.
 
 ---
 
@@ -497,7 +521,7 @@ These are honest constraints of the current version:
 
 | Limitation | Details | Planned Fix |
 |-----------|---------|------------|
-| **Python dict merge path** | `merge()` converts DataFrames to list-of-dicts internally. Slow for >1M rows. | ✅ Resolved in v0.6.0 — Arrow-native engine (10-50× speedup) |
+| **Python dict merge path** | `merge()` converts DataFrames to list-of-dicts internally. Slow for >1M rows. | ✅ Resolved in v0.6.0 — Arrow-native engine (2.5× speedup measured on A100) |
 | **No type system** | Strategies operate on `Any`. No type checking during merge. | ✅ Resolved in v0.6.0 — Schema evolution with column mapping + type coercion |
 | **Single-threaded** | All operations are synchronous, single-threaded Python. | ✅ Resolved in v0.6.0 — Async wrappers + parallel merge execution |
 | **Single key column** | `merge()` supports one key column only. Composite keys require manual concatenation. | ✅ Resolved in v0.6.0 — Multi-key composite merges |
