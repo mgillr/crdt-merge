@@ -15,19 +15,29 @@ integrated component of the modern data stack. This release delivers:
 1. **MergeQL** — SQL interface for CRDT merge operations, reaching every data warehouse user
 2. **Self-Merging Parquet** — Files with embedded merge semantics and provenance
 3. **Conflict Topology Visualization** — Interactive conflict analysis with D3-compatible export
-4. **Data Stack Connectors** — Integration with Kafka, Flink, dbt, Airflow, LangChain, and a REST server
+4. **8 Strategic Accelerators** — Ecosystem integrations that plug crdt-merge into the dominant
+   tools of the modern data stack:
+   - ACC-1: DuckDB UDF / MergeQL Extension (SQL-native CRDT merge inside DuckDB)
+   - ACC-2: dbt Package (conflict-aware transforms for 40K+ companies)
+   - ACC-3: DuckLake Semantic Conflict Layer (field-level resolution for DuckLake snapshots)
+   - ACC-4: Polars Expression Plugin (native DataFrame CRDT merge)
+   - ACC-5: Arrow Flight Merge-as-a-Service (enterprise gRPC merge server)
+   - ACC-6: Airbyte Destination Connector (CRDT-aware data ingestion)
+   - ACC-7: SQLite Extension (local-first / edge CRDT merge)
+   - ACC-8: Streamlit Visual Merge UI (interactive conflict resolution component)
 
 This release bridges the gap between toolkit and product, making CRDT merge accessible through
-familiar interfaces (SQL, REST, data pipelines) while preserving zero-dependency core.
+familiar interfaces (SQL, DuckDB, dbt, Polars, Arrow Flight, Airbyte, SQLite, Streamlit) while
+preserving zero-dependency core. All accelerators use lazy imports — no mandatory new dependencies.
 
 ### Release Targets
 
 | Metric | v0.6.0 Baseline | v0.7.0 Target |
 |--------|----------------|---------------|
-| Source modules | 20 | 29 (+9: 3 core + 6 connectors + __init__) |
-| Source lines | 7,301 | ~10,800 (+~3,500) |
-| Test files | 24 | 35 (+11: 3 core + 7 connector + 1 integration) |
-| Tests passing | 704 | ~1,000 (+~296) |
+| Source modules | 20 | ~33 (+13: 3 core + 8 accelerators + accelerators/__init__.py + __init__.py update) |
+| Source lines | 7,301 | ~13,000 (+~5,700) |
+| Test files | 24 | ~38 (+14: 3 core + 8 accelerator + 2 integration + 1 cross-accelerator) |
+| Tests passing | 704 | ~1,200 (+~496) |
 | PyPI version | 0.6.0 | 0.7.0 |
 
 ---
@@ -952,19 +962,32 @@ class TestExport:
 
 ---
 
-### 3.4 Connectors — `crdt_merge/connectors/` (Phase 3)
+### 3.4 Strategic Accelerators — `crdt_merge/accelerators/` (Phases 1–4)
 
 #### Architecture
 
-Connectors live in a `crdt_merge/connectors/` subdirectory with lazy imports.
-Each connector MUST:
+Accelerators live in a `crdt_merge/accelerators/` subdirectory with lazy imports.
+Each accelerator MUST:
 1. Handle `ImportError` gracefully (print helpful install message)
 2. Work WITHOUT the external dependency for basic type checking
-3. Include copyright header
-4. Follow the `CRDTMergeConnector` base protocol
+3. Include copyright header: `# Copyright 2026 Ryan Gillespie`
+4. Follow the `CRDTMergeAccelerator` base protocol
+
+```
+crdt_merge/accelerators/
+├── __init__.py          # Base protocol + registry
+├── duckdb_udf.py       # ACC-1: DuckDB UDF / MergeQL extension
+├── dbt_package.py      # ACC-2: dbt macro generator
+├── ducklake.py          # ACC-3: DuckLake semantic conflict layer
+├── polars_plugin.py     # ACC-4: Polars expression plugin
+├── flight_server.py     # ACC-5: Arrow Flight merge service
+├── airbyte.py           # ACC-6: Airbyte destination connector
+├── sqlite_ext.py        # ACC-7: SQLite CRDT extension
+└── streamlit_ui.py      # ACC-8: Streamlit visual merge component
+```
 
 ```python
-# crdt_merge/connectors/__init__.py
+# crdt_merge/accelerators/__init__.py
 # Copyright 2026 Ryan Gillespie
 # Licensed under Apache-2.0
 
@@ -972,8 +995,8 @@ from __future__ import annotations
 from typing import Protocol, Any, Dict, List, Optional, runtime_checkable
 
 @runtime_checkable
-class CRDTMergeConnector(Protocol):
-    """Base protocol for all crdt-merge connectors."""
+class CRDTMergeAccelerator(Protocol):
+    """Base protocol for all crdt-merge accelerators."""
     name: str
     version: str
 
@@ -981,206 +1004,474 @@ class CRDTMergeConnector(Protocol):
     def merge_from(self, source: Any) -> Any: ...
     def merge_to(self, target: Any, data: Any) -> None: ...
     def health_check(self) -> Dict[str, Any]: ...
+
+ACCELERATOR_REGISTRY: Dict[str, type] = {}
+
+def register_accelerator(name: str, cls: type) -> None:
+    """Register an accelerator class for discovery."""
+    ACCELERATOR_REGISTRY[name] = cls
+
+def get_accelerator(name: str) -> type:
+    """Get a registered accelerator class by name."""
+    ...
 ```
 
-#### 3.4.1 Kafka Connector — `crdt_merge/connectors/kafka.py` (~400 lines)
+#### 3.4.1 ACC-1: DuckDB UDF / MergeQL Extension — `crdt_merge/accelerators/duckdb_udf.py` (~500 lines)
 
-**Developer:** Dev D
-**Phase:** 3
-**External Dep:** `confluent-kafka` (lazy import)
+**Developer:** Dev A (core.py, strategies.py, mergeql.py owner)
+**Phase:** 2 — Technical Foundation
+**External Dep:** `duckdb` (lazy import)
+
+SQL-native CRDT merge inside DuckDB. Extends MergeQL with DuckDB UDF registration so users can
+run `SELECT * FROM crdt_merge(t1, t2, key:='id', strategy:='lww')` directly in DuckDB.
 
 ```python
-class KafkaMergeConsumer:
-    """Consume from Kafka topics with CRDT merge semantics.
+# Copyright 2026 Ryan Gillespie
+# Licensed under Apache-2.0
 
-    Reads from one or more topics, merges records by key using
-    configured strategies, and produces merged output.
+from __future__ import annotations
+from typing import Any, Callable, Dict, List, Optional
+from crdt_merge.core import MergeSchema
+
+class DuckDBMergeUDF:
+    """DuckDB UDF that wraps crdt-merge operations.
+
+    Registers CRDT merge as a DuckDB scalar/table function, enabling
+    SQL-native conflict resolution inside DuckDB queries.
+
+    Example:
+        udf = DuckDBMergeUDF(conn)
+        udf.register()
+        result = conn.sql("SELECT * FROM crdt_merge('t1', 't2', key:='id', strategy:='lww')")
     """
-    def __init__(self, bootstrap_servers: str, group_id: str,
-                 schema: Optional[MergeSchema] = None): ...
-    def subscribe(self, topics: List[str]) -> None: ...
-    def consume_and_merge(self, timeout: float = 1.0) -> List[dict]: ...
-    def commit(self) -> None: ...
-    def close(self) -> None: ...
+    def __init__(self, connection: Any = None, schema: Optional[MergeSchema] = None): ...
+    def register(self) -> None:
+        """Register crdt_merge as a DuckDB UDF."""
+        ...
+    def unregister(self) -> None:
+        """Remove the UDF registration."""
+        ...
+    def merge_tables(self, left: str, right: str, key: str,
+                     strategies: Optional[Dict[str, str]] = None) -> Any:
+        """Execute a merge on two DuckDB tables and return result."""
+        ...
+    def register_strategy(self, name: str, func: Callable) -> None:
+        """Register a custom merge strategy as a DuckDB UDF callback."""
+        ...
+    def health_check(self) -> Dict[str, Any]: ...
 
-class KafkaMergeProducer:
-    """Produce CRDT-merged records to Kafka topics."""
-    def __init__(self, bootstrap_servers: str): ...
-    def produce(self, topic: str, records: List[dict], key_field: str) -> None: ...
-    def flush(self) -> None: ...
-    def close(self) -> None: ...
+class DuckDBMergeQLExtension:
+    """Bridge between MergeQL parser and DuckDB execution engine.
+
+    Translates MergeQL AST into DuckDB-optimized query plans.
+    """
+    def __init__(self, connection: Any = None): ...
+    def execute_mergeql(self, query: str) -> Any:
+        """Execute a MergeQL query via DuckDB backend."""
+        ...
+    def explain_mergeql(self, query: str) -> str:
+        """Show DuckDB execution plan for a MergeQL query."""
+        ...
 ```
 
-Test file: `tests/test_connector_kafka.py` (~20 tests, all mocked)
+Test file: `tests/test_acc_duckdb_udf.py` (~30 tests, mocked DuckDB)
+Estimated lines: ~500
 
-#### 3.4.2 Flink Connector — `crdt_merge/connectors/flink.py` (~350 lines)
+#### 3.4.2 ACC-2: dbt Package — `crdt_merge/accelerators/dbt_package.py` (~350 lines)
 
 **Developer:** Dev D
-**Phase:** 3
-**External Dep:** `pyflink` (lazy import)
+**Phase:** 1 — Foundation (Quick Win)
+**External Dep:** `dbt-core` (lazy import, optional — generates pure SQL/Jinja)
+
+dbt Hub package for conflict-aware transforms. Generates cross-database SQL (Jinja templates
+for Snowflake, BigQuery, Postgres, DuckDB). Pre-built models for customer dedup, inventory sync,
+CRM merge.
 
 ```python
-class FlinkMergeFunction:
-    """Flink ProcessFunction with CRDT merge semantics.
+# Copyright 2026 Ryan Gillespie
+# Licensed under Apache-2.0
 
-    Integrates crdt-merge into Flink streaming pipelines as a
-    stateful process function.
+from __future__ import annotations
+from typing import Any, Dict, List, Optional
+
+class DbtCRDTMergePackage:
+    """dbt package generator for CRDT merge macros.
+
+    Generates dbt-compatible Jinja macros that implement CRDT merge
+    strategies in pure SQL. Works across all dbt-supported warehouses.
+
+    Example:
+        pkg = DbtCRDTMergePackage()
+        macro = pkg.generate_macro('lww', key='id', fields=['name', 'email'])
+        # {{ crdt_merge(ref('source_a'), ref('source_b'), key='id', strategy='lww') }}
+    """
+    def __init__(self, target_warehouse: str = "duckdb"): ...
+    def generate_macro(self, strategy: str, key: str,
+                       fields: Optional[List[str]] = None) -> str:
+        """Generate a dbt Jinja macro for the given merge strategy."""
+        ...
+    def generate_model(self, model_name: str, sources: List[str],
+                       key: str, strategies: Dict[str, str]) -> str:
+        """Generate a complete dbt model SQL file."""
+        ...
+    def generate_schema_yaml(self, model_name: str, columns: List[str]) -> str:
+        """Generate dbt schema.yml for the merge model."""
+        ...
+    def generate_package(self, output_dir: str) -> None:
+        """Generate a complete dbt package directory structure."""
+        ...
+    def supported_warehouses(self) -> List[str]:
+        """List supported target warehouses."""
+        ...
+    def health_check(self) -> Dict[str, Any]: ...
+```
+
+Test file: `tests/test_acc_dbt_package.py` (~25 tests, pure SQL/Jinja output validation)
+Estimated lines: ~350
+
+#### 3.4.3 ACC-3: DuckLake Semantic Conflict Layer — `crdt_merge/accelerators/ducklake.py` (~500 lines)
+
+**Developer:** Dev B (dataframe.py, schema_evolution.py, arrow.py owner)
+**Phase:** 3 — Ecosystem Lock-in
+**External Dep:** `duckdb` (lazy import)
+
+Field-level conflict resolution for DuckLake snapshots. Merkle-based change detection
+for efficient delta sync. Deterministic merge producing identical results regardless of
+operation order.
+
+```python
+# Copyright 2026 Ryan Gillespie
+# Licensed under Apache-2.0
+
+from __future__ import annotations
+from typing import Any, Dict, List, Optional, Tuple
+from crdt_merge.core import MergeSchema
+
+class DuckLakeConflictResolver:
+    """Semantic conflict resolution for DuckLake snapshots.
+
+    Provides field-level conflict resolution with configurable strategies
+    for DuckLake data snapshots, extending beyond transaction-level conflict
+    handling.
+
+    Example:
+        resolver = DuckLakeConflictResolver(conn, schema=my_schema)
+        result = resolver.merge_snapshots('snapshot_v1', 'snapshot_v2', key='id')
+    """
+    def __init__(self, connection: Any = None, schema: Optional[MergeSchema] = None): ...
+    def merge_snapshots(self, left: str, right: str, key: str) -> Any:
+        """Merge two DuckLake snapshots with field-level resolution."""
+        ...
+    def detect_changes(self, snapshot_a: str, snapshot_b: str) -> List[Dict[str, Any]]:
+        """Detect field-level changes between snapshots using Merkle trees."""
+        ...
+    def audit_trail(self, key: Any) -> List[Dict[str, Any]]:
+        """Get full audit trail for a record: which source won each field and why."""
+        ...
+    def branch(self, snapshot: str, branch_name: str) -> str:
+        """Create a branch from a DuckLake snapshot."""
+        ...
+    def merge_branches(self, branch_a: str, branch_b: str, key: str) -> Any:
+        """Merge two branches with CRDT conflict resolution."""
+        ...
+    def health_check(self) -> Dict[str, Any]: ...
+```
+
+Test file: `tests/test_acc_ducklake.py` (~25 tests, mocked DuckDB)
+Estimated lines: ~500
+
+#### 3.4.4 ACC-4: Polars Expression Plugin — `crdt_merge/accelerators/polars_plugin.py` (~400 lines)
+
+**Developer:** Dev B (dataframe.py, arrow.py owner)
+**Phase:** 3 — Ecosystem Lock-in
+**External Dep:** `polars` (lazy import)
+
+Native Polars expression plugin wrapping crdt-merge core. Arrow-native zero-copy interop.
+
+```python
+# Copyright 2026 Ryan Gillespie
+# Licensed under Apache-2.0
+
+from __future__ import annotations
+from typing import Any, Dict, List, Optional
+from crdt_merge.core import MergeSchema
+
+class PolarsCRDTMerge:
+    """Polars expression plugin for CRDT merge operations.
+
+    Provides native Polars DataFrame merge with CRDT strategies.
+    Uses Arrow zero-copy interop for maximum performance.
+
+    Example:
+        merger = PolarsCRDTMerge(schema=my_schema)
+        result = merger.merge(df_left, df_right, key='id')
+        # Or as expression: df.with_columns(crdt_merge('col_a', 'col_b', strategy='lww'))
     """
     def __init__(self, schema: Optional[MergeSchema] = None): ...
-    def process_element(self, value: dict, ctx: Any) -> List[dict]: ...
-    def merge_state(self) -> Dict[str, Any]: ...
-
-class FlinkMergeTable:
-    """Flink Table API integration for batch merge operations."""
-    def __init__(self, table_env: Any = None): ...
-    def register_table(self, name: str, data: List[dict]) -> None: ...
-    def merge_tables(self, *names: str, key: str,
-                     strategies: Optional[Dict[str, str]] = None) -> List[dict]: ...
+    def merge(self, left: Any, right: Any, key: str,
+              strategies: Optional[Dict[str, str]] = None) -> Any:
+        """Merge two Polars DataFrames with CRDT strategies."""
+        ...
+    def merge_lazy(self, left: Any, right: Any, key: str,
+                   strategies: Optional[Dict[str, str]] = None) -> Any:
+        """Lazy merge for streaming large datasets."""
+        ...
+    def as_expression(self, field: str, strategy: str = "lww") -> Any:
+        """Return a Polars expression for use in with_columns()."""
+        ...
+    def register_namespace(self) -> None:
+        """Register 'crdt' namespace on Polars DataFrames."""
+        ...
+    def health_check(self) -> Dict[str, Any]: ...
 ```
 
-Test file: `tests/test_connector_flink.py` (~20 tests, all mocked)
+Test file: `tests/test_acc_polars_plugin.py` (~25 tests, mocked Polars)
+Estimated lines: ~400
 
-#### 3.4.3 dbt Connector — `crdt_merge/connectors/dbt.py` (~300 lines)
+#### 3.4.5 ACC-5: Arrow Flight Merge Service — `crdt_merge/accelerators/flight_server.py` (~600 lines)
 
-**Developer:** Dev E
-**Phase:** 3
-**External Dep:** `dbt-core` (lazy import)
+**Developer:** Dev A (core.py, mergeql.py owner)
+**Phase:** 4 — Enterprise & Edge
+**External Dep:** `pyarrow` (lazy import — uses pyarrow.flight)
+
+gRPC-based Arrow Flight server. DoExchange RPC: client sends two streams, receives merged stream.
+Makes crdt-merge available to Java, Go, Rust, C++, JavaScript. Enterprise revenue vehicle.
 
 ```python
-class DbtMergeModel:
-    """dbt model that uses CRDT merge instead of standard merge.
+# Copyright 2026 Ryan Gillespie
+# Licensed under Apache-2.0
 
-    Generates dbt-compatible SQL with CRDT merge semantics embedded
-    as Jinja macros.
+from __future__ import annotations
+from typing import Any, Dict, List, Optional
+from crdt_merge.core import MergeSchema
+
+class FlightMergeServer:
+    """Arrow Flight server for merge-as-a-service.
+
+    Implements DoExchange for streaming CRDT merge via gRPC.
+    Clients send two Arrow streams, receive one merged stream.
+    Strategy configured via Flight metadata headers.
+
+    Example:
+        server = FlightMergeServer(host='0.0.0.0', port=8815)
+        server.serve()  # Blocks, or use server.start() for background
     """
-    def __init__(self, model_name: str, schema: Optional[MergeSchema] = None): ...
-    def generate_sql(self) -> str: ...
-    def generate_yaml(self) -> str: ...
-    def as_macro(self) -> str: ...
+    def __init__(self, host: str = "0.0.0.0", port: int = 8815,
+                 default_schema: Optional[MergeSchema] = None): ...
+    def serve(self) -> None:
+        """Start the Flight server (blocking)."""
+        ...
+    def start(self) -> None:
+        """Start the Flight server in background."""
+        ...
+    def stop(self) -> None:
+        """Stop the Flight server."""
+        ...
+    def do_exchange(self, context: Any, descriptor: Any, reader: Any, writer: Any) -> None:
+        """Handle DoExchange RPC — receive two streams, return merged stream."""
+        ...
+    def do_get(self, context: Any, ticket: Any) -> Any:
+        """Handle DoGet — retrieve previously merged results."""
+        ...
+    def list_flights(self, context: Any, criteria: Any) -> Any:
+        """List available merge endpoints."""
+        ...
+    def health_check(self) -> Dict[str, Any]: ...
 
-class DbtMergeMaterialization:
-    """Custom dbt materialization for CRDT merge tables."""
-    def __init__(self): ...
-    def materialize(self, source_tables: List[str], key: str,
-                    strategies: Optional[Dict[str, str]] = None) -> str: ...
+class FlightMergeClient:
+    """Client for the Arrow Flight merge service.
+
+    Example:
+        client = FlightMergeClient('localhost:8815')
+        result = client.merge(left_table, right_table, key='id', strategy='lww')
+    """
+    def __init__(self, location: str): ...
+    def merge(self, left: Any, right: Any, key: str,
+              strategies: Optional[Dict[str, str]] = None) -> Any:
+        """Send two tables to merge server, receive merged result."""
+        ...
+    def close(self) -> None: ...
 ```
 
-Test file: `tests/test_connector_dbt.py` (~20 tests, all mocked)
+Test file: `tests/test_acc_flight_server.py` (~30 tests, mocked Flight)
+Estimated lines: ~600
 
-#### 3.4.4 Airflow Connector — `crdt_merge/connectors/airflow.py` (~250 lines)
+#### 3.4.6 ACC-6: Airbyte Destination Connector — `crdt_merge/accelerators/airbyte.py` (~300 lines)
 
-**Developer:** Dev E
-**Phase:** 3
-**External Dep:** `apache-airflow` (lazy import)
+**Developer:** Dev D
+**Phase:** 2 — Technical Foundation
+**External Dep:** `airbyte_cdk` (lazy import)
+
+Airbyte destination connector (Python CDK) that resolves conflicts on ingest using CRDT strategies.
 
 ```python
-class CRDTMergeOperator:
-    """Airflow operator that performs CRDT merge as a DAG task.
+# Copyright 2026 Ryan Gillespie
+# Licensed under Apache-2.0
 
-    Reads from configured sources, merges with strategies,
-    writes to configured output.
+from __future__ import annotations
+from typing import Any, Dict, List, Optional, Iterable
+from crdt_merge.core import MergeSchema
+
+class AirbyteCRDTDestination:
+    """Airbyte destination connector with CRDT merge on ingest.
+
+    Wraps crdt-merge as an Airbyte destination that resolves field-level
+    conflicts during data ingestion, replacing Airbyte's default
+    'last record wins' dedup with configurable CRDT strategies.
+
+    Example:
+        dest = AirbyteCRDTDestination(schema=my_schema)
+        dest.write(configured_catalog, input_messages)
     """
-    def __init__(self, task_id: str, sources: List[str], key: str,
-                 strategies: Optional[Dict[str, str]] = None, **kwargs): ...
-    def execute(self, context: Any) -> List[dict]: ...
-    def pre_execute(self, context: Any) -> None: ...
-
-class CRDTMergeSensor:
-    """Airflow sensor that waits for merge conflicts to resolve."""
-    def __init__(self, task_id: str, check_fn: Any = None, **kwargs): ...
-    def poke(self, context: Any) -> bool: ...
+    def __init__(self, schema: Optional[MergeSchema] = None): ...
+    def spec(self) -> Dict[str, Any]:
+        """Return Airbyte connector spec with strategy configuration."""
+        ...
+    def check(self, config: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate connector configuration."""
+        ...
+    def write(self, config: Dict[str, Any], configured_catalog: Any,
+              input_messages: Iterable[Any]) -> Iterable[Any]:
+        """Write records with CRDT merge resolution."""
+        ...
+    def health_check(self) -> Dict[str, Any]: ...
 ```
 
-Test file: `tests/test_connector_airflow.py` (~20 tests, all mocked)
+Test file: `tests/test_acc_airbyte.py` (~20 tests, mocked CDK)
+Estimated lines: ~300
 
-#### 3.4.5 LangChain Connector — `crdt_merge/connectors/langchain.py` (~200 lines)
+#### 3.4.7 ACC-7: SQLite Extension — `crdt_merge/accelerators/sqlite_ext.py` (~500 lines)
 
-**Developer:** Dev C
-**Phase:** 3
-**External Dep:** `langchain` (lazy import)
+**Developer:** Dev C (streaming.py, delta.py, merkle.py owner)
+**Phase:** 4 — Enterprise & Edge
+**External Dep:** `sqlite3` (stdlib), optional C extension bindings
+
+Local-first / edge CRDT merge for SQLite. Fills the vacuum left by cr-sqlite (archived July 2025).
 
 ```python
-class CRDTMergeRetriever:
-    """LangChain retriever that merges results from multiple sources.
+# Copyright 2026 Ryan Gillespie
+# Licensed under Apache-2.0
 
-    Uses CRDT merge to combine retrieval results from different
-    vector stores or document sources.
+from __future__ import annotations
+from typing import Any, Dict, List, Optional
+from crdt_merge.core import MergeSchema
+
+class SQLiteCRDTMerge:
+    """SQLite extension for CRDT merge operations.
+
+    Registers CRDT merge as SQLite custom functions, enabling
+    local-first / edge data sync with conflict resolution.
+
+    Example:
+        ext = SQLiteCRDTMerge(db_path='local.db', schema=my_schema)
+        ext.register()
+        ext.conn.execute("SELECT crdt_merge(t1.val, t2.val, 'lww') FROM t1, t2 ...")
     """
-    def __init__(self, retrievers: List[Any],
+    def __init__(self, db_path: str = ":memory:",
                  schema: Optional[MergeSchema] = None): ...
-    def get_relevant_documents(self, query: str) -> List[Any]: ...
-    def merge_results(self, results: List[List[Any]]) -> List[Any]: ...
-
-class CRDTMergeTool:
-    """LangChain tool that exposes CRDT merge to agents."""
-    name: str = "crdt_merge"
-    description: str = "Merge datasets using CRDT strategies"
-    def _run(self, query: str) -> str: ...
+    def register(self) -> None:
+        """Register CRDT merge functions in SQLite."""
+        ...
+    def merge_tables(self, left: str, right: str, key: str,
+                     strategies: Optional[Dict[str, str]] = None) -> List[dict]:
+        """Merge two SQLite tables with CRDT strategies."""
+        ...
+    def sync_from(self, remote_db: str, tables: List[str]) -> Dict[str, int]:
+        """Sync and merge from a remote SQLite database."""
+        ...
+    def create_crdt_table(self, name: str, columns: Dict[str, str],
+                          key: str, strategies: Dict[str, str]) -> None:
+        """Create a table with embedded CRDT merge metadata."""
+        ...
+    def health_check(self) -> Dict[str, Any]: ...
 ```
 
-Test file: `tests/test_connector_langchain.py` (~20 tests, all mocked)
+Test file: `tests/test_acc_sqlite_ext.py` (~25 tests, uses stdlib sqlite3)
+Estimated lines: ~500
 
-#### 3.4.6 REST Server — `crdt_merge/connectors/server.py` (~300 lines)
+#### 3.4.8 ACC-8: Streamlit Visual Merge UI — `crdt_merge/accelerators/streamlit_ui.py` (~250 lines)
 
-**Developer:** Dev A
-**Phase:** 3
-**External Dep:** None (uses stdlib `http.server`, optional `flask`)
+**Developer:** Dev C (viz.py owner)
+**Phase:** 1 — Foundation (Quick Win)
+**External Dep:** `streamlit` (lazy import)
+
+Streamlit component showing merge conflicts visually. Lowest-effort accelerator but
+highest-quality marketing asset. Part of Snowflake ecosystem.
 
 ```python
-class CRDTMergeServer:
-    """HTTP REST server for CRDT merge operations.
+# Copyright 2026 Ryan Gillespie
+# Licensed under Apache-2.0
 
-    Exposes merge operations via REST API endpoints:
-    - POST /merge — Execute a merge
-    - POST /sources — Register a source
-    - GET /sources — List sources
-    - POST /mergeql — Execute MergeQL query
-    - GET /health — Health check
+from __future__ import annotations
+from typing import Any, Dict, List, Optional
+from crdt_merge.core import MergeSchema
+
+class StreamlitMergeUI:
+    """Streamlit component for visual merge conflict resolution.
+
+    Displays two data sources side by side with conflicting cells
+    highlighted in amber. Users can override resolution strategies
+    per column and export merged results to Parquet.
+
+    Example:
+        ui = StreamlitMergeUI(schema=my_schema)
+        ui.render(left_data, right_data, key='id')
     """
-    def __init__(self, host: str = "0.0.0.0", port: int = 8765): ...
-    def start(self) -> None: ...
-    def stop(self) -> None: ...
-    def register_source(self, name: str, data: List[dict]) -> None: ...
-
-    # Internal handlers
-    def _handle_merge(self, request: dict) -> dict: ...
-    def _handle_mergeql(self, request: dict) -> dict: ...
-    def _handle_sources(self, request: dict) -> dict: ...
-    def _handle_health(self) -> dict: ...
+    def __init__(self, schema: Optional[MergeSchema] = None,
+                 title: str = "CRDT Merge Conflict Resolution"): ...
+    def render(self, left: Any, right: Any, key: str,
+               strategies: Optional[Dict[str, str]] = None) -> Optional[List[dict]]:
+        """Render the merge UI in Streamlit and return resolved data."""
+        ...
+    def render_conflicts(self, conflicts: List[Dict[str, Any]]) -> None:
+        """Render a conflict heatmap visualization."""
+        ...
+    def render_provenance(self, provenance: List[Dict[str, Any]]) -> None:
+        """Render provenance trail for merged records."""
+        ...
+    def export_parquet(self, data: List[dict], filename: str = "merged.parquet") -> None:
+        """Export merged results to downloadable Parquet file."""
+        ...
+    def health_check(self) -> Dict[str, Any]: ...
 ```
 
-Test file: `tests/test_connector_server.py` (~20 tests, using stdlib)
+Test file: `tests/test_acc_streamlit_ui.py` (~20 tests, mocked Streamlit)
+Estimated lines: ~250
 
 ---
 
 ## 4. Phase Ordering & Dependencies
 
 ```
-Phase 1 — Foundation (3 weeks)
+Phase 1 — Foundation + Quick Wins (Weeks 1-3)
 ├── Dev A: mergeql.py (independent — reads core.py, strategies.py)
-└── Dev B: parquet.py (independent — reads core.py, provenance.py)
+├── Dev B: parquet.py (independent — reads core.py, provenance.py)
+├── Dev C: accelerators/streamlit_ui.py [ACC-8] (quick win — reads viz concepts)
+└── Dev D: accelerators/dbt_package.py [ACC-2] (quick win — pure SQL/Jinja generation)
 
-Phase 2 — Integration (2 weeks)
+Phase 2 — Technical Foundation (Weeks 3-5)
+├── Dev A: accelerators/duckdb_udf.py [ACC-1] (requires Phase 1 mergeql.py)
 ├── Dev C: viz.py (independent — reads provenance.py, dataframe.py)
-└── Dev A: MergeQL DuckDB optimizer extension (requires Phase 1 mergeql.py)
+└── Dev D: accelerators/airbyte.py [ACC-6] (independent — Python CDK)
 
-Phase 3 — Connectors (3 weeks)
-├── Dev A: connectors/server.py (reads mergeql.py from Phase 1)
-├── Dev C: connectors/langchain.py (independent)
-├── Dev D: connectors/kafka.py (independent)
-├── Dev D: connectors/flink.py (independent)
-├── Dev E: connectors/dbt.py (independent)
-└── Dev E: connectors/airflow.py (independent)
+Phase 3 — Ecosystem Lock-in (Weeks 5-9)
+├── Dev B: accelerators/polars_plugin.py [ACC-4] (Arrow-native interop)
+├── Dev B: accelerators/ducklake.py [ACC-3] (DuckLake semantic conflicts)
+└── Existing streaming infrastructure available for future Kafka/Flink if desired
 
-Phase 4 — Integration & Release (2 weeks)
+Phase 4 — Enterprise & Edge + Release (Weeks 9-13)
+├── Dev A: accelerators/flight_server.py [ACC-5] (Arrow Flight merge service)
+├── Dev C: accelerators/sqlite_ext.py [ACC-7] (local-first / edge)
 ├── Dev A: __init__.py exports update (all modules)
+├── Dev A: accelerators/__init__.py (base protocol + registry)
 ├── Dev D: wire.py v3 tags for MergeQL types
 ├── Dev E: test_v070_integration.py (cross-module tests)
+├── Dev E: test_v070_accelerator_integration.py (cross-accelerator tests)
 └── All: Documentation, CHANGELOG, README
 
 Buffer: 1 week
 
-Total: 11 weeks
+Total: 13 weeks (+ 1 week buffer)
 ```
 
 ### Dependency Graph
@@ -1190,24 +1481,28 @@ Total: 11 weeks
                     │   core.py   │ (frozen)
                     └──────┬──────┘
                            │ read-only
-              ┌────────────┼────────────┐
-              ▼            ▼            ▼
-        ┌──────────┐ ┌──────────┐ ┌──────────┐
-        │mergeql.py│ │parquet.py│ │  viz.py  │
-        │  Dev A   │ │  Dev B   │ │  Dev C   │
-        │ Phase 1  │ │ Phase 1  │ │ Phase 2  │
-        └────┬─────┘ └──────────┘ └──────────┘
-             │ read-only
-        ┌────▼─────┐
-        │server.py │ (Phase 3)
-        │  Dev A   │
-        └──────────┘
-
-        Connectors (Phase 3, all independent):
-        ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌───────────┐
-        │ kafka.py │ │ flink.py │ │  dbt.py  │ │airflow.py│ │langchain.py│
-        │  Dev D   │ │  Dev D   │ │  Dev E   │ │  Dev E   │ │   Dev C   │
-        └──────────┘ └──────────┘ └──────────┘ └──────────┘ └───────────┘
+              ┌────────────┼────────────┬────────────────────┐
+              ▼            ▼            ▼                    ▼
+        ┌──────────┐ ┌──────────┐ ┌──────────┐     ┌──────────────────┐
+        │mergeql.py│ │parquet.py│ │  viz.py  │     │ accelerators/    │
+        │  Dev A   │ │  Dev B   │ │  Dev C   │     │  __init__.py     │
+        │ Phase 1  │ │ Phase 1  │ │ Phase 2  │     │  (base protocol) │
+        └────┬─────┘ └──────────┘ └────┬─────┘     └────────┬─────────┘
+             │ read-only               │                     │
+        ┌────▼──────────┐        ┌─────▼────────┐           │
+        │duckdb_udf.py  │        │streamlit_ui  │           │
+        │ACC-1 (Phase 2)│        │ACC-8 (Phs 1) │           │
+        └───────────────┘        └──────────────┘           │
+                                                             │
+        Quick Wins (Phase 1):                    Phase 2-4 Accelerators:
+        ┌────────────┐ ┌──────────────┐   ┌──────────┐ ┌──────────┐
+        │dbt_package │ │streamlit_ui  │   │ducklake  │ │polars    │
+        │ACC-2 Phs 1 │ │ACC-8 Phase 1 │   │ACC-3 Ph3 │ │ACC-4 Ph3 │
+        └────────────┘ └──────────────┘   └──────────┘ └──────────┘
+        ┌──────────┐ ┌──────────┐ ┌──────────────┐ ┌──────────┐
+        │airbyte   │ │duckdb_udf│ │flight_server │ │sqlite_ext│
+        │ACC-6 Ph2 │ │ACC-1 Ph2 │ │ACC-5 Phase 4 │ │ACC-7 Ph4 │
+        └──────────┘ └──────────┘ └──────────────┘ └──────────┘
 ```
 
 ---
@@ -1219,7 +1514,7 @@ Total: 11 weeks
 3. New modules write to their **own files ONLY**
 4. New test files write to their **own files ONLY**
 5. `__init__.py` updates **ONLY by Dev A in Phase 4**
-6. Connectors go in `crdt_merge/connectors/` subdirectory (NOT in main package dir)
+6. Accelerators go in `crdt_merge/accelerators/` subdirectory (NOT in main package dir)
 7. All new CRDT types must satisfy **associative + commutative + idempotent** laws
 8. All **704 existing tests** must pass (**regression gate**)
 9. Each dev **reads existing modules** (import-only), **never writes**
@@ -1232,13 +1527,15 @@ Total: 11 weeks
 | `crdt_merge/mergeql.py` | Dev A | 1 | EXCLUSIVE |
 | `crdt_merge/parquet.py` | Dev B | 1 | EXCLUSIVE |
 | `crdt_merge/viz.py` | Dev C | 2 | EXCLUSIVE |
-| `crdt_merge/connectors/__init__.py` | Dev A | 3 | EXCLUSIVE |
-| `crdt_merge/connectors/kafka.py` | Dev D | 3 | EXCLUSIVE |
-| `crdt_merge/connectors/flink.py` | Dev D | 3 | EXCLUSIVE |
-| `crdt_merge/connectors/dbt.py` | Dev E | 3 | EXCLUSIVE |
-| `crdt_merge/connectors/airflow.py` | Dev E | 3 | EXCLUSIVE |
-| `crdt_merge/connectors/langchain.py` | Dev C | 3 | EXCLUSIVE |
-| `crdt_merge/connectors/server.py` | Dev A | 3 | EXCLUSIVE |
+| `crdt_merge/accelerators/__init__.py` | Dev A | 4 | EXCLUSIVE |
+| `crdt_merge/accelerators/duckdb_udf.py` | Dev A | 2 | EXCLUSIVE |
+| `crdt_merge/accelerators/dbt_package.py` | Dev D | 1 | EXCLUSIVE |
+| `crdt_merge/accelerators/ducklake.py` | Dev B | 3 | EXCLUSIVE |
+| `crdt_merge/accelerators/polars_plugin.py` | Dev B | 3 | EXCLUSIVE |
+| `crdt_merge/accelerators/flight_server.py` | Dev A | 4 | EXCLUSIVE |
+| `crdt_merge/accelerators/airbyte.py` | Dev D | 2 | EXCLUSIVE |
+| `crdt_merge/accelerators/sqlite_ext.py` | Dev C | 4 | EXCLUSIVE |
+| `crdt_merge/accelerators/streamlit_ui.py` | Dev C | 1 | EXCLUSIVE |
 | `crdt_merge/__init__.py` | Dev A | 4 | UPDATE ONLY (add exports) |
 
 ---
@@ -1250,14 +1547,18 @@ Total: 11 weeks
 | `tests/test_mergeql.py` | ~60 | Dev A | 1 |
 | `tests/test_parquet.py` | ~40 | Dev B | 1 |
 | `tests/test_viz.py` | ~35 | Dev C | 2 |
-| `tests/test_connector_kafka.py` | ~20 | Dev D | 3 |
-| `tests/test_connector_flink.py` | ~20 | Dev D | 3 |
-| `tests/test_connector_dbt.py` | ~20 | Dev E | 3 |
-| `tests/test_connector_airflow.py` | ~20 | Dev E | 3 |
-| `tests/test_connector_langchain.py` | ~20 | Dev C | 3 |
-| `tests/test_connector_server.py` | ~20 | Dev A | 3 |
+| `tests/test_acc_duckdb_udf.py` | ~30 | Dev A | 2 |
+| `tests/test_acc_dbt_package.py` | ~25 | Dev D | 1 |
+| `tests/test_acc_ducklake.py` | ~25 | Dev B | 3 |
+| `tests/test_acc_polars_plugin.py` | ~25 | Dev B | 3 |
+| `tests/test_acc_flight_server.py` | ~30 | Dev A | 4 |
+| `tests/test_acc_airbyte.py` | ~20 | Dev D | 2 |
+| `tests/test_acc_sqlite_ext.py` | ~25 | Dev C | 4 |
+| `tests/test_acc_streamlit_ui.py` | ~20 | Dev C | 1 |
 | `tests/test_v070_integration.py` | ~40 | Dev E | 4 |
-| **Total** | **~295** | | |
+| `tests/test_v070_accelerator_integration.py` | ~30 | Dev E | 4 |
+| `tests/test_v070_cross_accelerator.py` | ~25 | Dev E | 4 |
+| **Total** | **~430** | | |
 
 ### Cumulative Test Projection
 
@@ -1265,7 +1566,7 @@ Total: 11 weeks
 |---------|-------|
 | v0.5.0 | 425 |
 | v0.6.0 | 704 |
-| v0.7.0 | ~1,000 |
+| v0.7.0 | ~1,200 |
 
 ---
 
@@ -1273,21 +1574,21 @@ Total: 11 weeks
 
 | Dev | Existing Ownership (frozen) | v0.7.0 Assignments |
 |-----|----------------------------|-------------------|
-| **Dev A** | core.py, strategies.py, __init__.py, clocks.py, gossip.py | mergeql.py, connectors/__init__.py, connectors/server.py, __init__.py update |
-| **Dev B** | dataframe.py, datasets_ext.py, json_merge.py, schema_evolution.py, arrow.py | parquet.py |
-| **Dev C** | streaming.py, delta.py, merkle.py | viz.py, connectors/langchain.py |
-| **Dev D** | probabilistic.py, wire.py, async_merge.py, parallel.py | connectors/kafka.py, connectors/flink.py, wire v3 tags |
-| **Dev E** | verify.py, provenance.py, dedup.py | connectors/dbt.py, connectors/airflow.py, test_v070_integration.py |
+| **Dev A** | core.py, strategies.py, __init__.py, clocks.py, gossip.py | mergeql.py, accelerators/__init__.py, accelerators/duckdb_udf.py, accelerators/flight_server.py, __init__.py update |
+| **Dev B** | dataframe.py, datasets_ext.py, json_merge.py, schema_evolution.py, arrow.py | parquet.py, accelerators/polars_plugin.py, accelerators/ducklake.py |
+| **Dev C** | streaming.py, delta.py, merkle.py | viz.py, accelerators/streamlit_ui.py, accelerators/sqlite_ext.py |
+| **Dev D** | probabilistic.py, wire.py, async_merge.py, parallel.py | accelerators/dbt_package.py, accelerators/airbyte.py, wire v3 tags |
+| **Dev E** | verify.py, provenance.py, dedup.py | test_v070_integration.py, test_v070_accelerator_integration.py |
 
 ### Workload Balance
 
 | Dev | Phase 1 | Phase 2 | Phase 3 | Phase 4 | Total Lines |
 |-----|---------|---------|---------|---------|-------------|
-| Dev A | mergeql (~500) | optimizer ext | server (~300) | __init__.py | ~850 |
-| Dev B | parquet (~400) | — | — | — | ~400 |
-| Dev C | — | viz (~250) | langchain (~200) | — | ~450 |
-| Dev D | — | — | kafka (~400) + flink (~350) | wire v3 | ~800 |
-| Dev E | — | — | dbt (~300) + airflow (~250) | integration tests (~400) | ~950 |
+| Dev A | mergeql (~500) | duckdb_udf (~500) | — | flight_server (~600), accelerators/__init__.py (~100), __init__.py update | ~1,700 |
+| Dev B | parquet (~400) | — | polars_plugin (~400) + ducklake (~500) | — | ~1,300 |
+| Dev C | streamlit_ui (~250) | viz (~250) | — | sqlite_ext (~500) | ~1,000 |
+| Dev D | dbt_package (~350) | airbyte (~300) | — | wire v3 tags | ~700 |
+| Dev E | — | — | — | integration tests (~400) + accelerator integration (~300) + cross-accelerator (~250) | ~950 |
 
 ---
 
@@ -1335,18 +1636,67 @@ class TestVisualizationIntegration:
     def test_viz_large_conflict_set(self): ...
     def test_viz_cluster_detection(self): ...
 
-class TestConnectorIntegration:
+class TestCoreAcceleratorIntegration:
     # 10 tests (all external deps mocked)
-    def test_connector_protocol(self): ...
-    def test_kafka_mock_pipeline(self): ...
-    def test_flink_mock_pipeline(self): ...
-    def test_dbt_sql_generation(self): ...
-    def test_airflow_operator_execution(self): ...
-    def test_langchain_retriever(self): ...
-    def test_server_endpoints(self): ...
-    def test_connector_lazy_import(self): ...
-    def test_connector_error_messages(self): ...
+    def test_accelerator_protocol(self): ...
+    def test_accelerator_registry(self): ...
+    def test_accelerator_lazy_import(self): ...
+    def test_accelerator_error_messages(self): ...
+    def test_duckdb_udf_with_mergeql(self): ...
+    def test_dbt_package_sql_generation(self): ...
+    def test_streamlit_with_viz(self): ...
+    def test_airbyte_destination_pipeline(self): ...
+    def test_flight_server_roundtrip(self): ...
     def test_end_to_end_pipeline(self): ...
+```
+
+### `tests/test_v070_accelerator_integration.py` (~30 tests)
+
+```python
+class TestDuckDBAcceleratorIntegration:
+    # 8 tests
+    def test_duckdb_udf_register_and_query(self): ...
+    def test_duckdb_mergeql_bridge(self): ...
+    def test_duckdb_with_parquet_source(self): ...
+    def test_duckdb_custom_strategy(self): ...
+    def test_duckdb_explain_plan(self): ...
+    def test_duckdb_large_table_merge(self): ...
+    def test_duckdb_crdt_laws(self): ...
+    def test_duckdb_error_handling(self): ...
+
+class TestDbtAcceleratorIntegration:
+    # 5 tests
+    def test_dbt_macro_generation(self): ...
+    def test_dbt_cross_warehouse_sql(self): ...
+    def test_dbt_model_with_strategies(self): ...
+    def test_dbt_schema_yaml(self): ...
+    def test_dbt_package_structure(self): ...
+
+class TestPolarsAcceleratorIntegration:
+    # 5 tests
+    def test_polars_merge_dataframes(self): ...
+    def test_polars_lazy_evaluation(self): ...
+    def test_polars_arrow_interop(self): ...
+    def test_polars_expression_api(self): ...
+    def test_polars_crdt_laws(self): ...
+
+class TestEnterpriseAcceleratorIntegration:
+    # 7 tests
+    def test_flight_server_do_exchange(self): ...
+    def test_flight_client_merge(self): ...
+    def test_sqlite_crdt_table(self): ...
+    def test_sqlite_sync_from(self): ...
+    def test_ducklake_snapshot_merge(self): ...
+    def test_ducklake_branch_merge(self): ...
+    def test_airbyte_write_pipeline(self): ...
+
+class TestStreamlitAcceleratorIntegration:
+    # 5 tests
+    def test_streamlit_render_conflicts(self): ...
+    def test_streamlit_provenance_view(self): ...
+    def test_streamlit_export_parquet(self): ...
+    def test_streamlit_with_viz_topology(self): ...
+    def test_streamlit_strategy_override(self): ...
 ```
 
 ---
@@ -1375,10 +1725,11 @@ This must be explicitly approved by project lead before implementation.
 ### 10.1 Test Gates
 
 - [ ] All 704 existing tests pass (zero regressions)
-- [ ] All ~295 new tests pass
-- [ ] Total: ~1,000 tests passing
+- [ ] All ~430 new tests pass (3 core + 8 accelerator + 3 integration)
+- [ ] Total: ~1,200 tests passing
 - [ ] CRDT laws verified for applicable new types
-- [ ] No import errors when connectors' external deps are missing
+- [ ] No import errors when accelerators' external deps are missing
+- [ ] All 8 accelerators pass lazy import verification
 
 ### 10.2 Documentation
 
@@ -1401,11 +1752,14 @@ This must be explicitly approved by project lead before implementation.
 
 | Risk | Mitigation |
 |------|-----------|
-| Connector external deps break tests | All connector tests use mocks; no real external deps in CI |
+| Accelerator external deps break tests | All accelerator tests use mocks; no real external deps in CI |
 | MergeQL parser edge cases | Fuzzing test suite with random valid/invalid queries |
 | Parquet metadata compatibility | Version field in metadata for forward compatibility |
-| Connector scope creep | Connectors provide integration glue ONLY, not full features |
+| Accelerator scope creep | Accelerators provide integration glue ONLY, not full features |
 | Wire protocol backward compatibility | New tags only; existing tags immutable |
+| DuckDB API changes | Pin to DuckDB 1.5.0+ extension API; version check in UDF registration |
+| cr-sqlite vacuum timing | SQLite extension is Phase 4 — can absorb delays without blocking core |
+| Arrow Flight complexity | Server/client split allows incremental delivery; client can ship first |
 
 ---
 
@@ -1413,13 +1767,13 @@ This must be explicitly approved by project lead before implementation.
 
 | Week | Phase | Deliverables |
 |------|-------|-------------|
-| 1-3 | Foundation | mergeql.py + parquet.py (Dev A, B) |
-| 4-5 | Integration | viz.py + MergeQL optimizer (Dev A, C) |
-| 6-8 | Connectors | All 6 connectors (Dev A, C, D, E) |
-| 9-10 | Integration & Testing | Integration tests, wire v3, __init__ (Dev A, D, E) |
-| 11 | Buffer | Bug fixes, edge cases, documentation |
+| 1-3 | Foundation + Quick Wins | mergeql.py (Dev A), parquet.py (Dev B), dbt_package.py ACC-2 (Dev D), streamlit_ui.py ACC-8 (Dev C) |
+| 3-5 | Technical Foundation | viz.py (Dev C), duckdb_udf.py ACC-1 (Dev A), airbyte.py ACC-6 (Dev D) |
+| 5-9 | Ecosystem Lock-in | polars_plugin.py ACC-4 (Dev B), ducklake.py ACC-3 (Dev B) |
+| 9-13 | Enterprise & Edge + Release | flight_server.py ACC-5 (Dev A), sqlite_ext.py ACC-7 (Dev C), accelerators/__init__.py (Dev A), wire v3 (Dev D), integration tests (Dev E), __init__.py update (Dev A) |
+| 14 | Buffer | Bug fixes, edge cases, documentation |
 
-**Total: 11 weeks**
+**Total: 13 weeks (+ 1 week buffer)**
 
 ---
 

@@ -42,7 +42,7 @@ crdt-merge is the **complete merge toolkit** that sits beneath all of these — 
 |---------|----------|-------------|----------|-----------|--------|
 | **v0.5.1** | The Hotfix Release | Core merge, MergeSchema, delta sync, dedup, probabilistic, HF integration | 4,028 | 425 | ✅ COMPLETE |
 | **v0.6.0** | The Performance Release | Arrow-native merge, schema evolution, gossip protocol, HLC, Merkle trees | 6,478 | 685 | ✅ COMPLETE |
-| **v0.7.0** | The Integration Release | MergeQL (SQL), data stack connectors, self-merging Parquet, conflict visualization | ~9,500 | ~1,100 | 📋 Planned |
+| **v0.7.0** | The Integration Release | MergeQL (SQL), 8 strategic accelerators (DuckDB, dbt, DuckLake, Polars, Arrow Flight, Airbyte, SQLite, Streamlit), self-merging Parquet, conflict visualization | ~13,000 | ~1,200 | 📋 Planned |
 | **v0.8.0** | The Intelligence Release | ModelCRDT (20+ strategies), protocol engine, FFI/WASM, LoRA merging, evolutionary merge | ~14,500 | ~1,800 | 📋 Planned |
 | **v0.9.0** | The Enterprise Release | UnmergeEngine, model unmerging, encryption, RBAC, observability, compliance | ~17,000 | ~2,200 | 📋 Planned |
 | **v1.0.0** | The Platform Release | API freeze, formal spec, security audit, comprehensive docs, certification | ~18,000 | ~2,500 | 📋 Planned |
@@ -247,9 +247,9 @@ async for batch in amerge_stream(source, schema):
 
 ## v0.7.0 — "The Integration Release" (MergeQL + Data Stack)
 
-**Target LOC:** ~9,500 (+3,300) · **Target Tests:** ~1,100 (+380) · **Breaking Changes:** 0
+**Target LOC:** ~13,000 (+5,700) · **Target Tests:** ~1,200 (+496) · **Breaking Changes:** 0
 
-This release brings SQL-based merge operations and integrations with the modern data stack, making crdt-merge accessible to the massive SQL-literate audience.
+This release transforms crdt-merge into an integrated component of the modern data stack with MergeQL (SQL interface), 8 strategic ecosystem accelerators, self-merging Parquet files, and conflict topology visualization. The accelerators span DuckDB, dbt, DuckLake, Polars, Arrow Flight, Airbyte, SQLite, and Streamlit — covering the entire data lifecycle from ingestion to visualization.
 
 ### MergeQL — SQL Merge Interface (~500 lines)
 
@@ -282,53 +282,44 @@ result = mql.execute("""
 
 **Why this matters:** The CRDV paper (Kleppmann et al., SIGMOD 2025) established the theory for CRDT-aware SQL operations. Nobody has implemented it. MergeQL is the first practical implementation, giving crdt-merge an academic citation advantage.
 
-### Data Stack Connectors
+### Strategic Accelerators — 8 Ecosystem Integrations
 
-**crdt-merge-kafka (~400 lines):**
-```python
-from crdt_merge.connectors.kafka import KafkaMergeConsumer
+Eight accelerator modules that plug crdt-merge into the dominant tools in the modern data stack. All live in `crdt_merge/accelerators/` with lazy imports — zero mandatory dependencies.
 
-consumer = KafkaMergeConsumer(
-    topics=["events-east", "events-west"],
-    schema=my_schema,
-    group_id="merge-group"
-)
-for merged_batch in consumer.consume_and_merge():
-    sink.write(merged_batch)
-```
+| # | Accelerator | Module | Difficulty | Impact | Est. Time | Phase |
+|---|-------------|--------|------------|--------|-----------|-------|
+| 1 | **DuckDB UDF / MergeQL** | `accelerators/duckdb_udf.py` | Medium | ★★★★★ | 2-3 wks | 2 |
+| 2 | **dbt Package** | `accelerators/dbt_package.py` | Low | ★★★★★ | 1-2 wks | 1 |
+| 3 | **DuckLake Semantic Conflict** | `accelerators/ducklake.py` | Medium | ★★★★ | 3-4 wks | 3 |
+| 4 | **Polars Expression Plugin** | `accelerators/polars_plugin.py` | Medium | ★★★★ | 2-3 wks | 3 |
+| 5 | **Arrow Flight Merge Service** | `accelerators/flight_server.py` | High | ★★★★★ | 4-6 wks | 4 |
+| 6 | **Airbyte Destination** | `accelerators/airbyte.py` | Low | ★★★ | 1-2 wks | 2 |
+| 7 | **SQLite Extension (Edge)** | `accelerators/sqlite_ext.py` | Medium | ★★★★ | 3-4 wks | 4 |
+| 8 | **Streamlit Visual Merge UI** | `accelerators/streamlit_ui.py` | Low | ★★★ | 1 wk | 1 |
 
-**crdt-merge-flink (~350 lines):**
-- Custom Flink `MergeFunction` for streaming merge
-- Watermark-aware merge with late data handling
-- State backend integration for incremental merge
+**ACC-1 — DuckDB UDF / MergeQL Extension:**
+SQL-native CRDT merge inside DuckDB. `SELECT * FROM crdt_merge(t1, t2, key:='id', strategy:='lww')`. Submittable to DuckDB community extensions. MotherDuck-compatible. TAM: $66B data pipeline market. CAC: $0 via DuckDB install command. DuckDB 1.5.0 shipped March 2026 with revamped extension APIs.
 
-**crdt-merge-dbt (~300 lines):**
-```sql
--- models/merged_customers.sql
-{{ config(materialized='incremental') }}
+**ACC-2 — dbt Package (dbt-crdt-merge):**
+dbt Hub package for conflict-aware transforms. `{{ crdt_merge(ref('source_a'), ref('source_b'), key='id', strategy='lww') }}`. Cross-database SQL generation (Snowflake, BigQuery, Postgres, DuckDB). Pre-built models for customer dedup, inventory sync, CRM merge. dbt Hub has ~500 packages — zero handle deterministic conflict resolution. 40,000+ companies use dbt.
 
-{{ crdt_merge(
-    sources=['stg_customers_east', 'stg_customers_west'],
-    key='customer_id',
-    strategies={'name': 'LWW', 'revenue': 'MaxWins', 'tags': 'UnionSet'}
-) }}
-```
+**ACC-3 — DuckLake Semantic Conflict Layer:**
+Field-level conflict resolution for DuckLake snapshots. Merkle-based change detection for delta sync. Deterministic merge producing identical results regardless of operation order. Full audit trail. DuckLake has only transaction-level conflict handling — GitHub discussion #194 requests Git-like branch/merge.
 
-**crdt-merge-airflow (~250 lines):**
-- `CRDTMergeOperator` for Airflow DAGs
-- Sensor for merge-readiness detection
-- XCom integration for merge provenance
+**ACC-4 — Polars Expression Plugin:**
+Rust Polars expression plugin wrapping crdt-merge. `df.with_columns(crdt_merge('col_a', 'col_b', strategy='lww'))`. Lazy evaluation for streaming. PyPI publishable as `polars-crdt-merge`. Arrow-native zero-copy interop. Polars downloads growing 300%+ YoY.
 
-**crdt-merge-langchain (~200 lines):**
-- `CRDTMergeTool` for LangChain agents
-- Merge-as-a-tool for AI data pipelines
-- Provenance-aware RAG merge (merge retrieved contexts with CRDT guarantees)
+**ACC-5 — Arrow Flight Merge-as-a-Service:**
+gRPC-based Arrow Flight server. DoExchange RPC: send two streams, receive merged stream. Strategy via Flight metadata headers. `docker run crdt-merge-server`. Makes crdt-merge available to Java, Go, Rust, C++, JavaScript. Enterprise revenue vehicle.
 
-**crdt-merge-server (~300 lines):**
-- Lightweight HTTP wrapper for crdt-merge operations
-- REST and gRPC endpoints
-- Batch merge API
-- Health/readiness probes
+**ACC-6 — Airbyte Custom Destination:**
+Airbyte destination connector (Python CDK) wrapping crdt-merge. Configure strategies per stream in connection config UI. Publishable to Airbyte connector registry. Airbyte's dedup mode is "last record wins" — no field-level strategy.
+
+**ACC-7 — SQLite Extension (Local-First / Edge):**
+C extension for SQLite wrapping crdt-merge core. cr-sqlite (6,000+ ⭐) archived July 2025 — vacuum to fill. Edge data sync TAM: $2.9B → $6.3B by 2030. Targets local-first community: Expo, React Native, Flutter. Electric SQL pivoted away from CRDTs.
+
+**ACC-8 — Streamlit / Data App Visual Merge UI:**
+Streamlit component showing merge conflicts visually. Side-by-side data sources, conflicting cells highlighted in amber. Resolution strategy per column, merged result on right. Click to override, export to Parquet. Streamlit is part of Snowflake. Lowest-effort accelerator (1 week) but highest-quality marketing asset.
 
 ### Self-Merging Parquet (~400 lines)
 
@@ -369,13 +360,21 @@ topo.summary()  # "147 conflicts across 12 fields, 3 clusters"
 
 ### Competitive Position at v0.7.0
 
-| Capability | crdt-merge v0.7 | Electric SQL (10K ⭐) | Gun.js (19K ⭐) | OrbitDB (8.8K ⭐) |
-|-----------|-----------------|----------------------|----------------|------------------|
-| SQL merge syntax | ✅ (MergeQL) | ✅ (different approach) | ❌ | ❌ |
-| Data stack connectors | ✅ (Kafka, Flink, dbt, Airflow) | ❌ | ❌ | ❌ |
-| Self-merging files | ✅ | ❌ | ❌ | ❌ |
-| Conflict visualization | ✅ | ❌ | ❌ | ❌ |
-| Library (embeddable) | ✅ | ❌ (server) | ❌ (framework) | ❌ (database) |
+| Capability | crdt-merge v0.7 | DuckDB (35K+ ⭐) | dbt (10K+ ⭐) | Polars (35K+ ⭐) | Airbyte (18K+ ⭐) |
+|-----------|-----------------|------------------|--------------|-----------------|-------------------|
+| SQL merge syntax | ✅ (MergeQL) | SQL only (no CRDT) | SQL only (no CRDT) | ❌ | ❌ |
+| DuckDB UDF integration | ✅ (ACC-1) | N/A (native) | ❌ | ❌ | ❌ |
+| dbt package | ✅ (ACC-2) | ❌ | N/A (native) | ❌ | ❌ |
+| DuckLake conflict layer | ✅ (ACC-3) | ❌ | ❌ | ❌ | ❌ |
+| Polars expression plugin | ✅ (ACC-4) | ❌ | ❌ | N/A (native) | ❌ |
+| Arrow Flight merge service | ✅ (ACC-5) | ❌ | ❌ | ❌ | ❌ |
+| Airbyte destination | ✅ (ACC-6) | ❌ | ❌ | ❌ | N/A (native) |
+| SQLite extension (edge) | ✅ (ACC-7) | ❌ | ❌ | ❌ | ❌ |
+| Streamlit visual merge | ✅ (ACC-8) | ❌ | ❌ | ❌ | ❌ |
+| Self-merging files | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Conflict visualization | ✅ | ❌ | ❌ | ❌ | ❌ |
+| CRDT guarantees | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Library (embeddable) | ✅ | ✅ | ❌ (framework) | ✅ | ❌ (platform) |
 
 ---
 
