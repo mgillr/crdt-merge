@@ -41,7 +41,7 @@ Usage:
     merged = merge_datasets("user/dataset-a", "user/dataset-b", key="id")
 """
 
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 
 # Core CRDT types
 from .core import GCounter, PNCounter, LWWRegister, ORSet, LWWMap
