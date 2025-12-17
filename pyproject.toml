@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "crdt-merge"
-version = "0.7.0"
+version = "0.7.1"
 description = "The Merge Algebra Toolkit — composable, streaming, verified CRDT merge for datasets"
 readme = "README.md"
 license = {text = "Apache-2.0"}
@@ -32,7 +32,7 @@ dependencies = []
 
 [project.optional-dependencies]
 # Zero deps core. Optional accelerators for heavy workloads:
-fast = ["orjson>=3.9", "xxhash>=3.0"]
+fast = ["polars>=0.19", "orjson>=3.9", "xxhash>=3.0"]
 pandas = ["pandas>=1.5"]
 polars = ["polars>=0.19"]
 datasets = ["datasets>=2.0"]
