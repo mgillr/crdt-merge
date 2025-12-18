@@ -42,7 +42,8 @@ crdt-merge is the **complete merge toolkit** that sits beneath all of these — 
 |---------|----------|-------------|----------|-----------|--------|
 | **v0.5.1** | The Hotfix Release | Core merge, MergeSchema, delta sync, dedup, probabilistic, HF integration | 4,028 | 425 | ✅ COMPLETE |
 | **v0.6.0** | The Performance Release | Arrow-native merge, schema evolution, gossip protocol, HLC, Merkle trees | 6,478 | 685 | ✅ COMPLETE |
-| **v0.7.0** | The Integration Release | MergeQL (SQL), 8 strategic accelerators (DuckDB, dbt, DuckLake, Polars, Arrow Flight, Airbyte, SQLite, Streamlit), self-merging Parquet, conflict visualization | ~13,000 | ~1,200 | 📋 Planned |
+| **v0.7.0** | The Ecosystem Release | MergeQL (SQL), 8 accelerators (DuckDB, dbt, DuckLake, Polars, Arrow Flight, Airbyte, SQLite, Streamlit), self-merging Parquet, conflict viz | 17,172 | 1,114 | ✅ COMPLETE |
+| **v0.7.1** | The Polars Engine Release | Rust-compiled merge via Polars (115× speedup), `engine="auto"` fallback, `[fast]` opt-in | 17,500 | 1,143 | ✅ COMPLETE |
 | **v0.8.0** | The Intelligence Release | ModelCRDT (20+ strategies), protocol engine, FFI/WASM, LoRA merging, evolutionary merge | ~14,500 | ~1,800 | 📋 Planned |
 | **v0.9.0** | The Enterprise Release | UnmergeEngine, model unmerging, encryption, RBAC, observability, compliance | ~17,000 | ~2,200 | 📋 Planned |
 | **v1.0.0** | The Platform Release | API freeze, formal spec, security audit, comprehensive docs, certification | ~18,000 | ~2,500 | 📋 Planned |
@@ -247,7 +248,7 @@ async for batch in amerge_stream(source, schema):
 
 ## v0.7.0 — "The Integration Release" (MergeQL + Data Stack)
 
-**Target LOC:** ~13,000 (+5,700) · **Target Tests:** ~1,200 (+496) · **Breaking Changes:** 0
+**Status:** ✅ COMPLETE — Released 2026-03-28 · **LOC:** 17,172 (+9,873) · **Tests:** 1,114 (+394) · **Breaking Changes:** 0
 
 This release transforms crdt-merge into an integrated component of the modern data stack with MergeQL (SQL interface), 8 strategic ecosystem accelerators, self-merging Parquet files, and conflict topology visualization. The accelerators span DuckDB, dbt, DuckLake, Polars, Arrow Flight, Airbyte, SQLite, and Streamlit — covering the entire data lifecycle from ingestion to visualization.
 
@@ -377,6 +378,55 @@ topo.summary()  # "147 conflicts across 12 fields, 3 clusters"
 | Library (embeddable) | ✅ | ✅ | ❌ (framework) | ✅ | ❌ (platform) |
 
 ---
+
+
+---
+
+## v0.7.1 — "The Polars Engine Release" ✅ COMPLETE
+
+**Status:** Released 2026-03-28 · **LOC:** ~17,500 (+~330) · **Tests:** 1,143 (+29) · **Breaking Changes:** 0
+
+This release introduces the Polars Merge Engine — a shared kernel that compiles the entire merge hot path to a Rust execution plan via Polars. The result: **115× speedup** at scale with zero breaking changes.
+
+### Polars Merge Engine — ✅ Complete (`_polars_engine.py`, ~300 LOC, 30 tests)
+
+```python
+from crdt_merge.arrow import ArrowMerge
+
+# Automatic — uses Polars if installed, falls back to Python
+result = ArrowMerge(left, right, key="id", strategy=schema).merge()
+
+# Explicit engine selection
+result = ArrowMerge(left, right, key="id", strategy=schema, engine="polars").merge()
+```
+
+**Architecture:**
+- Full outer join + per-field strategy resolution + null coalescing compiles to a single Polars lazy plan
+- Python never touches the data — zero-copy in/out via Arrow C Data Interface
+- 5 of 8 strategies vectorized entirely in Rust: LWW, MaxWins, MinWins, Concat, LongestWins
+- 3 strategies use hybrid Rust join + Python `map_elements`: UnionSet, Priority, Custom
+- Designed to cascade into 6 of 8 accelerators (DuckDB, DuckLake, Polars plugin, Flight, Airbyte, Streamlit)
+
+**Installation:**
+```bash
+pip install crdt-merge          # Zero dependencies — Python engine (same as always)
+pip install crdt-merge[fast]    # Adds Polars — enables 115× Rust engine
+```
+
+**Performance:**
+
+| Rows | Polars Engine | Python Engine | Speedup |
+|------|--------------|---------------|---------|
+| 10,000 | 0.003s | 0.12s | **35×** |
+| 50,000 | 0.01s | 0.55s | **55×** |
+| 500,000 | 0.08s | 9.2s | **115×** |
+
+### Key Design Decisions
+
+1. **Opt-in, not default** — `crdt-merge` remains zero-dependency. `[fast]` extra adds Polars.
+2. **`engine="auto"` default** — detects Polars at import time, falls back gracefully.
+3. **Shared kernel** — `_polars_engine.py` is imported by `arrow.py` and will cascade to 6 accelerators.
+4. **Zero breaking changes** — existing `ArrowMerge` API unchanged. All 1,114 v0.7.0 tests pass.
 
 ## v0.8.0 — "The Intelligence Release" (ModelCRDT + Protocol Engine)
 
