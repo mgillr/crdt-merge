@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.1] — 2026-03-28 — "The Polars Engine Release"
+
+### ⚡ Performance Breakthrough
+- **`_polars_engine.py`** (~300 LOC): Shared Polars merge kernel that compiles the entire merge hot path to a Rust execution plan. Full outer join + strategy resolution + null coalescing in a single Polars lazy plan. Python never touches the data.
+- **115× measured speedup** at 500K rows on A100 (35× on sandbox at 50K rows)
+- 5 of 8 strategies run entirely in Rust: LWW, MaxWins, MinWins, Concat, LongestWins
+- 3 strategies use hybrid Rust+Python: UnionSet, Priority, Custom
+- Integrated into `arrow.py` via `engine` parameter: `engine="auto"` (default), `engine="polars"`, `engine="python"`
+
+### 🔧 Architecture
+- **Zero breaking changes** — existing `ArrowMerge` API unchanged, `engine="auto"` falls back to Python if Polars not installed
+- **Opt-in via extras**: `pip install crdt-merge[fast]` adds Polars as optional dependency
+- Shared engine designed to cascade into 6 of 8 accelerators (DuckDB, DuckLake, Polars plugin, Flight, Airbyte, Streamlit)
+
+### 📊 Stats
+- Source modules: 23 → **24** (+1)
+- Source lines: 17,172 → **~17,500** (+~330)
+- Test files: 37 → **38** (+1: `test_polars_engine.py`)
+- Tests passing: 1,114 → **1,143** (+29)
+- Zero regressions against v0.7.0 baseline
+
+### 📓 Notebooks
+- **`crdt_merge_v071_sandbox_benchmark.ipynb`** — 27 code cells, all passing against live PyPI v0.7.1
+- **`crdt_merge_v071_a100_stress_test.ipynb`** — 28 code cells, full-scale A100 stress test
+
 ## [0.7.0] — 2026-03-28 — "The Ecosystem Release"
 
 ### 🆕 New Core Modules (3)
