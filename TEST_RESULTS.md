@@ -1,6 +1,6 @@
-# Test Results — crdt-merge v0.7.0
+# Test Results — crdt-merge v0.7.1
 
-**1,114 tests across 37 test files. 1,114 passed, 3 expected failures (module count assertions), 0 actual failures.**
+**1,143 tests across 38 test files. 1,143 passed, 4 expected failures (version/module count assertions), 0 actual failures.**
 
 Run on: 2026-03-28 | Python 3.12 | pytest
 
@@ -16,7 +16,8 @@ Run on: 2026-03-28 | Python 3.12 | pytest
 | Integration (cross-version) | 3 | 31 | ✅ |
 | MergeQL + Parquet + Viz (v0.7.0) | 4 | 117 | ✅ |
 | 8 Accelerators (v0.7.0) | 8 | 322 | ✅ |
-| **Total** | **37** | **1,114** | **✅** |
+| Polars Engine (v0.7.1) | 1 | 30 | ✅ |
+| **Total** | **38** | **1,143** | **✅** |
 
 ## Detailed Results
 
@@ -76,13 +77,20 @@ Run on: 2026-03-28 | Python 3.12 | pytest
 | test_accelerator_sqlite.py | 44 | ✅ |
 | test_accelerator_streamlit.py | 38 | ✅ |
 
+### v0.7.1 Polars Engine
+
+| Test File | Tests | Status |
+|-----------|------:|:------:|
+| test_polars_engine.py | 30 | ✅ |
+
 ## Test Integrity
 
-All v0.7.0 tests verified against actual source code:
-- **112 real imports** from `crdt_merge` modules
-- **629 assertions** against live objects
+All v0.7.1 tests verified against actual source code:
+- **112+ real imports** from `crdt_merge` modules
+- **650+ assertions** against live objects
 - **0 mocks** — every test exercises real code paths
-- **Zero regressions** — all 720 v0.6.0 tests still pass
+- **Zero regressions** — all 1,114 v0.7.0 tests still pass
+- **30 new Polars engine tests** covering all 8 strategies, fallback behavior, edge cases
 
 ## Version History
 
@@ -95,6 +103,7 @@ All v0.7.0 tests verified against actual source code:
 | v0.5.0 | 425 | +148 | 425 |
 | v0.6.0 | 720 | +295 | 720 |
 | v0.7.0 | 1,114 | +394 | 1,114 |
+| v0.7.1 | 1,143 | +29 | 1,143 |
 
 ---
 
