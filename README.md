@@ -13,10 +13,10 @@
 
 ### v0.7.1 — "The Polars Engine Release" (2026-03-28)
 
-**115× faster merges with zero breaking changes.** The entire merge hot path now runs in Rust via Polars when you opt in.
+**Up to 38.8× faster merges with zero breaking changes.** The entire merge hot path now runs in Rust via Polars when you opt in.
 
 - **Polars Merge Engine** (`_polars_engine.py`) — Full outer join + strategy resolution compiles to a single Rust execution plan. Python never touches the data.
-- **35× measured speedup** on sandbox (50K rows), **115× on A100** at 500K+ rows
+- **38.8× measured speedup** on A100 (500K rows), 8.4M rows/s peak throughput
 - 5 of 8 strategies run entirely in Rust: LWW, MaxWins, MinWins, Concat, LongestWins
 - 3 strategies use hybrid Rust+Python: UnionSet, Priority, Custom
 - **Opt-in via `pip install crdt-merge[fast]`** — zero-dependency core unchanged
@@ -27,7 +27,7 @@
 # Zero dependencies (default) — same as always
 pip install crdt-merge
 
-# Opt in to 115× Polars engine
+# Opt in to Polars engine (up to 38.8× on A100)
 pip install crdt-merge[fast]
 ```
 
@@ -230,7 +230,7 @@ assert smf.read()[0]["salary"] == 120  # MaxWins applied automatically
 | `schema_evolution` | Column mapping, type coercion | v0.6.0 | Automatic schema evolution for mismatched datasets |
 | `merkle` | MerkleHashTree, diff, sync | v0.6.0 | Merkle hash trees for efficient incremental sync |
 | `arrow` | Arrow-native merge engine | v0.6.0 | Apache Arrow-native merge path (2.5× measured on A100) |
-| `_polars_engine` | Polars merge kernel | v0.7.1 | Rust-compiled merge: 115× speedup via `pip install crdt-merge[fast]` |
+| `_polars_engine` | Polars merge kernel | v0.7.1 | Rust-compiled merge: 38.8× peak on A100 via `pip install crdt-merge[fast]` |
 | `gossip` | GossipState, anti-entropy protocol | v0.6.0 | Gossip protocol state tracking for convergence |
 | `async_merge` | `async_merge()`, `async_stream()` | v0.6.0 | Async/await wrappers for non-blocking merges |
 | `parallel` | `parallel_merge()`, multi-core execution | v0.6.0 | Parallel merge execution across multiple cores |
@@ -516,9 +516,11 @@ merged_idx = idx_a.merge(idx_b)
 
 ## Benchmarks — A100 Stress Tests
 
-All benchmarks run on **NVIDIA A100-SXM4-40GB** (83.5 GB RAM, 12 vCPUs) via Google Colab. **78 benchmarks, all passed.**
+All benchmarks run on **NVIDIA A100-SXM4-40GB** (89.6 GB RAM, 12 vCPUs) via Google Colab.
 
-Full data: [`benchmarks/a100_v060/`](benchmarks/a100_v060/) · Reproduction notebook: [`notebooks/v060_a100_stress_test.ipynb`](notebooks/v060_a100_stress_test.ipynb)
+**v0.7.1 A100 results:** 28 code cells, all passed · [`notebooks/crdt_merge_v071_a100_stress_test.ipynb`](notebooks/crdt_merge_v071_a100_stress_test.ipynb) · [Results & graphs](benchmarks/a100_v071/)
+
+**v0.6.0 A100 results:** 78 benchmarks, all passed · [`benchmarks/a100_v060/`](benchmarks/a100_v060/)
 
 ### v0.6.0 — Throughput Ceilings (A100)
 
@@ -543,15 +545,23 @@ Full data: [`benchmarks/a100_v060/`](benchmarks/a100_v060/) · Reproduction note
 ![Throughput Scaling Grid](benchmarks/a100_v060/throughput_grid.png)
 
 
-### Polars Engine vs Python Merge (v0.7.1)
+### Polars Engine vs Python Merge (v0.7.1 — A100 Measured)
 
 | Rows | Polars Engine | Python Engine | Speedup |
-|------|--------------|---------------|---------|
-| 10,000 | 0.003s | 0.12s | **35×** |
-| 50,000 | 0.01s | 0.55s | **55×** |
-| 500,000 | 0.08s | 9.2s | **115×** |
+|------|:-------------|:-------------|:-------:|
+| 10,000 | 0.238s | 0.046s | 0.2× ⚠️ |
+| 50,000 | 0.007s | 0.242s | **32.8×** |
+| 100,000 | 0.012s | 0.445s | **37.0×** |
+| 500,000 | 0.060s | 2.3s | **38.8× 🏆** |
+| 1,000,000 | 0.127s | 4.5s | **35.2×** |
+| 5,000,000 | 1.0s | 22.4s | **22.5×** |
+| 10,000,000 | 2.1s | 44.5s | **21.4×** |
 
-**Why Polars destroys everything:** The Python engine calls `to_pylist()` to extract keys for set intersection — that serialization dominates ~90% of runtime. Polars is the only engine where the JOIN happens in Rust. Full outer join + strategy resolution + null coalescing compiles to a single Rust execution plan. Python never touches the data. Zero-copy in/out via Arrow C Data Interface.
+> ⚠️ Below ~15K rows, Polars lazy plan compilation overhead makes Python engine faster. `engine="auto"` handles this automatically.
+
+**Why Polars is faster:** The Python engine calls `to_pylist()` to extract keys for set intersection — that serialization dominates ~90% of runtime. Polars compiles the full outer join + strategy resolution + null coalescing into a single Rust execution plan. Python never touches the data. Zero-copy in/out via Arrow C Data Interface.
+
+**Sweet spot: 50K–1M rows** (33–39× speedup). Above 5M rows, speedup tapers to ~21× as memory bandwidth saturates. Below 15K rows, Python engine is faster due to Polars compilation overhead.
 
 Opt in: `pip install crdt-merge[fast]` — falls back to Python engine automatically if Polars not installed.
 
@@ -563,7 +573,7 @@ Opt in: `pip install crdt-merge[fast]` — falls back to Python engine automatic
 | 5,000,000 | 21.3s | 54.1s | **2.55×** |
 | 50,000,000 | 222.5s | 550.6s | **2.47×** |
 
-**Consistent 2.5× speedup** at all scales. Arrow optimizes columnar data movement; per-field strategy resolution remains in Python. End-to-end **115× achieved** in v0.7.1 by pushing strategy resolution into Polars (Rust). See above.
+**Consistent 2.5× speedup** at all scales. Arrow optimizes columnar data movement; per-field strategy resolution remains in Python. End-to-end **38.8× peak achieved** in v0.7.1 by pushing strategy resolution into Polars (Rust). See above.
 
 ![Arrow vs Pandas](benchmarks/a100_v060/arrow_vs_pandas.png)
 
@@ -651,7 +661,7 @@ These are honest constraints of the current version:
 pip install crdt-merge
 
 # With optional dependencies for heavy workloads
-pip install crdt-merge[fast]       # Polars merge engine (115× speedup)
+pip install crdt-merge[fast]       # Polars merge engine (38.8× on A100)
 pip install crdt-merge[pandas]     # pandas DataFrame support
 pip install crdt-merge[polars]     # Polars DataFrame support
 pip install crdt-merge[datasets]   # HuggingFace Datasets
