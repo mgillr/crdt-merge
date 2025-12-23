@@ -518,7 +518,7 @@ merged_idx = idx_a.merge(idx_b)
 
 All benchmarks run on **NVIDIA A100-SXM4-40GB** (89.6 GB RAM, 12 vCPUs) via Google Colab.
 
-**v0.7.1 A100 results:** 28 code cells, all passed · [`notebooks/crdt_merge_v071_a100_stress_test.ipynb`](notebooks/crdt_merge_v071_a100_stress_test.ipynb) · [Results & graphs](benchmarks/a100_v071/)
+**v0.7.1 A100 results:** 28 code cells, all passed · [`notebooks/crdt_merge_v071_a100_stress_test.ipynb`](notebooks/crdt_merge_v071_a100_stress_test.ipynb) · [Results & graphs](benchmarks/a100_v071/) · [Results & graphs](benchmarks/a100_v071/)
 
 **v0.6.0 A100 results:** 78 benchmarks, all passed · [`benchmarks/a100_v060/`](benchmarks/a100_v060/)
 
@@ -587,6 +587,16 @@ Opt in: `pip install crdt-merge[fast]` — falls back to Python engine automatic
 - **100-node gossip**: Converges in 1 round
 - **Parallel merge note**: Python GIL + multiprocessing overhead makes parallel slower than sequential for in-process merges. Parallel shines for I/O-bound and multi-source workloads.
 
+### v0.7.1 — Key Findings (A100)
+
+- **Polars engine peak: 8.4M rows/s** at 500K rows (38.8× over Python engine) — the entire merge runs in Rust
+- **Python engine: 225K rows/s** flat across all scales — 3× improvement over v0.6.0's 77K rows/s baseline
+- **Streaming merge: 1.5M rows/s** dead flat from 100K to 5M rows — O(1) memory proven at scale
+- **CRDT primitives: 3.5M ops/s** (GCounter) in pure Python — no FFI needed
+- **Sweet spot: 50K–1M rows** for Polars (33–39× speedup). Below ~15K rows, Python engine is faster due to Polars lazy plan compilation overhead
+- **Speedup tapers above 5M rows** to ~21× as memory bandwidth saturates — still massive but not linear
+- **CRDT laws: 3/3 verified** (commutativity, associativity, idempotency) across 500 trials
+
 ### Previous Versions
 
 **v0.3.0** — Core merge 39–42K rows/s, `merge_sorted_stream()` 1.2M rows/s at O(1) memory (173 measurements).
@@ -624,6 +634,7 @@ crdt-merge follows a **reference + protocol** architecture:
 | v0.5.0 | The Protocol Release | Binary wire format, probabilistic CRDTs (HLL, Bloom, CMS) |
 | v0.6.0 | The Architecture Release | HLC clocks, schema evolution, Merkle trees, Arrow-native merge, gossip protocol, async/parallel merge, multi-key composites |
 | v0.7.0 | The Ecosystem Release | MergeQL, self-merging Parquet, conflict visualization, 8 ecosystem accelerators (DuckDB, dbt, Polars, Arrow Flight, Airbyte, SQLite, Streamlit, DuckLake) |
+| v0.7.1 | The Polars Engine Release | Polars merge engine (38.8× on A100), shared `_polars_engine.py`, `engine="auto"` fallback, zero-dependency core preserved |
 
 ### Upcoming
 
