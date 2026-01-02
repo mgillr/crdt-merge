@@ -4,7 +4,7 @@
 
 [![PyPI](https://img.shields.io/badge/pypi-v0.7.1-orange)](https://pypi.org/project/crdt-merge/0.7.1/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
+[![License: BSL 1.1](https://img.shields.io/badge/license-BSL%201.1-blue.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-1143%20passed-brightgreen)](TEST_RESULTS.md)
 
 ---
@@ -628,7 +628,7 @@ crdt-merge follows a **reference + protocol** architecture:
 | Version | Name | Highlights |
 |---------|------|-----------|
 | v0.1.0 | Initial Release | Core CRDTs, merge, diff, dedup, JSON merge, HuggingFace integration |
-| v0.2.0 | License Update | Apache-2.0 + patent protection |
+| v0.2.0 | License Update | BSL-1.1 + patent protection |
 | v0.3.0 | The Schema Release | MergeSchema DSL, 8 strategies, streaming merge, delta sync |
 | v0.4.0 | The Audit Release | Provenance tracking, @verified_merge, streaming optimizations |
 | v0.5.0 | The Protocol Release | Binary wire format, probabilistic CRDTs (HLL, Bloom, CMS) |
@@ -766,7 +766,7 @@ Full details: [TEST_RESULTS.md](TEST_RESULTS.md)
 | Test:source ratio | ~0.73:1 |
 | Dependencies | 0 (required) |
 | Python versions | 3.9, 3.10, 3.11, 3.12 |
-| License | Apache-2.0 |
+| License | BSL-1.1 |
 
 ---
 
@@ -784,6 +784,6 @@ We welcome contributions. Please see [CLA.md](CLA.md) before submitting pull req
 
 Copyright 2026 Ryan Gillespie
 
-Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for the full text.
+Licensed under the Business Source License 1.1 (BSL 1.1). See [LICENSE](LICENSE) for the full text.
 
 Patent grant included — see [PATENTS](PATENTS).

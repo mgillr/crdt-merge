@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.7.2] - 2026-03-29
+
+### Fixed
+- **BUG-1**: LWW commutativity — value-based tie-breaking ensures merge(A,B) == merge(B,A)
+- **BUG-2**: Dedup no longer collapses rows with different keys when non-key values match
+- **BUG-3**: `timestamp_col` now accepts ISO-8601 strings and datetime objects
+- **BUG-4**: Polars plugin supports all 7 strategies (was: 3), raises ValueError on unknown
+- **BUG-5**: `parallel_merge_arrow` handles empty/zero-column PyArrow tables
+- **BUG-6**: Exact dedup preserves whitespace differences (\t ≠ \n ≠ spaces)
+- **BUG-7**: Invalid dedup method names raise ValueError instead of silent fallback
+- **BUG-8**: `verify_crdt` uses order-independent comparison, handles DataFrames correctly
+- **BUG-9**: MinHash dedup permutations increased (128→200) for stability
+
+### Changed
+- **License changed from Apache-2.0 to Business Source License 1.1 (BSL 1.1)**
+  - Ultra-open terms: use for anything except reselling as a competing merge engine
+  - Converts to Apache 2.0 on 2028-03-29
+
+## [0.7.2] - 2026-03-29
+
+### Fixed
+- **BUG-1**: LWW commutativity — value-based tie-breaking ensures merge(A,B) == merge(B,A)
+- **BUG-2**: Dedup no longer collapses rows with different keys when non-key values match
+- **BUG-3**: `timestamp_col` now accepts ISO-8601 strings and datetime objects
+- **BUG-4**: Polars plugin supports all 7 strategies (was: 3), raises ValueError on unknown
+- **BUG-5**: `parallel_merge_arrow` handles empty/zero-column PyArrow tables
+- **BUG-6**: Exact dedup preserves whitespace differences (	 ≠ 
+ ≠ spaces)
+- **BUG-7**: Invalid dedup method names raise ValueError instead of silent fallback
+- **BUG-8**: `verify_crdt` uses order-independent comparison, handles DataFrames correctly
+- **BUG-9**: MinHash dedup permutations increased (128→200) for stability
+
+### Changed
+- **License changed from Apache-2.0 to Business Source License 1.1 (BSL 1.1)**
+  - Ultra-open terms: use for anything except reselling as a competing merge engine
+  - Converts to Apache 2.0 on 2028-03-29
+
 All notable changes to this project will be documented in this file.
 
 ## [0.7.1] — 2026-03-28 — "The Polars Engine Release"

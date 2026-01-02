@@ -3,7 +3,7 @@
 
 **Copyright 2026 Ryan Gillespie**
 **Contact:** rgillespie83@icloud.com · data@optitransfer.ch
-**License:** Apache-2.0
+**License:** BSL-1.1
 
 ---
 
@@ -156,7 +156,7 @@ result = ql.execute("""
 
 ```python
 # Copyright 2026 Ryan Gillespie
-# Licensed under Apache-2.0
+# Licensed under BSL-1.1
 
 from __future__ import annotations
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
@@ -484,7 +484,7 @@ meta = smf.metadata()  # Shows embedded merge config
 
 ```python
 # Copyright 2026 Ryan Gillespie
-# Licensed under Apache-2.0
+# Licensed under BSL-1.1
 
 from __future__ import annotations
 from typing import Any, Dict, List, Optional, Tuple
@@ -743,7 +743,7 @@ topo.to_csv("conflicts.csv")    # CSV export
 
 ```python
 # Copyright 2026 Ryan Gillespie
-# Licensed under Apache-2.0
+# Licensed under BSL-1.1
 
 from __future__ import annotations
 from typing import Any, Dict, List, Optional, Tuple
@@ -989,7 +989,7 @@ crdt_merge/accelerators/
 ```python
 # crdt_merge/accelerators/__init__.py
 # Copyright 2026 Ryan Gillespie
-# Licensed under Apache-2.0
+# Licensed under BSL-1.1
 
 from __future__ import annotations
 from typing import Protocol, Any, Dict, List, Optional, runtime_checkable
@@ -1027,7 +1027,7 @@ run `SELECT * FROM crdt_merge(t1, t2, key:='id', strategy:='lww')` directly in D
 
 ```python
 # Copyright 2026 Ryan Gillespie
-# Licensed under Apache-2.0
+# Licensed under BSL-1.1
 
 from __future__ import annotations
 from typing import Any, Callable, Dict, List, Optional
@@ -1089,7 +1089,7 @@ CRM merge.
 
 ```python
 # Copyright 2026 Ryan Gillespie
-# Licensed under Apache-2.0
+# Licensed under BSL-1.1
 
 from __future__ import annotations
 from typing import Any, Dict, List, Optional
@@ -1141,7 +1141,7 @@ operation order.
 
 ```python
 # Copyright 2026 Ryan Gillespie
-# Licensed under Apache-2.0
+# Licensed under BSL-1.1
 
 from __future__ import annotations
 from typing import Any, Dict, List, Optional, Tuple
@@ -1190,7 +1190,7 @@ Native Polars expression plugin wrapping crdt-merge core. Arrow-native zero-copy
 
 ```python
 # Copyright 2026 Ryan Gillespie
-# Licensed under Apache-2.0
+# Licensed under BSL-1.1
 
 from __future__ import annotations
 from typing import Any, Dict, List, Optional
@@ -1239,7 +1239,7 @@ Makes crdt-merge available to Java, Go, Rust, C++, JavaScript. Enterprise revenu
 
 ```python
 # Copyright 2026 Ryan Gillespie
-# Licensed under Apache-2.0
+# Licensed under BSL-1.1
 
 from __future__ import annotations
 from typing import Any, Dict, List, Optional
@@ -1306,7 +1306,7 @@ Airbyte destination connector (Python CDK) that resolves conflicts on ingest usi
 
 ```python
 # Copyright 2026 Ryan Gillespie
-# Licensed under Apache-2.0
+# Licensed under BSL-1.1
 
 from __future__ import annotations
 from typing import Any, Dict, List, Optional, Iterable
@@ -1350,7 +1350,7 @@ Local-first / edge CRDT merge for SQLite. Fills the vacuum left by cr-sqlite (ar
 
 ```python
 # Copyright 2026 Ryan Gillespie
-# Licensed under Apache-2.0
+# Licensed under BSL-1.1
 
 from __future__ import annotations
 from typing import Any, Dict, List, Optional
@@ -1400,7 +1400,7 @@ highest-quality marketing asset. Part of Snowflake ecosystem.
 
 ```python
 # Copyright 2026 Ryan Gillespie
-# Licensed under Apache-2.0
+# Licensed under BSL-1.1
 
 from __future__ import annotations
 from typing import Any, Dict, List, Optional

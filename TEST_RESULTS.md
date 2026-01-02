@@ -107,4 +107,4 @@ All v0.7.1 tests verified against actual source code:
 
 ---
 
-Copyright 2026 Ryan Gillespie. Apache-2.0.
+Copyright 2026 Ryan Gillespie. BSL-1.1.

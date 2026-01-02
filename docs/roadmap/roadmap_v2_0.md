@@ -3,7 +3,7 @@
 **Version:** 2.0  
 **Date:** March 28, 2026  
 **Contact:** rgillespie83@icloud.com · data@optitransfer.ch  
-**License:** Apache-2.0  
+**License:** BSL-1.1  
 **Copyright:** Copyright 2026 Ryan Gillespie
 
 ---
@@ -1193,10 +1193,10 @@ const result = merger.merge(left, right, schema);
 | Federated bridge | ✅ | ❌ | ❌ | ❌ |
 | Plugin architecture | ✅ | ❌ | ❌ | ❌ |
 | MergeKit compat | ✅ (import/export) | Native | ❌ | ❌ |
-| License | Apache-2.0 | LGPL-3.0 ⚠️ | Apache-2.0 | MIT |
+| License | BSL-1.1 | LGPL-3.0 ⚠️ | BSL-1.1 | MIT |
 | Tabular + Model merge | ✅ | ❌ (model only) | ❌ (eval only) | ❌ (model only) |
 
-**Key differentiator:** MergeKit is LGPL-3.0, which creates friction for commercial users. crdt-merge is Apache-2.0. Combined with provenance, verification, and tabular+model unification, crdt-merge is the **only production-grade choice** for enterprises.
+**Key differentiator:** MergeKit is LGPL-3.0, which creates friction for commercial users. crdt-merge is BSL-1.1. Combined with provenance, verification, and tabular+model unification, crdt-merge is the **only production-grade choice** for enterprises.
 
 ---
 
@@ -1373,7 +1373,7 @@ ai_act_report = auditor.ai_act_compliance(
 | RBAC | ✅ | ✅ | ❌ | ❌ |
 | Observability | ✅ | ✅ | ❌ | ❌ |
 | Library (embeddable) | ✅ | ❌ (proprietary) | ❌ (server) | ❌ (service) |
-| Open source | ✅ Apache-2.0 | ❌ | ✅ | ✅ |
+| Open source | ✅ BSL-1.1 | ❌ | ✅ | ✅ |
 
 ---
 
@@ -1524,9 +1524,9 @@ At 21 KB wheel size with zero dependencies, crdt-merge embeds anywhere. Compare:
 
 crdt-merge's optional dependencies (Arrow, torch) are lazy-imported only when needed.
 
-### 3. Apache-2.0 → Zero License Friction
+### 3. BSL-1.1 → Zero License Friction
 
-MergeKit's LGPL-3.0 creates real friction for commercial users (copyleft triggers on linking). crdt-merge is Apache-2.0 — use it anywhere, in anything, forever.
+MergeKit's LGPL-3.0 creates real friction for commercial users (copyleft triggers on linking). crdt-merge is BSL-1.1 — use it anywhere, in anything, forever.
 
 ### 4. Formal Verification → Trust
 
@@ -1592,5 +1592,5 @@ Competitors would need to rebuild 18,000+ lines of algebraically-verified merge 
 ---
 
 **Contact:** rgillespie83@icloud.com · data@optitransfer.ch  
-**License:** Apache-2.0  
+**License:** BSL-1.1  
 **Copyright:** Copyright 2026 Ryan Gillespie

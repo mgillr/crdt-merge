@@ -7,7 +7,7 @@ name = "crdt-merge"
 version = "0.7.2"
 description = "The Merge Algebra Toolkit — composable, streaming, verified CRDT merge for datasets"
 readme = "README.md"
-license = {text = "Apache-2.0"}
+license = {text = "BUSL-1.1"}
 requires-python = ">=3.9"
 authors = [{name = "Ryan Gillespie", email = "rgillespie83@icloud.com"}]
 keywords = [
@@ -18,7 +18,7 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: Apache Software License",
+    "License :: Other/Proprietary License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",

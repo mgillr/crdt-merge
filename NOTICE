@@ -1,20 +1,26 @@
 crdt-merge
 Copyright 2026 Ryan Gillespie / Optitransfer
-https://optitransfer.ch
 
-This product includes software developed by Ryan Gillespie.
+This software is licensed under the Business Source License 1.1 (BSL 1.1).
+See the LICENSE file for the complete license text.
 
-Original Work: crdt-merge — Conflict-Free Replicated Data Type merge engine
-All rights reserved by the copyright holder except as explicitly granted
-under the Apache License, Version 2.0.
+The BSL 1.1 permits virtually all uses — including commercial production,
+SaaS, internal tooling, research, and open-source projects — with the sole
+exception of offering the Licensed Work itself as a competing merge service.
 
-The name "crdt-merge", associated logos, and the Optitransfer brand are
-trademarks of Ryan Gillespie / Optitransfer and may not be used without
-prior written permission except as required for reasonable attribution.
+On 2028-03-29 (or the fourth anniversary of first public distribution),
+this version automatically converts to the Apache License, Version 2.0.
 
-THIRD-PARTY NOTICES:
-This software implements algorithms based on published academic research
-on Conflict-Free Replicated Data Types (CRDTs). The specific implementation,
-API design, test architecture, and packaging are original copyrighted works.
+Contact: rgillespie83@icloud.com | data@optitransfer.ch
 
-For commercial licensing inquiries: rgillespie83@icloud.com, data@optitransfer.ch
+Third-Party Notices:
+
+  - pandas: BSD 3-Clause License
+  - PyArrow / Apache Arrow: Apache License 2.0
+  - Polars: MIT License
+  - DuckDB: MIT License
+  - SQLite: Public Domain
+  - dbt: Apache License 2.0
+  - Apache Arrow Flight: Apache License 2.0
+  - Airbyte: ELv2 / MIT (connector)
+  - Streamlit: Apache License 2.0
