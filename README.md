@@ -703,6 +703,16 @@ pip install crdt-merge[sqlite]     # SQLite extension
 
 **Requirements:** Python 3.9+. No required dependencies. Works on Linux, macOS, Windows.
 
+### Zero Dependencies by Design
+
+crdt-merge's core has **zero required dependencies** — it runs on the Python standard library alone. This is a deliberate architectural choice:
+
+- **`pip install crdt-merge`** — installs the full CRDT merge engine with zero third-party packages
+- **No supply-chain risk** — no transitive dependencies to audit, no version conflicts
+- **Embeds anywhere** — serverless functions, edge devices, air-gapped environments, Jupyter notebooks
+
+All additional functionality is **opt-in** via extras. When you install an extra (e.g., `pip install crdt-merge[fast]`), the associated features activate automatically. When the optional dependency is not installed, the library falls back gracefully — no crashes, no import errors, just the pure-Python engine doing the work.
+
 ---
 
 ## Test Results
