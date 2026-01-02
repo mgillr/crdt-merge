@@ -27,6 +27,34 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 from .core import LWWRegister
 
 
+def _parse_timestamp(value: Any) -> float:
+    """Parse a timestamp value to float. Handles numeric, ISO-8601, datetime, and None."""
+    if value is None:
+        return 0.0
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        try:
+            return float(value)
+        except (ValueError, TypeError):
+            pass
+        # Try ISO-8601 parsing
+        from datetime import datetime as _dt
+        try:
+            s = value.replace("Z", "+00:00")
+            dt = _dt.fromisoformat(s)
+            return dt.timestamp()
+        except (ValueError, AttributeError, TypeError):
+            pass
+    # Try .timestamp() method (datetime objects)
+    if hasattr(value, 'timestamp'):
+        try:
+            return float(value.timestamp())
+        except (TypeError, OSError):
+            pass
+    return 0.0
+
+
 def _normalize_key(key: Optional[Union[str, List[str]]]) -> Optional[List[str]]:
     """Convert key to list form. None → None, 'id' → ['id'], ['id','name'] → ['id','name']."""
     if key is None:
@@ -196,7 +224,8 @@ def merge(
     merged.extend(none_key_rows)
 
     if dedup:
-        merged = _dedup_records(merged, all_columns, exclude_keys=set(key_cols))
+        # Include key columns in dedup hash — rows with different keys are always distinct
+        merged = _dedup_records(merged, all_columns)
 
     if fuzzy_dedup and key_cols:
         merged = _fuzzy_dedup_records(merged, key_cols[0], all_columns, fuzzy_threshold)
@@ -210,8 +239,8 @@ def _merge_rows(
 ) -> dict:
     """Merge two rows using LWW Register semantics per cell."""
     result = {}
-    ts_a = float(row_a.get(timestamp_col, 0)) if timestamp_col else 0.0
-    ts_b = float(row_b.get(timestamp_col, 0)) if timestamp_col else 0.0
+    ts_a = _parse_timestamp(row_a.get(timestamp_col)) if timestamp_col else 0.0
+    ts_b = _parse_timestamp(row_b.get(timestamp_col)) if timestamp_col else 0.0
 
     for col in columns:
         val_a = row_a.get(col)

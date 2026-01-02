@@ -140,16 +140,45 @@ def parallel_merge_arrow(
     Returns:
         Merged dataset.
     """
+    # Handle empty PyArrow tables gracefully
+    try:
+        import pyarrow as _pa
+        if isinstance(left, _pa.Table) and isinstance(right, _pa.Table):
+            if left.num_rows == 0 and right.num_rows == 0:
+                return _pa.table({})
+            if left.num_columns == 0 and right.num_columns == 0:
+                return _pa.table({})
+            if left.num_rows == 0:
+                return right
+            if right.num_rows == 0:
+                return left
+    except ImportError:
+        pass
+
     try:
         from crdt_merge.arrow import ArrowMerge  # type: ignore[import-untyped]
 
         engine = ArrowMerge(schema=schema)
         return engine.merge(left, right, key=key)
-    except (ImportError, Exception):
-        return parallel_merge(
-            left, right, key=key, schema=schema,
-            chunk_size=chunk_size, max_workers=max_workers,
-        )
+    except ImportError:
+        pass
+    except Exception:
+        pass
+
+    # Fallback: convert PyArrow tables to list of dicts for parallel_merge
+    try:
+        import pyarrow as _pa
+        if isinstance(left, _pa.Table):
+            left = left.to_pylist()
+        if isinstance(right, _pa.Table):
+            right = right.to_pylist()
+    except ImportError:
+        pass
+
+    return parallel_merge(
+        left, right, key=key, schema=schema,
+        chunk_size=chunk_size, max_workers=max_workers,
+    )
 
 
 # ---------------------------------------------------------------------------

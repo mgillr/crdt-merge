@@ -83,10 +83,39 @@ class CRDTVerification:
 
 
 def _are_equal(a: Any, b: Any) -> bool:
-    """Deep equality check that handles CRDT objects, dicts, floats, etc."""
+    """Deep equality check that handles CRDT objects, DataFrames, dicts, floats, etc."""
     if a is b:
         return True
+    # Handle DataFrames (pandas, polars) — compare as sorted records
+    if hasattr(a, 'to_dict') and hasattr(b, 'to_dict'):
+        try:
+            # Pandas DataFrames
+            if hasattr(a, 'sort_values') and hasattr(b, 'sort_values'):
+                a_sorted = a.sort_values(by=list(a.columns)).reset_index(drop=True)
+                b_sorted = b.sort_values(by=list(b.columns)).reset_index(drop=True)
+                return a_sorted.equals(b_sorted)
+        except Exception:
+            pass
+    if hasattr(a, 'to_dicts') and hasattr(b, 'to_dicts'):
+        try:
+            # Polars DataFrames
+            a_recs = sorted([tuple(sorted(r.items())) for r in a.to_dicts()])
+            b_recs = sorted([tuple(sorted(r.items())) for r in b.to_dicts()])
+            return a_recs == b_recs
+        except Exception:
+            pass
     if type(a) != type(b):
+        # Allow list[dict] vs list[dict] with different orderings
+        if isinstance(a, list) and isinstance(b, list):
+            if len(a) != len(b):
+                return False
+            if a and isinstance(a[0], dict):
+                try:
+                    a_sorted = sorted([tuple(sorted(r.items())) for r in a])
+                    b_sorted = sorted([tuple(sorted(r.items())) for r in b])
+                    return a_sorted == b_sorted
+                except Exception:
+                    pass
         return False
     # Handle CRDT objects with .value property
     if hasattr(a, 'value') and hasattr(b, 'value'):
@@ -100,6 +129,14 @@ def _are_equal(a: Any, b: Any) -> bool:
     if isinstance(a, (list, tuple)):
         if len(a) != len(b):
             return False
+        # Try order-independent comparison for list of dicts
+        if a and isinstance(a[0], dict):
+            try:
+                a_sorted = sorted([tuple(sorted(r.items())) for r in a])
+                b_sorted = sorted([tuple(sorted(r.items())) for r in b])
+                return a_sorted == b_sorted
+            except Exception:
+                pass
         return all(_are_equal(x, y) for x, y in zip(a, b))
     # Handle sets
     if isinstance(a, set):

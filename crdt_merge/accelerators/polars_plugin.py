@@ -28,6 +28,30 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from crdt_merge.strategies import LWW, MergeSchema, MergeStrategy
 
+
+def _safe_parse_ts(value):
+    """Parse timestamp to float — handles numeric, ISO-8601, None."""
+    if value is None:
+        return 0.0
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        try:
+            return float(value)
+        except (ValueError, TypeError):
+            pass
+        from datetime import datetime as _dt
+        try:
+            return _dt.fromisoformat(value.replace("Z", "+00:00")).timestamp()
+        except (ValueError, AttributeError, TypeError):
+            pass
+    if hasattr(value, 'timestamp'):
+        try:
+            return float(value.timestamp())
+        except (TypeError, OSError):
+            pass
+    return 0.0
+
 # Lazy-import polars
 try:
     import polars as _pl  # type: ignore[import-untyped]
@@ -182,7 +206,7 @@ class PolarsCRDTMerge:
     """
 
     name: str = "polars_plugin"
-    version: str = "0.7.0"
+    version: str = "0.7.2"
 
     def __init__(
         self,
@@ -315,21 +339,28 @@ class PolarsCRDTMerge:
 
         Args:
             field: The field name to apply the strategy to.
-            strategy: Strategy name (e.g. "lww", "max", "min").
+            strategy: Strategy name (e.g. "lww", "max", "min", "union", "concat").
 
         Returns:
             CRDTMergeExpression that can be applied to values.
         """
-        from crdt_merge.strategies import MaxWins, MinWins
+        from crdt_merge.strategies import MaxWins, MinWins, UnionSet, Concat, Priority, LongestWins
 
         _lookup: Dict[str, type] = {
             "lww": LWW,
-            "max": MaxWins,
-            "maxwins": MaxWins,
-            "min": MinWins,
-            "minwins": MinWins,
+            "max": MaxWins, "maxwins": MaxWins, "max_wins": MaxWins,
+            "min": MinWins, "minwins": MinWins, "min_wins": MinWins,
+            "union": UnionSet, "unionset": UnionSet, "union_set": UnionSet,
+            "concat": Concat,
+            "priority": Priority,
+            "longest": LongestWins, "longestwins": LongestWins, "longest_wins": LongestWins,
         }
-        cls = _lookup.get(strategy.lower(), LWW)
+        cls = _lookup.get(strategy.lower())
+        if cls is None:
+            raise ValueError(
+                f"Unknown strategy '{strategy}'. "
+                f"Available: {', '.join(sorted(_lookup.keys()))}"
+            )
         return CRDTMergeExpression(field=field, strategy=cls())
 
     # ------------------------------------------------------------------
@@ -397,16 +428,26 @@ class PolarsCRDTMerge:
         if not overrides:
             return self._schema
         # Build a copy with overrides applied
-        from crdt_merge.strategies import MaxWins, MinWins
+        from crdt_merge.strategies import MaxWins, MinWins, UnionSet, Concat, Priority, LongestWins
         _lookup: Dict[str, type] = {
-            "lww": LWW, "max": MaxWins, "maxwins": MaxWins,
-            "min": MinWins, "minwins": MinWins,
+            "lww": LWW,
+            "max": MaxWins, "maxwins": MaxWins, "max_wins": MaxWins,
+            "min": MinWins, "minwins": MinWins, "min_wins": MinWins,
+            "union": UnionSet, "unionset": UnionSet, "union_set": UnionSet,
+            "concat": Concat,
+            "priority": Priority,
+            "longest": LongestWins, "longestwins": LongestWins, "longest_wins": LongestWins,
         }
         schema = MergeSchema(default=self._schema.default)
         for fld, strat in self._schema.fields.items():
             schema.set_strategy(fld, strat)
         for fld, name in overrides.items():
-            cls = _lookup.get(name.lower(), LWW)
+            cls = _lookup.get(name.lower())
+            if cls is None:
+                raise ValueError(
+                    f"Unknown strategy '{name}' for field '{fld}'. "
+                    f"Available: {', '.join(sorted(_lookup.keys()))}"
+                )
             schema.set_strategy(fld, cls())
         return schema
 
@@ -422,8 +463,8 @@ class PolarsCRDTMerge:
         merged: dict = {}
         conflicts = 0
 
-        ts_a = float(row_a.get(timestamp_col, 0)) if timestamp_col else 0.0
-        ts_b = float(row_b.get(timestamp_col, 0)) if timestamp_col else 0.0
+        ts_a = _safe_parse_ts(row_a.get(timestamp_col)) if timestamp_col else 0.0
+        ts_b = _safe_parse_ts(row_b.get(timestamp_col)) if timestamp_col else 0.0
 
         for col in all_cols:
             va = row_a.get(col)

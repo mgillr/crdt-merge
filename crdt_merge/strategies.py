@@ -36,6 +36,30 @@ import time
 from typing import Any, Callable, Dict, List, Optional, Union
 
 
+def _safe_parse_ts(value: Any) -> float:
+    """Parse timestamp to float — handles numeric, ISO-8601, None."""
+    if value is None:
+        return 0.0
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        try:
+            return float(value)
+        except (ValueError, TypeError):
+            pass
+        from datetime import datetime as _dt
+        try:
+            return _dt.fromisoformat(value.replace("Z", "+00:00")).timestamp()
+        except (ValueError, AttributeError, TypeError):
+            pass
+    if hasattr(value, 'timestamp'):
+        try:
+            return float(value.timestamp())
+        except (TypeError, OSError):
+            pass
+    return 0.0
+
+
 class MergeStrategy:
     """Base class for merge strategies. Subclass and implement resolve()."""
 
@@ -49,7 +73,7 @@ class MergeStrategy:
 
 
 class LWW(MergeStrategy):
-    """Last-Writer-Wins — latest timestamp wins. Tie-break: higher node_id."""
+    """Last-Writer-Wins — latest timestamp wins. Tie-break: deterministic value comparison."""
 
     def resolve(self, val_a: Any, val_b: Any, ts_a: float = 0.0, ts_b: float = 0.0,
                 node_a: str = "a", node_b: str = "b") -> Any:
@@ -57,8 +81,13 @@ class LWW(MergeStrategy):
             return val_b
         elif ts_a > ts_b:
             return val_a
-        # Tie: deterministic — higher node_id wins
-        return val_b if node_b > node_a else val_a
+        # Timestamps equal: deterministic value-based tie-break for commutativity.
+        # Using max(str(v)) ensures resolve(A,B) == resolve(B,A) regardless of
+        # argument position — critical for CRDT guarantee.
+        str_a, str_b = str(val_a), str(val_b)
+        if str_a != str_b:
+            return val_a if str_a >= str_b else val_b
+        return val_a
 
 
 class MaxWins(MergeStrategy):
@@ -267,8 +296,8 @@ class MergeSchema:
 
         Returns a new dict with each field resolved according to its strategy.
         """
-        ts_a = float(row_a.get(timestamp_col, 0)) if timestamp_col else 0.0
-        ts_b = float(row_b.get(timestamp_col, 0)) if timestamp_col else 0.0
+        ts_a = _safe_parse_ts(row_a.get(timestamp_col)) if timestamp_col else 0.0
+        ts_b = _safe_parse_ts(row_b.get(timestamp_col)) if timestamp_col else 0.0
         all_keys = set(row_a.keys()) | set(row_b.keys())
         result = {}
         for k in all_keys:

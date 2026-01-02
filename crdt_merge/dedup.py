@@ -62,8 +62,13 @@ class DedupIndex:
         self._hash_to_content: Dict[str, str] = {}  # for fuzzy lookup
 
     def add_exact(self, text: str) -> bool:
-        """Returns True if text is new (not a duplicate)."""
-        h = _hash_text(text)
+        """Returns True if text is new (not a duplicate).
+        
+        Uses case-insensitive comparison but preserves all whitespace
+        (tabs, newlines, etc.) — "hello\tworld" and "hello\nworld" are distinct.
+        """
+        # Case-insensitive but whitespace-preserving for exact match
+        h = hashlib.sha256(text.lower().encode('utf-8')).hexdigest()
         if self._seen_hashes.contains(h):
             return False
         self._seen_hashes.add(h)
@@ -118,6 +123,13 @@ def dedup_list(
     Returns:
         (unique_items, duplicate_indices)
     """
+    _valid_methods = {"exact", "fuzzy"}
+    if method not in _valid_methods:
+        raise ValueError(
+            f"Invalid dedup method '{method}'. "
+            f"Valid methods: {', '.join(sorted(_valid_methods))}"
+        )
+
     index = DedupIndex()
     unique = []
     dup_indices = []
@@ -155,6 +167,13 @@ def dedup_records(
     Returns:
         (unique_records, num_duplicates_removed)
     """
+    _valid_methods = {"exact", "fuzzy"}
+    if method not in _valid_methods:
+        raise ValueError(
+            f"Invalid dedup method '{method}'. "
+            f"Valid methods: {', '.join(sorted(_valid_methods))}"
+        )
+
     index = DedupIndex()
     unique = []
     removed = 0
@@ -186,7 +205,7 @@ class MinHashDedup:
     instead of O(n²) pairwise comparison.
     """
 
-    def __init__(self, num_hashes: int = 128, threshold: float = 0.5):
+    def __init__(self, num_hashes: int = 200, threshold: float = 0.5):
         self.num_hashes = num_hashes
         self.threshold = threshold
         self._a = [hash(f"a_{i}") for i in range(num_hashes)]
