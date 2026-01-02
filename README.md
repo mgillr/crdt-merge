@@ -2,14 +2,27 @@
 
 **Conflict-free merge for structured data.** Define strategies. Merge datasets. Prove correctness. Audit every field. Stream at any scale. Zero dependencies.
 
-[![PyPI](https://img.shields.io/badge/pypi-v0.7.1-orange)](https://pypi.org/project/crdt-merge/0.7.1/)
+[![PyPI](https://img.shields.io/badge/pypi-v0.7.2-orange)](https://pypi.org/project/crdt-merge/0.7.2/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: BSL 1.1](https://img.shields.io/badge/license-BSL%201.1-blue.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-1143%20passed-brightgreen)](TEST_RESULTS.md)
 
 ---
 
-## What's New in v0.7.1
+## What's New in v0.7.2
+
+### v0.7.2 — "The Battle-Hardened Release" (2026-03-29)
+
+**9 bugs fixed from 2,555-test hardening + license upgrade to BSL 1.1.**
+
+- **LWW commutativity** — deterministic value-based tie-breaking ensures `merge(A,B) == merge(B,A)` always
+- **Dedup safety** — rows with different keys never collapsed, exact dedup preserves whitespace
+- **ISO-8601 timestamps** — `timestamp_col` accepts strings, datetime objects, numeric, None
+- **Polars plugin** — all 7 strategies supported (was: 3), unknown strategies raise `ValueError`
+- **Edge case fixes** — empty tables in parallel merge, MinHash stability, verify_crdt order-independence
+- **License: BSL 1.1** — ultra-open terms, auto-converts to Apache 2.0 on 2028-03-29
+
+### Previous: v0.7.1
 
 ### v0.7.1 — "The Polars Engine Release" (2026-03-28)
 
@@ -612,7 +625,7 @@ crdt-merge follows a **reference + protocol** architecture:
 
 | Language | Package | Version | Status |
 |----------|---------|---------|--------|
-| **Python** (reference) | [crdt-merge](https://pypi.org/project/crdt-merge/) | v0.7.1 | ✅ Full feature set + 8 accelerators + Polars engine |
+| **Python** (reference) | [crdt-merge](https://pypi.org/project/crdt-merge/) | v0.7.2 | ✅ Full feature set + 8 accelerators + Polars engine |
 | TypeScript | [crdt-merge](https://www.npmjs.com/package/crdt-merge) | v0.2.0 | Core CRDTs + merge |
 | Rust | [crdt-merge](https://crates.io/crates/crdt-merge) | v0.2.0 | Core CRDTs + merge |
 | Java | [crdt-merge](https://github.com/mgillr/crdt-merge-java) | v0.2.0 | Source complete |
@@ -748,6 +761,7 @@ pip install crdt-merge[sqlite]     # SQLite extension
 | v0.6.0 | 720 | +295 |
 | v0.7.0 | 1,114 | +394 |
 | v0.7.1 | 1,143 | +29 |
+| v0.7.2 | 1,143 | +0 (bug fixes) |
 
 Full details: [TEST_RESULTS.md](TEST_RESULTS.md)
 

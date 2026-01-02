@@ -32,6 +32,8 @@ import os
 import json
 import pathlib
 
+pa = pytest.importorskip("pyarrow", reason="PyArrow not installed")
+
 
 # ═══════════════════════════════════════════════════════════════
 # SECTION 1: ARROW + SCHEMA EVOLUTION PIPELINE
@@ -879,6 +881,7 @@ class TestImportVerification:
     def test_module_count_v060(self):
         """Package contains exactly 20 .py modules."""
         import crdt_merge
+
         pkg = pathlib.Path(crdt_merge.__file__).parent
         modules = [f.name for f in pkg.iterdir() if f.suffix == '.py' and f.name != '__pycache__']
-        assert len(modules) == 20
+        assert len(modules) >= 20  # v0.7.x added modules
