@@ -134,6 +134,12 @@ def _load_accelerators():
     from crdt_merge import accelerators as _acc
     return _acc
 
+# v0.8.0: Model Merge (lazy — avoids importing numpy at top level)
+def _load_model():
+    """Lazy loader for the model-merge sub-package."""
+    from crdt_merge import model as _model
+    return _model
+
 # Optional fast engine
 try:
     from crdt_merge._polars_engine import HAS_POLARS
