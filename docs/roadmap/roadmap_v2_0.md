@@ -3,7 +3,7 @@
 **Version:** 2.0  
 **Date:** March 28, 2026  
 **Contact:** rgillespie83@icloud.com · data@optitransfer.ch  
-**License:** BSL-1.1  
+**License:** BSL-1.1 (Business Source License 1.1)  
 **Copyright:** Copyright 2026 Ryan Gillespie
 
 ---
@@ -42,11 +42,12 @@ crdt-merge is the **complete merge toolkit** that sits beneath all of these — 
 |---------|----------|-------------|----------|-----------|--------|
 | **v0.5.1** | The Hotfix Release | Core merge, MergeSchema, delta sync, dedup, probabilistic, HF integration | 4,028 | 425 | ✅ COMPLETE |
 | **v0.6.0** | The Performance Release | Arrow-native merge, schema evolution, gossip protocol, HLC, Merkle trees | 6,478 | 685 | ✅ COMPLETE |
-| **v0.7.0** | The Ecosystem Release | MergeQL (SQL), 8 accelerators (DuckDB, dbt, DuckLake, Polars, Arrow Flight, Airbyte, SQLite, Streamlit), self-merging Parquet, conflict viz | 17,172 | 1,114 | ✅ COMPLETE |
-| **v0.7.1** | The Polars Engine Release | Rust-compiled merge via Polars (115× speedup), `engine="auto"` fallback, `[fast]` opt-in | 17,500 | 1,143 | ✅ COMPLETE |
-| **v0.8.0** | The Intelligence Release | ModelCRDT (20+ strategies), protocol engine, FFI/WASM, LoRA merging, evolutionary merge | ~14,500 | ~1,800 | 📋 Planned |
-| **v0.9.0** | The Enterprise Release | UnmergeEngine, model unmerging, encryption, RBAC, observability, compliance | ~17,000 | ~2,200 | 📋 Planned |
-| **v1.0.0** | The Platform Release | API freeze, formal spec, security audit, comprehensive docs, certification | ~18,000 | ~2,500 | 📋 Planned |
+| **v0.7.0** | The Ecosystem Release | MergeQL (SQL), 8 accelerators, self-merging Parquet, conflict viz | 17,172 | 1,114 | ✅ COMPLETE |
+| **v0.7.1** | The Polars Engine Release | Polars merge engine (38.8× A100), `engine="auto"` fallback, `[fast]` opt-in | ~17,500 | 1,148 | ✅ COMPLETE |
+| **v0.8.0** | The Intelligence Release | ModelCRDT (25 strategies), LoRA, evolutionary merge, provenance, heatmaps, federated bridge | ~30,000 | 1,923 | ✅ COMPLETE |
+| **v0.8.1** | The Adoption Release | Context Memory (manifests+sidecars+bloom), Agentic AI State Merge, MergeKit CLI, Flower FL Plugin | ~32,000 | ~2,200 | 📋 Planned |
+| **v0.9.0** | The Enterprise Release | UnmergeEngine, EU AI Act compliance, model unmerging, encryption, RBAC, observability | ~35,000 | ~2,700 | 📋 Planned |
+| **v1.0.0** | The Platform Release | API freeze, formal spec, security audit, comprehensive docs, certification | ~36,000 | ~3,000 | 📋 Planned |
 
 ---
 
@@ -386,7 +387,7 @@ topo.summary()  # "147 conflicts across 12 fields, 3 clusters"
 
 **Status:** Released 2026-03-28 · **LOC:** ~17,500 (+~330) · **Tests:** 1,143 (+29) · **Breaking Changes:** 0
 
-This release introduces the Polars Merge Engine — a shared kernel that compiles the entire merge hot path to a Rust execution plan via Polars. The result: **115× speedup** at scale with zero breaking changes.
+This release introduces the Polars Merge Engine — a shared kernel that compiles the entire merge hot path to a Rust execution plan via Polars. The result: **38.8× speedup** at scale (measured on A100 at 500K rows) with zero breaking changes.
 
 ### Polars Merge Engine — ✅ Complete (`_polars_engine.py`, ~300 LOC, 30 tests)
 
@@ -430,7 +431,7 @@ pip install crdt-merge[fast]    # Adds Polars — enables 115× Rust engine
 
 ## v0.8.0 — "The Intelligence Release" (ModelCRDT + Protocol Engine)
 
-**Target LOC:** ~14,500 (+5,000) · **Target Tests:** ~1,800 (+700) · **Breaking Changes:** 0
+**Status:** ✅ COMPLETE — Published to PyPI 2026-03-29 · **LOC:** ~30,000 (+~12,500) · **Tests:** 1,923 (+775) · **Modules:** 44 (24 existing + 20 new) · **Breaking Changes:** 0
 
 This is the transformative release. crdt-merge enters the model merging space — the hottest area in ML tooling (200+ papers, NeurIPS 2025 competition, $100M+ in startup funding) — and brings something nobody else has: **CRDT guarantees, per-parameter provenance, and formal verification for model weight merging.**
 
@@ -1171,12 +1172,12 @@ const result = merger.merge(left, right, schema);
 
 - **#0: Per-field merge strategies** — v0.5.1 ✅
 - **#1: Formal CRDT verification** — v0.5.1 ✅
-- **#2: SQL-based merge** (MergeQL) — v0.7.0
-- **#3: Per-parameter provenance tracking for model merges** — v0.8.0 🆕
-- **#4: Conflict heatmaps / layer disagreement visualization** — v0.8.0 🆕
-- **#5: CRDT-verified model merging** (25 strategies with formal properties) — v0.8.0 🆕
-- **#6: LoRA-native merge with rank harmonization** — v0.8.0 🆕
-- **#7: Evolutionary merge optimization** — v0.8.0 🆕
+- **#2: SQL-based merge** (MergeQL) — v0.7.0 ✅
+- **#3: Per-parameter provenance tracking for model merges** — v0.8.0 ✅
+- **#4: Conflict heatmaps / layer disagreement visualization** — v0.8.0 ✅
+- **#5: CRDT-verified model merging** (25 strategies with formal properties) — v0.8.0 ✅
+- **#6: LoRA-native merge with rank harmonization** — v0.8.0 ✅
+- **#7: Evolutionary merge optimization** — v0.8.0 ✅
 
 ### Competitive Position at v0.8.0
 
@@ -1193,16 +1194,202 @@ const result = merger.merge(left, right, schema);
 | Federated bridge | ✅ | ❌ | ❌ | ❌ |
 | Plugin architecture | ✅ | ❌ | ❌ | ❌ |
 | MergeKit compat | ✅ (import/export) | Native | ❌ | ❌ |
-| License | BSL-1.1 | LGPL-3.0 ⚠️ | BSL-1.1 | MIT |
+| License | BSL-1.1 (ultra-open) | LGPL-3.0 ⚠️ | Apache-2.0 | MIT |
 | Tabular + Model merge | ✅ | ❌ (model only) | ❌ (eval only) | ❌ (model only) |
 
-**Key differentiator:** MergeKit is LGPL-3.0, which creates friction for commercial users. crdt-merge is BSL-1.1. Combined with provenance, verification, and tabular+model unification, crdt-merge is the **only production-grade choice** for enterprises.
+**Key differentiator:** MergeKit is LGPL-3.0, which creates friction for commercial users. crdt-merge is BSL-1.1 with an ultra-open Additional Use Grant (permits ALL uses except reselling crdt-merge itself as a competing merge engine; auto-converts to Apache-2.0 on 2028-03-29). Combined with provenance, verification, and tabular+model unification, crdt-merge is the **only production-grade choice** for enterprises.
+
+---
+
+## v0.8.1 — "The Adoption Release" (Context Memory + Community Bridges)
+
+**Target LOC:** ~32,000 (+~2,000) · **Target Tests:** ~2,200 (+~280) · **Breaking Changes:** 0
+
+This release captures three high-growth communities (agentic AI, MergeKit, Flower) and introduces a category-defining capability: **CRDT-merged agent memory with manifest attestation, sidecar metadata for O(1) filtering, and bloom dedup.** Nobody else merges agent memory. MemGPT truncates. LangChain appends. Vector DBs retrieve. **crdt-merge merges.**
+
+---
+
+### Context Memory System (~1,500 lines) — 🌟 Category-Defining
+
+CRDT-merged memory for AI agents and LLM systems. Inspired by the manifest+sidecar+bloom architecture proven in production at 27,000+ line scale (Optitransfer WARC pipeline), generalized into a zero-dependency framework module.
+
+**The problem:** Every AI agent has amnesia. MemGPT truncates old memories. LangChain appends everything (500× duplicate facts). Vector DBs retrieve but can't resolve conflicts. Nobody takes two agents' memories and produces one consistent, deduplicated, provenance-tracked memory.
+
+**The solution:** Five components that wire into every existing part of crdt-merge:
+
+| Component | Module | LOC | What It Does |
+|-----------|--------|----:|-------------|
+| **MemorySidecar** | `context/sidecar.py` | 200 | Pre-computed metadata per memory chunk — topic, confidence, source agent, timestamps. Like the nutrition label on food: you don't open it to know what's inside. |
+| **ContextManifest** | `context/manifest.py` | 200 | Self-describing package certifying what merged, how, when, and quality score. EU AI Act Article 13 traceability built-in. |
+| **ContextBloom** | `context/bloom.py` | 150 | 64-shard bloom filter for memory dedup. ~10M checks/sec, 0.1μs per check. Catches 60-80% duplicate facts before merge even starts. |
+| **ContextConsolidator** | `context/consolidator.py` | 200 | Bundles thousands of small memories into manageable files with merged sidecars. 50K memories → 50 indexed files. |
+| **ContextMerge** | `context/merge.py` | 250 | Quality-weighted, budget-aware context merge. Same LWW/Priority/Union strategies from tabular merge — one API for data AND knowledge. |
+
+```python
+from crdt_merge.context import ContextMerge, MemorySidecar, ContextBloom
+
+# Create bloom filter for dedup
+bloom = ContextBloom(expected_items=100_000, fp_rate=0.001)
+
+# Agent A's memories with sidecars
+agent_a_memories = [
+    {"fact": "Customer prefers email", "confidence": 0.9, "source": "agent_a", "ts": 1711700000},
+    {"fact": "Budget is $50K", "confidence": 0.95, "source": "agent_a", "ts": 1711700100},
+]
+
+# Agent B's memories (some overlap)
+agent_b_memories = [
+    {"fact": "Customer prefers email", "confidence": 0.85, "source": "agent_b", "ts": 1711699900},  # duplicate!
+    {"fact": "Timeline is Q3 2026", "confidence": 0.9, "source": "agent_b", "ts": 1711700200},
+]
+
+# Merge with dedup + conflict resolution
+merger = ContextMerge(bloom=bloom, strategy="lww")  # or "max_confidence", "priority"
+merged = merger.merge(agent_a_memories, agent_b_memories)
+
+# Result: 3 unique facts (duplicate caught by bloom), full provenance chain
+print(merged.manifest.summary())
+# "3 unique memories from 2 agents. 1 duplicate resolved. 0 conflicts."
+print(merged.manifest.to_eu_ai_act_report())
+# Full Article 13 traceability report
+```
+
+**Interoperability — wires into everything:**
+
+| Existing Feature | What Context Memory Adds |
+|-----------------|-------------------------|
+| **Tabular strategies** (LWW, Priority, Union) | Same strategies resolve memory conflicts — one API for data AND knowledge |
+| **Provenance (🦄 #3)** | Every merged memory has full lineage: source agent, timestamp, confidence, merge chain |
+| **8 Accelerators** | Query via DuckDB SQL, stream via Flight, 38× consolidation via Polars, embed in SQLite on phones |
+| **Model weight merging** | Track which training data influenced which weights — audit trail for regulators |
+| **Federated bridge** | Know what each site contributed without seeing raw data |
+| **Agentic AI (below)** | THE killer combo — multi-agent systems get deduplicated, conflict-resolved shared memory |
+
+**New benchmark categories (we define the bar — nobody else does this):**
+
+| Benchmark | Expected Performance | vs. Alternatives |
+|-----------|---------------------|-----------------|
+| Bloom dedup throughput | ~10M checks/sec | Vector similarity: ~10K/sec (1,000×) |
+| Sidecar metadata filter | ~0.1μs per memory | Full-text scan: ~10μs (100×) |
+| Memory compression ratio | 60-80% after merge | Append-only: 0% |
+| Full context merge (2 agents, 10K each) | <500ms | Nobody else offers this |
+
+---
+
+### Agentic AI State Merge (~200 lines)
+
+CRDT containers purpose-built for multi-agent orchestration. Targets CrewAI (25K+ ⭐), AutoGen (38K+ ⭐), LangGraph, and every framework where agents need to share state without a central coordinator.
+
+```python
+from crdt_merge.agentic import AgentState, SharedKnowledge
+
+# Each agent maintains CRDT state
+agent_a = AgentState(agent_id="researcher")
+agent_a.facts.add("revenue_q1", 4_200_000, confidence=0.9)
+agent_a.facts.add("market_size", "12B", confidence=0.7)
+
+agent_b = AgentState(agent_id="analyst")
+agent_b.facts.add("revenue_q1", 4_150_000, confidence=0.95)  # Higher confidence wins
+agent_b.facts.add("competitor_count", 12, confidence=0.8)
+
+# Merge agent states — CRDT guarantees convergence
+shared = SharedKnowledge.merge(agent_a, agent_b)
+# revenue_q1 = 4_150_000 (analyst's higher confidence wins)
+# market_size, competitor_count preserved
+# Full provenance: who said what, when, confidence levels
+```
+
+**Module:** `crdt_merge/agentic.py`
+**Dependencies:** None (uses existing CRDT primitives)
+**TAM:** 25K+ CrewAI + 38K+ AutoGen + growing LangGraph community
+
+---
+
+### MergeKit Migration CLI (~150 lines)
+
+Zero-cost switching for MergeKit's frustrated 6.9K-star community. MergeKit has 260+ open issues, LGPL-3.0 license friction, and critical breakage with Qwen3 models (issues #659, #671, #672 — the most popular model family).
+
+```bash
+# Convert MergeKit YAML config to crdt-merge Python
+crdt-merge migrate mergekit-config.yaml --output merge_pipeline.py
+
+# Import programmatically
+from crdt_merge.formats import import_mergekit_config
+pipeline = import_mergekit_config("mergekit-config.yaml")
+result = pipeline.execute()
+```
+
+**Module:** `crdt_merge/cli/migrate.py` (wraps existing `formats.import_mergekit_config`)
+**Dependencies:** None new (formats.py ships in v0.8.0)
+**Distribution:** r/LocalLLaMA posts targeting Qwen3 breakage frustration
+
+---
+
+### Flower FL Plugin (~150 lines)
+
+Separate PyPI package (`flwr-crdt-merge`) that plugs into every Flower federated learning project. Trojan horse into the FL research community (5.4K ⭐).
+
+```python
+# Install: pip install flwr-crdt-merge
+from flwr_crdt_merge import CRDTStrategy
+
+# Drop-in replacement for any Flower aggregation strategy
+strategy = CRDTStrategy(
+    merge_strategy="fisher",  # or "ties", "dare", "weight_average"
+    provenance=True,          # Track per-round contributions
+)
+
+# Use in Flower server
+fl.server.start_server(strategy=strategy)
+```
+
+**Package:** `flwr-crdt-merge` on PyPI (separate from core)
+**Module:** Wraps existing `crdt_merge.model.federated`
+**Dependencies:** `flwr` (peer dependency, not bundled)
+**Distribution:** Flower docs PR, awesome-federated-learning, NeurIPS FL workshops
+
+---
+
+### cr-sqlite Community Adoption (Marketing — Zero Code)
+
+cr-sqlite (6,000+ ⭐) was archived July 2025, orphaning its community. Our ACC-7 SQLite extension (`accelerators/sqlite_ext.py`) already fills this gap. This is a pure marketing play alongside v0.8.1:
+
+- Post in cr-sqlite discussions: "cr-sqlite users: crdt-merge has a SQLite extension"
+- Update ACC-7 README with migration guide from cr-sqlite
+- Target local-first community (Expo, React Native, Flutter)
+- Zero additional code required
+
+---
+
+### Unicorn Features Delivered at v0.8.1
+
+- **#0–#7:** All previous ✅
+- **#8: CRDT-merged agent memory with manifest attestation** — v0.8.1 🆕
+- **#9: O(1) memory dedup via bloom filter** — v0.8.1 🆕
+- **#10: Context provenance chains (agent → fact → merge → output)** — v0.8.1 🆕
+
+### Competitive Position at v0.8.1
+
+| Capability | crdt-merge v0.8.1 | MemGPT/Letta | LangChain | Automerge | cr-sqlite (archived) |
+|-----------|-------------------|-------------|-----------|-----------|---------------------|
+| Agent memory merge | ✅ CRDT-verified | ❌ (truncates) | ❌ (appends) | ❌ (documents only) | ❌ (archived) |
+| Memory dedup | ✅ Bloom (10M/s) | ❌ | ❌ | ❌ | ❌ |
+| Memory provenance | ✅ Full chain | ❌ | Partial | ❌ | ❌ |
+| Manifest attestation | ✅ EU AI Act ready | ❌ | ❌ | ❌ | ❌ |
+| Model weight merge | ✅ 25 strategies | ❌ | ❌ | ❌ | ❌ |
+| Tabular data merge | ✅ | ❌ | ❌ | ❌ | ✅ (SQLite only) |
+| Multi-agent state | ✅ CRDT containers | ❌ | Partial (messages) | ❌ | ❌ |
+| SQLite extension | ✅ | ❌ | ❌ | ❌ | ✅ (archived) |
+| Zero dependencies | ✅ | ❌ | ❌ | ❌ (WASM) | ❌ (SQLite ext) |
+| License | BSL-1.1 (ultra-open) | Apache-2.0 | MIT | MIT | MIT (abandoned) |
+
+**The positioning:** After v0.8.1, crdt-merge is the only framework spanning **tabular data + model weights + agent memory** under one algebraic framework. That's the moat.
 
 ---
 
 ## v0.9.0 — "The Enterprise Release" (UnmergeEngine + Compliance)
 
-**Target LOC:** ~17,000 (+2,500) · **Target Tests:** ~2,200 (+400) · **Breaking Changes:** 0
+**Target LOC:** ~35,000 (+~3,000) · **Target Tests:** ~2,700 (+~500) · **Breaking Changes:** 0
 
 ### UnmergeEngine (~600 lines)
 
@@ -1349,17 +1536,58 @@ report = auditor.generate_report(
 )
 
 # EU AI Act specific: model provenance documentation
+# ⚠️ EU AI Act enforcement deadline: August 2, 2026
 ai_act_report = auditor.ai_act_compliance(
     model_provenance=model_merge_provenance,
     training_data_provenance=training_provenance,
 )
 ```
 
+### EU AI Act Compliance Report Generator (~300 lines) — 🚨 Time-Critical
+
+**Enforcement deadline: August 2, 2026.** Every company deploying AI in the EU needs Article 13 traceability documentation. crdt-merge's provenance system already captures the data — this module generates the report.
+
+```python
+from crdt_merge.compliance import EUAIActReport
+
+report = EUAIActReport(
+    model_provenance=model_merge_provenance,
+    training_data_provenance=training_provenance,
+    context_manifests=memory_manifests,  # From v0.8.1 Context Memory
+)
+
+# Generate full compliance package
+report.generate(
+    format="pdf",
+    include_data_lineage=True,
+    include_model_cards=True,
+    include_merge_attestations=True,
+)
+
+# Validate against EU AI Act requirements
+validation = report.validate()
+print(validation.compliant)  # True
+print(validation.coverage)   # 94% of Article 13 requirements covered
+```
+
+**Why this is a headline feature:**
+- **Fear sells.** August 2, 2026 is 4 months away. Companies need solutions NOW.
+- **Zero competitors** offer merge-level EU AI Act compliance
+- **Our provenance + manifests are the hard part** — the report generator is just formatting
+- **Combined with v0.8.1 Context Memory manifests**, this provides end-to-end traceability from raw input → agent memory → model weights → merged output → compliance report
+
+**Module:** `crdt_merge/compliance/eu_ai_act.py`
+**Dependencies:** None new (provenance already captured)
+
+---
+
 ### Unicorn Features Delivered at v0.9.0
 
-- **#8: Reversible merge (UnmergeEngine)** — v0.9.0 🆕
-- **#9: Model unmerging with provenance-guided contributor removal** — v0.9.0 🆕
-- **#10: GDPR "right to be forgotten" at the merge layer** — v0.9.0 🆕
+- **#8–#10:** All previous ✅
+- **#11: Reversible merge (UnmergeEngine)** — v0.9.0 🆕
+- **#12: Model unmerging with provenance-guided contributor removal** — v0.9.0 🆕
+- **#13: GDPR "right to be forgotten" at the merge layer** — v0.9.0 🆕
+- **#14: EU AI Act compliance report generator** — v0.9.0 🆕
 
 ### Competitive Position at v0.9.0
 
@@ -1373,13 +1601,14 @@ ai_act_report = auditor.ai_act_compliance(
 | RBAC | ✅ | ✅ | ❌ | ❌ |
 | Observability | ✅ | ✅ | ❌ | ❌ |
 | Library (embeddable) | ✅ | ❌ (proprietary) | ❌ (server) | ❌ (service) |
-| Open source | ✅ BSL-1.1 | ❌ | ✅ | ✅ |
+| EU AI Act compliance | ✅ (report generator) | ❌ | ❌ | ❌ |
+| Open source | ✅ BSL-1.1 (ultra-open) | ❌ | ✅ | ✅ |
 
 ---
 
 ## v1.0.0 — "The Platform Release" (Freeze + Certify)
 
-**Target LOC:** ~18,000 (+1,000) · **Target Tests:** ~2,500 (+300) · **Breaking Changes:** 0
+**Target LOC:** ~36,000 (+~1,000) · **Target Tests:** ~3,000 (+~300) · **Breaking Changes:** 0
 
 ### API Freeze
 
@@ -1435,30 +1664,34 @@ crdt-merge-spec/
 |---|---------|---------|--------|
 | 0 | Per-field merge strategies (MergeSchema) | v0.5.1 | ✅ |
 | 1 | Formal CRDT verification (`verify_crdt`) | v0.5.1 | ✅ |
-| 2 | SQL-based merge (MergeQL / CRDV implementation) | v0.7.0 | 📋 |
-| 3 | Per-parameter provenance tracking (model merges) | v0.8.0 | 📋 |
-| 4 | Conflict heatmaps / layer disagreement visualization | v0.8.0 | 📋 |
-| 5 | CRDT-verified model merging (25 strategies) | v0.8.0 | 📋 |
-| 6 | LoRA-native merge with rank harmonization | v0.8.0 | 📋 |
-| 7 | Evolutionary merge optimization | v0.8.0 | 📋 |
-| 8 | Reversible merge (UnmergeEngine) | v0.9.0 | 📋 |
-| 9 | Model unmerging (provenance-guided) | v0.9.0 | 📋 |
-| 10 | GDPR "right to be forgotten" at merge layer | v0.9.0 | 📋 |
+| 2 | SQL-based merge (MergeQL / CRDV implementation) | v0.7.0 | ✅ |
+| 3 | Per-parameter provenance tracking (model merges) | v0.8.0 | ✅ |
+| 4 | Conflict heatmaps / layer disagreement visualization | v0.8.0 | ✅ |
+| 5 | CRDT-verified model merging (25 strategies) | v0.8.0 | ✅ |
+| 6 | LoRA-native merge with rank harmonization | v0.8.0 | ✅ |
+| 7 | Evolutionary merge optimization | v0.8.0 | ✅ |
+| 8 | CRDT-merged agent memory with manifest attestation | v0.8.1 | 📋 |
+| 9 | O(1) memory dedup via bloom filter | v0.8.1 | 📋 |
+| 10 | Context provenance chains | v0.8.1 | 📋 |
+| 11 | Reversible merge (UnmergeEngine) | v0.9.0 | 📋 |
+| 12 | Model unmerging (provenance-guided) | v0.9.0 | 📋 |
+| 13 | GDPR "right to be forgotten" at merge layer | v0.9.0 | 📋 |
+| 14 | EU AI Act compliance report generator | v0.9.0 | 📋 |
 
 ---
 
 ## Evolution Summary Table
 
-| Metric | v0.5.1 | v0.6.0 | v0.7.0 | v0.8.0 | v0.9.0 | v1.0.0 |
-|--------|--------|--------|--------|--------|--------|--------|
-| **LOC** | 4,028 | 6,478 | ~9,500 | ~14,500 | ~17,000 | ~18,000 |
-| **Tests** | 425 | 685 | ~1,100 | ~1,800 | ~2,200 | ~2,500 |
-| **Modules** | 13 | 20 | 28 | 45 | 52 | 55 |
-| **Merge Strategies (tabular)** | 8 | 8 | 8 | 8 | 8 | 8 |
-| **Merge Strategies (model)** | 0 | 0 | 0 | 25 | 25 | 25+ |
-| **Languages** | 4 | 4 | 4 | 20+ | 20+ | 20+ |
-| **Dependencies (required)** | 0 | 0 | 0 | 0 | 0 | 0 |
-| **Unicorn Features** | 2 | 2 | 3 | 8 | 11 | 11 |
+| Metric | v0.5.1 | v0.6.0 | v0.7.0 | v0.7.1 | v0.8.0 | v0.8.1 | v0.9.0 | v1.0.0 |
+|--------|--------|--------|--------|--------|--------|--------|--------|--------|
+| **LOC** | 4,028 | 6,478 | 17,172 | ~17,500 | ~30,000 | ~32,000 | ~35,000 | ~36,000 |
+| **Tests** | 425 | 685 | 1,114 | 1,148 | 1,923 | ~2,200 | ~2,700 | ~3,000 |
+| **Modules** | 13 | 20 | 38 | 38 | 44 | ~50 | ~57 | ~60 |
+| **Merge Strategies (tabular)** | 8 | 8 | 8 | 8 | 8 | 8 | 8 | 8 |
+| **Merge Strategies (model)** | 0 | 0 | 0 | 0 | 25 | 25 | 25 | 25+ |
+| **Merge Domains** | 1 | 1 | 1 | 1 | 2 | 3 | 3 | 3 |
+| **Dependencies (required)** | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| **Unicorn Features** | 2 | 2 | 3 | 3 | 8 | 11 | 15 | 15 |
 
 ---
 
@@ -1470,18 +1703,23 @@ crdt-merge-spec/
 2026 Q1  ████████████████████████  v0.6.0 COMPLETE ✅ (shipped 2026-03-28)
          │                          Arrow, Schema Evolution, Gossip, HLC, Merkle, Async, Parallel
          │
-2026 Q3  ████████████████████████  v0.7.0 — MergeQL, Data Stack Connectors, Self-Merging Parquet
-         │                          Target: September 2026
+2026 Q1  ████████████████████████  v0.7.0 COMPLETE ✅ (shipped 2026-03-28)
+         │                          MergeQL, 8 Accelerators, Self-Merging Parquet
          │
-2026 Q4  ████████████████████████  v0.8.0 — ModelCRDT (25 strategies), Protocol Engine, FFI/WASM
-  2027   ████████████████████████   Target: January 2027
-         │                          (Largest release — 3-4 month cycle)
+2026 Q1  ████████████████████████  v0.7.1 COMPLETE ✅ (shipped 2026-03-28)
+         │                          Polars Engine (38.8× A100)
          │
-2027 Q1  ████████████████████████  v0.9.0 — UnmergeEngine, Model Unmerge, Encryption, RBAC
-         │                          Target: April 2027
+2026 Q1  ████████████████████████  v0.8.0 COMPLETE ✅ (shipped 2026-03-29)
+         │                          ModelCRDT, 25 strategies, 1,923 tests, ~30K LOC
          │
-2027 Q2  ████████████████████████  v1.0.0 — API Freeze, Formal Spec, Security Audit, Docs
-                                    Target: July 2027
+2026 Q2  ████████████████████████  v0.8.1 — Context Memory, Agentic AI, MergeKit CLI, Flower
+         │                          Target: May 2026
+         │
+2026 Q3  ████████████████████████  v0.9.0 — UnmergeEngine, EU AI Act (⚠️ Aug 2 deadline), RBAC
+         │                          Target: July 2026 (before EU AI Act enforcement)
+         │
+2026 Q4  ████████████████████████  v1.0.0 — API Freeze, Formal Spec, Security Audit, Docs
+                                    Target: October 2026
 ```
 
 ### Critical Path Dependencies
@@ -1524,9 +1762,9 @@ At 21 KB wheel size with zero dependencies, crdt-merge embeds anywhere. Compare:
 
 crdt-merge's optional dependencies (Arrow, torch) are lazy-imported only when needed.
 
-### 3. BSL-1.1 → Zero License Friction
+### 3. BSL-1.1 (Ultra-Open) → Practical License Freedom
 
-MergeKit's LGPL-3.0 creates real friction for commercial users (copyleft triggers on linking). crdt-merge is BSL-1.1 — use it anywhere, in anything, forever.
+MergeKit's LGPL-3.0 creates real friction for commercial users (copyleft triggers on linking). crdt-merge's BSL-1.1 permits ALL uses (commercial, SaaS, internal, research, consulting) with one restriction: you can't resell crdt-merge itself as a competing merge engine. Auto-converts to Apache-2.0 on 2028-03-29.
 
 ### 4. Formal Verification → Trust
 
@@ -1553,7 +1791,15 @@ Each version adds capabilities that compound:
 - v0.9: Compliance makes it required for enterprises
 - v1.0: Formal spec makes it trustworthy for critical systems
 
-Competitors would need to rebuild 18,000+ lines of algebraically-verified merge logic to catch up.
+Competitors would need to rebuild 36,000+ lines of algebraically-verified merge logic to catch up.
+
+### 9. Three Merge Domains → One Framework
+
+After v0.8.1, crdt-merge is the only framework spanning **tabular data + model weights + agent memory** under one algebraic framework. Same strategies, same provenance, same verification, same accelerators across all three domains. To compete, someone needs to build all three — plus manifests, bloom dedup, sidecars, and compliance reporting.
+
+### 10. The EU AI Act Moat
+
+The August 2, 2026 enforcement deadline creates urgency that no amount of marketing can manufacture. crdt-merge's provenance + manifests + compliance reports provide end-to-end Article 13 traceability. This is not a feature competitors can easily retrofit — it requires deep integration with the merge engine itself.
 
 ---
 
@@ -1592,5 +1838,5 @@ Competitors would need to rebuild 18,000+ lines of algebraically-verified merge 
 ---
 
 **Contact:** rgillespie83@icloud.com · data@optitransfer.ch  
-**License:** BSL-1.1  
+**License:** BSL-1.1 (Business Source License 1.1) — auto-converts to Apache-2.0 on 2028-03-29  
 **Copyright:** Copyright 2026 Ryan Gillespie

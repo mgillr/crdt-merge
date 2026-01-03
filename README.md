@@ -1,83 +1,67 @@
 # crdt-merge
 
-**Conflict-free merge for structured data.** Define strategies. Merge datasets. Prove correctness. Audit every field. Stream at any scale. Zero dependencies.
+**Conflict-free merge for structured data, AI model weights, and agent memory.** Define strategies. Merge anything. Prove correctness. Audit every field. Stream at any scale. Zero dependencies.
 
-[![PyPI](https://img.shields.io/badge/pypi-v0.8.0-blue)](https://pypi.org/project/crdt-merge/0.8.0/)
+[![PyPI](https://img.shields.io/badge/pypi-v0.8.0-orange)](https://pypi.org/project/crdt-merge/0.8.0/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: BSL 1.1](https://img.shields.io/badge/license-BSL%201.1-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-1143%20passed-brightgreen)](TEST_RESULTS.md)
+[![Tests](https://img.shields.io/badge/tests-1923%20passed-brightgreen)](TEST_RESULTS.md)
 
 ---
 
-## What's New in v0.7.2
+## What's New in v0.8.0
 
-### v0.7.2 — "The Battle-Hardened Release" (2026-03-29)
+### v0.8.0 — "The Intelligence Release" (2026-03-29)
 
-**9 bugs fixed from 2,555-test hardening + license upgrade to BSL 1.1.**
+**25 model merge strategies. 1,923 tests. 44 modules. Zero breaking changes.** crdt-merge enters the AI model merging space with CRDT guarantees, per-parameter provenance, and formal verification.
 
-- **LWW commutativity** — deterministic value-based tie-breaking ensures `merge(A,B) == merge(B,A)` always
-- **Dedup safety** — rows with different keys never collapsed, exact dedup preserves whitespace
-- **ISO-8601 timestamps** — `timestamp_col` accepts strings, datetime objects, numeric, None
-- **Polars plugin** — all 7 strategies supported (was: 3), unknown strategies raise `ValueError`
-- **Edge case fixes** — empty tables in parallel merge, MinHash stability, verify_crdt order-independence
-- **License: BSL 1.1** — ultra-open terms, auto-converts to Apache 2.0 on 2028-03-29
-
-### Previous: v0.7.1
-
-### v0.7.1 — "The Polars Engine Release" (2026-03-28)
-
-**Up to 38.8× faster merges with zero breaking changes.** The entire merge hot path now runs in Rust via Polars when you opt in.
-
-- **Polars Merge Engine** (`_polars_engine.py`) — Full outer join + strategy resolution compiles to a single Rust execution plan. Python never touches the data.
-- **38.8× measured speedup** on A100 (500K rows), 8.4M rows/s peak throughput
-- 5 of 8 strategies run entirely in Rust: LWW, MaxWins, MinWins, Concat, LongestWins
-- 3 strategies use hybrid Rust+Python: UnionSet, Priority, Custom
-- **Opt-in via `pip install crdt-merge[fast]`** — zero-dependency core unchanged
-- `engine="auto"` (default) uses Polars if available, falls back gracefully
-- 1,143 tests passing. Zero regressions.
+- **ModelCRDT** — CRDT-native model weight merging with 25 strategies across 8 categories
+- **25 merge strategies** — TIES, DARE, SLERP, Task Arithmetic, Fisher, AdaMerging, evolutionary, safety-aware, and more
+- **LoRA merging** — first-class adapter merging with rank harmonization
+- **Merge pipelines** — multi-stage merge orchestration
+- **Per-parameter provenance** 🦄 — full audit trail for every merged weight
+- **Conflict heatmaps** 🦄 — layer-level disagreement visualization
+- **Safety analyzer** — detect capability degradation from merging
+- **Federated bridge** — CRDT merge strategies for federated learning
+- **MergeKit compatibility** — import/export MergeKit YAML configs
+- **GPU acceleration** — torch-based acceleration for large models
+- 1,923 tests passing. Zero regressions. Zero breaking changes.
 
 ```bash
-# Zero dependencies (default) — same as always
-pip install crdt-merge
-
-# Opt in to Polars engine (up to 38.8× on A100)
-pip install crdt-merge[fast]
+pip install crdt-merge            # Zero deps, tabular + model core
+pip install crdt-merge[model]     # + numpy for model strategies
+pip install crdt-merge[gpu]       # + torch for GPU acceleration
+pip install crdt-merge[fast]      # + polars for tabular speedup
 ```
 
 ```python
-from crdt_merge.arrow import ArrowMerge
+from crdt_merge.model import ModelCRDT, ModelMergeSchema
 
-# engine="auto" uses Polars if installed, falls back to Python if not
-result = ArrowMerge(left, right, key="id", strategy=schema).merge()
+# Define per-layer merge strategies
+schema = ModelMergeSchema({
+    "embed_tokens": "slerp",
+    "layers.*.self_attn": "ties",
+    "layers.*.mlp": "dare",
+    "lm_head": "weight_average",
+})
 
-# Explicitly choose engine
-result = ArrowMerge(left, right, key="id", strategy=schema, engine="polars").merge()
-result = ArrowMerge(left, right, key="id", strategy=schema, engine="python").merge()
+# Merge two models with CRDT guarantees
+model = ModelCRDT(weights_a, weights_b, schema=schema)
+merged = model.merge()
+
+# Full provenance — which model contributed which parameters
+provenance = model.provenance()
 ```
 
 ---
 
+### Previous: v0.7.1 — "The Polars Engine Release" (2026-03-28)
+
+**38.8× faster merges via Polars engine.** Opt-in via `pip install crdt-merge[fast]`.
+
 ### Previous: v0.7.0 — "The Ecosystem Release" (2026-03-28)
 
-**14 new modules. 8 ecosystem accelerators. 1,114 tests. Zero regressions.**
-
-- **MergeQL** — SQL-like interface for CRDT merges: `MERGE t1, t2 ON id STRATEGY score='max'`
-- **Self-Merging Parquet** — Parquet files with embedded CRDT metadata that merge themselves
-- **Conflict Topology Visualization** — heatmaps, temporal analysis, cluster detection, D3-compatible JSON export
-- **Wire Protocol v3** — support for all new v0.7.0 types
-
-#### 8 Ecosystem Accelerators
-
-| # | Accelerator | What It Does |
-|---|------------|-------------|
-| 🦆 | **DuckDB UDF** | Register CRDT merge as native DuckDB SQL functions |
-| 🔧 | **dbt Package** | CRDT merge as dbt models — merge in your warehouse |
-| 🦆 | **DuckLake** | Semantic conflict detection for DuckLake catalogs |
-| 🐻 | **Polars Plugin** | Native Polars expression plugin for CRDT ops |
-| ✈️ | **Arrow Flight** | Merge-as-a-service over Arrow Flight RPC |
-| 🔌 | **Airbyte** | CRDT-aware Airbyte destination connector |
-| 💾 | **SQLite Extension** | CRDT merge as SQLite custom functions |
-| 📊 | **Streamlit** | Visual merge UI — drag, drop, resolve conflicts |
+**MergeQL (SQL interface), 8 ecosystem accelerators (DuckDB, dbt, Polars, Arrow Flight, Airbyte, SQLite, Streamlit, DuckLake), self-merging Parquet, conflict visualization.**
 
 ### Previous: v0.6.0 — "The Architecture Release"
 - 7 new modules: clocks, schema evolution, merkle, arrow, gossip, async\_merge, parallel
@@ -625,7 +609,7 @@ crdt-merge follows a **reference + protocol** architecture:
 
 | Language | Package | Version | Status |
 |----------|---------|---------|--------|
-| **Python** (reference) | [crdt-merge](https://pypi.org/project/crdt-merge/) | v0.7.2 | ✅ Full feature set + 8 accelerators + Polars engine |
+| **Python** (reference) | [crdt-merge](https://pypi.org/project/crdt-merge/) | v0.7.1 | ✅ Full feature set + 8 accelerators + Polars engine |
 | TypeScript | [crdt-merge](https://www.npmjs.com/package/crdt-merge) | v0.2.0 | Core CRDTs + merge |
 | Rust | [crdt-merge](https://crates.io/crates/crdt-merge) | v0.2.0 | Core CRDTs + merge |
 | Java | [crdt-merge](https://github.com/mgillr/crdt-merge-java) | v0.2.0 | Source complete |
@@ -648,14 +632,15 @@ crdt-merge follows a **reference + protocol** architecture:
 | v0.6.0 | The Architecture Release | HLC clocks, schema evolution, Merkle trees, Arrow-native merge, gossip protocol, async/parallel merge, multi-key composites |
 | v0.7.0 | The Ecosystem Release | MergeQL, self-merging Parquet, conflict visualization, 8 ecosystem accelerators (DuckDB, dbt, Polars, Arrow Flight, Airbyte, SQLite, Streamlit, DuckLake) |
 | v0.7.1 | The Polars Engine Release | Polars merge engine (38.8× on A100), shared `_polars_engine.py`, `engine="auto"` fallback, zero-dependency core preserved |
+| v0.8.0 | The Intelligence Release | ModelCRDT — 25 model merge strategies (TIES/DARE/SLERP/LoRA), per-parameter provenance, conflict heatmaps, safety analyzer, federated bridge, GPU acceleration. 1,923 tests. |
 
 ### Upcoming
 
 | Version | Name | Key Features |
 |---------|------|-------------|
-| **v0.8.0** | The AI Release | ModelCRDT — AI model merging with 25 strategies (TIES/DARE/SLERP/LoRA), provenance tracking, evolutionary merge |
-| **v0.9.0** | The Compliance Release | UnmergeEngine — reversible CRDT merge for GDPR erasure, parallel merge |
-| **v1.0.0** | The Platform Release | API freeze, cross-language port sync, full documentation, production certification |
+| **v0.8.1** | The Adoption Release | Context Memory (manifests + sidecars + bloom dedup), Agentic AI State Merge, MergeKit Migration CLI, Flower FL Plugin |
+| **v0.9.0** | The Enterprise Release | UnmergeEngine, EU AI Act compliance report generator (⚠️ Aug 2026 deadline), model unmerging, encryption, RBAC, observability |
+| **v1.0.0** | The Platform Release | API freeze, formal spec, security audit, cross-language port sync, comprehensive docs |
 
 **Full roadmap:** [`docs/roadmap/roadmap_v2_0.md`](docs/roadmap/roadmap_v2_0.md)
 
@@ -689,6 +674,8 @@ pip install crdt-merge[fast]       # Polars merge engine (38.8× on A100)
 pip install crdt-merge[pandas]     # pandas DataFrame support
 pip install crdt-merge[polars]     # Polars DataFrame support
 pip install crdt-merge[datasets]   # HuggingFace Datasets
+pip install crdt-merge[model]      # numpy for model merge strategies
+pip install crdt-merge[gpu]        # torch for GPU-accelerated model merging
 pip install crdt-merge[all]        # Everything
 pip install crdt-merge[dev]        # pytest + hypothesis for development
 
@@ -703,21 +690,11 @@ pip install crdt-merge[sqlite]     # SQLite extension
 
 **Requirements:** Python 3.9+. No required dependencies. Works on Linux, macOS, Windows.
 
-### Zero Dependencies by Design
-
-crdt-merge's core has **zero required dependencies** — it runs on the Python standard library alone. This is a deliberate architectural choice:
-
-- **`pip install crdt-merge`** — installs the full CRDT merge engine with zero third-party packages
-- **No supply-chain risk** — no transitive dependencies to audit, no version conflicts
-- **Embeds anywhere** — serverless functions, edge devices, air-gapped environments, Jupyter notebooks
-
-All additional functionality is **opt-in** via extras. When you install an extra (e.g., `pip install crdt-merge[fast]`), the associated features activate automatically. When the optional dependency is not installed, the library falls back gracefully — no crashes, no import errors, just the pure-Python engine doing the work.
-
 ---
 
 ## Test Results
 
-**1,143 tests across 38 test files. 1,143 passed, 4 expected failures (version/module count assertions), 0 actual failures.**
+**1,923 tests across 58+ test files. 1,923 passed, 0 actual failures. v0.8.0 added 775 new model merge tests across 20 new modules.**
 
 | Test File | Tests | Status |
 |-----------|------:|:------:|
@@ -770,8 +747,8 @@ All additional functionality is **opt-in** via extras. When you install an extra
 | v0.5.0 | 425 | +148 |
 | v0.6.0 | 720 | +295 |
 | v0.7.0 | 1,114 | +394 |
-| v0.7.1 | 1,143 | +29 |
-| v0.7.2 | 1,143 | +0 (bug fixes) |
+| v0.7.1 | 1,148 | +34 |
+| v0.8.0 | 1,923 | +775 |
 
 Full details: [TEST_RESULTS.md](TEST_RESULTS.md)
 
@@ -781,14 +758,14 @@ Full details: [TEST_RESULTS.md](TEST_RESULTS.md)
 
 | Metric | Value |
 |--------|-------|
-| Core modules | 24 |
+| Core modules | 44 (24 tabular + 20 model) |
 | Ecosystem accelerators | 8 |
-| Source lines | ~17,500 |
-| Test files | 38 |
-| Tests passing | 1,143 |
-| Test lines | ~12,500 |
-| Test:source ratio | ~0.73:1 |
+| Model merge strategies | 25 |
+| Source lines | ~30,000 |
+| Test files | 58+ |
+| Tests passing | 1,923 |
 | Dependencies | 0 (required) |
+| Merge domains | Tabular data, Model weights (Agent memory in v0.8.1) |
 | Python versions | 3.9, 3.10, 3.11, 3.12 |
 | License | BSL-1.1 |
 
