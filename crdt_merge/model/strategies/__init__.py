@@ -165,3 +165,42 @@ def _reset_registry() -> None:
     global _PLUGINS_LOADED
     _REGISTRY.clear()
     _PLUGINS_LOADED = False
+
+
+# ─── Auto-register all built-in strategies ─────────────────────────────────
+# Importing strategy modules triggers @register_strategy decorators.
+# This ensures list_strategies() returns all 25 strategies without
+# requiring users to manually import each module.
+
+def _auto_register():
+    """Import all strategy modules to trigger registration."""
+    try:
+        from crdt_merge.model.strategies import basic       # noqa: F401
+    except ImportError:
+        pass
+    try:
+        from crdt_merge.model.strategies import subspace     # noqa: F401
+    except ImportError:
+        pass
+    try:
+        from crdt_merge.model.strategies import weighted     # noqa: F401
+    except ImportError:
+        pass
+    try:
+        from crdt_merge.model.strategies import evolutionary # noqa: F401
+    except ImportError:
+        pass
+    try:
+        from crdt_merge.model.strategies import unlearning   # noqa: F401
+    except ImportError:
+        pass
+    try:
+        from crdt_merge.model.strategies import calibration  # noqa: F401
+    except ImportError:
+        pass
+    try:
+        from crdt_merge.model.strategies import safety       # noqa: F401
+    except ImportError:
+        pass
+
+_auto_register()

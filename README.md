@@ -2,7 +2,7 @@
 
 **Conflict-free merge for structured data.** Define strategies. Merge datasets. Prove correctness. Audit every field. Stream at any scale. Zero dependencies.
 
-[![PyPI](https://img.shields.io/badge/pypi-v0.7.2-orange)](https://pypi.org/project/crdt-merge/0.7.2/)
+[![PyPI](https://img.shields.io/badge/pypi-v0.8.0-blue)](https://pypi.org/project/crdt-merge/0.8.0/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: BSL 1.1](https://img.shields.io/badge/license-BSL%201.1-blue.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-1143%20passed-brightgreen)](TEST_RESULTS.md)
