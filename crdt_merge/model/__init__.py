@@ -30,6 +30,15 @@ from crdt_merge.model.strategies import (
     register_strategy,
 )
 from crdt_merge.model.strategies.base import ModelMergeStrategy
+from crdt_merge.model.lora import LoRAMerge, LoRAMergeSchema
+from crdt_merge.model.pipeline import MergePipeline, PipelineResult
+from crdt_merge.model.provenance import (
+    ProvenanceTracker,
+    ProvenanceSummary,
+    LayerProvenance,
+    export_provenance,
+)
+from crdt_merge.model.heatmap import ConflictHeatmap
 
 __all__ = [
     "ModelCRDT",
@@ -40,4 +49,13 @@ __all__ = [
     "get_strategy",
     "list_strategies",
     "list_strategies_by_category",
+    "LoRAMerge",
+    "LoRAMergeSchema",
+    "MergePipeline",
+    "PipelineResult",
+    "ProvenanceTracker",
+    "ProvenanceSummary",
+    "LayerProvenance",
+    "export_provenance",
+    "ConflictHeatmap",
 ]
