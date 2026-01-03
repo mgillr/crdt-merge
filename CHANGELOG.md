@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.8.0] - 2026-03-29 — "The Intelligence Release"
+
+### Added
+- **ModelCRDT** — CRDT-native model merge engine with 25 strategies in 8 categories
+- **Per-parameter provenance tracking** (Unicorn Feature #3) — tracks which model contributed which parameters
+- **Conflict heatmaps** (Unicorn Feature #4) — layer-level disagreement visualization with D3/Plotly export
+- **LoRA adapter merging** — rank harmonization (max/min/mean/adaptive), multi-adapter fusion
+- **Multi-stage merge pipelines** — DAG-based execution with `$stage_name` references
+- **Continual merge** — sequential model absorption with memory budget decay
+- **Federated learning bridge** — FedAvg + FedProx as CRDT operations
+- **MergeKit compatibility** — import/export MergeKit YAML configs
+- **GPU acceleration** — lazy torch import, CUDA-aware chunked processing
+- **Safety-critical layer detection** — auto-detect via cross-model variance analysis
+- **25 model merge strategies**: WeightAverage, SLERP, TaskArithmetic, LinearInterp, TIES, DARE, DELLA, DARE-TIES, ModelBreadcrumbs, EMR, STAR, SVDKnotTying, AdaRank, FisherMerge, RegMean, AdaMerging, DAM, EvolutionaryMerge, GeneticMerge, NegMerge, SplitUnlearnMerge, WeightScopeAlignment, RepresentationSurgery, SafeMerge, LEDMerge
+- `pip install crdt-merge[model]` and `pip install crdt-merge[gpu]` extras
+- 775 new model tests (760 pass + 15 GPU skips)
+- Zero-dependency core preserved — model features opt-in
+
 ## [0.7.2] - 2026-03-29
 
 ### Fixed
