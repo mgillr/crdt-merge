@@ -39,6 +39,11 @@ from crdt_merge.model.provenance import (
     export_provenance,
 )
 from crdt_merge.model.heatmap import ConflictHeatmap
+from crdt_merge.model.continual import ContinualMerge
+from crdt_merge.model.federated import FederatedMerge, FederatedResult
+from crdt_merge.model.formats import import_mergekit_config, export_mergekit_config
+from crdt_merge.model.gpu import GPUMerge
+from crdt_merge.model.safety import SafetyAnalyzer, SafetyReport
 
 __all__ = [
     "ModelCRDT",
@@ -58,4 +63,12 @@ __all__ = [
     "LayerProvenance",
     "export_provenance",
     "ConflictHeatmap",
+    "ContinualMerge",
+    "FederatedMerge",
+    "FederatedResult",
+    "import_mergekit_config",
+    "export_mergekit_config",
+    "GPUMerge",
+    "SafetyAnalyzer",
+    "SafetyReport",
 ]
