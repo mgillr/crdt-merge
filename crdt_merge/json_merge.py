@@ -26,6 +26,10 @@ import copy
 import time
 from typing import Any, Dict, List, Optional
 
+__all__ = ["merge_dicts", "merge_json_lines"]
+
+
+
 
 def merge_dicts(
     a: dict,
@@ -55,6 +59,11 @@ def merge_dicts(
             result[key] = copy.deepcopy(val_b)
         elif key not in b:
             result[key] = copy.deepcopy(val_a)
+        elif val_b is None and val_a is not None:
+            # DEF-004: Don't overwrite real values with None
+            result[key] = copy.deepcopy(val_a)
+        elif val_a is None and val_b is not None:
+            result[key] = copy.deepcopy(val_b)
         elif isinstance(val_a, dict) and isinstance(val_b, dict):
             result[key] = merge_dicts(val_a, val_b, ts_a, ts_b, full_path)
         elif isinstance(val_a, list) and isinstance(val_b, list):

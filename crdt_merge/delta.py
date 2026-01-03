@@ -45,6 +45,10 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 
 from .strategies import MergeSchema, LWW
 
+__all__ = ["Delta", "DeltaStore", "compute_delta", "apply_delta", "compose_deltas"]
+
+
+
 
 class Delta:
     """
@@ -228,11 +232,15 @@ def compose_deltas(*deltas: Delta, key: Optional[str] = None) -> Delta:
     The result contains the net effect of all deltas applied in order.
 
     Args:
-        *deltas: Delta objects to compose.
+        *deltas: Delta objects to compose. Also accepts a single list/tuple of Deltas.
         key: Optional key field name for identity tracking. When provided,
              records are tracked by their key field value instead of content hash.
              This prevents duplicates when a record is added then modified.
     """
+    # DEF-007: Handle case where a single list/tuple is passed instead of *args
+    if len(deltas) == 1 and isinstance(deltas[0], (list, tuple)):
+        deltas = tuple(deltas[0])
+
     if not deltas:
         return Delta()
 

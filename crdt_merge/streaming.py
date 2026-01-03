@@ -48,6 +48,10 @@ from typing import Any, Callable, Dict, Generator, Iterable, Iterator, List, Opt
 
 from .strategies import MergeSchema, MergeStrategy, LWW
 
+__all__ = ["StreamStats", "merge_stream", "merge_sorted_stream", "count_stream"]
+
+
+
 
 @dataclass
 class StreamStats:

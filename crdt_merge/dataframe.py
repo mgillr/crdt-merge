@@ -36,6 +36,8 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 from .core import LWWRegister
 
+__all__ = ["merge", "diff"]
+
 
 def _parse_timestamp(value: Any) -> float:
     """Parse a timestamp value to float. Handles numeric, ISO-8601, datetime, and None."""
@@ -96,7 +98,11 @@ def _validate_key_columns(records: List[Dict[str, Any]], key_cols: List[str]) ->
 
 
 def _to_records(df: Any) -> Tuple[List[Dict[str, Any]], List[str], str]:
-    """Convert pandas or polars DataFrame to list of dicts. Returns (records, columns, lib)."""
+    """Convert pandas or polars DataFrame to list of dicts. Returns (records, columns, lib).
+
+    DEF-022: For large DataFrames, consider using _try_vectorized_merge() fast-path
+    which avoids this conversion entirely by using native DataFrame operations.
+    """
     lib = type(df).__module__.split('.')[0]
     if lib == 'pandas':
         return df.to_dict('records'), list(df.columns), 'pandas'
@@ -107,6 +113,51 @@ def _to_records(df: Any) -> Tuple[List[Dict[str, Any]], List[str], str]:
         return df, cols, 'dicts'
     else:
         raise TypeError(f"Unsupported type: {type(df)}. Use pandas DataFrame, polars DataFrame, or list of dicts.")
+
+
+def _try_vectorized_merge(
+    df_a: Any, df_b: Any, key: str, prefer: str
+) -> Any:
+    """DEF-022: Vectorized fast-path for simple pandas/polars merges.
+
+    Returns merged DataFrame using native operations when possible,
+    or None if the merge requires dict-based path (schema, fuzzy, etc).
+    """
+    lib = type(df_a).__module__.split('.')[0]
+    if lib == 'pandas':
+        try:
+            import pandas as pd
+            # Use pandas merge with indicator to identify sources
+            merged = pd.merge(df_a, df_b, on=key, how='outer', indicator=True, suffixes=('_a', '_b'))
+            # For matched rows, resolve conflicts per column
+            result_cols = list(dict.fromkeys(list(df_a.columns) + [c for c in df_b.columns if c not in df_a.columns]))
+            result = pd.DataFrame()
+            result[key] = merged[key]
+            for col in result_cols:
+                if col == key:
+                    continue
+                col_a = f"{col}_a" if f"{col}_a" in merged.columns else col
+                col_b = f"{col}_b" if f"{col}_b" in merged.columns else col
+                if col_a == col_b:
+                    # Column only in one source
+                    result[col] = merged[col]
+                else:
+                    # Both sources have this column — apply prefer logic
+                    va = merged[col_a] if col_a in merged.columns else None
+                    vb = merged[col_b] if col_b in merged.columns else None
+                    if va is not None and vb is not None:
+                        if prefer == "a":
+                            result[col] = va.where(va.notna(), vb)
+                        else:  # "b" or "latest"
+                            result[col] = vb.where(vb.notna(), va)
+                    elif va is not None:
+                        result[col] = va
+                    else:
+                        result[col] = vb
+            return result[result_cols]
+        except Exception:
+            return None
+    return None
 
 
 def _from_records(records: List[Dict[str, Any]], columns: List[str], lib: str) -> Any:
@@ -162,6 +213,10 @@ def merge(
     Returns:
         Merged DataFrame in same type as df_a.
     """
+    _VALID_PREFER = {"latest", "a", "b"}
+    if prefer not in _VALID_PREFER:
+        raise ValueError(f"Invalid prefer={prefer!r}. Must be one of: {sorted(_VALID_PREFER)}")
+
     records_a, cols_a, lib_a = _to_records(df_a)
     records_b, cols_b, lib_b = _to_records(df_b)
 
