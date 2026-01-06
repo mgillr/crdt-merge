@@ -1,0 +1,2401 @@
+{
+  "meta": {
+    "version": "0.8.0",
+    "timestamp": "2026-03-29T18:49:11.186922+00:00",
+    "trials_per_test": 100,
+    "tensor_size": 32,
+    "tolerance": 1e-06
+  },
+  "strategy_diagnostics": {
+    "ada_merging": {
+      "strategy_name": "ada_merging",
+      "category": "Weighted / Importance",
+      "requires_base": false,
+      "is_stochastic": false,
+      "declared_properties": {
+        "commutative": "conditional",
+        "associative": "conditional",
+        "idempotent": true
+      },
+      "commutativity": {
+        "property_name": "commutativity",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "associativity": {
+        "property_name": "associativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 64,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 6.558866521189088e-05,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 1.12523e-05,
+          "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "idempotency": {
+        "property_name": "idempotency",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "determinism": {
+        "property_name": "determinism",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "declaration_mismatches": [],
+      "overall_verdict": "PARTIAL_CRDT (commutative+idempotent only)"
+    },
+    "adarank": {
+      "strategy_name": "adarank",
+      "category": "Subspace / Sparsification",
+      "requires_base": true,
+      "is_stochastic": false,
+      "declared_properties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": false
+      },
+      "commutativity": {
+        "property_name": "commutativity",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "associativity": {
+        "property_name": "associativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 1.8139723150548597,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 0.9697789612,
+          "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "idempotency": {
+        "property_name": "idempotency",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 1.5830912724204893,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 1.2716746212,
+          "description": "merge(A, A) \u2260 A"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "determinism": {
+        "property_name": "determinism",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "declaration_mismatches": [
+        "Declares associative=True but empirically FAILS"
+      ],
+      "overall_verdict": "NOT_CRDT"
+    },
+    "dam": {
+      "strategy_name": "dam",
+      "category": "Weighted / Importance",
+      "requires_base": false,
+      "is_stochastic": false,
+      "declared_properties": {
+        "commutative": "conditional",
+        "associative": "conditional",
+        "idempotent": true
+      },
+      "commutativity": {
+        "property_name": "commutativity",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "associativity": {
+        "property_name": "associativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 1.213069621305991,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 0.9152483938,
+          "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "idempotency": {
+        "property_name": "idempotency",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "determinism": {
+        "property_name": "determinism",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "declaration_mismatches": [],
+      "overall_verdict": "PARTIAL_CRDT (commutative+idempotent only)"
+    },
+    "dare": {
+      "strategy_name": "dare",
+      "category": "Subspace / Sparsification",
+      "requires_base": true,
+      "is_stochastic": true,
+      "declared_properties": {
+        "commutative": true,
+        "associative": false,
+        "idempotent": false
+      },
+      "commutativity": {
+        "property_name": "commutativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 22.654735191851472,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 9.0033364699,
+          "a_seed": 0,
+          "b_seed": 1
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "associativity": {
+        "property_name": "associativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 91.46850739827183,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 70.7188093697,
+          "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "idempotency": {
+        "property_name": "idempotency",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 17.036641878577516,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 14.1437618739,
+          "description": "merge(A, A) \u2260 A"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "determinism": {
+        "property_name": "determinism",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "declaration_mismatches": [
+        "Declares commutative=True but empirically FAILS"
+      ],
+      "overall_verdict": "NOT_CRDT"
+    },
+    "dare_ties": {
+      "strategy_name": "dare_ties",
+      "category": "Subspace / Sparsification",
+      "requires_base": true,
+      "is_stochastic": true,
+      "declared_properties": {
+        "commutative": true,
+        "associative": false,
+        "idempotent": false
+      },
+      "commutativity": {
+        "property_name": "commutativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 17.984005943495458,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 13.6579056435,
+          "a_seed": 0,
+          "b_seed": 1
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "associativity": {
+        "property_name": "associativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 91.46850739827183,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 70.7188093697,
+          "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "idempotency": {
+        "property_name": "idempotency",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 17.036641878577516,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 14.1437618739,
+          "description": "merge(A, A) \u2260 A"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "determinism": {
+        "property_name": "determinism",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "declaration_mismatches": [
+        "Declares commutative=True but empirically FAILS"
+      ],
+      "overall_verdict": "NOT_CRDT"
+    },
+    "della": {
+      "strategy_name": "della",
+      "category": "Subspace / Sparsification",
+      "requires_base": true,
+      "is_stochastic": true,
+      "declared_properties": {
+        "commutative": true,
+        "associative": false,
+        "idempotent": false
+      },
+      "commutativity": {
+        "property_name": "commutativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 26.761446490910885,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 13.6464894491,
+          "a_seed": 0,
+          "b_seed": 1
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "associativity": {
+        "property_name": "associativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 198.03188916459462,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 124.8948542137,
+          "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "idempotency": {
+        "property_name": "idempotency",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 47.578026814880516,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 31.8234642164,
+          "description": "merge(A, A) \u2260 A"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "determinism": {
+        "property_name": "determinism",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "declaration_mismatches": [
+        "Declares commutative=True but empirically FAILS"
+      ],
+      "overall_verdict": "NOT_CRDT"
+    },
+    "emr": {
+      "strategy_name": "emr",
+      "category": "Subspace / Sparsification",
+      "requires_base": true,
+      "is_stochastic": false,
+      "declared_properties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": false
+      },
+      "commutativity": {
+        "property_name": "commutativity",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "associativity": {
+        "property_name": "associativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 4.192593850228761,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 3.0806178644,
+          "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "idempotency": {
+        "property_name": "idempotency",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 11.630184332526348,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 7.7790690307,
+          "description": "merge(A, A) \u2260 A"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "determinism": {
+        "property_name": "determinism",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "declaration_mismatches": [
+        "Declares associative=True but empirically FAILS"
+      ],
+      "overall_verdict": "NOT_CRDT"
+    },
+    "evolutionary_merge": {
+      "strategy_name": "evolutionary_merge",
+      "category": "Evolutionary",
+      "requires_base": false,
+      "is_stochastic": true,
+      "declared_properties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true
+      },
+      "commutativity": {
+        "property_name": "commutativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 2.609065856148352,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 1.8501691164,
+          "a_seed": 0,
+          "b_seed": 1
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "associativity": {
+        "property_name": "associativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 1.4704884185545475,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 0.9809590056,
+          "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "idempotency": {
+        "property_name": "idempotency",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 1.6364015002864667,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 1.2089641488,
+          "description": "merge(A, A) \u2260 A"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "determinism": {
+        "property_name": "determinism",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "declaration_mismatches": [
+        "Declares commutative=True but empirically FAILS",
+        "Declares associative=True but empirically FAILS",
+        "Declares idempotent=True but empirically FAILS"
+      ],
+      "overall_verdict": "NOT_CRDT"
+    },
+    "fisher_merge": {
+      "strategy_name": "fisher_merge",
+      "category": "Weighted / Importance",
+      "requires_base": false,
+      "is_stochastic": false,
+      "declared_properties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true
+      },
+      "commutativity": {
+        "property_name": "commutativity",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "associativity": {
+        "property_name": "associativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 1.975168747745692,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 1.0003341915,
+          "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "idempotency": {
+        "property_name": "idempotency",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "determinism": {
+        "property_name": "determinism",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "declaration_mismatches": [
+        "Declares associative=True but empirically FAILS"
+      ],
+      "overall_verdict": "PARTIAL_CRDT (commutative+idempotent only)"
+    },
+    "genetic_merge": {
+      "strategy_name": "genetic_merge",
+      "category": "Evolutionary",
+      "requires_base": false,
+      "is_stochastic": true,
+      "declared_properties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true
+      },
+      "commutativity": {
+        "property_name": "commutativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 84,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0022276817677384653,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 0.0001037983,
+          "a_seed": 0,
+          "b_seed": 1
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "associativity": {
+        "property_name": "associativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.4369274341907186,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 0.2730999131,
+          "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "idempotency": {
+        "property_name": "idempotency",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "determinism": {
+        "property_name": "determinism",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "declaration_mismatches": [
+        "Declares commutative=True but empirically FAILS",
+        "Declares associative=True but empirically FAILS"
+      ],
+      "overall_verdict": "NOT_CRDT"
+    },
+    "led_merge": {
+      "strategy_name": "led_merge",
+      "category": "Safety-Aware",
+      "requires_base": false,
+      "is_stochastic": false,
+      "declared_properties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true
+      },
+      "commutativity": {
+        "property_name": "commutativity",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "associativity": {
+        "property_name": "associativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 95,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 4.696975861629557,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 1.0609386509,
+          "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "idempotency": {
+        "property_name": "idempotency",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "determinism": {
+        "property_name": "determinism",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "declaration_mismatches": [
+        "Declares associative=True but empirically FAILS"
+      ],
+      "overall_verdict": "PARTIAL_CRDT (commutative+idempotent only)"
+    },
+    "linear": {
+      "strategy_name": "linear",
+      "category": "interpolation",
+      "requires_base": false,
+      "is_stochastic": false,
+      "declared_properties": {
+        "commutative": "conditional",
+        "associative": false,
+        "idempotent": true
+      },
+      "commutativity": {
+        "property_name": "commutativity",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "associativity": {
+        "property_name": "associativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 1.213069621305991,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 0.9152483938,
+          "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "idempotency": {
+        "property_name": "idempotency",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "determinism": {
+        "property_name": "determinism",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "declaration_mismatches": [],
+      "overall_verdict": "PARTIAL_CRDT (commutative+idempotent only)"
+    },
+    "model_breadcrumbs": {
+      "strategy_name": "model_breadcrumbs",
+      "category": "Subspace / Sparsification",
+      "requires_base": true,
+      "is_stochastic": false,
+      "declared_properties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": false
+      },
+      "commutativity": {
+        "property_name": "commutativity",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "associativity": {
+        "property_name": "associativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 1.8138274580073022,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 1.0033996104,
+          "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "idempotency": {
+        "property_name": "idempotency",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 3.206417353607765,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 2.3294942149,
+          "description": "merge(A, A) \u2260 A"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "determinism": {
+        "property_name": "determinism",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "declaration_mismatches": [
+        "Declares associative=True but empirically FAILS"
+      ],
+      "overall_verdict": "NOT_CRDT"
+    },
+    "negative_merge": {
+      "strategy_name": "negative_merge",
+      "category": "Unlearning",
+      "requires_base": true,
+      "is_stochastic": false,
+      "declared_properties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": false
+      },
+      "commutativity": {
+        "property_name": "commutativity",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "associativity": {
+        "property_name": "associativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 3.6392088639179727,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 2.7457451815,
+          "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "idempotency": {
+        "property_name": "idempotency",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 10.572894847751222,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 7.071880937,
+          "description": "merge(A, A) \u2260 A"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "determinism": {
+        "property_name": "determinism",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "declaration_mismatches": [
+        "Declares associative=True but empirically FAILS"
+      ],
+      "overall_verdict": "NOT_CRDT"
+    },
+    "regression_mean": {
+      "strategy_name": "regression_mean",
+      "category": "Weighted / Importance",
+      "requires_base": false,
+      "is_stochastic": false,
+      "declared_properties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true
+      },
+      "commutativity": {
+        "property_name": "commutativity",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "associativity": {
+        "property_name": "associativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 1.9696831351107131,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 1.0058792401,
+          "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "idempotency": {
+        "property_name": "idempotency",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "determinism": {
+        "property_name": "determinism",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "declaration_mismatches": [
+        "Declares associative=True but empirically FAILS"
+      ],
+      "overall_verdict": "PARTIAL_CRDT (commutative+idempotent only)"
+    },
+    "representation_surgery": {
+      "strategy_name": "representation_surgery",
+      "category": "Post-Calibration",
+      "requires_base": false,
+      "is_stochastic": false,
+      "declared_properties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true
+      },
+      "commutativity": {
+        "property_name": "commutativity",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "associativity": {
+        "property_name": "associativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 1.213069621305991,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 0.9152483938,
+          "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "idempotency": {
+        "property_name": "idempotency",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "determinism": {
+        "property_name": "determinism",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "declaration_mismatches": [
+        "Declares associative=True but empirically FAILS"
+      ],
+      "overall_verdict": "PARTIAL_CRDT (commutative+idempotent only)"
+    },
+    "safe_merge": {
+      "strategy_name": "safe_merge",
+      "category": "Safety-Aware",
+      "requires_base": true,
+      "is_stochastic": false,
+      "declared_properties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true
+      },
+      "commutativity": {
+        "property_name": "commutativity",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "associativity": {
+        "property_name": "associativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 3.9677811518368165,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 2.4299662282,
+          "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "idempotency": {
+        "property_name": "idempotency",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "determinism": {
+        "property_name": "determinism",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "declaration_mismatches": [
+        "Declares associative=True but empirically FAILS"
+      ],
+      "overall_verdict": "PARTIAL_CRDT (commutative+idempotent only)"
+    },
+    "slerp": {
+      "strategy_name": "slerp",
+      "category": "interpolation",
+      "requires_base": false,
+      "is_stochastic": false,
+      "declared_properties": {
+        "commutative": "conditional",
+        "associative": false,
+        "idempotent": true
+      },
+      "commutativity": {
+        "property_name": "commutativity",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "associativity": {
+        "property_name": "associativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 1.089729580529741,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 0.8003397703,
+          "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "idempotency": {
+        "property_name": "idempotency",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "determinism": {
+        "property_name": "determinism",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "declaration_mismatches": [],
+      "overall_verdict": "PARTIAL_CRDT (commutative+idempotent only)"
+    },
+    "split_unlearn_merge": {
+      "strategy_name": "split_unlearn_merge",
+      "category": "Unlearning",
+      "requires_base": true,
+      "is_stochastic": true,
+      "declared_properties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": false
+      },
+      "commutativity": {
+        "property_name": "commutativity",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "associativity": {
+        "property_name": "associativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 1.225931314921222,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 0.9152483938,
+          "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "idempotency": {
+        "property_name": "idempotency",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.46307514013611023,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 0.1156822786,
+          "description": "merge(A, A) \u2260 A"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "determinism": {
+        "property_name": "determinism",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "declaration_mismatches": [
+        "Declares associative=True but empirically FAILS"
+      ],
+      "overall_verdict": "NOT_CRDT"
+    },
+    "star": {
+      "strategy_name": "star",
+      "category": "Subspace / Sparsification",
+      "requires_base": true,
+      "is_stochastic": false,
+      "declared_properties": {
+        "commutative": true,
+        "associative": false,
+        "idempotent": false
+      },
+      "commutativity": {
+        "property_name": "commutativity",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "associativity": {
+        "property_name": "associativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 1.5779053725385732,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 0.9255658418,
+          "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "idempotency": {
+        "property_name": "idempotency",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 1.4800382766097735,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 1.2716746212,
+          "description": "merge(A, A) \u2260 A"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "determinism": {
+        "property_name": "determinism",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "declaration_mismatches": [],
+      "overall_verdict": "NOT_CRDT"
+    },
+    "svd_knot_tying": {
+      "strategy_name": "svd_knot_tying",
+      "category": "Subspace / Sparsification",
+      "requires_base": true,
+      "is_stochastic": false,
+      "declared_properties": {
+        "commutative": true,
+        "associative": false,
+        "idempotent": false
+      },
+      "commutativity": {
+        "property_name": "commutativity",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "associativity": {
+        "property_name": "associativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 1.213069621305991,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 0.9152483938,
+          "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "idempotency": {
+        "property_name": "idempotency",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "determinism": {
+        "property_name": "determinism",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "declaration_mismatches": [
+        "Declares idempotent=False but empirically PASSES (conservative)"
+      ],
+      "overall_verdict": "PARTIAL_CRDT (commutative+idempotent only)"
+    },
+    "task_arithmetic": {
+      "strategy_name": "task_arithmetic",
+      "category": "task_vector",
+      "requires_base": true,
+      "is_stochastic": false,
+      "declared_properties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": false
+      },
+      "commutativity": {
+        "property_name": "commutativity",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "associativity": {
+        "property_name": "associativity",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "idempotency": {
+        "property_name": "idempotency",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 5.286447423875612,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 3.5359404685,
+          "description": "merge(A, A) \u2260 A"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "determinism": {
+        "property_name": "determinism",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "declaration_mismatches": [],
+      "overall_verdict": "NOT_CRDT"
+    },
+    "ties": {
+      "strategy_name": "ties",
+      "category": "Subspace / Sparsification",
+      "requires_base": true,
+      "is_stochastic": false,
+      "declared_properties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": false
+      },
+      "commutativity": {
+        "property_name": "commutativity",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "associativity": {
+        "property_name": "associativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 2.3484879308147786,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 1.5426001836,
+          "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "idempotency": {
+        "property_name": "idempotency",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 2.9056658775704953,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 2.2225108333,
+          "description": "merge(A, A) \u2260 A"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "determinism": {
+        "property_name": "determinism",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "declaration_mismatches": [
+        "Declares associative=True but empirically FAILS"
+      ],
+      "overall_verdict": "NOT_CRDT"
+    },
+    "weight_average": {
+      "strategy_name": "weight_average",
+      "category": "averaging",
+      "requires_base": false,
+      "is_stochastic": false,
+      "declared_properties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true
+      },
+      "commutativity": {
+        "property_name": "commutativity",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "associativity": {
+        "property_name": "associativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 1.213069621305991,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 0.9152483938,
+          "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "idempotency": {
+        "property_name": "idempotency",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "determinism": {
+        "property_name": "determinism",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "declaration_mismatches": [
+        "Declares associative=True but empirically FAILS"
+      ],
+      "overall_verdict": "PARTIAL_CRDT (commutative+idempotent only)"
+    },
+    "weight_scope_alignment": {
+      "strategy_name": "weight_scope_alignment",
+      "category": "Post-Calibration",
+      "requires_base": false,
+      "is_stochastic": false,
+      "declared_properties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true
+      },
+      "commutativity": {
+        "property_name": "commutativity",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "associativity": {
+        "property_name": "associativity",
+        "passed": false,
+        "trials_run": 100,
+        "failures": 100,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.6629660683648222,
+        "example_failure": {
+          "trial": 0,
+          "max_diff": 0.6231285072,
+          "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"
+        },
+        "root_cause": "ARCHITECTURE"
+      },
+      "idempotency": {
+        "property_name": "idempotency",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "determinism": {
+        "property_name": "determinism",
+        "passed": true,
+        "trials_run": 100,
+        "failures": 0,
+        "error_type": null,
+        "error_msg": null,
+        "max_deviation": 0.0,
+        "example_failure": null,
+        "root_cause": "NONE"
+      },
+      "declaration_mismatches": [
+        "Declares associative=True but empirically FAILS"
+      ],
+      "overall_verdict": "PARTIAL_CRDT (commutative+idempotent only)"
+    }
+  },
+  "bug_regression_tests": {
+    "BUG-001_verify_crdt_base": {
+      "adarank": {
+        "verify_crdt_result": {
+          "commutative": false,
+          "associative": false,
+          "idempotent": false
+        },
+        "failure_counts": {
+          "commutative": 5,
+          "associative": 5,
+          "idempotent": 5
+        },
+        "bug_confirmed": true,
+        "diagnosis": "BUG CONFIRMED: verify_crdt() raises ValueError on every trial because base= is never passed. All properties falsely report FAIL."
+      },
+      "dare": {
+        "verify_crdt_result": {
+          "commutative": false,
+          "associative": false,
+          "idempotent": false
+        },
+        "failure_counts": {
+          "commutative": 5,
+          "associative": 5,
+          "idempotent": 5
+        },
+        "bug_confirmed": true,
+        "diagnosis": "BUG CONFIRMED: verify_crdt() raises ValueError on every trial because base= is never passed. All properties falsely report FAIL."
+      },
+      "dare_ties": {
+        "verify_crdt_result": {
+          "commutative": false,
+          "associative": false,
+          "idempotent": false
+        },
+        "failure_counts": {
+          "commutative": 5,
+          "associative": 5,
+          "idempotent": 5
+        },
+        "bug_confirmed": true,
+        "diagnosis": "BUG CONFIRMED: verify_crdt() raises ValueError on every trial because base= is never passed. All properties falsely report FAIL."
+      },
+      "della": {
+        "verify_crdt_result": {
+          "commutative": false,
+          "associative": false,
+          "idempotent": false
+        },
+        "failure_counts": {
+          "commutative": 5,
+          "associative": 5,
+          "idempotent": 5
+        },
+        "bug_confirmed": true,
+        "diagnosis": "BUG CONFIRMED: verify_crdt() raises ValueError on every trial because base= is never passed. All properties falsely report FAIL."
+      },
+      "emr": {
+        "verify_crdt_result": {
+          "commutative": false,
+          "associative": false,
+          "idempotent": false
+        },
+        "failure_counts": {
+          "commutative": 5,
+          "associative": 5,
+          "idempotent": 5
+        },
+        "bug_confirmed": true,
+        "diagnosis": "BUG CONFIRMED: verify_crdt() raises ValueError on every trial because base= is never passed. All properties falsely report FAIL."
+      },
+      "model_breadcrumbs": {
+        "verify_crdt_result": {
+          "commutative": false,
+          "associative": false,
+          "idempotent": false
+        },
+        "failure_counts": {
+          "commutative": 5,
+          "associative": 5,
+          "idempotent": 5
+        },
+        "bug_confirmed": true,
+        "diagnosis": "BUG CONFIRMED: verify_crdt() raises ValueError on every trial because base= is never passed. All properties falsely report FAIL."
+      },
+      "negative_merge": {
+        "verify_crdt_result": {
+          "commutative": false,
+          "associative": false,
+          "idempotent": false
+        },
+        "failure_counts": {
+          "commutative": 5,
+          "associative": 5,
+          "idempotent": 5
+        },
+        "bug_confirmed": true,
+        "diagnosis": "BUG CONFIRMED: verify_crdt() raises ValueError on every trial because base= is never passed. All properties falsely report FAIL."
+      },
+      "safe_merge": {
+        "verify_crdt_result": {
+          "commutative": false,
+          "associative": false,
+          "idempotent": false
+        },
+        "failure_counts": {
+          "commutative": 5,
+          "associative": 5,
+          "idempotent": 5
+        },
+        "bug_confirmed": true,
+        "diagnosis": "BUG CONFIRMED: verify_crdt() raises ValueError on every trial because base= is never passed. All properties falsely report FAIL."
+      },
+      "split_unlearn_merge": {
+        "verify_crdt_result": {
+          "commutative": false,
+          "associative": false,
+          "idempotent": false
+        },
+        "failure_counts": {
+          "commutative": 5,
+          "associative": 5,
+          "idempotent": 5
+        },
+        "bug_confirmed": true,
+        "diagnosis": "BUG CONFIRMED: verify_crdt() raises ValueError on every trial because base= is never passed. All properties falsely report FAIL."
+      },
+      "star": {
+        "verify_crdt_result": {
+          "commutative": false,
+          "associative": false,
+          "idempotent": false
+        },
+        "failure_counts": {
+          "commutative": 5,
+          "associative": 5,
+          "idempotent": 5
+        },
+        "bug_confirmed": true,
+        "diagnosis": "BUG CONFIRMED: verify_crdt() raises ValueError on every trial because base= is never passed. All properties falsely report FAIL."
+      },
+      "svd_knot_tying": {
+        "verify_crdt_result": {
+          "commutative": false,
+          "associative": false,
+          "idempotent": false
+        },
+        "failure_counts": {
+          "commutative": 5,
+          "associative": 5,
+          "idempotent": 5
+        },
+        "bug_confirmed": true,
+        "diagnosis": "BUG CONFIRMED: verify_crdt() raises ValueError on every trial because base= is never passed. All properties falsely report FAIL."
+      },
+      "task_arithmetic": {
+        "verify_crdt_result": {
+          "commutative": false,
+          "associative": false,
+          "idempotent": false
+        },
+        "failure_counts": {
+          "commutative": 5,
+          "associative": 5,
+          "idempotent": 5
+        },
+        "bug_confirmed": true,
+        "diagnosis": "BUG CONFIRMED: verify_crdt() raises ValueError on every trial because base= is never passed. All properties falsely report FAIL."
+      },
+      "ties": {
+        "verify_crdt_result": {
+          "commutative": false,
+          "associative": false,
+          "idempotent": false
+        },
+        "failure_counts": {
+          "commutative": 5,
+          "associative": 5,
+          "idempotent": 5
+        },
+        "bug_confirmed": true,
+        "diagnosis": "BUG CONFIRMED: verify_crdt() raises ValueError on every trial because base= is never passed. All properties falsely report FAIL."
+      }
+    },
+    "BUG-002_summary_ignores_model": {
+      "primitive_laws_passed": true,
+      "model_strategy_failures": {
+        "weight_average": [
+          "associative"
+        ],
+        "linear": [
+          "associative"
+        ],
+        "slerp": [
+          "associative"
+        ],
+        "ties": [
+          "commutative",
+          "associative",
+          "idempotent"
+        ],
+        "dare": [
+          "commutative",
+          "associative",
+          "idempotent"
+        ],
+        "task_arithmetic": [
+          "commutative",
+          "associative",
+          "idempotent"
+        ]
+      },
+      "summary_claims_all_passed": true,
+      "bug_confirmed": true,
+      "diagnosis": "BUG CONFIRMED: Summary says '\u2705 ALL PASSED' but model strategies have 6 failing strategies: ['weight_average', 'linear', 'slerp', 'ties', 'dare', 'task_arithmetic']. The summary only checks results['law_verification']['all_passed'] (primitives) and ignores results['model_law_verification'] entirely."
+    },
+    "BUG-003_weight_average_assoc": {
+      "a": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "b": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "c": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "merge_ab": [
+        0.5,
+        0.5,
+        0.0
+      ],
+      "merge_ab_c": [
+        0.25,
+        0.25,
+        0.5
+      ],
+      "merge_bc": [
+        0.0,
+        0.5,
+        0.5
+      ],
+      "merge_a_bc": [
+        0.5,
+        0.25,
+        0.25
+      ],
+      "equal": false,
+      "max_diff": 0.25,
+      "declared_associative": true,
+      "bug_confirmed": true,
+      "diagnosis": "BUG CONFIRMED: weight_average claims associative=True but merge(merge(A,B),C) = [0.25, 0.25, 0.5] \u2260 merge(A,merge(B,C)) = [0.5, 0.25, 0.25]. Pairwise weighted averaging is mathematically non-associative. The crdt_properties declaration is WRONG."
+    },
+    "BUG-004_declaration_mismatches": {
+      "strategies_with_mismatches": [
+        "adarank",
+        "dare",
+        "dare_ties",
+        "della",
+        "emr",
+        "evolutionary_merge",
+        "fisher_merge",
+        "genetic_merge",
+        "led_merge",
+        "model_breadcrumbs",
+        "negative_merge",
+        "regression_mean",
+        "representation_surgery",
+        "safe_merge",
+        "split_unlearn_merge",
+        "svd_knot_tying",
+        "ties",
+        "weight_average",
+        "weight_scope_alignment"
+      ],
+      "total_mismatches": 22,
+      "details": {
+        "adarank": {
+          "declared": {
+            "commutative": true,
+            "associative": true,
+            "idempotent": false
+          },
+          "empirical": {
+            "commutative": true,
+            "associative": false,
+            "idempotent": false
+          },
+          "mismatches": [
+            {
+              "property": "associative",
+              "declared": true,
+              "empirical": false,
+              "issue": "Declares associative=True but empirically associative=False"
+            }
+          ],
+          "errors": null
+        },
+        "dare": {
+          "declared": {
+            "commutative": true,
+            "associative": false,
+            "idempotent": false
+          },
+          "empirical": {
+            "commutative": false,
+            "associative": false,
+            "idempotent": false
+          },
+          "mismatches": [
+            {
+              "property": "commutative",
+              "declared": true,
+              "empirical": false,
+              "issue": "Declares commutative=True but empirically commutative=False"
+            }
+          ],
+          "errors": null
+        },
+        "dare_ties": {
+          "declared": {
+            "commutative": true,
+            "associative": false,
+            "idempotent": false
+          },
+          "empirical": {
+            "commutative": false,
+            "associative": false,
+            "idempotent": false
+          },
+          "mismatches": [
+            {
+              "property": "commutative",
+              "declared": true,
+              "empirical": false,
+              "issue": "Declares commutative=True but empirically commutative=False"
+            }
+          ],
+          "errors": null
+        },
+        "della": {
+          "declared": {
+            "commutative": true,
+            "associative": false,
+            "idempotent": false
+          },
+          "empirical": {
+            "commutative": false,
+            "associative": false,
+            "idempotent": false
+          },
+          "mismatches": [
+            {
+              "property": "commutative",
+              "declared": true,
+              "empirical": false,
+              "issue": "Declares commutative=True but empirically commutative=False"
+            }
+          ],
+          "errors": null
+        },
+        "emr": {
+          "declared": {
+            "commutative": true,
+            "associative": true,
+            "idempotent": false
+          },
+          "empirical": {
+            "commutative": true,
+            "associative": false,
+            "idempotent": false
+          },
+          "mismatches": [
+            {
+              "property": "associative",
+              "declared": true,
+              "empirical": false,
+              "issue": "Declares associative=True but empirically associative=False"
+            }
+          ],
+          "errors": null
+        },
+        "evolutionary_merge": {
+          "declared": {
+            "commutative": true,
+            "associative": true,
+            "idempotent": true
+          },
+          "empirical": {
+            "commutative": false,
+            "associative": false,
+            "idempotent": false
+          },
+          "mismatches": [
+            {
+              "property": "commutative",
+              "declared": true,
+              "empirical": false,
+              "issue": "Declares commutative=True but empirically commutative=False"
+            },
+            {
+              "property": "associative",
+              "declared": true,
+              "empirical": false,
+              "issue": "Declares associative=True but empirically associative=False"
+            },
+            {
+              "property": "idempotent",
+              "declared": true,
+              "empirical": false,
+              "issue": "Declares idempotent=True but empirically idempotent=False"
+            }
+          ],
+          "errors": null
+        },
+        "fisher_merge": {
+          "declared": {
+            "commutative": true,
+            "associative": true,
+            "idempotent": true
+          },
+          "empirical": {
+            "commutative": true,
+            "associative": false,
+            "idempotent": true
+          },
+          "mismatches": [
+            {
+              "property": "associative",
+              "declared": true,
+              "empirical": false,
+              "issue": "Declares associative=True but empirically associative=False"
+            }
+          ],
+          "errors": null
+        },
+        "genetic_merge": {
+          "declared": {
+            "commutative": true,
+            "associative": true,
+            "idempotent": true
+          },
+          "empirical": {
+            "commutative": false,
+            "associative": false,
+            "idempotent": true
+          },
+          "mismatches": [
+            {
+              "property": "commutative",
+              "declared": true,
+              "empirical": false,
+              "issue": "Declares commutative=True but empirically commutative=False"
+            },
+            {
+              "property": "associative",
+              "declared": true,
+              "empirical": false,
+              "issue": "Declares associative=True but empirically associative=False"
+            }
+          ],
+          "errors": null
+        },
+        "led_merge": {
+          "declared": {
+            "commutative": true,
+            "associative": true,
+            "idempotent": true
+          },
+          "empirical": {
+            "commutative": true,
+            "associative": false,
+            "idempotent": true
+          },
+          "mismatches": [
+            {
+              "property": "associative",
+              "declared": true,
+              "empirical": false,
+              "issue": "Declares associative=True but empirically associative=False"
+            }
+          ],
+          "errors": null
+        },
+        "model_breadcrumbs": {
+          "declared": {
+            "commutative": true,
+            "associative": true,
+            "idempotent": false
+          },
+          "empirical": {
+            "commutative": true,
+            "associative": false,
+            "idempotent": false
+          },
+          "mismatches": [
+            {
+              "property": "associative",
+              "declared": true,
+              "empirical": false,
+              "issue": "Declares associative=True but empirically associative=False"
+            }
+          ],
+          "errors": null
+        },
+        "negative_merge": {
+          "declared": {
+            "commutative": true,
+            "associative": true,
+            "idempotent": false
+          },
+          "empirical": {
+            "commutative": true,
+            "associative": false,
+            "idempotent": false
+          },
+          "mismatches": [
+            {
+              "property": "associative",
+              "declared": true,
+              "empirical": false,
+              "issue": "Declares associative=True but empirically associative=False"
+            }
+          ],
+          "errors": null
+        },
+        "regression_mean": {
+          "declared": {
+            "commutative": true,
+            "associative": true,
+            "idempotent": true
+          },
+          "empirical": {
+            "commutative": true,
+            "associative": false,
+            "idempotent": true
+          },
+          "mismatches": [
+            {
+              "property": "associative",
+              "declared": true,
+              "empirical": false,
+              "issue": "Declares associative=True but empirically associative=False"
+            }
+          ],
+          "errors": null
+        },
+        "representation_surgery": {
+          "declared": {
+            "commutative": true,
+            "associative": true,
+            "idempotent": true
+          },
+          "empirical": {
+            "commutative": true,
+            "associative": false,
+            "idempotent": true
+          },
+          "mismatches": [
+            {
+              "property": "associative",
+              "declared": true,
+              "empirical": false,
+              "issue": "Declares associative=True but empirically associative=False"
+            }
+          ],
+          "errors": null
+        },
+        "safe_merge": {
+          "declared": {
+            "commutative": true,
+            "associative": true,
+            "idempotent": true
+          },
+          "empirical": {
+            "commutative": true,
+            "associative": false,
+            "idempotent": true
+          },
+          "mismatches": [
+            {
+              "property": "associative",
+              "declared": true,
+              "empirical": false,
+              "issue": "Declares associative=True but empirically associative=False"
+            }
+          ],
+          "errors": null
+        },
+        "split_unlearn_merge": {
+          "declared": {
+            "commutative": true,
+            "associative": true,
+            "idempotent": false
+          },
+          "empirical": {
+            "commutative": true,
+            "associative": false,
+            "idempotent": false
+          },
+          "mismatches": [
+            {
+              "property": "associative",
+              "declared": true,
+              "empirical": false,
+              "issue": "Declares associative=True but empirically associative=False"
+            }
+          ],
+          "errors": null
+        },
+        "svd_knot_tying": {
+          "declared": {
+            "commutative": true,
+            "associative": false,
+            "idempotent": false
+          },
+          "empirical": {
+            "commutative": true,
+            "associative": false,
+            "idempotent": true
+          },
+          "mismatches": [
+            {
+              "property": "idempotent",
+              "declared": false,
+              "empirical": true,
+              "issue": "Declares idempotent=False but empirically idempotent=True"
+            }
+          ],
+          "errors": null
+        },
+        "ties": {
+          "declared": {
+            "commutative": true,
+            "associative": true,
+            "idempotent": false
+          },
+          "empirical": {
+            "commutative": true,
+            "associative": false,
+            "idempotent": false
+          },
+          "mismatches": [
+            {
+              "property": "associative",
+              "declared": true,
+              "empirical": false,
+              "issue": "Declares associative=True but empirically associative=False"
+            }
+          ],
+          "errors": null
+        },
+        "weight_average": {
+          "declared": {
+            "commutative": true,
+            "associative": true,
+            "idempotent": true
+          },
+          "empirical": {
+            "commutative": true,
+            "associative": false,
+            "idempotent": true
+          },
+          "mismatches": [
+            {
+              "property": "associative",
+              "declared": true,
+              "empirical": false,
+              "issue": "Declares associative=True but empirically associative=False"
+            }
+          ],
+          "errors": null
+        },
+        "weight_scope_alignment": {
+          "declared": {
+            "commutative": true,
+            "associative": true,
+            "idempotent": true
+          },
+          "empirical": {
+            "commutative": true,
+            "associative": false,
+            "idempotent": true
+          },
+          "mismatches": [
+            {
+              "property": "associative",
+              "declared": true,
+              "empirical": false,
+              "issue": "Declares associative=True but empirically associative=False"
+            }
+          ],
+          "errors": null
+        }
+      }
+    }
+  },
+  "classification": {
+    "ARCHITECTURE": [
+      "ada_merging",
+      "adarank",
+      "dam",
+      "dare",
+      "dare_ties",
+      "della",
+      "emr",
+      "evolutionary_merge",
+      "fisher_merge",
+      "genetic_merge",
+      "led_merge",
+      "linear",
+      "model_breadcrumbs",
+      "negative_merge",
+      "regression_mean",
+      "representation_surgery",
+      "safe_merge",
+      "slerp",
+      "split_unlearn_merge",
+      "star",
+      "svd_knot_tying",
+      "task_arithmetic",
+      "ties",
+      "weight_average",
+      "weight_scope_alignment"
+    ],
+    "BENCHMARK": [],
+    "DECLARATION": [
+      "adarank",
+      "dare",
+      "dare_ties",
+      "della",
+      "emr",
+      "evolutionary_merge",
+      "fisher_merge",
+      "genetic_merge",
+      "led_merge",
+      "model_breadcrumbs",
+      "negative_merge",
+      "regression_mean",
+      "representation_surgery",
+      "safe_merge",
+      "split_unlearn_merge",
+      "svd_knot_tying",
+      "ties",
+      "weight_average",
+      "weight_scope_alignment"
+    ],
+    "TRUE_CRDT": []
+  }
+}
