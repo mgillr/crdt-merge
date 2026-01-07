@@ -664,12 +664,15 @@ for n_layers in [10, 32, 64]:
 # ═════════════════════════════════════════════════════════════════
 section("Model CRDT Law Verification")
 
+from crdt_merge.model.strategies import list_strategies, get_strategy
+from crdt_merge.model.strategies.base import CRDTTier
+
 results["model_law_verification"] = {"strategies": {}}
 
-log("| Strategy | Commutativity | Associativity | Idempotence | API | Trials |")
-log("|----------|:---:|:---:|:---:|-----|--------|")
+log("| Strategy | Tier | Commutativity | Associativity | Idempotence | API | Trials |")
+log("|----------|------|:---:|:---:|:---:|-----|--------|")
 
-for strat in ["weight_average", "linear", "slerp", "ties", "dare", "task_arithmetic"]:
+for strat in sorted(list_strategies()):
     schema = ModelMergeSchema(strategies={"default": strat})
     crdt = ModelCRDT(schema)
     v = crdt.verify(strategy=strat, trials=50)
@@ -677,13 +680,16 @@ for strat in ["weight_average", "linear", "slerp", "ties", "dare", "task_arithme
     comm = strat_result.get("commutative", False)
     assoc = strat_result.get("associative", False)
     idem = strat_result.get("idempotent", False)
+    needs_base = strat_result.get("needs_base", False)
+    tier = get_strategy(strat).crdt_tier.value
     results["model_law_verification"]["strategies"][strat] = {
-        "commutative": comm, "associative": assoc, "idempotent": idem
+        "commutative": comm, "associative": assoc, "idempotent": idem,
+        "needs_base": needs_base, "tier": tier,
     }
     c = "✅" if comm else "❌"
     a = "✅" if assoc else "❌"
     ip = "✅" if idem else "❌"
-    log(f"| `{strat}` | {c} | {a} | {ip} | `ModelCRDT.verify()` | 50 |")
+    log(f"| `{strat}` | {tier} | {c} | {a} | {ip} | `ModelMerge.verify()` | 50 |")
 
 
 # ═════════════════════════════════════════════════════════════════
@@ -784,7 +790,24 @@ for key, val in results.items():
         total_measurements += len(val)
 
 log(f"**Total measurements:** {total_measurements}")
-log(f"**All CRDT laws passed:** {'✅' if results['law_verification']['all_passed'] else '❌'}")
+# Check model strategy CRDT law compliance
+model_laws = results.get("model_law_verification", {}).get("strategies", {})
+model_all_passed = True
+model_failures = []
+for strat_name, props in model_laws.items():
+    for prop in ("commutative", "associative", "idempotent"):
+        if props.get(prop) is False:
+            model_all_passed = False
+            model_failures.append(f"{strat_name}.{prop}")
+
+primitive_passed = results["law_verification"]["all_passed"]
+all_laws_passed = primitive_passed and model_all_passed
+
+log(f"**Primitive CRDT laws passed:** {'✅' if primitive_passed else '❌'}")
+log(f"**Model merge CRDT laws passed:** {'✅' if model_all_passed else '❌'}")
+if model_failures:
+    log(f"  Model failures: {', '.join(model_failures)}")
+log(f"**All CRDT laws passed:** {'✅' if all_laws_passed else '❌'}")
 log(f"**Platform:** {results['meta']['platform']}")
 log(f"**Python:** {results['meta']['python']}")
 log(f"**Version:** {results['meta']['version']}")
@@ -792,7 +815,10 @@ log(f"**Timestamp:** {results['meta']['timestamp']}")
 
 results["summary"] = {
     "total_measurements": total_measurements,
-    "crdt_laws_passed": results["law_verification"]["all_passed"],
+    "primitive_crdt_laws_passed": primitive_passed,
+    "model_crdt_laws_passed": model_all_passed,
+    "crdt_laws_passed": all_laws_passed,
+    "model_law_failures": model_failures,
 }
 
 # ═════════════════════════════════════════════════════════════════

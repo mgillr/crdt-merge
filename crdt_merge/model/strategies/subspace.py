@@ -157,7 +157,7 @@ class TIESMerge(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
-        return {"commutative": True, "associative": True, "idempotent": False}
+        return {"commutative": True, "associative": False, "idempotent": False}
 
     def merge(
         self,
@@ -294,7 +294,7 @@ class DareDropAndRescale(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
-        return {"commutative": True, "associative": False, "idempotent": False}
+        return {"commutative": False, "associative": False, "idempotent": False}
 
     def merge(
         self,
@@ -367,7 +367,7 @@ class DellaDropElectLowRank(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
-        return {"commutative": True, "associative": False, "idempotent": False}
+        return {"commutative": False, "associative": False, "idempotent": False}
 
     def merge(
         self,
@@ -458,7 +458,7 @@ class DareTiesHybrid(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
-        return {"commutative": True, "associative": False, "idempotent": False}
+        return {"commutative": False, "associative": False, "idempotent": False}
 
     def merge(
         self,
@@ -596,7 +596,7 @@ class ModelBreadcrumbs(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
-        return {"commutative": True, "associative": True, "idempotent": False}
+        return {"commutative": True, "associative": False, "idempotent": False}
 
     def merge(
         self,
@@ -694,7 +694,7 @@ class EMRMerge(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
-        return {"commutative": True, "associative": True, "idempotent": False}
+        return {"commutative": True, "associative": False, "idempotent": False}
 
     def merge(
         self,
@@ -929,7 +929,7 @@ class SVDKnotTying(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
-        return {"commutative": True, "associative": False, "idempotent": False}
+        return {"commutative": True, "associative": False, "idempotent": True}
 
     def merge(
         self,
@@ -1056,7 +1056,7 @@ class AdaptiveRankPruning(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
-        return {"commutative": True, "associative": True, "idempotent": False}
+        return {"commutative": True, "associative": False, "idempotent": False}
 
     def merge(
         self,

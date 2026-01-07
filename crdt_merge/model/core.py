@@ -42,7 +42,7 @@ from crdt_merge.model.strategies.base import (
     _from_array,
 )
 
-__all__ = ["ModelCRDT", "ModelMergeSchema", "MergeResult"]
+__all__ = ["ModelMerge", "ModelCRDT", "ModelMergeSchema", "MergeResult"]
 
 # ---------------------------------------------------------------------------
 # Pattern helpers
@@ -211,8 +211,16 @@ class ModelMergeSchema:
 # ModelCRDT
 # ---------------------------------------------------------------------------
 
-class ModelCRDT:
-    """Main entry-point for model merging with CRDT guarantees.
+class ModelMerge:
+    """Main entry-point for schema-driven model merging.
+
+    Applies per-layer merge strategies according to a
+    :class:`ModelMergeSchema`. Includes runtime CRDT-law verification
+    via :meth:`verify`.
+
+    .. deprecated:: 0.8.1
+       The former name ``ModelCRDT`` is retained as a backward-compatible
+       alias but will be removed in v1.0.  Prefer ``ModelMerge``.
 
     Parameters
     ----------
@@ -464,3 +472,6 @@ def _ordered_union(iterables) -> List[str]:
                 seen.add(k)
                 result.append(k)
     return result
+
+# Backward-compatible alias (deprecated — will be removed in v1.0)
+ModelCRDT = ModelMerge

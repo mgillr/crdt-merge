@@ -127,7 +127,7 @@ class EvolutionaryMerge(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
-        return {"commutative": True, "associative": True, "idempotent": True}
+        return {"commutative": False, "associative": False, "idempotent": False}
 
     def merge(
         self,
@@ -252,7 +252,7 @@ class GeneticMerge(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
-        return {"commutative": True, "associative": True, "idempotent": True}
+        return {"commutative": False, "associative": False, "idempotent": True}
 
     def merge(
         self,

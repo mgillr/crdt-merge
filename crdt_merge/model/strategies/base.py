@@ -25,7 +25,24 @@ from __future__ import annotations
 import random
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any, Dict, List, Optional
+
+
+class CRDTTier(str, Enum):
+    """Classification of a strategy's CRDT compliance.
+
+    TRUE_CRDT     — Satisfies commutativity, associativity, and idempotency.
+                    Safe for fully decentralised merge in any order.
+    PARTIAL_CRDT  — Satisfies at least one CRDT law but not all three.
+                    Safe for restricted merge topologies (e.g. star, hub-and-spoke).
+    NOT_CRDT      — Satisfies none of the three CRDT laws (or is stochastic).
+                    Requires a centralised merge coordinator.
+    """
+
+    TRUE_CRDT = "TRUE_CRDT"
+    PARTIAL_CRDT = "PARTIAL_CRDT"
+    NOT_CRDT = "NOT_CRDT"
 
 
 # ---------------------------------------------------------------------------
@@ -226,6 +243,27 @@ class ModelMergeStrategy(ABC):
         """Academic citation or URL for the strategy's paper."""
         return ""
 
+    @property
+    def crdt_tier(self) -> CRDTTier:
+        """Auto-classify this strategy's CRDT compliance tier.
+
+        Based on the declared ``crdt_properties``:
+        - All three True  →  TRUE_CRDT
+        - At least one True  →  PARTIAL_CRDT
+        - None True  →  NOT_CRDT
+        """
+        props = self.crdt_properties
+        bools = [
+            props.get("commutative") is True,
+            props.get("associative") is True,
+            props.get("idempotent") is True,
+        ]
+        if all(bools):
+            return CRDTTier.TRUE_CRDT
+        if any(bools):
+            return CRDTTier.PARTIAL_CRDT
+        return CRDTTier.NOT_CRDT
+
     # ------------------------------------------------------------------
     # Runtime CRDT verification
     # ------------------------------------------------------------------
@@ -234,6 +272,7 @@ class ModelMergeStrategy(ABC):
         self,
         gen_fn=None,
         trials: int = 100,
+        base_gen_fn=None,
     ) -> Dict[str, Any]:
         """Empirically verify CRDT properties via random trials.
 
@@ -244,6 +283,10 @@ class ModelMergeStrategy(ABC):
             Defaults to generating random 10-element lists.
         trials : int
             Number of random trials per property.
+        base_gen_fn : callable | None
+            ``base_gen_fn()`` should return a random base tensor.
+            If ``None`` and the strategy requires ``base=``, a base
+            tensor is auto-generated via ``gen_fn()``.
 
         Returns
         -------
@@ -256,10 +299,30 @@ class ModelMergeStrategy(ABC):
             def gen_fn():
                 return [random.random() for _ in range(10)]
 
+        # Detect if this strategy requires a base tensor
+        _needs_base = False
+        try:
+            test_a, test_b = gen_fn(), gen_fn()
+            self.merge([test_a, test_b])
+        except (ValueError, TypeError) as exc:
+            if "base" in str(exc).lower():
+                _needs_base = True
+
+        def _make_base():
+            if base_gen_fn is not None:
+                return base_gen_fn()
+            return gen_fn()
+
+        def _merge(tensors, *, base_override=None):
+            if _needs_base:
+                return self.merge(tensors, base=(base_override if base_override is not None else _make_base()))
+            return self.merge(tensors)
+
         results: Dict[str, Any] = {
             "commutative": True,
             "associative": True,
             "idempotent": True,
+            "needs_base": _needs_base,
             "failures": {
                 "commutative": 0,
                 "associative": 0,
@@ -269,11 +332,13 @@ class ModelMergeStrategy(ABC):
 
         for _ in range(trials):
             a, b, c = gen_fn(), gen_fn(), gen_fn()
+            # Use a CONSISTENT base for all merge calls within a single trial
+            trial_base = _make_base() if _needs_base else None
 
             # --- commutativity: merge([a, b]) == merge([b, a]) ---
             try:
-                ab = self.merge([a, b])
-                ba = self.merge([b, a])
+                ab = _merge([a, b], base_override=trial_base)
+                ba = _merge([b, a], base_override=trial_base)
                 if not _approx_equal(ab, ba):
                     results["commutative"] = False
                     results["failures"]["commutative"] += 1
@@ -283,10 +348,10 @@ class ModelMergeStrategy(ABC):
 
             # --- associativity: merge([merge([a,b]), c]) == merge([a, merge([b,c])]) ---
             try:
-                ab = self.merge([a, b])
-                ab_c = self.merge([ab, c])
-                bc = self.merge([b, c])
-                a_bc = self.merge([a, bc])
+                ab = _merge([a, b], base_override=trial_base)
+                ab_c = _merge([ab, c], base_override=trial_base)
+                bc = _merge([b, c], base_override=trial_base)
+                a_bc = _merge([a, bc], base_override=trial_base)
                 if not _approx_equal(ab_c, a_bc):
                     results["associative"] = False
                     results["failures"]["associative"] += 1
@@ -296,7 +361,7 @@ class ModelMergeStrategy(ABC):
 
             # --- idempotency: merge([a, a]) == a ---
             try:
-                aa = self.merge([a, a])
+                aa = _merge([a, a], base_override=trial_base)
                 if not _approx_equal(aa, a):
                     results["idempotent"] = False
                     results["failures"]["idempotent"] += 1

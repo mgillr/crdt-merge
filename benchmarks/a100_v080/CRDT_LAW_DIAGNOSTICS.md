@@ -1,6 +1,6 @@
 # crdt-merge v0.8.0 — CRDT Law Diagnostic Report
 
-**Generated:** 2026-03-29T18:49:11.186922+00:00
+**Generated:** 2026-03-29T19:14:19.508447+00:00
 **Trials per test:** 100
 **Tensor size:** 32
 **Tolerance:** 1e-06
@@ -25,38 +25,11 @@
 **Diagnosis:** BUG CONFIRMED: weight_average claims associative=True but merge(merge(A,B),C) = [0.25, 0.25, 0.5] ≠ merge(A,merge(B,C)) = [0.5, 0.25, 0.25]. Pairwise weighted averaging is mathematically non-associative. The crdt_properties declaration is WRONG.
 
 ### BUG-001: verify_crdt() Missing Base Parameter
-**Affected strategies (13):** adarank, dare, dare_ties, della, emr, model_breadcrumbs, negative_merge, safe_merge, split_unlearn_merge, star, svd_knot_tying, task_arithmetic, ties
+**Affected strategies (1):** della
 
 The `verify_crdt()` method in `base.py` calls `self.merge([a, b])` **without passing `base=`**.
 For strategies that require a base model, this raises `ValueError` on every trial,
 causing all three CRDT properties to be falsely reported as FAILED.
-
-### BUG-004: Declaration vs Reality Mismatches
-
-| Strategy | Property | Declared | Empirical |
-|----------|----------|----------|-----------|
-| `adarank` | associative | True | False |
-| `dare` | commutative | True | False |
-| `dare_ties` | commutative | True | False |
-| `della` | commutative | True | False |
-| `emr` | associative | True | False |
-| `evolutionary_merge` | commutative | True | False |
-| `evolutionary_merge` | associative | True | False |
-| `evolutionary_merge` | idempotent | True | False |
-| `fisher_merge` | associative | True | False |
-| `genetic_merge` | commutative | True | False |
-| `genetic_merge` | associative | True | False |
-| `led_merge` | associative | True | False |
-| `model_breadcrumbs` | associative | True | False |
-| `negative_merge` | associative | True | False |
-| `regression_mean` | associative | True | False |
-| `representation_surgery` | associative | True | False |
-| `safe_merge` | associative | True | False |
-| `split_unlearn_merge` | associative | True | False |
-| `svd_knot_tying` | idempotent | False | True |
-| `ties` | associative | True | False |
-| `weight_average` | associative | True | False |
-| `weight_scope_alignment` | associative | True | False |
 
 ---
 
@@ -121,9 +94,6 @@ causing all three CRDT properties to be falsely reported as FAILED.
   - Root cause: **ARCHITECTURE**
   - Example: `{"trial": 0, "max_diff": 1.2716746212, "description": "merge(A, A) \u2260 A"}`
 
-**Declaration mismatches:**
-- ⚠️ Declares associative=True but empirically FAILS
-
 ### `dam`
 **Category:** Weighted / Importance  
 **Requires base:** False  
@@ -156,9 +126,6 @@ causing all three CRDT properties to be falsely reported as FAILED.
   - Root cause: **ARCHITECTURE**
   - Example: `{"trial": 0, "max_diff": 14.1437618739, "description": "merge(A, A) \u2260 A"}`
 
-**Declaration mismatches:**
-- ⚠️ Declares commutative=True but empirically FAILS
-
 ### `dare_ties`
 **Category:** Subspace / Sparsification  
 **Requires base:** True  
@@ -179,9 +146,6 @@ causing all three CRDT properties to be falsely reported as FAILED.
   - Max deviation: `1.70e+01`
   - Root cause: **ARCHITECTURE**
   - Example: `{"trial": 0, "max_diff": 14.1437618739, "description": "merge(A, A) \u2260 A"}`
-
-**Declaration mismatches:**
-- ⚠️ Declares commutative=True but empirically FAILS
 
 ### `della`
 **Category:** Subspace / Sparsification  
@@ -204,9 +168,6 @@ causing all three CRDT properties to be falsely reported as FAILED.
   - Root cause: **ARCHITECTURE**
   - Example: `{"trial": 0, "max_diff": 31.8234642164, "description": "merge(A, A) \u2260 A"}`
 
-**Declaration mismatches:**
-- ⚠️ Declares commutative=True but empirically FAILS
-
 ### `emr`
 **Category:** Subspace / Sparsification  
 **Requires base:** True  
@@ -222,9 +183,6 @@ causing all three CRDT properties to be falsely reported as FAILED.
   - Max deviation: `1.16e+01`
   - Root cause: **ARCHITECTURE**
   - Example: `{"trial": 0, "max_diff": 7.7790690307, "description": "merge(A, A) \u2260 A"}`
-
-**Declaration mismatches:**
-- ⚠️ Declares associative=True but empirically FAILS
 
 ### `evolutionary_merge`
 **Category:** Evolutionary  
@@ -247,11 +205,6 @@ causing all three CRDT properties to be falsely reported as FAILED.
   - Root cause: **ARCHITECTURE**
   - Example: `{"trial": 0, "max_diff": 1.2089641488, "description": "merge(A, A) \u2260 A"}`
 
-**Declaration mismatches:**
-- ⚠️ Declares commutative=True but empirically FAILS
-- ⚠️ Declares associative=True but empirically FAILS
-- ⚠️ Declares idempotent=True but empirically FAILS
-
 ### `fisher_merge`
 **Category:** Weighted / Importance  
 **Requires base:** False  
@@ -262,9 +215,6 @@ causing all three CRDT properties to be falsely reported as FAILED.
   - Max deviation: `1.98e+00`
   - Root cause: **ARCHITECTURE**
   - Example: `{"trial": 0, "max_diff": 1.0003341915, "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"}`
-
-**Declaration mismatches:**
-- ⚠️ Declares associative=True but empirically FAILS
 
 ### `genetic_merge`
 **Category:** Evolutionary  
@@ -282,10 +232,6 @@ causing all three CRDT properties to be falsely reported as FAILED.
   - Root cause: **ARCHITECTURE**
   - Example: `{"trial": 0, "max_diff": 0.2730999131, "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"}`
 
-**Declaration mismatches:**
-- ⚠️ Declares commutative=True but empirically FAILS
-- ⚠️ Declares associative=True but empirically FAILS
-
 ### `led_merge`
 **Category:** Safety-Aware  
 **Requires base:** False  
@@ -296,9 +242,6 @@ causing all three CRDT properties to be falsely reported as FAILED.
   - Max deviation: `4.70e+00`
   - Root cause: **ARCHITECTURE**
   - Example: `{"trial": 0, "max_diff": 1.0609386509, "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"}`
-
-**Declaration mismatches:**
-- ⚠️ Declares associative=True but empirically FAILS
 
 ### `linear`
 **Category:** interpolation  
@@ -327,9 +270,6 @@ causing all three CRDT properties to be falsely reported as FAILED.
   - Root cause: **ARCHITECTURE**
   - Example: `{"trial": 0, "max_diff": 2.3294942149, "description": "merge(A, A) \u2260 A"}`
 
-**Declaration mismatches:**
-- ⚠️ Declares associative=True but empirically FAILS
-
 ### `negative_merge`
 **Category:** Unlearning  
 **Requires base:** True  
@@ -346,9 +286,6 @@ causing all three CRDT properties to be falsely reported as FAILED.
   - Root cause: **ARCHITECTURE**
   - Example: `{"trial": 0, "max_diff": 7.071880937, "description": "merge(A, A) \u2260 A"}`
 
-**Declaration mismatches:**
-- ⚠️ Declares associative=True but empirically FAILS
-
 ### `regression_mean`
 **Category:** Weighted / Importance  
 **Requires base:** False  
@@ -359,9 +296,6 @@ causing all three CRDT properties to be falsely reported as FAILED.
   - Max deviation: `1.97e+00`
   - Root cause: **ARCHITECTURE**
   - Example: `{"trial": 0, "max_diff": 1.0058792401, "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"}`
-
-**Declaration mismatches:**
-- ⚠️ Declares associative=True but empirically FAILS
 
 ### `representation_surgery`
 **Category:** Post-Calibration  
@@ -374,9 +308,6 @@ causing all three CRDT properties to be falsely reported as FAILED.
   - Root cause: **ARCHITECTURE**
   - Example: `{"trial": 0, "max_diff": 0.9152483938, "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"}`
 
-**Declaration mismatches:**
-- ⚠️ Declares associative=True but empirically FAILS
-
 ### `safe_merge`
 **Category:** Safety-Aware  
 **Requires base:** True  
@@ -387,9 +318,6 @@ causing all three CRDT properties to be falsely reported as FAILED.
   - Max deviation: `3.97e+00`
   - Root cause: **ARCHITECTURE**
   - Example: `{"trial": 0, "max_diff": 2.4299662282, "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"}`
-
-**Declaration mismatches:**
-- ⚠️ Declares associative=True but empirically FAILS
 
 ### `slerp`
 **Category:** interpolation  
@@ -418,9 +346,6 @@ causing all three CRDT properties to be falsely reported as FAILED.
   - Root cause: **ARCHITECTURE**
   - Example: `{"trial": 0, "max_diff": 0.1156822786, "description": "merge(A, A) \u2260 A"}`
 
-**Declaration mismatches:**
-- ⚠️ Declares associative=True but empirically FAILS
-
 ### `star`
 **Category:** Subspace / Sparsification  
 **Requires base:** True  
@@ -447,9 +372,6 @@ causing all three CRDT properties to be falsely reported as FAILED.
   - Max deviation: `1.21e+00`
   - Root cause: **ARCHITECTURE**
   - Example: `{"trial": 0, "max_diff": 0.9152483938, "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"}`
-
-**Declaration mismatches:**
-- ⚠️ Declares idempotent=False but empirically PASSES (conservative)
 
 ### `task_arithmetic`
 **Category:** task_vector  
@@ -478,9 +400,6 @@ causing all three CRDT properties to be falsely reported as FAILED.
   - Root cause: **ARCHITECTURE**
   - Example: `{"trial": 0, "max_diff": 2.2225108333, "description": "merge(A, A) \u2260 A"}`
 
-**Declaration mismatches:**
-- ⚠️ Declares associative=True but empirically FAILS
-
 ### `weight_average`
 **Category:** averaging  
 **Requires base:** False  
@@ -492,9 +411,6 @@ causing all three CRDT properties to be falsely reported as FAILED.
   - Root cause: **ARCHITECTURE**
   - Example: `{"trial": 0, "max_diff": 0.9152483938, "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"}`
 
-**Declaration mismatches:**
-- ⚠️ Declares associative=True but empirically FAILS
-
 ### `weight_scope_alignment`
 **Category:** Post-Calibration  
 **Requires base:** False  
@@ -505,9 +421,6 @@ causing all three CRDT properties to be falsely reported as FAILED.
   - Max deviation: `6.63e-01`
   - Root cause: **ARCHITECTURE**
   - Example: `{"trial": 0, "max_diff": 0.6231285072, "description": "merge(merge(A,B),C) \u2260 merge(A,merge(B,C))"}`
-
-**Declaration mismatches:**
-- ⚠️ Declares associative=True but empirically FAILS
 
 ---
 
@@ -521,9 +434,9 @@ Strategies: ada_merging, adarank, dam, dare, dare_ties, della, emr, evolutionary
 The verification harness is broken — typically because `base=` is not passed.
 Strategies: (none)
 
-### DECLARATION (19 strategies)
+### DECLARATION (0 strategies)
 The strategy's `crdt_properties` dict claims properties it doesn't have.
-Strategies: adarank, dare, dare_ties, della, emr, evolutionary_merge, fisher_merge, genetic_merge, led_merge, model_breadcrumbs, negative_merge, regression_mean, representation_surgery, safe_merge, split_unlearn_merge, svd_knot_tying, ties, weight_average, weight_scope_alignment
+Strategies: (none)
 
 ### TRUE_CRDT (0 strategies)
 Passes all three CRDT laws empirically.

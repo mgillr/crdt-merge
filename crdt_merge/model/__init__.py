@@ -22,7 +22,7 @@ Quick start::
     result = crdt.merge([model_a, model_b])
 """
 
-from crdt_merge.model.core import MergeResult, ModelCRDT, ModelMergeSchema
+from crdt_merge.model.core import MergeResult, ModelMerge, ModelCRDT, ModelMergeSchema
 from crdt_merge.model.strategies import (
     get_strategy,
     list_strategies,
@@ -46,6 +46,7 @@ from crdt_merge.model.gpu import GPUMerge
 from crdt_merge.model.safety import SafetyAnalyzer, SafetyReport
 
 __all__ = [
+    "ModelMerge",
     "ModelCRDT",
     "ModelMergeSchema",
     "MergeResult",

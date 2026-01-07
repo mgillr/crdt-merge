@@ -1,0 +1,46 @@
+name: CRDT Law Verification
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'crdt_merge/model/**'
+      - 'benchmarks/a100_v080/test_crdt_laws_granular.py'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'crdt_merge/model/**'
+      - 'benchmarks/a100_v080/test_crdt_laws_granular.py'
+
+jobs:
+  crdt-law-check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          pip install -e ".[model]"
+          pip install numpy
+
+      - name: Run CRDT law diagnostic suite
+        run: |
+          python benchmarks/a100_v080/test_crdt_laws_granular.py
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crdt-diagnostics-py${{ matrix.python-version }}
+          path: |
+            benchmarks/a100_v080/crdt_law_diagnostics.json
+            benchmarks/a100_v080/CRDT_LAW_DIAGNOSTICS.md
