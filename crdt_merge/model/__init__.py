@@ -23,6 +23,7 @@ Quick start::
 """
 
 from crdt_merge.model.core import MergeResult, ModelMerge, ModelCRDT, ModelMergeSchema
+from crdt_merge.model.crdt_state import CRDTMergeState, MergeContribution, ConflictResolution
 from crdt_merge.model.strategies import (
     get_strategy,
     list_strategies,
@@ -50,6 +51,9 @@ __all__ = [
     "ModelCRDT",
     "ModelMergeSchema",
     "MergeResult",
+    "CRDTMergeState",
+    "MergeContribution",
+    "ConflictResolution",
     "ModelMergeStrategy",
     "register_strategy",
     "get_strategy",

@@ -1,0 +1,2155 @@
+{
+  "summary": {
+    "SOL-1: G-Set Accumulator": {
+      "true_crdt_count": 25,
+      "total": 25,
+      "percentage": "100%"
+    },
+    "SOL-2: Delta-State CRDT": {
+      "true_crdt_count": 25,
+      "total": 25,
+      "percentage": "100%"
+    },
+    "SOL-3: Monoid Accumulator": {
+      "true_crdt_count": 25,
+      "total": 25,
+      "percentage": "100%"
+    },
+    "SOL-4: Canonical Order": {
+      "true_crdt_count": 25,
+      "total": 25,
+      "percentage": "100%"
+    },
+    "SOL-5: Merkle-DAG": {
+      "true_crdt_count": 25,
+      "total": 25,
+      "percentage": "100%"
+    },
+    "SOL-6: Hybrid Two-Phase": {
+      "true_crdt_count": 25,
+      "total": 25,
+      "percentage": "100%"
+    },
+    "SOL-7: Lattice Consensus": {
+      "true_crdt_count": 25,
+      "total": 25,
+      "percentage": "100%"
+    }
+  },
+  "details": {
+    "SOL-1: G-Set Accumulator": {
+      "ada_merging": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "adarank": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "dam": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "dare": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "dare_ties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "della": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "emr": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "evolutionary_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "fisher_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "genetic_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "led_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "linear": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "model_breadcrumbs": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "negative_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "regression_mean": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "representation_surgery": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "safe_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "slerp": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "split_unlearn_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "star": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "svd_knot_tying": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "task_arithmetic": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "ties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "weight_average": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "weight_scope_alignment": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      }
+    },
+    "SOL-2: Delta-State CRDT": {
+      "ada_merging": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "adarank": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "dam": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "dare": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "dare_ties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "della": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "emr": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "evolutionary_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "fisher_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "genetic_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "led_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "linear": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "model_breadcrumbs": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "negative_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "regression_mean": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "representation_surgery": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "safe_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "slerp": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "split_unlearn_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "star": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "svd_knot_tying": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "task_arithmetic": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "ties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "weight_average": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "weight_scope_alignment": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      }
+    },
+    "SOL-3: Monoid Accumulator": {
+      "ada_merging": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "adarank": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "dam": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "dare": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "dare_ties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "della": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "emr": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "evolutionary_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "fisher_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "genetic_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "led_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "linear": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "model_breadcrumbs": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "negative_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "regression_mean": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "representation_surgery": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "safe_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "slerp": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "split_unlearn_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "star": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "svd_knot_tying": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "task_arithmetic": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "ties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "weight_average": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "weight_scope_alignment": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      }
+    },
+    "SOL-4: Canonical Order": {
+      "ada_merging": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "adarank": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "dam": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "dare": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "dare_ties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "della": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "emr": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "evolutionary_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "fisher_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "genetic_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "led_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "linear": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "model_breadcrumbs": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "negative_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "regression_mean": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "representation_surgery": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "safe_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "slerp": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "split_unlearn_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "star": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "svd_knot_tying": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "task_arithmetic": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "ties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "weight_average": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "weight_scope_alignment": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      }
+    },
+    "SOL-5: Merkle-DAG": {
+      "ada_merging": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "adarank": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "dam": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "dare": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "dare_ties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "della": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "emr": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "evolutionary_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "fisher_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "genetic_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "led_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "linear": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "model_breadcrumbs": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "negative_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "regression_mean": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "representation_surgery": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "safe_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "slerp": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "split_unlearn_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "star": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "svd_knot_tying": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "task_arithmetic": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "ties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "weight_average": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "weight_scope_alignment": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      }
+    },
+    "SOL-6: Hybrid Two-Phase": {
+      "ada_merging": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "adarank": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "dam": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "dare": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "dare_ties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "della": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "emr": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "evolutionary_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "fisher_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "genetic_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "led_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "linear": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "model_breadcrumbs": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "negative_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "regression_mean": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "representation_surgery": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "safe_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "slerp": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "split_unlearn_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "star": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "svd_knot_tying": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "task_arithmetic": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "ties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "weight_average": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "weight_scope_alignment": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      }
+    },
+    "SOL-7: Lattice Consensus": {
+      "ada_merging": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "adarank": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "dam": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "dare": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "dare_ties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "della": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "emr": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "evolutionary_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "fisher_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "genetic_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "led_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "linear": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "model_breadcrumbs": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "negative_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "regression_mean": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "representation_surgery": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "safe_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "slerp": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "split_unlearn_merge": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "star": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "svd_knot_tying": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "task_arithmetic": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "ties": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "weight_average": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      },
+      "weight_scope_alignment": {
+        "commutative": true,
+        "associative": true,
+        "idempotent": true,
+        "resolve_consistent": true,
+        "failures": {
+          "commutative": 0,
+          "associative": 0,
+          "idempotent": 0,
+          "resolve": 0
+        }
+      }
+    }
+  }
+}
