@@ -100,6 +100,14 @@ class FisherMerge(ModelMergeStrategy):
 
     If no Fisher matrices are provided, falls back to magnitude-based
     importance: ``Fᵢ ≈ |θᵢ|²``.
+
+    .. note:: CRDT compliance
+
+       Commutative and idempotent but **not associative** under pairwise
+       composition — the magnitude-based Fisher proxy ``|θ|²`` changes
+       when computed on an intermediate merge result vs. the original
+       tensors.  For correct N-way Fisher merging, pass all models in a
+       single ``merge(...)`` call.
     """
 
     @property
@@ -116,7 +124,7 @@ class FisherMerge(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
-        return {"commutative": True, "associative": True, "idempotent": True}
+        return {"commutative": True, "associative": False, "idempotent": True}
 
     def merge(
         self,
@@ -200,6 +208,14 @@ class RegressionMean(ModelMergeStrategy):
 
     For 1D parameters this reduces to a regularized weighted average where
     weights are proportional to θᵢ² + λ.
+
+    .. note:: CRDT compliance
+
+       Commutative and idempotent but **not associative** under pairwise
+       composition — the self-weighted regression ``θᵢ² + λ`` changes
+       when computed on an intermediate merge vs. original tensors.
+       For correct N-way RegMean, pass all models in a single
+       ``merge(...)`` call.
     """
 
     @property
@@ -216,7 +232,7 @@ class RegressionMean(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
-        return {"commutative": True, "associative": True, "idempotent": True}
+        return {"commutative": True, "associative": False, "idempotent": True}
 
     def merge(
         self,

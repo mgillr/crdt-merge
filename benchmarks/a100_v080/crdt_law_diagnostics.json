@@ -1,7 +1,7 @@
 {
   "meta": {
     "version": "0.8.0",
-    "timestamp": "2026-03-29T18:49:11.186922+00:00",
+    "timestamp": "2026-03-29T19:14:19.508447+00:00",
     "trials_per_test": 100,
     "tensor_size": 32,
     "tolerance": 1e-06
@@ -75,7 +75,7 @@
       "is_stochastic": false,
       "declared_properties": {
         "commutative": true,
-        "associative": true,
+        "associative": false,
         "idempotent": false
       },
       "commutativity": {
@@ -130,9 +130,7 @@
         "example_failure": null,
         "root_cause": "NONE"
       },
-      "declaration_mismatches": [
-        "Declares associative=True but empirically FAILS"
-      ],
+      "declaration_mismatches": [],
       "overall_verdict": "NOT_CRDT"
     },
     "dam": {
@@ -202,7 +200,7 @@
       "requires_base": true,
       "is_stochastic": true,
       "declared_properties": {
-        "commutative": true,
+        "commutative": false,
         "associative": false,
         "idempotent": false
       },
@@ -263,9 +261,7 @@
         "example_failure": null,
         "root_cause": "NONE"
       },
-      "declaration_mismatches": [
-        "Declares commutative=True but empirically FAILS"
-      ],
+      "declaration_mismatches": [],
       "overall_verdict": "NOT_CRDT"
     },
     "dare_ties": {
@@ -274,7 +270,7 @@
       "requires_base": true,
       "is_stochastic": true,
       "declared_properties": {
-        "commutative": true,
+        "commutative": false,
         "associative": false,
         "idempotent": false
       },
@@ -335,9 +331,7 @@
         "example_failure": null,
         "root_cause": "NONE"
       },
-      "declaration_mismatches": [
-        "Declares commutative=True but empirically FAILS"
-      ],
+      "declaration_mismatches": [],
       "overall_verdict": "NOT_CRDT"
     },
     "della": {
@@ -346,7 +340,7 @@
       "requires_base": true,
       "is_stochastic": true,
       "declared_properties": {
-        "commutative": true,
+        "commutative": false,
         "associative": false,
         "idempotent": false
       },
@@ -407,9 +401,7 @@
         "example_failure": null,
         "root_cause": "NONE"
       },
-      "declaration_mismatches": [
-        "Declares commutative=True but empirically FAILS"
-      ],
+      "declaration_mismatches": [],
       "overall_verdict": "NOT_CRDT"
     },
     "emr": {
@@ -419,7 +411,7 @@
       "is_stochastic": false,
       "declared_properties": {
         "commutative": true,
-        "associative": true,
+        "associative": false,
         "idempotent": false
       },
       "commutativity": {
@@ -474,9 +466,7 @@
         "example_failure": null,
         "root_cause": "NONE"
       },
-      "declaration_mismatches": [
-        "Declares associative=True but empirically FAILS"
-      ],
+      "declaration_mismatches": [],
       "overall_verdict": "NOT_CRDT"
     },
     "evolutionary_merge": {
@@ -485,9 +475,9 @@
       "requires_base": false,
       "is_stochastic": true,
       "declared_properties": {
-        "commutative": true,
-        "associative": true,
-        "idempotent": true
+        "commutative": false,
+        "associative": false,
+        "idempotent": false
       },
       "commutativity": {
         "property_name": "commutativity",
@@ -546,11 +536,7 @@
         "example_failure": null,
         "root_cause": "NONE"
       },
-      "declaration_mismatches": [
-        "Declares commutative=True but empirically FAILS",
-        "Declares associative=True but empirically FAILS",
-        "Declares idempotent=True but empirically FAILS"
-      ],
+      "declaration_mismatches": [],
       "overall_verdict": "NOT_CRDT"
     },
     "fisher_merge": {
@@ -560,7 +546,7 @@
       "is_stochastic": false,
       "declared_properties": {
         "commutative": true,
-        "associative": true,
+        "associative": false,
         "idempotent": true
       },
       "commutativity": {
@@ -611,9 +597,7 @@
         "example_failure": null,
         "root_cause": "NONE"
       },
-      "declaration_mismatches": [
-        "Declares associative=True but empirically FAILS"
-      ],
+      "declaration_mismatches": [],
       "overall_verdict": "PARTIAL_CRDT (commutative+idempotent only)"
     },
     "genetic_merge": {
@@ -622,8 +606,8 @@
       "requires_base": false,
       "is_stochastic": true,
       "declared_properties": {
-        "commutative": true,
-        "associative": true,
+        "commutative": false,
+        "associative": false,
         "idempotent": true
       },
       "commutativity": {
@@ -679,10 +663,7 @@
         "example_failure": null,
         "root_cause": "NONE"
       },
-      "declaration_mismatches": [
-        "Declares commutative=True but empirically FAILS",
-        "Declares associative=True but empirically FAILS"
-      ],
+      "declaration_mismatches": [],
       "overall_verdict": "NOT_CRDT"
     },
     "led_merge": {
@@ -692,7 +673,7 @@
       "is_stochastic": false,
       "declared_properties": {
         "commutative": true,
-        "associative": true,
+        "associative": false,
         "idempotent": true
       },
       "commutativity": {
@@ -743,9 +724,7 @@
         "example_failure": null,
         "root_cause": "NONE"
       },
-      "declaration_mismatches": [
-        "Declares associative=True but empirically FAILS"
-      ],
+      "declaration_mismatches": [],
       "overall_verdict": "PARTIAL_CRDT (commutative+idempotent only)"
     },
     "linear": {
@@ -816,7 +795,7 @@
       "is_stochastic": false,
       "declared_properties": {
         "commutative": true,
-        "associative": true,
+        "associative": false,
         "idempotent": false
       },
       "commutativity": {
@@ -871,9 +850,7 @@
         "example_failure": null,
         "root_cause": "NONE"
       },
-      "declaration_mismatches": [
-        "Declares associative=True but empirically FAILS"
-      ],
+      "declaration_mismatches": [],
       "overall_verdict": "NOT_CRDT"
     },
     "negative_merge": {
@@ -883,7 +860,7 @@
       "is_stochastic": false,
       "declared_properties": {
         "commutative": true,
-        "associative": true,
+        "associative": false,
         "idempotent": false
       },
       "commutativity": {
@@ -938,9 +915,7 @@
         "example_failure": null,
         "root_cause": "NONE"
       },
-      "declaration_mismatches": [
-        "Declares associative=True but empirically FAILS"
-      ],
+      "declaration_mismatches": [],
       "overall_verdict": "NOT_CRDT"
     },
     "regression_mean": {
@@ -950,7 +925,7 @@
       "is_stochastic": false,
       "declared_properties": {
         "commutative": true,
-        "associative": true,
+        "associative": false,
         "idempotent": true
       },
       "commutativity": {
@@ -1001,9 +976,7 @@
         "example_failure": null,
         "root_cause": "NONE"
       },
-      "declaration_mismatches": [
-        "Declares associative=True but empirically FAILS"
-      ],
+      "declaration_mismatches": [],
       "overall_verdict": "PARTIAL_CRDT (commutative+idempotent only)"
     },
     "representation_surgery": {
@@ -1013,7 +986,7 @@
       "is_stochastic": false,
       "declared_properties": {
         "commutative": true,
-        "associative": true,
+        "associative": false,
         "idempotent": true
       },
       "commutativity": {
@@ -1064,9 +1037,7 @@
         "example_failure": null,
         "root_cause": "NONE"
       },
-      "declaration_mismatches": [
-        "Declares associative=True but empirically FAILS"
-      ],
+      "declaration_mismatches": [],
       "overall_verdict": "PARTIAL_CRDT (commutative+idempotent only)"
     },
     "safe_merge": {
@@ -1076,7 +1047,7 @@
       "is_stochastic": false,
       "declared_properties": {
         "commutative": true,
-        "associative": true,
+        "associative": false,
         "idempotent": true
       },
       "commutativity": {
@@ -1127,9 +1098,7 @@
         "example_failure": null,
         "root_cause": "NONE"
       },
-      "declaration_mismatches": [
-        "Declares associative=True but empirically FAILS"
-      ],
+      "declaration_mismatches": [],
       "overall_verdict": "PARTIAL_CRDT (commutative+idempotent only)"
     },
     "slerp": {
@@ -1200,7 +1169,7 @@
       "is_stochastic": true,
       "declared_properties": {
         "commutative": true,
-        "associative": true,
+        "associative": false,
         "idempotent": false
       },
       "commutativity": {
@@ -1255,9 +1224,7 @@
         "example_failure": null,
         "root_cause": "NONE"
       },
-      "declaration_mismatches": [
-        "Declares associative=True but empirically FAILS"
-      ],
+      "declaration_mismatches": [],
       "overall_verdict": "NOT_CRDT"
     },
     "star": {
@@ -1333,7 +1300,7 @@
       "declared_properties": {
         "commutative": true,
         "associative": false,
-        "idempotent": false
+        "idempotent": true
       },
       "commutativity": {
         "property_name": "commutativity",
@@ -1383,9 +1350,7 @@
         "example_failure": null,
         "root_cause": "NONE"
       },
-      "declaration_mismatches": [
-        "Declares idempotent=False but empirically PASSES (conservative)"
-      ],
+      "declaration_mismatches": [],
       "overall_verdict": "PARTIAL_CRDT (commutative+idempotent only)"
     },
     "task_arithmetic": {
@@ -1456,7 +1421,7 @@
       "is_stochastic": false,
       "declared_properties": {
         "commutative": true,
-        "associative": true,
+        "associative": false,
         "idempotent": false
       },
       "commutativity": {
@@ -1511,9 +1476,7 @@
         "example_failure": null,
         "root_cause": "NONE"
       },
-      "declaration_mismatches": [
-        "Declares associative=True but empirically FAILS"
-      ],
+      "declaration_mismatches": [],
       "overall_verdict": "NOT_CRDT"
     },
     "weight_average": {
@@ -1523,7 +1486,7 @@
       "is_stochastic": false,
       "declared_properties": {
         "commutative": true,
-        "associative": true,
+        "associative": false,
         "idempotent": true
       },
       "commutativity": {
@@ -1574,9 +1537,7 @@
         "example_failure": null,
         "root_cause": "NONE"
       },
-      "declaration_mismatches": [
-        "Declares associative=True but empirically FAILS"
-      ],
+      "declaration_mismatches": [],
       "overall_verdict": "PARTIAL_CRDT (commutative+idempotent only)"
     },
     "weight_scope_alignment": {
@@ -1586,7 +1547,7 @@
       "is_stochastic": false,
       "declared_properties": {
         "commutative": true,
-        "associative": true,
+        "associative": false,
         "idempotent": true
       },
       "commutativity": {
@@ -1637,9 +1598,7 @@
         "example_failure": null,
         "root_cause": "NONE"
       },
-      "declaration_mismatches": [
-        "Declares associative=True but empirically FAILS"
-      ],
+      "declaration_mismatches": [],
       "overall_verdict": "PARTIAL_CRDT (commutative+idempotent only)"
     }
   },
@@ -1647,51 +1606,55 @@
     "BUG-001_verify_crdt_base": {
       "adarank": {
         "verify_crdt_result": {
-          "commutative": false,
+          "commutative": true,
           "associative": false,
-          "idempotent": false
+          "idempotent": false,
+          "needs_base": true
         },
         "failure_counts": {
-          "commutative": 5,
+          "commutative": 0,
           "associative": 5,
           "idempotent": 5
         },
-        "bug_confirmed": true,
-        "diagnosis": "BUG CONFIRMED: verify_crdt() raises ValueError on every trial because base= is never passed. All properties falsely report FAIL."
+        "bug_confirmed": false,
+        "diagnosis": "Partial failure \u2014 investigate further"
       },
       "dare": {
         "verify_crdt_result": {
-          "commutative": false,
-          "associative": false,
-          "idempotent": false
+          "commutative": true,
+          "associative": true,
+          "idempotent": false,
+          "needs_base": true
         },
         "failure_counts": {
-          "commutative": 5,
-          "associative": 5,
+          "commutative": 0,
+          "associative": 0,
           "idempotent": 5
         },
-        "bug_confirmed": true,
-        "diagnosis": "BUG CONFIRMED: verify_crdt() raises ValueError on every trial because base= is never passed. All properties falsely report FAIL."
+        "bug_confirmed": false,
+        "diagnosis": "Partial failure \u2014 investigate further"
       },
       "dare_ties": {
         "verify_crdt_result": {
-          "commutative": false,
-          "associative": false,
-          "idempotent": false
+          "commutative": true,
+          "associative": true,
+          "idempotent": false,
+          "needs_base": true
         },
         "failure_counts": {
-          "commutative": 5,
-          "associative": 5,
+          "commutative": 0,
+          "associative": 0,
           "idempotent": 5
         },
-        "bug_confirmed": true,
-        "diagnosis": "BUG CONFIRMED: verify_crdt() raises ValueError on every trial because base= is never passed. All properties falsely report FAIL."
+        "bug_confirmed": false,
+        "diagnosis": "Partial failure \u2014 investigate further"
       },
       "della": {
         "verify_crdt_result": {
           "commutative": false,
           "associative": false,
-          "idempotent": false
+          "idempotent": false,
+          "needs_base": true
         },
         "failure_counts": {
           "commutative": 5,
@@ -1703,129 +1666,138 @@
       },
       "emr": {
         "verify_crdt_result": {
-          "commutative": false,
+          "commutative": true,
           "associative": false,
-          "idempotent": false
+          "idempotent": false,
+          "needs_base": true
         },
         "failure_counts": {
-          "commutative": 5,
+          "commutative": 0,
           "associative": 5,
           "idempotent": 5
         },
-        "bug_confirmed": true,
-        "diagnosis": "BUG CONFIRMED: verify_crdt() raises ValueError on every trial because base= is never passed. All properties falsely report FAIL."
+        "bug_confirmed": false,
+        "diagnosis": "Partial failure \u2014 investigate further"
       },
       "model_breadcrumbs": {
         "verify_crdt_result": {
-          "commutative": false,
+          "commutative": true,
           "associative": false,
-          "idempotent": false
+          "idempotent": false,
+          "needs_base": true
         },
         "failure_counts": {
-          "commutative": 5,
+          "commutative": 0,
           "associative": 5,
           "idempotent": 5
         },
-        "bug_confirmed": true,
-        "diagnosis": "BUG CONFIRMED: verify_crdt() raises ValueError on every trial because base= is never passed. All properties falsely report FAIL."
+        "bug_confirmed": false,
+        "diagnosis": "Partial failure \u2014 investigate further"
       },
       "negative_merge": {
         "verify_crdt_result": {
-          "commutative": false,
+          "commutative": true,
           "associative": false,
-          "idempotent": false
+          "idempotent": false,
+          "needs_base": true
         },
         "failure_counts": {
-          "commutative": 5,
+          "commutative": 0,
           "associative": 5,
           "idempotent": 5
         },
-        "bug_confirmed": true,
-        "diagnosis": "BUG CONFIRMED: verify_crdt() raises ValueError on every trial because base= is never passed. All properties falsely report FAIL."
+        "bug_confirmed": false,
+        "diagnosis": "Partial failure \u2014 investigate further"
       },
       "safe_merge": {
         "verify_crdt_result": {
-          "commutative": false,
+          "commutative": true,
           "associative": false,
-          "idempotent": false
+          "idempotent": true,
+          "needs_base": true
         },
         "failure_counts": {
-          "commutative": 5,
+          "commutative": 0,
           "associative": 5,
-          "idempotent": 5
+          "idempotent": 0
         },
-        "bug_confirmed": true,
-        "diagnosis": "BUG CONFIRMED: verify_crdt() raises ValueError on every trial because base= is never passed. All properties falsely report FAIL."
+        "bug_confirmed": false,
+        "diagnosis": "Partial failure \u2014 investigate further"
       },
       "split_unlearn_merge": {
         "verify_crdt_result": {
-          "commutative": false,
+          "commutative": true,
           "associative": false,
-          "idempotent": false
+          "idempotent": false,
+          "needs_base": true
         },
         "failure_counts": {
-          "commutative": 5,
+          "commutative": 0,
           "associative": 5,
           "idempotent": 5
         },
-        "bug_confirmed": true,
-        "diagnosis": "BUG CONFIRMED: verify_crdt() raises ValueError on every trial because base= is never passed. All properties falsely report FAIL."
+        "bug_confirmed": false,
+        "diagnosis": "Partial failure \u2014 investigate further"
       },
       "star": {
         "verify_crdt_result": {
-          "commutative": false,
+          "commutative": true,
           "associative": false,
-          "idempotent": false
+          "idempotent": false,
+          "needs_base": true
         },
         "failure_counts": {
-          "commutative": 5,
+          "commutative": 0,
           "associative": 5,
           "idempotent": 5
         },
-        "bug_confirmed": true,
-        "diagnosis": "BUG CONFIRMED: verify_crdt() raises ValueError on every trial because base= is never passed. All properties falsely report FAIL."
+        "bug_confirmed": false,
+        "diagnosis": "Partial failure \u2014 investigate further"
       },
       "svd_knot_tying": {
         "verify_crdt_result": {
-          "commutative": false,
+          "commutative": true,
           "associative": false,
-          "idempotent": false
+          "idempotent": true,
+          "needs_base": true
         },
         "failure_counts": {
-          "commutative": 5,
+          "commutative": 0,
           "associative": 5,
-          "idempotent": 5
+          "idempotent": 0
         },
-        "bug_confirmed": true,
-        "diagnosis": "BUG CONFIRMED: verify_crdt() raises ValueError on every trial because base= is never passed. All properties falsely report FAIL."
+        "bug_confirmed": false,
+        "diagnosis": "Partial failure \u2014 investigate further"
       },
       "task_arithmetic": {
         "verify_crdt_result": {
-          "commutative": false,
-          "associative": false,
-          "idempotent": false
+          "commutative": true,
+          "associative": true,
+          "idempotent": false,
+          "needs_base": true
         },
         "failure_counts": {
-          "commutative": 5,
-          "associative": 5,
+          "commutative": 0,
+          "associative": 0,
           "idempotent": 5
         },
-        "bug_confirmed": true,
-        "diagnosis": "BUG CONFIRMED: verify_crdt() raises ValueError on every trial because base= is never passed. All properties falsely report FAIL."
+        "bug_confirmed": false,
+        "diagnosis": "Partial failure \u2014 investigate further"
       },
       "ties": {
         "verify_crdt_result": {
-          "commutative": false,
+          "commutative": true,
           "associative": false,
-          "idempotent": false
+          "idempotent": false,
+          "needs_base": true
         },
         "failure_counts": {
-          "commutative": 5,
+          "commutative": 0,
           "associative": 5,
           "idempotent": 5
         },
-        "bug_confirmed": true,
-        "diagnosis": "BUG CONFIRMED: verify_crdt() raises ValueError on every trial because base= is never passed. All properties falsely report FAIL."
+        "bug_confirmed": false,
+        "diagnosis": "Partial failure \u2014 investigate further"
       }
     },
     "BUG-002_summary_ignores_model": {
@@ -1898,452 +1870,14 @@
       ],
       "equal": false,
       "max_diff": 0.25,
-      "declared_associative": true,
-      "bug_confirmed": true,
+      "declared_associative": false,
+      "bug_confirmed": false,
       "diagnosis": "BUG CONFIRMED: weight_average claims associative=True but merge(merge(A,B),C) = [0.25, 0.25, 0.5] \u2260 merge(A,merge(B,C)) = [0.5, 0.25, 0.25]. Pairwise weighted averaging is mathematically non-associative. The crdt_properties declaration is WRONG."
     },
     "BUG-004_declaration_mismatches": {
-      "strategies_with_mismatches": [
-        "adarank",
-        "dare",
-        "dare_ties",
-        "della",
-        "emr",
-        "evolutionary_merge",
-        "fisher_merge",
-        "genetic_merge",
-        "led_merge",
-        "model_breadcrumbs",
-        "negative_merge",
-        "regression_mean",
-        "representation_surgery",
-        "safe_merge",
-        "split_unlearn_merge",
-        "svd_knot_tying",
-        "ties",
-        "weight_average",
-        "weight_scope_alignment"
-      ],
-      "total_mismatches": 22,
-      "details": {
-        "adarank": {
-          "declared": {
-            "commutative": true,
-            "associative": true,
-            "idempotent": false
-          },
-          "empirical": {
-            "commutative": true,
-            "associative": false,
-            "idempotent": false
-          },
-          "mismatches": [
-            {
-              "property": "associative",
-              "declared": true,
-              "empirical": false,
-              "issue": "Declares associative=True but empirically associative=False"
-            }
-          ],
-          "errors": null
-        },
-        "dare": {
-          "declared": {
-            "commutative": true,
-            "associative": false,
-            "idempotent": false
-          },
-          "empirical": {
-            "commutative": false,
-            "associative": false,
-            "idempotent": false
-          },
-          "mismatches": [
-            {
-              "property": "commutative",
-              "declared": true,
-              "empirical": false,
-              "issue": "Declares commutative=True but empirically commutative=False"
-            }
-          ],
-          "errors": null
-        },
-        "dare_ties": {
-          "declared": {
-            "commutative": true,
-            "associative": false,
-            "idempotent": false
-          },
-          "empirical": {
-            "commutative": false,
-            "associative": false,
-            "idempotent": false
-          },
-          "mismatches": [
-            {
-              "property": "commutative",
-              "declared": true,
-              "empirical": false,
-              "issue": "Declares commutative=True but empirically commutative=False"
-            }
-          ],
-          "errors": null
-        },
-        "della": {
-          "declared": {
-            "commutative": true,
-            "associative": false,
-            "idempotent": false
-          },
-          "empirical": {
-            "commutative": false,
-            "associative": false,
-            "idempotent": false
-          },
-          "mismatches": [
-            {
-              "property": "commutative",
-              "declared": true,
-              "empirical": false,
-              "issue": "Declares commutative=True but empirically commutative=False"
-            }
-          ],
-          "errors": null
-        },
-        "emr": {
-          "declared": {
-            "commutative": true,
-            "associative": true,
-            "idempotent": false
-          },
-          "empirical": {
-            "commutative": true,
-            "associative": false,
-            "idempotent": false
-          },
-          "mismatches": [
-            {
-              "property": "associative",
-              "declared": true,
-              "empirical": false,
-              "issue": "Declares associative=True but empirically associative=False"
-            }
-          ],
-          "errors": null
-        },
-        "evolutionary_merge": {
-          "declared": {
-            "commutative": true,
-            "associative": true,
-            "idempotent": true
-          },
-          "empirical": {
-            "commutative": false,
-            "associative": false,
-            "idempotent": false
-          },
-          "mismatches": [
-            {
-              "property": "commutative",
-              "declared": true,
-              "empirical": false,
-              "issue": "Declares commutative=True but empirically commutative=False"
-            },
-            {
-              "property": "associative",
-              "declared": true,
-              "empirical": false,
-              "issue": "Declares associative=True but empirically associative=False"
-            },
-            {
-              "property": "idempotent",
-              "declared": true,
-              "empirical": false,
-              "issue": "Declares idempotent=True but empirically idempotent=False"
-            }
-          ],
-          "errors": null
-        },
-        "fisher_merge": {
-          "declared": {
-            "commutative": true,
-            "associative": true,
-            "idempotent": true
-          },
-          "empirical": {
-            "commutative": true,
-            "associative": false,
-            "idempotent": true
-          },
-          "mismatches": [
-            {
-              "property": "associative",
-              "declared": true,
-              "empirical": false,
-              "issue": "Declares associative=True but empirically associative=False"
-            }
-          ],
-          "errors": null
-        },
-        "genetic_merge": {
-          "declared": {
-            "commutative": true,
-            "associative": true,
-            "idempotent": true
-          },
-          "empirical": {
-            "commutative": false,
-            "associative": false,
-            "idempotent": true
-          },
-          "mismatches": [
-            {
-              "property": "commutative",
-              "declared": true,
-              "empirical": false,
-              "issue": "Declares commutative=True but empirically commutative=False"
-            },
-            {
-              "property": "associative",
-              "declared": true,
-              "empirical": false,
-              "issue": "Declares associative=True but empirically associative=False"
-            }
-          ],
-          "errors": null
-        },
-        "led_merge": {
-          "declared": {
-            "commutative": true,
-            "associative": true,
-            "idempotent": true
-          },
-          "empirical": {
-            "commutative": true,
-            "associative": false,
-            "idempotent": true
-          },
-          "mismatches": [
-            {
-              "property": "associative",
-              "declared": true,
-              "empirical": false,
-              "issue": "Declares associative=True but empirically associative=False"
-            }
-          ],
-          "errors": null
-        },
-        "model_breadcrumbs": {
-          "declared": {
-            "commutative": true,
-            "associative": true,
-            "idempotent": false
-          },
-          "empirical": {
-            "commutative": true,
-            "associative": false,
-            "idempotent": false
-          },
-          "mismatches": [
-            {
-              "property": "associative",
-              "declared": true,
-              "empirical": false,
-              "issue": "Declares associative=True but empirically associative=False"
-            }
-          ],
-          "errors": null
-        },
-        "negative_merge": {
-          "declared": {
-            "commutative": true,
-            "associative": true,
-            "idempotent": false
-          },
-          "empirical": {
-            "commutative": true,
-            "associative": false,
-            "idempotent": false
-          },
-          "mismatches": [
-            {
-              "property": "associative",
-              "declared": true,
-              "empirical": false,
-              "issue": "Declares associative=True but empirically associative=False"
-            }
-          ],
-          "errors": null
-        },
-        "regression_mean": {
-          "declared": {
-            "commutative": true,
-            "associative": true,
-            "idempotent": true
-          },
-          "empirical": {
-            "commutative": true,
-            "associative": false,
-            "idempotent": true
-          },
-          "mismatches": [
-            {
-              "property": "associative",
-              "declared": true,
-              "empirical": false,
-              "issue": "Declares associative=True but empirically associative=False"
-            }
-          ],
-          "errors": null
-        },
-        "representation_surgery": {
-          "declared": {
-            "commutative": true,
-            "associative": true,
-            "idempotent": true
-          },
-          "empirical": {
-            "commutative": true,
-            "associative": false,
-            "idempotent": true
-          },
-          "mismatches": [
-            {
-              "property": "associative",
-              "declared": true,
-              "empirical": false,
-              "issue": "Declares associative=True but empirically associative=False"
-            }
-          ],
-          "errors": null
-        },
-        "safe_merge": {
-          "declared": {
-            "commutative": true,
-            "associative": true,
-            "idempotent": true
-          },
-          "empirical": {
-            "commutative": true,
-            "associative": false,
-            "idempotent": true
-          },
-          "mismatches": [
-            {
-              "property": "associative",
-              "declared": true,
-              "empirical": false,
-              "issue": "Declares associative=True but empirically associative=False"
-            }
-          ],
-          "errors": null
-        },
-        "split_unlearn_merge": {
-          "declared": {
-            "commutative": true,
-            "associative": true,
-            "idempotent": false
-          },
-          "empirical": {
-            "commutative": true,
-            "associative": false,
-            "idempotent": false
-          },
-          "mismatches": [
-            {
-              "property": "associative",
-              "declared": true,
-              "empirical": false,
-              "issue": "Declares associative=True but empirically associative=False"
-            }
-          ],
-          "errors": null
-        },
-        "svd_knot_tying": {
-          "declared": {
-            "commutative": true,
-            "associative": false,
-            "idempotent": false
-          },
-          "empirical": {
-            "commutative": true,
-            "associative": false,
-            "idempotent": true
-          },
-          "mismatches": [
-            {
-              "property": "idempotent",
-              "declared": false,
-              "empirical": true,
-              "issue": "Declares idempotent=False but empirically idempotent=True"
-            }
-          ],
-          "errors": null
-        },
-        "ties": {
-          "declared": {
-            "commutative": true,
-            "associative": true,
-            "idempotent": false
-          },
-          "empirical": {
-            "commutative": true,
-            "associative": false,
-            "idempotent": false
-          },
-          "mismatches": [
-            {
-              "property": "associative",
-              "declared": true,
-              "empirical": false,
-              "issue": "Declares associative=True but empirically associative=False"
-            }
-          ],
-          "errors": null
-        },
-        "weight_average": {
-          "declared": {
-            "commutative": true,
-            "associative": true,
-            "idempotent": true
-          },
-          "empirical": {
-            "commutative": true,
-            "associative": false,
-            "idempotent": true
-          },
-          "mismatches": [
-            {
-              "property": "associative",
-              "declared": true,
-              "empirical": false,
-              "issue": "Declares associative=True but empirically associative=False"
-            }
-          ],
-          "errors": null
-        },
-        "weight_scope_alignment": {
-          "declared": {
-            "commutative": true,
-            "associative": true,
-            "idempotent": true
-          },
-          "empirical": {
-            "commutative": true,
-            "associative": false,
-            "idempotent": true
-          },
-          "mismatches": [
-            {
-              "property": "associative",
-              "declared": true,
-              "empirical": false,
-              "issue": "Declares associative=True but empirically associative=False"
-            }
-          ],
-          "errors": null
-        }
-      }
+      "strategies_with_mismatches": [],
+      "total_mismatches": 0,
+      "details": {}
     }
   },
   "classification": {
@@ -2375,27 +1909,7 @@
       "weight_scope_alignment"
     ],
     "BENCHMARK": [],
-    "DECLARATION": [
-      "adarank",
-      "dare",
-      "dare_ties",
-      "della",
-      "emr",
-      "evolutionary_merge",
-      "fisher_merge",
-      "genetic_merge",
-      "led_merge",
-      "model_breadcrumbs",
-      "negative_merge",
-      "regression_mean",
-      "representation_surgery",
-      "safe_merge",
-      "split_unlearn_merge",
-      "svd_knot_tying",
-      "ties",
-      "weight_average",
-      "weight_scope_alignment"
-    ],
+    "DECLARATION": [],
     "TRUE_CRDT": []
   }
 }

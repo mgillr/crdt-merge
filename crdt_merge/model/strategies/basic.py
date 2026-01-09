@@ -106,6 +106,17 @@ class WeightAverage(ModelMergeStrategy):
     """Federated-averaging style weighted average (McMahan et al., 2017).
 
     ``θ_merged = Σ(αᵢ · θᵢ)``  where ``Σαᵢ = 1``.
+
+    .. note:: CRDT compliance
+
+       This strategy is **commutative** and **idempotent** but **not
+       associative** under pairwise composition::
+
+           merge(merge(A,B), C) ≠ merge(A, merge(B,C))
+
+       because pairwise uniform averaging weights later inputs more
+       heavily.  For true N-way averaging, pass all tensors in a single
+       ``merge(...)`` call — the single-call result is order-independent.
     """
 
     @property
@@ -122,7 +133,7 @@ class WeightAverage(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
-        return {"commutative": True, "associative": True, "idempotent": True}
+        return {"commutative": True, "associative": False, "idempotent": True}
 
     def merge(
         self,

@@ -121,7 +121,7 @@ class WeightScopeAlignment(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
-        return {"commutative": True, "associative": True, "idempotent": True}
+        return {"commutative": True, "associative": False, "idempotent": True}
 
     def merge(
         self,
@@ -296,7 +296,7 @@ class RepresentationSurgery(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
-        return {"commutative": True, "associative": True, "idempotent": True}
+        return {"commutative": True, "associative": False, "idempotent": True}
 
     def merge(
         self,

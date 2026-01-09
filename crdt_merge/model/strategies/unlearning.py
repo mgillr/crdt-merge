@@ -112,7 +112,7 @@ class NegativeMerge(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
-        return {"commutative": True, "associative": True, "idempotent": False}
+        return {"commutative": True, "associative": False, "idempotent": False}
 
     def merge(
         self,
@@ -223,7 +223,7 @@ class SplitUnlearnMerge(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
-        return {"commutative": True, "associative": True, "idempotent": False}
+        return {"commutative": True, "associative": False, "idempotent": False}
 
     def merge(
         self,
