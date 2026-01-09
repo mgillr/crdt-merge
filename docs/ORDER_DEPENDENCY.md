@@ -4,7 +4,7 @@
 
 This document classifies every model-merge strategy by its CRDT compliance
 tier and documents the implications for distributed/federated merge
-topologies.
+topologies. Release update implements architecture adjustment to ensure TRUE CRD compliance.
 
 ## CRDT Tier Definitions
 
