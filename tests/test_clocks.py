@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,11 +35,9 @@ from crdt_merge.verify import (
     verify_idempotent,
 )
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 1. VectorClock creation (3 tests)
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestVectorClockCreation:
     def test_empty_clock(self):
@@ -53,11 +55,9 @@ class TestVectorClockCreation:
         vc_none = VectorClock(None)
         assert vc_none.value == {}
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 2. VectorClock.increment (3 tests)
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestVectorClockIncrement:
     def test_increment_new_node(self):
@@ -77,11 +77,9 @@ class TestVectorClockIncrement:
         assert vc2.get("a") == 2
         assert vc is not vc2
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 3. VectorClock.get (2 tests)
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestVectorClockGet:
     def test_get_existing_node(self):
@@ -92,11 +90,9 @@ class TestVectorClockGet:
         vc = VectorClock({"x": 42})
         assert vc.get("y") == 0
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 4. VectorClock.compare (5 tests)
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestVectorClockCompare:
     def test_compare_before(self):
@@ -126,11 +122,9 @@ class TestVectorClockCompare:
         assert nonempty.compare(empty) == Ordering.AFTER
         assert empty.compare(VectorClock()) == Ordering.EQUAL
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 5. VectorClock.merge (4 tests)
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestVectorClockMerge:
     def test_merge_disjoint_nodes(self):
@@ -161,11 +155,9 @@ class TestVectorClockMerge:
         assert a.get("x") == 1, "Original a must be unchanged"
         assert b.get("x") == 2, "Original b must be unchanged"
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 6. VectorClock serialization (2 tests)
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestVectorClockSerialization:
     def test_roundtrip(self):
@@ -181,11 +173,9 @@ class TestVectorClockSerialization:
         assert restored == vc
         assert restored.value == {}
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 7. DottedVersionVector creation (2 tests)
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestDVVCreation:
     def test_default(self):
@@ -199,11 +189,9 @@ class TestDVVCreation:
         assert dvv.value == {"a": 4, "b": 2}
         assert dvv.dot == ("a", 4)
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 8. DottedVersionVector.advance (2 tests)
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestDVVAdvance:
     def test_advance_new_node(self):
@@ -219,11 +207,9 @@ class TestDVVAdvance:
         assert advanced.dot == ("a", 6)
         assert advanced.base == base  # base unchanged
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 9. DottedVersionVector.merge (2 tests)
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestDVVMerge:
     def test_merge_two_dvvs(self):
@@ -246,11 +232,9 @@ class TestDVVMerge:
         assert merged.value == {"a": 4}
         assert merged.dot is None
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 10. DottedVersionVector.descends (2 tests)
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestDVVDescends:
     def test_descends_true(self):
@@ -263,11 +247,9 @@ class TestDVVDescends:
         b = DottedVersionVector(base=VectorClock({"x": 3}))
         assert a.descends(b) is False
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 11. DottedVersionVector serialization (1 test)
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestDVVSerialization:
     def test_roundtrip(self):
@@ -281,11 +263,9 @@ class TestDVVSerialization:
         assert restored.dot == dvv.dot
         assert restored.base == dvv.base
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 12. CRDT law verification (4 tests) — CRITICAL
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 def _gen_vector_clock():
     """Generate a random VectorClock for property-based testing."""
@@ -295,7 +275,6 @@ def _gen_vector_clock():
         for _ in range(random.randint(0, 20)):
             vc = vc.increment(node)
     return vc
-
 
 class TestCRDTLaws:
     def test_vector_clock_commutative(self):
@@ -325,11 +304,9 @@ class TestCRDTLaws:
         )
         assert result.passed, f"Convergence failed: {result.first_failure}"
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 13. Edge cases (3 tests)
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestEdgeCases:
     def test_negative_counter_rejected(self):

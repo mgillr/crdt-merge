@@ -1,12 +1,15 @@
 # SPDX-License-Identifier: BUSL-1.1
-#
-# Copyright 2026 Ryan Gillespie
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
@@ -45,7 +48,6 @@ __all__ = [
 
 _REGISTRY: Dict[str, Type[ModelMergeStrategy]] = {}
 
-
 # ---------------------------------------------------------------------------
 # Decorator
 # ---------------------------------------------------------------------------
@@ -80,7 +82,6 @@ def register_strategy(name: str):
 
     return _decorator
 
-
 # ---------------------------------------------------------------------------
 # Lookup helpers
 # ---------------------------------------------------------------------------
@@ -107,12 +108,10 @@ def get_strategy(name: str, **kwargs: Any) -> ModelMergeStrategy:
         )
     return _REGISTRY[name](**kwargs)
 
-
 def list_strategies() -> List[str]:
     """Return sorted list of all registered strategy names."""
     _discover_plugins()
     return sorted(_REGISTRY.keys())
-
 
 def list_strategies_by_category() -> Dict[str, List[str]]:
     """Return strategies grouped by their ``category`` property."""
@@ -124,13 +123,11 @@ def list_strategies_by_category() -> Dict[str, List[str]]:
         cats.setdefault(cat, []).append(name)
     return cats
 
-
 # ---------------------------------------------------------------------------
 # Entry-point plugin discovery
 # ---------------------------------------------------------------------------
 
 _PLUGINS_LOADED = False
-
 
 def _discover_plugins() -> None:
     """Load community strategies from the ``crdt_merge.model_strategies`` entry-point group."""
@@ -159,13 +156,11 @@ def _discover_plugins() -> None:
         except Exception:
             pass
 
-
 def _reset_registry() -> None:
     """Reset registry — for testing only."""
     global _PLUGINS_LOADED
     _REGISTRY.clear()
     _PLUGINS_LOADED = False
-
 
 # ─── Auto-register all built-in strategies ─────────────────────────────────
 # Importing strategy modules triggers @register_strategy decorators.

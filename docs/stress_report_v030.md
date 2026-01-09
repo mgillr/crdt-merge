@@ -1,5 +1,10 @@
 # crdt-merge v0.3.0 — Absolute Ceiling Stress Report
 
+> **Copyright © 2026 Ryan Gillespie / Optitransfer. All rights reserved.**
+> Licensed under the Business Source License 1.1 (BSL-1.1).
+> See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
+
+
 > **Platform**: Alpine Linux sandbox (limited RAM ~512MB)
 > **Python**: 3.12.13
 > **Date**: 2026-03-26

@@ -1,12 +1,15 @@
 # SPDX-License-Identifier: BUSL-1.1
-#
-# Copyright 2026 Ryan Gillespie
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
@@ -53,18 +56,15 @@ _RANGE_RE = re.compile(
     r"^(?P<prefix>.*?)(?P<start>\d+)-(?P<end>\d+)(?P<suffix>.*)$"
 )
 
-
 def _is_range_pattern(pattern: str) -> bool:
     """Check if *pattern* contains a numeric range like ``0-15``."""
     return bool(_RANGE_RE.search(pattern))
-
 
 def _is_regex_pattern(pattern: str) -> bool:
     """Heuristic: treat as regex if it contains regex-specific chars not used in glob."""
     # Glob uses * and ?, but regex uses things like ^, $, +, {, |, etc.
     regex_chars = {'^', '$', '+', '|', '{', '}', '(', ')'}
     return any(c in pattern for c in regex_chars)
-
 
 def _range_matches(pattern: str, layer_name: str) -> bool:
     """Check if *layer_name* matches a range pattern like ``layers.0-15.self_attn``."""
@@ -87,14 +87,12 @@ def _range_matches(pattern: str, layer_name: str) -> bool:
     num = int(nm.group(1))
     return start <= num <= end
 
-
 def _regex_matches(pattern: str, layer_name: str) -> bool:
     """Attempt regex match."""
     try:
         return bool(re.fullmatch(pattern, layer_name))
     except re.error:
         return False
-
 
 # ---------------------------------------------------------------------------
 # ModelMergeSchema
@@ -205,7 +203,6 @@ class ModelMergeSchema:
 
     def __repr__(self) -> str:
         return f"ModelMergeSchema({self.to_dict()!r})"
-
 
 # ---------------------------------------------------------------------------
 # ModelCRDT
@@ -544,7 +541,6 @@ class ModelMerge:
             }
 
         return merged, prov
-
 
 # ---------------------------------------------------------------------------
 # Utilities

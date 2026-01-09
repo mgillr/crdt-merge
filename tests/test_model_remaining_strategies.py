@@ -1,12 +1,15 @@
 # SPDX-License-Identifier: BUSL-1.1
-#
-# Copyright 2026 Ryan Gillespie
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
@@ -68,7 +71,6 @@ from crdt_merge.model.strategies.safety import (
     LEDMerge,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -89,10 +91,8 @@ def _approx(a, b, tol=1e-5):
     else:
         assert abs(a - b) < tol, f"{a} != {b} (tol={tol})"
 
-
 def _np(lst):
     return np.array(lst, dtype=float)
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -102,7 +102,6 @@ def _np(lst):
 def models_2():
     return [_np([1.0, 2.0, 3.0, 4.0]), _np([5.0, 6.0, 7.0, 8.0])]
 
-
 @pytest.fixture
 def models_3():
     return [
@@ -111,16 +110,13 @@ def models_3():
         _np([9.0, 10.0, 11.0, 12.0]),
     ]
 
-
 @pytest.fixture
 def base_tensor():
     return _np([0.5, 1.0, 1.5, 2.0])
 
-
 @pytest.fixture
 def zero_tensor():
     return _np([0.0, 0.0, 0.0, 0.0])
-
 
 # ===================================================================
 # 14. FisherMerge
@@ -180,7 +176,6 @@ class TestFisherMerge:
         assert result[0] < 3.0  # closer to 1.0
         assert result[3] > 6.0  # closer to 8.0
 
-
 # ===================================================================
 # 15. RegressionMean
 # ===================================================================
@@ -236,7 +231,6 @@ class TestRegressionMean:
         # With very high regularization, result should be close to mean
         assert diff_r2 < 1.0
 
-
 # ===================================================================
 # 16. AdaptiveMerging
 # ===================================================================
@@ -288,7 +282,6 @@ class TestAdaptiveMerging:
         s = AdaptiveMerging()
         r1 = s.merge(models_2, granularity="task", steps=10)
         assert r1.shape == (4,)
-
 
 # ===================================================================
 # 17. DAM
@@ -342,7 +335,6 @@ class TestDAM:
         r2 = s.merge(models_2, steps=100)
         # Different optimization steps → may produce different results
         assert r1.shape == r2.shape == (4,)
-
 
 # ===================================================================
 # 18. EvolutionaryMerge
@@ -404,7 +396,6 @@ class TestEvolutionaryMerge:
         )
         assert result.shape == (4,)
 
-
 # ===================================================================
 # 19. GeneticMerge
 # ===================================================================
@@ -455,7 +446,6 @@ class TestGeneticMerge:
         s = GeneticMerge()
         result = s.merge(models_2, mutation_rate=0.5, population_size=10, generations=5, seed=42)
         assert result.shape == (4,)
-
 
 # ===================================================================
 # 20. NegativeMerge
@@ -516,7 +506,6 @@ class TestNegativeMerge:
         result = s.merge(models_2, base=base_tensor, models_to_negate=[0])
         assert result.shape == (4,)
 
-
 # ===================================================================
 # 21. SplitUnlearnMerge
 # ===================================================================
@@ -572,7 +561,6 @@ class TestSplitUnlearnMerge:
         result = s.merge(models_2, base=base_tensor, subspace_method="random", seed=42)
         assert result.shape == (4,)
 
-
 # ===================================================================
 # 22. WeightScopeAlignment
 # ===================================================================
@@ -625,7 +613,6 @@ class TestWeightScopeAlignment:
         for method in ["zscore", "minmax", "unit"]:
             result = s.merge(models_2, scope_method=method)
             assert result.shape == (4,)
-
 
 # ===================================================================
 # 23. RepresentationSurgery
@@ -685,7 +672,6 @@ class TestRepresentationSurgery:
         # After centering, the mean should be close to the avg input mean
         avg_input_mean = (np.mean(models_2[0]) + np.mean(models_2[1])) / 2.0
         assert abs(np.mean(result) - avg_input_mean) < 1e-6
-
 
 # ===================================================================
 # 24. SafeMerge
@@ -748,7 +734,6 @@ class TestSafeMerge:
         diff_base_high = np.sum((result_high - base_tensor) ** 2)
         diff_base_low = np.sum((result_low - base_tensor) ** 2)
         assert diff_base_high <= diff_base_low + 1e-6
-
 
 # ===================================================================
 # 25. LEDMerge
@@ -817,7 +802,6 @@ class TestLEDMerge:
         for j in range(4):
             expected = models_2[0][j] if abs(models_2[0][j]) < abs(models_2[1][j]) else models_2[1][j]
             assert abs(result[j] - expected) < 1e-6
-
 
 # ===================================================================
 # Integration Tests

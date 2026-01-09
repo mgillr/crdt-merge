@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +37,6 @@ import json
 import pathlib
 
 pa = pytest.importorskip("pyarrow", reason="PyArrow not installed")
-
 
 # ═══════════════════════════════════════════════════════════════
 # SECTION 1: ARROW + SCHEMA EVOLUTION PIPELINE
@@ -136,7 +139,6 @@ class TestArrowSchemaEvolution:
         engine = ArrowMerge()
         result = engine.merge(left, right)
         assert result.num_rows == 3  # row (2, "b") deduped
-
 
 # ═══════════════════════════════════════════════════════════════
 # SECTION 2: GOSSIP + VECTOR CLOCK PIPELINE
@@ -268,7 +270,6 @@ class TestGossipVectorClock:
         assert "only-a" in push_keys
         assert "only-b" in pull_keys
 
-
 # ═══════════════════════════════════════════════════════════════
 # SECTION 3: MERKLE + DELTA PIPELINE
 # ═══════════════════════════════════════════════════════════════
@@ -383,7 +384,6 @@ class TestMerkleDelta:
         assert "differing_keys" in d
         assert "only_in_right" in d
 
-
 # ═══════════════════════════════════════════════════════════════
 # SECTION 4: ARROW + PARALLEL PIPELINE
 # ═══════════════════════════════════════════════════════════════
@@ -451,7 +451,6 @@ class TestArrowParallel:
         right = [{"id": i, "score": i * 10 + 5} for i in range(5000, 15000)]
         result = parallel_merge(left, right, key="id", schema=schema, chunk_size=2000)
         assert len(result) == 15000
-
 
 # ═══════════════════════════════════════════════════════════════
 # SECTION 5: ASYNC + STREAMING PIPELINE
@@ -527,7 +526,6 @@ class TestAsyncStreaming:
         total = sum(len(b) for b in batches)
         assert total == 2
 
-
 # ═══════════════════════════════════════════════════════════════
 # SECTION 6: MULTI-KEY + EXISTING FEATURES
 # ═══════════════════════════════════════════════════════════════
@@ -596,7 +594,6 @@ class TestMultiKeyExisting:
         other = [{"id": 2, "v": "B"}, {"id": 3, "v": "c"}]
         result = merge(clean, other, key="id")
         assert len(result) >= 2  # at least the overlapping + unique keys
-
 
 # ═══════════════════════════════════════════════════════════════
 # SECTION 7: WIRE PROTOCOL v2 ROUNDTRIP
@@ -707,7 +704,6 @@ class TestWireProtocolV2:
         restored = deserialize(data_comp)
         assert isinstance(restored, VectorClock)
         assert restored.value == vc.value
-
 
 # ═══════════════════════════════════════════════════════════════
 # SECTION 8: FULL END-TO-END
@@ -850,7 +846,6 @@ class TestFullEndToEnd:
         assert gc_restored.value == 42
         assert isinstance(vc_restored, VectorClock)
         assert vc_restored.value == {"a": 1, "b": 2}
-
 
 # ═══════════════════════════════════════════════════════════════
 # SECTION 9: IMPORT VERIFICATION

@@ -1,12 +1,15 @@
 # SPDX-License-Identifier: BUSL-1.1
-#
-# Copyright 2026 Ryan Gillespie
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
@@ -42,7 +45,6 @@ from crdt_merge.model.strategies.base import (
 
 __all__ = ["LoRAMerge", "LoRAMergeSchema"]
 
-
 # ---------------------------------------------------------------------------
 # Pure-Python matrix helpers (numpy-optional)
 # ---------------------------------------------------------------------------
@@ -51,14 +53,12 @@ def _np():
     """Return numpy or None."""
     return _get_np()
 
-
 def _zeros(rows: int, cols: int):
     """Create a zero matrix."""
     np = _np()
     if np is not None:
         return np.zeros((rows, cols), dtype=float)
     return [[0.0] * cols for _ in range(rows)]
-
 
 def _get_shape(m) -> Tuple[int, int]:
     """Return (rows, cols) for a 2-D array-like."""
@@ -78,7 +78,6 @@ def _get_shape(m) -> Tuple[int, int]:
         return (1, len(m))
     return (0, 0)
 
-
 def _to_2d(m) -> Any:
     """Ensure m is a 2-D array."""
     np = _np()
@@ -90,7 +89,6 @@ def _to_2d(m) -> Any:
     if isinstance(arr, list) and arr and not isinstance(arr[0], list):
         return [arr]
     return arr
-
 
 def _matmul(a, b):
     """Matrix multiply two 2-D arrays."""
@@ -110,7 +108,6 @@ def _matmul(a, b):
                 result[i][j] += a2[i][k] * b2[k][j]
     return result
 
-
 def _add_matrices(a, b):
     """Element-wise add two 2-D arrays."""
     np = _np()
@@ -121,7 +118,6 @@ def _add_matrices(a, b):
     rows = len(aa)
     cols = len(aa[0]) if rows > 0 else 0
     return [[aa[i][j] + bb[i][j] for j in range(cols)] for i in range(rows)]
-
 
 def _svd_truncate(matrix, target_rank: int):
     """Truncate a matrix to target_rank via SVD (keep top singular values)."""
@@ -136,7 +132,6 @@ def _svd_truncate(matrix, target_rank: int):
     cols = len(arr[0]) if rows > 0 else 0
     k = min(target_rank, rows, cols)
     return [row[:k] for row in arr[:k]] if k > 0 else arr
-
 
 # ---------------------------------------------------------------------------
 # Rank harmonization
@@ -183,7 +178,6 @@ def _harmonize_rank_lora_a(matrices: List, target_rank: int, strategy: str):
                 results.append(arr[:target_rank])
     return results
 
-
 def _harmonize_rank_lora_b(matrices: List, target_rank: int, strategy: str):
     """Harmonize lora_B matrices to target_rank.
 
@@ -220,7 +214,6 @@ def _harmonize_rank_lora_b(matrices: List, target_rank: int, strategy: str):
                 results.append([row[:target_rank] for row in arr])
     return results
 
-
 def _compute_target_rank(ranks: List[int], strategy: str, weights: Optional[List[float]] = None) -> int:
     """Compute the target rank from a list of ranks."""
     if not ranks:
@@ -239,7 +232,6 @@ def _compute_target_rank(ranks: List[int], strategy: str, weights: Optional[List
         return max(1, round(sum(r * wt for r, wt in zip(ranks, w))))
     else:
         raise ValueError(f"Unknown rank_strategy: {strategy}")
-
 
 # ---------------------------------------------------------------------------
 # LoRAMergeSchema
@@ -308,7 +300,6 @@ class LoRAMergeSchema:
 
     def __repr__(self) -> str:
         return f"LoRAMergeSchema({self.to_dict()!r})"
-
 
 # ---------------------------------------------------------------------------
 # LoRAMerge
@@ -527,7 +518,6 @@ class LoRAMerge:
         merged_b = strategy.merge(lora_b_harmonized, weights=merge_weights)
 
         return {"lora_A": merged_a, "lora_B": merged_b}
-
 
 # ---------------------------------------------------------------------------
 # Utilities

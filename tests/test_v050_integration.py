@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +29,6 @@ import pytest
 import os
 import json
 import time
-
 
 # ═══════════════════════════════════════════════════════════════
 # SECTION 1: PACKAGE INTEGRITY
@@ -77,7 +80,6 @@ class TestPackageIntegrity:
     def test_zero_dependencies(self):
         import crdt_merge
         assert True
-
 
 # ═══════════════════════════════════════════════════════════════
 # SECTION 2: CORE CRDT TYPES — GCounter
@@ -138,7 +140,6 @@ class TestGCounter:
         c = GCounter()
         assert c.value == 0
 
-
 # ═══════════════════════════════════════════════════════════════
 # SECTION 2b: PNCounter
 # ═══════════════════════════════════════════════════════════════
@@ -168,7 +169,6 @@ class TestPNCounter:
         d = c.to_dict()
         c2 = PNCounter.from_dict(d)
         assert c2.value == 7
-
 
 # ═══════════════════════════════════════════════════════════════
 # SECTION 2c: LWWRegister
@@ -200,7 +200,6 @@ class TestLWWRegister:
         d = r.to_dict()
         r2 = LWWRegister.from_dict(d)
         assert r2.value == "data"
-
 
 # ═══════════════════════════════════════════════════════════════
 # SECTION 2d: ORSet
@@ -245,7 +244,6 @@ class TestORSet:
         s = ORSet()
         assert s.value == set()
 
-
 # ═══════════════════════════════════════════════════════════════
 # SECTION 2e: LWWMap
 # ═══════════════════════════════════════════════════════════════
@@ -278,7 +276,6 @@ class TestLWWMap:
         m2 = LWWMap.from_dict(d)
         assert m2.get("a") == 1
         assert m2.get("b") == 2
-
 
 # ═══════════════════════════════════════════════════════════════
 # SECTION 3: DATAFRAME MERGE
@@ -365,7 +362,6 @@ class TestDataframeMerge:
         assert len(result) == 1
         assert len(result[0]) == 51
 
-
 # ═══════════════════════════════════════════════════════════════
 # SECTION 4: STRATEGIES  (MergeSchema uses **kwargs)
 # ═══════════════════════════════════════════════════════════════
@@ -428,7 +424,6 @@ class TestStrategies:
         flat = [r for chunk in result for r in chunk]
         assert len(flat) >= 2
 
-
 # ═══════════════════════════════════════════════════════════════
 # SECTION 5: DEDUP (key is callable, returns tuple)
 # ═══════════════════════════════════════════════════════════════
@@ -468,7 +463,6 @@ class TestDedup:
         from crdt_merge import dedup
         unique, removed = dedup([])
         assert unique == []
-
 
 # ═══════════════════════════════════════════════════════════════
 # SECTION 6: JSON MERGE
@@ -567,7 +561,6 @@ class TestStreaming:
         flat = [r for chunk in result for r in chunk]
         assert len(flat) >= 1
 
-
 # ═══════════════════════════════════════════════════════════════
 # SECTION 8: DELTA SYNC (returns Delta objects, not dicts)
 # ═══════════════════════════════════════════════════════════════
@@ -618,8 +611,6 @@ class TestDelta:
         data = [{"id": 1, "v": "same"}]
         delta = compute_delta(data, data, key="id")
         assert isinstance(delta, Delta)
-
-
 
 # ═══════════════════════════════════════════════════════════════
 # SECTION 9: PROVENANCE (ProvenanceLog has .to_dict(), .summary() -> str)
@@ -704,7 +695,6 @@ class TestProvenance:
         assert len(result) == 300
         assert isinstance(log.summary(), str)
 
-
 # ═══════════════════════════════════════════════════════════════
 # SECTION 10: VERIFICATION (gen_fn is a callable, not samples)
 # ═══════════════════════════════════════════════════════════════
@@ -783,7 +773,6 @@ class TestVerification:
     def test_verification_error_type(self):
         from crdt_merge import CRDTVerificationError
         assert issubclass(CRDTVerificationError, Exception)
-
 
 # ═══════════════════════════════════════════════════════════════
 # SECTION 11: WIRE FORMAT (wire_size takes bytes, value is property)
@@ -914,7 +903,6 @@ class TestWireFormat:
         c2 = deserialize(data_compressed)
         assert c2.value == 42
 
-
 # ═══════════════════════════════════════════════════════════════
 # SECTION 12: PROBABILISTIC CRDTs (cardinality not count, capacity not expected_items)
 # ═══════════════════════════════════════════════════════════════
@@ -1007,7 +995,6 @@ class TestMergeableHLL:
             h.add("same_item")
         assert h.cardinality() < 3
 
-
 class TestMergeableBloom:
     def test_create_and_add(self):
         from crdt_merge import MergeableBloom
@@ -1080,7 +1067,6 @@ class TestMergeableBloom:
         b = MergeableBloom(capacity=100)
         assert b.size_bytes() > 0
 
-
 class TestMergeableCMS:
     def test_create_and_add(self):
         from crdt_merge import MergeableCMS
@@ -1152,7 +1138,6 @@ class TestMergeableCMS:
         cms.add_all(["a", "b", "c", "a", "a"])
         assert cms.estimate("a") >= 3
 
-
 # ═══════════════════════════════════════════════════════════════
 # SECTION 13: WIRE + PROBABILISTIC CROSS-MODULE
 # ═══════════════════════════════════════════════════════════════
@@ -1211,7 +1196,6 @@ class TestWireProbabilisticCross:
         assert "x" in restored[3].value
         assert restored[4].get("k") == "v"
 
-
 # ═══════════════════════════════════════════════════════════════
 # SECTION 14: FULL PIPELINE CROSS-MODULE INTEGRATION
 # ═══════════════════════════════════════════════════════════════
@@ -1266,7 +1250,6 @@ class TestFullPipeline:
         chunks = list(merge_stream(a, b, key="id"))
         flat = [r for chunk in chunks for r in chunk]
         assert len(flat) >= 50
-
 
 # ═══════════════════════════════════════════════════════════════
 # SECTION 15: EDGE CASES & STRESS TESTS

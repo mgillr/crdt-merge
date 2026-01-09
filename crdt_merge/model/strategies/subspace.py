@@ -1,12 +1,15 @@
 # SPDX-License-Identifier: BUSL-1.1
-#
-# Copyright 2026 Ryan Gillespie
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
@@ -42,7 +45,6 @@ from crdt_merge.model.strategies.base import (
     _to_array,
 )
 
-
 # ---------------------------------------------------------------------------
 # Pure-Python vector helpers
 # ---------------------------------------------------------------------------
@@ -50,22 +52,17 @@ from crdt_merge.model.strategies.base import (
 def _py_add(a: list, b: list) -> list:
     return [x + y for x, y in zip(a, b)]
 
-
 def _py_sub(a: list, b: list) -> list:
     return [x - y for x, y in zip(a, b)]
-
 
 def _py_scale(a: list, s: float) -> list:
     return [x * s for x in a]
 
-
 def _py_zeros(n: int) -> list:
     return [0.0] * n
 
-
 def _py_abs(a: list) -> list:
     return [abs(x) for x in a]
-
 
 def _py_percentile(values: list, pct: float) -> float:
     """Compute percentile from a sorted list of values."""
@@ -78,7 +75,6 @@ def _py_percentile(values: list, pct: float) -> float:
     if f == c:
         return s[f]
     return s[f] * (c - k) + s[c] * (k - f)
-
 
 def _flatten(arr: Any):
     """Flatten array-like to 1-D. Returns (flat, shape)."""
@@ -96,7 +92,6 @@ def _flatten(arr: Any):
         return [float(x) for x in arr], None
     return arr, None
 
-
 def _unflatten(flat: Any, shape):
     if shape is None:
         return flat
@@ -108,12 +103,10 @@ def _unflatten(flat: Any, shape):
         return [flat[i * cols:(i + 1) * cols] for i in range(rows)]
     return flat
 
-
 def _require_base(base: Any) -> None:
     """Raise if base_model is missing."""
     if base is None:
         raise ValueError("Strategy requires base_model parameter")
-
 
 # ---------------------------------------------------------------------------
 # Task-vector helpers
@@ -124,7 +117,6 @@ def _compute_task_vectors_np(tensors, base, np):
     b = _to_array(base).astype(float)
     return [_to_array(t).astype(float) - b for t in tensors], b
 
-
 def _compute_task_vectors_py(tensors, base):
     """Compute task vectors as plain lists."""
     b_flat, b_shape = _flatten(_to_array(base))
@@ -133,7 +125,6 @@ def _compute_task_vectors_py(tensors, base):
         t_flat, _ = _flatten(_to_array(t))
         tvs.append(_py_sub(t_flat, b_flat))
     return tvs, b_flat, b_shape
-
 
 # ===================================================================
 # 5. TIESMerge
@@ -271,7 +262,6 @@ class TIESMerge(ModelMergeStrategy):
             result = _unflatten(result, b_shape)
             return _from_array(result, original)
 
-
 # ===================================================================
 # 6. DareDropAndRescale (DARE)
 # ===================================================================
@@ -343,7 +333,6 @@ class DareDropAndRescale(ModelMergeStrategy):
             result = _py_add(b_flat, merged)
             result = _unflatten(result, b_shape)
             return _from_array(result, original)
-
 
 # ===================================================================
 # 7. DellaDropElectLowRank (DELLA)
@@ -434,7 +423,6 @@ class DellaDropElectLowRank(ModelMergeStrategy):
             result = _py_add(b_flat, merged)
             result = _unflatten(result, b_shape)
             return _from_array(result, original)
-
 
 # ===================================================================
 # 8. DareTiesHybrid (DARE-TIES)
@@ -573,7 +561,6 @@ class DareTiesHybrid(ModelMergeStrategy):
             result = _unflatten(result, b_shape)
             return _from_array(result, original)
 
-
 # ===================================================================
 # 9. ModelBreadcrumbs
 # ===================================================================
@@ -670,7 +657,6 @@ class ModelBreadcrumbs(ModelMergeStrategy):
             result = _py_add(b_flat, merged)
             result = _unflatten(result, b_shape)
             return _from_array(result, original)
-
 
 # ===================================================================
 # 10. EMRMerge
@@ -779,7 +765,6 @@ class EMRMerge(ModelMergeStrategy):
             result = _py_add(b_flat, merged)
             result = _unflatten(result, b_shape)
             return _from_array(result, original)
-
 
 # ===================================================================
 # 11. STAR — Spectral Truncation Adaptive Rescaling
@@ -906,7 +891,6 @@ class SpectralTruncationAdaptiveRescaling(ModelMergeStrategy):
             result = _unflatten(result, b_shape)
             return _from_array(result, original)
 
-
 # ===================================================================
 # 12. SVDKnotTying
 # ===================================================================
@@ -1032,7 +1016,6 @@ class SVDKnotTying(ModelMergeStrategy):
             result = _py_add(b_flat, merged)
             result = _unflatten(result, b_shape)
             return _from_array(result, original)
-
 
 # ===================================================================
 # 13. AdaptiveRankPruning (AdaRank)

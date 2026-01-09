@@ -1,0 +1,1217 @@
+{
+  "version": "0.8.1",
+  "timestamp": "2026-03-29T20:24:50.736939+00:00",
+  "python_version": "3.12.13",
+  "numpy_version": "2.4.4",
+  "total_strategies": 25,
+  "strategies_verified": [
+    "ada_merging",
+    "adarank",
+    "dam",
+    "dare",
+    "dare_ties",
+    "della",
+    "emr",
+    "evolutionary_merge",
+    "fisher_merge",
+    "genetic_merge",
+    "led_merge",
+    "linear",
+    "model_breadcrumbs",
+    "negative_merge",
+    "regression_mean",
+    "representation_surgery",
+    "safe_merge",
+    "slerp",
+    "split_unlearn_merge",
+    "star",
+    "svd_knot_tying",
+    "task_arithmetic",
+    "ties",
+    "weight_average",
+    "weight_scope_alignment"
+  ],
+  "crdt_law_results": {
+    "ada_merging": {
+      "commutativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.012604300002294622
+      },
+      "associativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.022167700024056103
+      },
+      "idempotency": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.010192400009145786
+      }
+    },
+    "adarank": {
+      "commutativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.014805000023443426
+      },
+      "associativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.023116800002753735
+      },
+      "idempotency": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.009448299977066199
+      }
+    },
+    "dam": {
+      "commutativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.01192009998476351
+      },
+      "associativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.02188089999890508
+      },
+      "idempotency": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.01039019998643198
+      }
+    },
+    "dare": {
+      "commutativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.012809000008928706
+      },
+      "associativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.021272800017868576
+      },
+      "idempotency": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.008479999996779952
+      }
+    },
+    "dare_ties": {
+      "commutativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.012981600002603955
+      },
+      "associativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.027452700010144326
+      },
+      "idempotency": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.01065150000840731
+      }
+    },
+    "della": {
+      "commutativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.012505699987741536
+      },
+      "associativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.023303100010707567
+      },
+      "idempotency": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.009160100000826787
+      }
+    },
+    "emr": {
+      "commutativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.014012800045293261
+      },
+      "associativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.02538509999112648
+      },
+      "idempotency": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.011222400007682154
+      }
+    },
+    "evolutionary_merge": {
+      "commutativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.014709699996728887
+      },
+      "associativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.031672899979184876
+      },
+      "idempotency": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.017009699990921945
+      }
+    },
+    "fisher_merge": {
+      "commutativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.011654999968868651
+      },
+      "associativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.020057400001860515
+      },
+      "idempotency": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.007823100008863548
+      }
+    },
+    "genetic_merge": {
+      "commutativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.01458200001707155
+      },
+      "associativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.035628000011911354
+      },
+      "idempotency": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.020425299987891776
+      }
+    },
+    "led_merge": {
+      "commutativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.011279300008482096
+      },
+      "associativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.01974650002694034
+      },
+      "idempotency": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.007884699994065159
+      }
+    },
+    "linear": {
+      "commutativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.01190399997312852
+      },
+      "associativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.01893690000542847
+      },
+      "idempotency": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.015709800004515273
+      }
+    },
+    "model_breadcrumbs": {
+      "commutativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.012981799966382823
+      },
+      "associativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.031066900010046083
+      },
+      "idempotency": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.015837199998713913
+      }
+    },
+    "negative_merge": {
+      "commutativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.012211600005684886
+      },
+      "associativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.021826399995461543
+      },
+      "idempotency": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.008496599991758558
+      }
+    },
+    "regression_mean": {
+      "commutativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.010968499987029645
+      },
+      "associativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.019437899982222007
+      },
+      "idempotency": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.0076599000067290035
+      }
+    },
+    "representation_surgery": {
+      "commutativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.011476099996343692
+      },
+      "associativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.020567900003243267
+      },
+      "idempotency": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.0095610999778728
+      }
+    },
+    "safe_merge": {
+      "commutativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.0124374999813881
+      },
+      "associativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.02470969999421868
+      },
+      "idempotency": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.009433600007469067
+      }
+    },
+    "slerp": {
+      "commutativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.01144490001934173
+      },
+      "associativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.19897319998563034
+      },
+      "idempotency": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.008282700014206057
+      }
+    },
+    "split_unlearn_merge": {
+      "commutativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.011941999980535911
+      },
+      "associativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.021338499993817095
+      },
+      "idempotency": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.008645999992040743
+      }
+    },
+    "star": {
+      "commutativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.012378499991427816
+      },
+      "associativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.024624300010600564
+      },
+      "idempotency": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.009753400001955015
+      }
+    },
+    "svd_knot_tying": {
+      "commutativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.011710400008269062
+      },
+      "associativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.02161569998406776
+      },
+      "idempotency": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.010641699986990716
+      }
+    },
+    "task_arithmetic": {
+      "commutativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.011801300024671946
+      },
+      "associativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.021306099972662196
+      },
+      "idempotency": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.008362200014744303
+      }
+    },
+    "ties": {
+      "commutativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.015045700001792284
+      },
+      "associativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.029459199981829443
+      },
+      "idempotency": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.013489699995261617
+      }
+    },
+    "weight_average": {
+      "commutativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.016617300013876957
+      },
+      "associativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.028314600001522194
+      },
+      "idempotency": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.011972800018611451
+      }
+    },
+    "weight_scope_alignment": {
+      "commutativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.01850579999427282
+      },
+      "associativity": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.030166799990638538
+      },
+      "idempotency": {
+        "state": true,
+        "resolve": true,
+        "trials": 10,
+        "mean_ms": 0.01871840000831071
+      }
+    }
+  },
+  "performance": {
+    "add_single": {
+      "mean_ms": 21.231396813339718,
+      "std_ms": 6.904769880608982
+    },
+    "add_batch_100": {
+      "mean_ms": 1.9356608933245905,
+      "std_ms": 1.7268064136916912
+    },
+    "merge_pairwise": {
+      "mean_ms": 0.03835430667246934,
+      "std_ms": 0.022000615970744937
+    },
+    "merge_many_10": {
+      "mean_ms": 0.018498466667248675,
+      "std_ms": 0.00391394271133519
+    },
+    "resolve_10_contributions": {
+      "mean_ms": 343.8302025733294,
+      "std_ms": 1883.2619384640238
+    },
+    "serialization_roundtrip": {
+      "mean_ms": 0.23759025333523218,
+      "std_ms": 0.2579872601104056
+    },
+    "per_strategy": {
+      "ada_merging_sz50": {
+        "add_100": 21.040142999936506,
+        "add_batch_100": 0.5852970000432833,
+        "merge_pairwise": 0.021720000063396583,
+        "merge_many_10": 0.028476999887061538,
+        "resolve_10": 14.674459000048046,
+        "serialization": 0.07928299999093724
+      },
+      "adarank_sz50": {
+        "add_100": 15.533695000044645,
+        "add_batch_100": 0.5366279999634571,
+        "merge_pairwise": 0.028956000051039155,
+        "merge_many_10": 0.019738999981200323,
+        "resolve_10": 1.2251670000296144,
+        "serialization": 0.04740700001093501
+      },
+      "dam_sz50": {
+        "add_100": 16.141803000095933,
+        "add_batch_100": 0.5327239999814992,
+        "merge_pairwise": 0.03256200000123499,
+        "merge_many_10": 0.01688199995442119,
+        "resolve_10": 6.172644999992372,
+        "serialization": 0.03347300003042619
+      },
+      "dare_sz50": {
+        "add_100": 15.391897000085919,
+        "add_batch_100": 0.5521699999917473,
+        "merge_pairwise": 0.026746000003186055,
+        "merge_many_10": 0.0177560000338417,
+        "resolve_10": 0.9959750000234635,
+        "serialization": 0.03510900000947004
+      },
+      "dare_ties_sz50": {
+        "add_100": 16.21109699999579,
+        "add_batch_100": 0.550883999949292,
+        "merge_pairwise": 0.03689599998324411,
+        "merge_many_10": 0.018423000028633396,
+        "resolve_10": 1.8791799999462455,
+        "serialization": 0.04201399997327826
+      },
+      "della_sz50": {
+        "add_100": 15.619019999917327,
+        "add_batch_100": 0.5410890000803192,
+        "merge_pairwise": 0.03190500001437613,
+        "merge_many_10": 0.016712000046936737,
+        "resolve_10": 1.3241729999435847,
+        "serialization": 0.037723999980698864
+      },
+      "emr_sz50": {
+        "add_100": 15.38081500007138,
+        "add_batch_100": 0.5341130000715566,
+        "merge_pairwise": 0.031521999972028425,
+        "merge_many_10": 0.015734000044176355,
+        "resolve_10": 1.7270200000893965,
+        "serialization": 0.03819699998075521
+      },
+      "evolutionary_merge_sz50": {
+        "add_100": 15.9164960000453,
+        "add_batch_100": 0.6081949999270364,
+        "merge_pairwise": 0.03536700000950077,
+        "merge_many_10": 0.017513999978291395,
+        "resolve_10": 116.40071499994065,
+        "serialization": 0.040092000062941224
+      },
+      "fisher_merge_sz50": {
+        "add_100": 17.379250999965734,
+        "add_batch_100": 0.5324339999788208,
+        "merge_pairwise": 0.03141100000902952,
+        "merge_many_10": 0.016622000089228095,
+        "resolve_10": 0.8616320000101041,
+        "serialization": 0.03243500009375566
+      },
+      "genetic_merge_sz50": {
+        "add_100": 15.486521000070752,
+        "add_batch_100": 0.5293520000577701,
+        "merge_pairwise": 0.025276999963352864,
+        "merge_many_10": 0.014540000051965762,
+        "resolve_10": 121.17510799998854,
+        "serialization": 0.03777000006266462
+      },
+      "led_merge_sz50": {
+        "add_100": 15.945020999993176,
+        "add_batch_100": 0.5283279999730439,
+        "merge_pairwise": 0.0305940000089322,
+        "merge_many_10": 0.015337999911935185,
+        "resolve_10": 0.9849859999349064,
+        "serialization": 0.03125899991118786
+      },
+      "linear_sz50": {
+        "add_100": 15.38209700004245,
+        "add_batch_100": 0.5578450000029989,
+        "merge_pairwise": 0.030191999940143432,
+        "merge_many_10": 0.016544000004614645,
+        "resolve_10": 1.3753780000342886,
+        "serialization": 0.033013000006576476
+      },
+      "model_breadcrumbs_sz50": {
+        "add_100": 15.326761999972405,
+        "add_batch_100": 0.5503649999809568,
+        "merge_pairwise": 0.036169000054542266,
+        "merge_many_10": 0.018118999946636904,
+        "resolve_10": 1.681516999951782,
+        "serialization": 0.04028299997571594
+      },
+      "negative_merge_sz50": {
+        "add_100": 15.435118000027614,
+        "add_batch_100": 0.5340299999261333,
+        "merge_pairwise": 0.03143799995086738,
+        "merge_many_10": 0.01597099992522999,
+        "resolve_10": 0.9008289999883345,
+        "serialization": 0.035797000009551994
+      },
+      "regression_mean_sz50": {
+        "add_100": 15.381781000087358,
+        "add_batch_100": 0.5471090000810364,
+        "merge_pairwise": 0.04912599990802846,
+        "merge_many_10": 0.01615199994375871,
+        "resolve_10": 0.8749849999958315,
+        "serialization": 0.032980000014504185
+      },
+      "representation_surgery_sz50": {
+        "add_100": 15.825583000037113,
+        "add_batch_100": 0.5934729999808042,
+        "merge_pairwise": 0.04043199999159697,
+        "merge_many_10": 0.018296999996891827,
+        "resolve_10": 1.246521999973993,
+        "serialization": 0.043831999960275425
+      },
+      "safe_merge_sz50": {
+        "add_100": 15.420654000081413,
+        "add_batch_100": 0.5783950000477489,
+        "merge_pairwise": 0.03870300008657068,
+        "merge_many_10": 0.016758000015215657,
+        "resolve_10": 1.07621699999072,
+        "serialization": 0.04017599997041543
+      },
+      "slerp_sz50": {
+        "add_100": 15.374128999951608,
+        "add_batch_100": 0.532431000010547,
+        "merge_pairwise": 0.02836999999544787,
+        "merge_many_10": 0.014992999922469608,
+        "resolve_10": 1.6984570000886379,
+        "serialization": 0.03192999997736479
+      },
+      "split_unlearn_merge_sz50": {
+        "add_100": 15.404249999960484,
+        "add_batch_100": 0.5307440000024144,
+        "merge_pairwise": 0.0257839999449061,
+        "merge_many_10": 0.01520400007848366,
+        "resolve_10": 0.9392729999717631,
+        "serialization": 0.030173000027389207
+      },
+      "star_sz50": {
+        "add_100": 15.339399999902525,
+        "add_batch_100": 0.5334090000133074,
+        "merge_pairwise": 0.024537999934182153,
+        "merge_many_10": 0.016314000049533206,
+        "resolve_10": 1.150985999970544,
+        "serialization": 0.032411999995929364
+      },
+      "svd_knot_tying_sz50": {
+        "add_100": 15.401080000060574,
+        "add_batch_100": 0.5192380000380581,
+        "merge_pairwise": 0.0255310000056852,
+        "merge_many_10": 0.014987999975346611,
+        "resolve_10": 0.8649510000395821,
+        "serialization": 0.029677999918931164
+      },
+      "task_arithmetic_sz50": {
+        "add_100": 15.637933999983034,
+        "add_batch_100": 0.547750000009728,
+        "merge_pairwise": 0.0237300000662799,
+        "merge_many_10": 0.01447400006782118,
+        "resolve_10": 0.8471580000559698,
+        "serialization": 0.030302000027404574
+      },
+      "ties_sz50": {
+        "add_100": 15.923230999987936,
+        "add_batch_100": 0.5220470000040223,
+        "merge_pairwise": 0.024432000031993084,
+        "merge_many_10": 0.015804000099706172,
+        "resolve_10": 1.6833900000392532,
+        "serialization": 0.03169499996147351
+      },
+      "weight_average_sz50": {
+        "add_100": 15.375787000039054,
+        "add_batch_100": 0.5245020000756995,
+        "merge_pairwise": 0.024535000079595193,
+        "merge_many_10": 0.01450800004931807,
+        "resolve_10": 0.7644529999879524,
+        "serialization": 0.025955000069188827
+      },
+      "weight_scope_alignment_sz50": {
+        "add_100": 15.32854699996733,
+        "add_batch_100": 0.5379059999768288,
+        "merge_pairwise": 0.024749999965933966,
+        "merge_many_10": 0.014747000022907741,
+        "resolve_10": 1.8321000000014465,
+        "serialization": 0.027953000085290114
+      },
+      "ada_merging_sz500": {
+        "add_100": 21.94081899995126,
+        "add_batch_100": 1.0670670000081373,
+        "merge_pairwise": 0.040026999954534404,
+        "merge_many_10": 0.017023999930643186,
+        "resolve_10": 11.0960659999364,
+        "serialization": 0.05779000002803514
+      },
+      "adarank_sz500": {
+        "add_100": 17.02809599999,
+        "add_batch_100": 0.9269470000390356,
+        "merge_pairwise": 0.02766599993719865,
+        "merge_many_10": 0.01603800001248601,
+        "resolve_10": 1.3889079999671594,
+        "serialization": 0.11489400003483752
+      },
+      "dam_sz500": {
+        "add_100": 16.730298999959814,
+        "add_batch_100": 0.9045709999782048,
+        "merge_pairwise": 0.027040999952987477,
+        "merge_many_10": 0.015849999954298255,
+        "resolve_10": 6.726754000055735,
+        "serialization": 0.0691809999580073
+      },
+      "dare_sz500": {
+        "add_100": 16.651126000056138,
+        "add_batch_100": 0.9039609999490494,
+        "merge_pairwise": 0.029323000035219593,
+        "merge_many_10": 0.01614299992525048,
+        "resolve_10": 1.747935000025791,
+        "serialization": 0.08174499998858664
+      },
+      "dare_ties_sz500": {
+        "add_100": 16.702782000038496,
+        "add_batch_100": 0.9437689999458598,
+        "merge_pairwise": 0.027066000029662973,
+        "merge_many_10": 0.015643999972780875,
+        "resolve_10": 2.671576000011555,
+        "serialization": 0.10051300000668562
+      },
+      "della_sz500": {
+        "add_100": 16.67700899997726,
+        "add_batch_100": 0.9301340001002245,
+        "merge_pairwise": 0.028457999974307313,
+        "merge_many_10": 0.016552000033698278,
+        "resolve_10": 2.625333999958457,
+        "serialization": 0.08872499995504768
+      },
+      "emr_sz500": {
+        "add_100": 16.772375000073225,
+        "add_batch_100": 0.91567300000861,
+        "merge_pairwise": 0.026552999997875304,
+        "merge_many_10": 0.01618400006009324,
+        "resolve_10": 1.7293939999944996,
+        "serialization": 0.09575299998232367
+      },
+      "evolutionary_merge_sz500": {
+        "add_100": 16.70658000000458,
+        "add_batch_100": 0.9091849999549595,
+        "merge_pairwise": 0.025590000063857588,
+        "merge_many_10": 0.014898000017637969,
+        "resolve_10": 967.7169519999325,
+        "serialization": 0.1640890000089712
+      },
+      "fisher_merge_sz500": {
+        "add_100": 17.07758999998532,
+        "add_batch_100": 0.9432669999114296,
+        "merge_pairwise": 0.04465899996830558,
+        "merge_many_10": 0.02505199995539442,
+        "resolve_10": 1.0201339999866832,
+        "serialization": 0.0625970000101006
+      },
+      "genetic_merge_sz500": {
+        "add_100": 16.65549300003022,
+        "add_batch_100": 0.9218820000569394,
+        "merge_pairwise": 0.02927200000613084,
+        "merge_many_10": 0.015662999999221938,
+        "resolve_10": 996.9728169999144,
+        "serialization": 0.10294699995938572
+      },
+      "led_merge_sz500": {
+        "add_100": 18.50437600000987,
+        "add_batch_100": 0.9577700000136247,
+        "merge_pairwise": 0.06134299997029302,
+        "merge_many_10": 0.018517999933465035,
+        "resolve_10": 2.4706209999294515,
+        "serialization": 0.05996799995955371
+      },
+      "linear_sz500": {
+        "add_100": 16.701388000001316,
+        "add_batch_100": 0.9542079999391717,
+        "merge_pairwise": 0.033891000043695385,
+        "merge_many_10": 0.01647299995966023,
+        "resolve_10": 1.5297389999204825,
+        "serialization": 0.09908499998800835
+      },
+      "model_breadcrumbs_sz500": {
+        "add_100": 17.007261000003382,
+        "add_batch_100": 0.9408959999746003,
+        "merge_pairwise": 0.031543999966743286,
+        "merge_many_10": 0.016017999996620347,
+        "resolve_10": 2.5030790000073466,
+        "serialization": 0.09584800000084215
+      },
+      "negative_merge_sz500": {
+        "add_100": 16.73180200009483,
+        "add_batch_100": 0.9219450000728102,
+        "merge_pairwise": 0.033345000019835425,
+        "merge_many_10": 0.018753000063043146,
+        "resolve_10": 0.950017000036496,
+        "serialization": 0.11729599998488993
+      },
+      "regression_mean_sz500": {
+        "add_100": 17.743055999972057,
+        "add_batch_100": 0.9272810000311438,
+        "merge_pairwise": 0.02939599994533637,
+        "merge_many_10": 0.015857999983381887,
+        "resolve_10": 0.9464490000254955,
+        "serialization": 0.07706799999596115
+      },
+      "representation_surgery_sz500": {
+        "add_100": 16.84998700000051,
+        "add_batch_100": 0.8974730000090858,
+        "merge_pairwise": 0.02952099998765334,
+        "merge_many_10": 0.017740999965099036,
+        "resolve_10": 1.4920340000799115,
+        "serialization": 0.0703779999184917
+      },
+      "safe_merge_sz500": {
+        "add_100": 17.30263100000684,
+        "add_batch_100": 0.9054249999280728,
+        "merge_pairwise": 0.027499999987412593,
+        "merge_many_10": 0.01712099992801086,
+        "resolve_10": 1.3043520000337594,
+        "serialization": 0.08454800001800322
+      },
+      "slerp_sz500": {
+        "add_100": 17.52556500002811,
+        "add_batch_100": 0.9233439999434268,
+        "merge_pairwise": 0.02648700001373072,
+        "merge_many_10": 0.014765000059924205,
+        "resolve_10": 1.8695030000799306,
+        "serialization": 0.07058999995024351
+      },
+      "split_unlearn_merge_sz500": {
+        "add_100": 17.244771000036963,
+        "add_batch_100": 0.9165860000166504,
+        "merge_pairwise": 0.028857999950560043,
+        "merge_many_10": 0.01539800007321901,
+        "resolve_10": 1.3982599999735612,
+        "serialization": 0.08579799998642557
+      },
+      "star_sz500": {
+        "add_100": 16.746920000059617,
+        "add_batch_100": 0.8977089999007148,
+        "merge_pairwise": 0.02752300008523889,
+        "merge_many_10": 0.015824999991309596,
+        "resolve_10": 1.3284479999811083,
+        "serialization": 0.12165300006472535
+      },
+      "svd_knot_tying_sz500": {
+        "add_100": 16.656389999980092,
+        "add_batch_100": 0.9142799999608542,
+        "merge_pairwise": 0.028226000040376675,
+        "merge_many_10": 0.015044999940982962,
+        "resolve_10": 0.9295219999785331,
+        "serialization": 0.09769100006451481
+      },
+      "task_arithmetic_sz500": {
+        "add_100": 16.6849849999835,
+        "add_batch_100": 0.9052049999809242,
+        "merge_pairwise": 0.026087000037477992,
+        "merge_many_10": 0.0149070000361462,
+        "resolve_10": 0.9066259999599424,
+        "serialization": 0.1898600000913575
+      },
+      "ties_sz500": {
+        "add_100": 16.732154999999693,
+        "add_batch_100": 0.9192959998927108,
+        "merge_pairwise": 0.027761000069403963,
+        "merge_many_10": 0.015451999956894724,
+        "resolve_10": 1.9741789999443426,
+        "serialization": 0.09766999994553771
+      },
+      "weight_average_sz500": {
+        "add_100": 16.68954899992059,
+        "add_batch_100": 0.909433999936482,
+        "merge_pairwise": 0.026985999966200325,
+        "merge_many_10": 0.015383000004476344,
+        "resolve_10": 0.8305889999746796,
+        "serialization": 0.0693480000109048
+      },
+      "weight_scope_alignment_sz500": {
+        "add_100": 16.892544000029375,
+        "add_batch_100": 0.9261739999146812,
+        "merge_pairwise": 0.028087000032428477,
+        "merge_many_10": 0.016668000057507015,
+        "resolve_10": 1.4948750000485234,
+        "serialization": 0.06744400002389739
+      },
+      "ada_merging_sz5000": {
+        "add_100": 41.68678700000328,
+        "add_batch_100": 3.9813189999904353,
+        "merge_pairwise": 0.17218300001786702,
+        "merge_many_10": 0.021693000007871888,
+        "resolve_10": 19.216565999954582,
+        "serialization": 0.3773830000000089
+      },
+      "adarank_sz5000": {
+        "add_100": 32.42374399997061,
+        "add_batch_100": 4.063660999918284,
+        "merge_pairwise": 0.04131900004722411,
+        "merge_many_10": 0.020237999933669926,
+        "resolve_10": 2.7467360000628105,
+        "serialization": 0.7420620000857525
+      },
+      "dam_sz5000": {
+        "add_100": 30.300924000016494,
+        "add_batch_100": 4.078796999920087,
+        "merge_pairwise": 0.040137000041795545,
+        "merge_many_10": 0.019486000041979423,
+        "resolve_10": 12.190485999894918,
+        "serialization": 0.44316399998933775
+      },
+      "dare_sz5000": {
+        "add_100": 29.920748999984426,
+        "add_batch_100": 4.0986430000202745,
+        "merge_pairwise": 0.04305600009502086,
+        "merge_many_10": 0.022116000081950915,
+        "resolve_10": 9.295516999941356,
+        "serialization": 0.5742559999362129
+      },
+      "dare_ties_sz5000": {
+        "add_100": 29.997193999975025,
+        "add_batch_100": 4.206169999974918,
+        "merge_pairwise": 0.04861399997935223,
+        "merge_many_10": 0.023885000018708524,
+        "resolve_10": 10.456867000016246,
+        "serialization": 0.7332599999472222
+      },
+      "della_sz5000": {
+        "add_100": 30.048119000070983,
+        "add_batch_100": 4.146571000092081,
+        "merge_pairwise": 0.04799999999249849,
+        "merge_many_10": 0.03475100004379783,
+        "resolve_10": 15.823406999970757,
+        "serialization": 0.675279999995837
+      },
+      "emr_sz5000": {
+        "add_100": 29.391352999937226,
+        "add_batch_100": 4.109187000040038,
+        "merge_pairwise": 0.03372300000137329,
+        "merge_many_10": 0.019262999899183342,
+        "resolve_10": 2.7318400000240217,
+        "serialization": 0.6503260000272348
+      },
+      "evolutionary_merge_sz5000": {
+        "add_100": 29.031173000021226,
+        "add_batch_100": 4.063354999971125,
+        "merge_pairwise": 0.03336400004627649,
+        "merge_many_10": 0.018893999936153705,
+        "resolve_10": 11751.908752000076,
+        "serialization": 0.7469350000519626
+      },
+      "fisher_merge_sz5000": {
+        "add_100": 32.13204799999403,
+        "add_batch_100": 5.692767000027743,
+        "merge_pairwise": 0.11113899995507381,
+        "merge_many_10": 0.028714999984913447,
+        "resolve_10": 1.7213989999618207,
+        "serialization": 0.3835420000086742
+      },
+      "genetic_merge_sz5000": {
+        "add_100": 29.344943999944917,
+        "add_batch_100": 4.224223000051097,
+        "merge_pairwise": 0.04269900000508642,
+        "merge_many_10": 0.02129099993908312,
+        "resolve_10": 11610.304301999917,
+        "serialization": 0.5747530000235201
+      },
+      "led_merge_sz5000": {
+        "add_100": 33.06554000005235,
+        "add_batch_100": 6.122409999989031,
+        "merge_pairwise": 0.12194400005682837,
+        "merge_many_10": 0.030380999987755786,
+        "resolve_10": 17.72233300005155,
+        "serialization": 0.43483000001742766
+      },
+      "linear_sz5000": {
+        "add_100": 31.566290999990088,
+        "add_batch_100": 4.29130999998506,
+        "merge_pairwise": 0.04811899998458102,
+        "merge_many_10": 0.022529000034410274,
+        "resolve_10": 1.7563250000875996,
+        "serialization": 0.39931799994974426
+      },
+      "model_breadcrumbs_sz5000": {
+        "add_100": 30.365860000074463,
+        "add_batch_100": 4.252996999980496,
+        "merge_pairwise": 0.04400800003168115,
+        "merge_many_10": 0.021715999992011348,
+        "resolve_10": 3.9570349999848986,
+        "serialization": 0.6417370000235678
+      },
+      "negative_merge_sz5000": {
+        "add_100": 30.083181999998487,
+        "add_batch_100": 4.269382999950722,
+        "merge_pairwise": 0.0465289999738161,
+        "merge_many_10": 0.022076999925957352,
+        "resolve_10": 1.276276999988113,
+        "serialization": 0.6978889999800231
+      },
+      "regression_mean_sz5000": {
+        "add_100": 29.69479900002625,
+        "add_batch_100": 4.206805999956487,
+        "merge_pairwise": 0.04256199997598742,
+        "merge_many_10": 0.021328999991965247,
+        "resolve_10": 1.278306999893175,
+        "serialization": 0.7481250000864748
+      },
+      "representation_surgery_sz5000": {
+        "add_100": 29.7396349999417,
+        "add_batch_100": 4.223195999998097,
+        "merge_pairwise": 0.04257000000507105,
+        "merge_many_10": 0.020179000102871214,
+        "resolve_10": 1.6172480000022915,
+        "serialization": 0.3827289999662753
+      },
+      "safe_merge_sz5000": {
+        "add_100": 30.311710000091807,
+        "add_batch_100": 4.218857999944703,
+        "merge_pairwise": 0.046385000018744904,
+        "merge_many_10": 0.020917000028930488,
+        "resolve_10": 4.4561490000205595,
+        "serialization": 0.5667699999776232
+      },
+      "slerp_sz5000": {
+        "add_100": 30.560729999933756,
+        "add_batch_100": 4.213467999989007,
+        "merge_pairwise": 0.04389100001844781,
+        "merge_many_10": 0.019608000002335757,
+        "resolve_10": 2.3742319999655592,
+        "serialization": 0.45769199994083465
+      },
+      "split_unlearn_merge_sz5000": {
+        "add_100": 29.448887999933504,
+        "add_batch_100": 4.196091999915552,
+        "merge_pairwise": 0.042634999999791034,
+        "merge_many_10": 0.025187000005644222,
+        "resolve_10": 5.529687000034755,
+        "serialization": 0.5851949999851058
+      },
+      "star_sz5000": {
+        "add_100": 29.504254000016772,
+        "add_batch_100": 4.14495299992268,
+        "merge_pairwise": 0.042109999981221335,
+        "merge_many_10": 0.02037900003415416,
+        "resolve_10": 2.191704000097161,
+        "serialization": 0.7504980000021533
+      },
+      "svd_knot_tying_sz5000": {
+        "add_100": 29.503870999974424,
+        "add_batch_100": 4.129525000053036,
+        "merge_pairwise": 0.03815100001247629,
+        "merge_many_10": 0.01915900008953031,
+        "resolve_10": 1.178025999934107,
+        "serialization": 0.7158710000112478
+      },
+      "task_arithmetic_sz5000": {
+        "add_100": 30.044283999927757,
+        "add_batch_100": 4.1547830001036345,
+        "merge_pairwise": 0.04038400004446885,
+        "merge_many_10": 0.018995000004906615,
+        "resolve_10": 1.1212130000330944,
+        "serialization": 0.68935500007683
+      },
+      "ties_sz5000": {
+        "add_100": 29.39713800003574,
+        "add_batch_100": 4.196655999976429,
+        "merge_pairwise": 0.04352999997081497,
+        "merge_many_10": 0.020439000081751146,
+        "resolve_10": 3.394660000026306,
+        "serialization": 0.7256039999674613
+      },
+      "weight_average_sz5000": {
+        "add_100": 29.747398000040448,
+        "add_batch_100": 4.195407999986855,
+        "merge_pairwise": 0.04210100007639994,
+        "merge_many_10": 0.01985599999443366,
+        "resolve_10": 1.0813080000389164,
+        "serialization": 0.4602270000759745
+      },
+      "weight_scope_alignment_sz5000": {
+        "add_100": 29.486485000006724,
+        "add_batch_100": 4.8700889999508945,
+        "merge_pairwise": 0.04452400003174262,
+        "merge_many_10": 0.020718999962809903,
+        "resolve_10": 1.953377999939221,
+        "serialization": 0.3990469999735069
+      }
+    }
+  },
+  "integration": {
+    "crdt_merge_api": {
+      "passed": true,
+      "time_ms": 4.747709999946892,
+      "crdt_guaranteed": true,
+      "layers": 10
+    },
+    "or_set_semantics": {
+      "passed": true,
+      "details": {
+        "add_remove_readd": true,
+        "concurrent_adds": true,
+        "merge_after_remove": true
+      }
+    },
+    "memory_estimation": {
+      "passed": true,
+      "details": {
+        "1_contribs": {
+          "estimated_bytes": 8897,
+          "min_expected_bytes": 8000,
+          "ok": true
+        },
+        "10_contribs": {
+          "estimated_bytes": 84370,
+          "min_expected_bytes": 80000,
+          "ok": true
+        },
+        "50_contribs": {
+          "estimated_bytes": 421418,
+          "min_expected_bytes": 400000,
+          "ok": true
+        }
+      }
+    },
+    "edge_cases": {
+      "passed": true,
+      "details": {
+        "empty_merge": true,
+        "single_resolve": true,
+        "duplicate_model_id": true,
+        "serialization_roundtrip": true,
+        "base_required_error": true,
+        "merge_many_single": true
+      }
+    }
+  },
+  "summary": {
+    "total_tests": 81,
+    "passed": 81,
+    "failed": 0,
+    "crdt_compliance": "25/25"
+  }
+}

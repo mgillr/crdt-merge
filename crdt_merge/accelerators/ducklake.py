@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -51,7 +55,6 @@ try:
 except ImportError:
     _duckdb = None  # type: ignore[assignment]
 
-
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
@@ -60,18 +63,15 @@ _DUCKDB_INSTALL_MSG = (
     "DuckDB is required for this accelerator. Install it with: pip install duckdb"
 )
 
-
 def _require_duckdb() -> Any:
     """Return the ``duckdb`` module or raise ImportError."""
     if _duckdb is None:
         raise ImportError(_DUCKDB_INSTALL_MSG)
     return _duckdb
 
-
 # ---------------------------------------------------------------------------
 # Data classes
 # ---------------------------------------------------------------------------
-
 
 @dataclass
 class FieldChange:
@@ -93,7 +93,6 @@ class FieldChange:
             "resolved_value": self.resolved_value,
             "strategy": self.strategy,
         }
-
 
 @dataclass
 class SnapshotDiff:
@@ -124,7 +123,6 @@ class SnapshotDiff:
             "num_changes": self.num_changes,
         }
 
-
 @dataclass
 class MergeResult:
     """Result of a DuckLake snapshot merge."""
@@ -152,7 +150,6 @@ class MergeResult:
             "field_changes": [fc.to_dict() for fc in self.field_changes],
         }
 
-
 @dataclass
 class AuditEntry:
     """Audit trail entry for a single record."""
@@ -176,7 +173,6 @@ class AuditEntry:
             "timestamp": self.timestamp,
         }
 
-
 @dataclass
 class Branch:
     """Represents a branch in the DuckLake snapshot tree."""
@@ -194,11 +190,9 @@ class Branch:
             "created_at": self.created_at,
         }
 
-
 # ---------------------------------------------------------------------------
 # Merkle helpers (use built-in merkle module when available)
 # ---------------------------------------------------------------------------
-
 
 def _record_hash(record: dict) -> str:
     """Content hash for a single record."""
@@ -206,7 +200,6 @@ def _record_hash(record: dict) -> str:
     for k in sorted(record.keys()):
         parts.append(f"{k}={record[k]!r}")
     return hashlib.sha256("|".join(parts).encode()).hexdigest()[:16]
-
 
 def _snapshot_hash(records: List[dict]) -> str:
     """Merkle root hash for a list of records."""
@@ -216,11 +209,9 @@ def _snapshot_hash(records: List[dict]) -> str:
     combined = "|".join(hashes)
     return hashlib.sha256(combined.encode()).hexdigest()[:16]
 
-
 # ---------------------------------------------------------------------------
 # DuckLakeConflictResolver
 # ---------------------------------------------------------------------------
-
 
 class DuckLakeConflictResolver:
     """Semantic conflict resolution for DuckLake snapshots.
@@ -640,7 +631,6 @@ class DuckLakeConflictResolver:
             f"DuckLakeConflictResolver(duckdb={avail}, "
             f"snapshots={len(self._snapshots)}, branches={len(self._branches)})"
         )
-
 
 __all__ = [
     "DuckLakeConflictResolver",

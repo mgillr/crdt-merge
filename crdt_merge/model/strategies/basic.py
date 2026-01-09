@@ -1,12 +1,15 @@
 # SPDX-License-Identifier: BUSL-1.1
-#
-# Copyright 2026 Ryan Gillespie
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
@@ -31,7 +34,6 @@ from crdt_merge.model.strategies.base import (
     _to_array,
 )
 
-
 # ---------------------------------------------------------------------------
 # Pure-Python vector helpers (used when numpy is unavailable)
 # ---------------------------------------------------------------------------
@@ -40,31 +42,25 @@ def _py_dot(a: list, b: list) -> float:
     """Dot product of two flat lists."""
     return sum(x * y for x, y in zip(a, b))
 
-
 def _py_norm(a: list) -> float:
     """L2 norm of a flat list."""
     return math.sqrt(sum(x * x for x in a))
-
 
 def _py_scale(a: list, s: float) -> list:
     """Scalar multiplication."""
     return [x * s for x in a]
 
-
 def _py_add(a: list, b: list) -> list:
     """Element-wise addition."""
     return [x + y for x, y in zip(a, b)]
-
 
 def _py_sub(a: list, b: list) -> list:
     """Element-wise subtraction."""
     return [x - y for x, y in zip(a, b)]
 
-
 def _py_zeros_like(a: list) -> list:
     """Return a list of zeros with the same length."""
     return [0.0] * len(a)
-
 
 def _flatten(arr: Any) -> Any:
     """Flatten an array-like to 1-D, return (flat, original_shape)."""
@@ -82,7 +78,6 @@ def _flatten(arr: Any) -> Any:
         return flat, (rows, cols)
     return arr, None
 
-
 def _unflatten(flat: Any, shape) -> Any:
     """Restore shape from _flatten."""
     if shape is None:
@@ -95,7 +90,6 @@ def _unflatten(flat: Any, shape) -> Any:
         rows, cols = shape
         return [flat[i * cols:(i + 1) * cols] for i in range(rows)]
     return flat
-
 
 # ===================================================================
 # 1. WeightAverage
@@ -163,7 +157,6 @@ class WeightAverage(ModelMergeStrategy):
         for w, a in zip(norm_w, arrays):
             result = _py_add(result, _py_scale(a, w))
         return _from_array(result, original)
-
 
 # ===================================================================
 # 2. SphericalLinearInterpolation (SLERP)
@@ -304,7 +297,6 @@ class SphericalLinearInterpolation(ModelMergeStrategy):
 
         return _unflatten(result, shape)
 
-
 # ===================================================================
 # 3. TaskArithmetic
 # ===================================================================
@@ -384,7 +376,6 @@ class TaskArithmetic(ModelMergeStrategy):
             scaled = _py_scale(task_vec, s)
             result = _py_add(result, scaled)
         return _from_array(result, original)
-
 
 # ===================================================================
 # 4. LinearInterpolation

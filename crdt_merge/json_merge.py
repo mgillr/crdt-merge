@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,9 +31,6 @@ import time
 from typing import Any, Dict, List, Optional
 
 __all__ = ["merge_dicts", "merge_json_lines"]
-
-
-
 
 def merge_dicts(
     a: dict,
@@ -86,7 +87,6 @@ def merge_dicts(
 
     return result
 
-
 def _merge_lists(a: list, b: list) -> list:
     """Merge two lists: concatenate and deduplicate while preserving order."""
     seen = set()
@@ -98,7 +98,6 @@ def _merge_lists(a: list, b: list) -> list:
             result.append(item)
     return result
 
-
 def _list_item_key(item: Any) -> Any:
     """Create a hashable key for a list item."""
     if isinstance(item, dict):
@@ -107,7 +106,6 @@ def _list_item_key(item: Any) -> Any:
         return tuple(str(i) for i in item)
     else:
         return item
-
 
 def merge_json_lines(
     lines_a: List[dict],

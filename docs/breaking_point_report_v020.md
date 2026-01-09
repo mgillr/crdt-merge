@@ -1,5 +1,10 @@
 # crdt-merge Breaking Point Report — Pre-Upgrade Baseline v0.2.0
 
+> **Copyright © 2026 Ryan Gillespie / Optitransfer. All rights reserved.**
+> Licensed under the Business Source License 1.1 (BSL-1.1).
+> See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
+
+
 > **Definitive Stress Test Results**
 > 109 tests across 9 categories. Every function. Every primitive. Every edge case.
 

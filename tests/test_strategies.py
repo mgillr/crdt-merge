@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +23,6 @@ import time
 from crdt_merge.strategies import (
     LWW, MaxWins, MinWins, UnionSet, Priority, Concat, Custom, MergeSchema,
 )
-
 
 # ===========================================================================
 # Individual Strategy Tests
@@ -48,7 +51,6 @@ class TestLWW:
         v = s.resolve("same", "same", ts_a=1.0, ts_b=1.0)
         assert v == "same"
 
-
 class TestMaxWins:
     def test_picks_higher(self):
         s = MaxWins()
@@ -76,7 +78,6 @@ class TestMaxWins:
         s = MaxWins()
         assert s.resolve(3.14, 2.71) == 3.14
 
-
 class TestMinWins:
     def test_picks_lower(self):
         s = MinWins()
@@ -95,7 +96,6 @@ class TestMinWins:
     def test_idempotent(self):
         s = MinWins()
         assert s.resolve(42, 42) == 42
-
 
 class TestUnionSet:
     def test_union_comma_separated(self):
@@ -128,7 +128,6 @@ class TestUnionSet:
         parts = result.split(",")
         assert parts == sorted(parts)
 
-
 class TestPriority:
     def test_higher_priority_wins(self):
         s = Priority(["low", "medium", "high", "critical"])
@@ -146,7 +145,6 @@ class TestPriority:
     def test_idempotent(self):
         s = Priority(["a", "b", "c"])
         assert s.resolve("b", "b") == "b"
-
 
 class TestConcat:
     def test_concat_with_separator(self):
@@ -170,7 +168,6 @@ class TestConcat:
         parts = result.split(",")
         assert len(parts) == len(set(parts))
 
-
 class TestCustom:
     def test_custom_function(self):
         s = Custom(fn=lambda a, b, **kw: a + b)
@@ -180,7 +177,6 @@ class TestCustom:
         s = Custom(fn=lambda a, b, ts_a=0, ts_b=0, **kw: a if ts_a > ts_b else b)
         assert s.resolve("old", "new", ts_a=2.0, ts_b=1.0) == "old"
         assert s.resolve("old", "new", ts_a=1.0, ts_b=2.0) == "new"
-
 
 # ===========================================================================
 # MergeSchema Tests
@@ -246,7 +242,6 @@ class TestMergeSchema:
         )
         for col in "abcdefg":
             assert schema.strategy_for(col) is not None
-
 
 # ===========================================================================
 # CRDT Property Proofs for All Strategies

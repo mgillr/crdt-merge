@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +32,6 @@ import io
 # Import crdt_merge (installed as local package in Space)
 from crdt_merge import merge, dedup, diff, merge_dicts
 from crdt_merge.dedup import dedup_records
-
 
 def merge_csvs(file_a, file_b, key_col, prefer, do_dedup):
     """Merge two CSV files using CRDT semantics."""
@@ -67,7 +70,6 @@ def merge_csvs(file_a, file_b, key_col, prefer, do_dedup):
     except Exception as e:
         return None, f"❌ Error: {str(e)}"
 
-
 def dedup_csv(file_in, columns, method, threshold):
     """Deduplicate a CSV file."""
     try:
@@ -104,7 +106,6 @@ def dedup_csv(file_in, columns, method, threshold):
     except Exception as e:
         return None, f"❌ Error: {str(e)}"
 
-
 def merge_json_input(json_a, json_b):
     """Deep merge two JSON objects."""
     try:
@@ -120,7 +121,6 @@ def merge_json_input(json_a, json_b):
         return "", f"❌ Invalid JSON: {e}"
     except Exception as e:
         return "", f"❌ Error: {e}"
-
 
 def diff_csvs(file_a, file_b, key_col):
     """Show differences between two CSVs."""
@@ -152,7 +152,6 @@ def diff_csvs(file_a, file_b, key_col):
         return report
     except Exception as e:
         return f"❌ Error: {e}"
-
 
 # ============================================================
 # Gradio UI

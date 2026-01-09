@@ -1,12 +1,15 @@
 # SPDX-License-Identifier: BUSL-1.1
-#
-# Copyright 2026 Ryan Gillespie
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
@@ -28,7 +31,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-
 class CRDTTier(str, Enum):
     """Classification of a strategy's CRDT compliance.
 
@@ -44,7 +46,6 @@ class CRDTTier(str, Enum):
     PARTIAL_CRDT = "PARTIAL_CRDT"
     NOT_CRDT = "NOT_CRDT"
 
-
 # ---------------------------------------------------------------------------
 # Lazy optional imports
 # ---------------------------------------------------------------------------
@@ -57,7 +58,6 @@ def _get_np():
     except ImportError:
         return None
 
-
 def _get_torch():
     """Return torch if available, else None."""
     try:
@@ -65,7 +65,6 @@ def _get_torch():
         return torch
     except ImportError:
         return None
-
 
 # ---------------------------------------------------------------------------
 # MergeResult
@@ -84,7 +83,6 @@ class MergeResult:
     tensor: Any
     provenance: Optional[Dict[str, Any]] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -118,7 +116,6 @@ def _to_array(tensor: Any) -> Any:
         return list(tensor)
     return tensor
 
-
 def _from_array(array: Any, original: Any) -> Any:
     """Convert *array* back to the same type as *original*.
 
@@ -146,7 +143,6 @@ def _from_array(array: Any, original: Any) -> Any:
 
     return array
 
-
 def _normalize_weights(weights: Optional[List[float]], n: int) -> List[float]:
     """Normalize *weights* to sum to 1.  If *weights* is ``None``, return uniform."""
     if weights is None:
@@ -164,7 +160,6 @@ def _normalize_weights(weights: Optional[List[float]], n: int) -> List[float]:
         raise ValueError("Sum of weights must not be zero")
 
     return [w / total for w in weights]
-
 
 # ---------------------------------------------------------------------------
 # Abstract base class
@@ -370,7 +365,6 @@ class ModelMergeStrategy(ABC):
                 results["failures"]["idempotent"] += 1
 
         return results
-
 
 def _approx_equal(a: Any, b: Any, tol: float = 1e-7) -> bool:
     """Element-wise approximate equality for array-like objects."""

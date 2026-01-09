@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +30,6 @@ from crdt_merge.mergeql import (
     MergeQLValidationError,
 )
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -34,7 +37,6 @@ from crdt_merge.mergeql import (
 @pytest.fixture
 def parser():
     return MergeQLParser()
-
 
 @pytest.fixture
 def ql():
@@ -51,7 +53,6 @@ def ql():
     ])
     return engine
 
-
 @pytest.fixture
 def ql_three(ql):
     ql.register("south", [
@@ -59,7 +60,6 @@ def ql_three(ql):
         {"id": 5, "name": "Eve", "salary": 500, "dept": "finance"},
     ])
     return ql
-
 
 # ===================================================================
 # TestMergeQLParser — 15 tests
@@ -144,7 +144,6 @@ class TestMergeQLParser:
         assert ast.where_clause is not None
         assert ast.schema_mapping == {"old_col": "new_col"}
         assert ast.limit == 50
-
 
 # ===================================================================
 # TestMergeQLExecution — 15 tests
@@ -231,7 +230,6 @@ class TestMergeQLExecution:
         assert info["rows"] == 3
         assert "id" in info["columns"]
 
-
 # ===================================================================
 # TestMergeQLStrategies — 10 tests
 # ===================================================================
@@ -287,7 +285,6 @@ class TestMergeQLStrategies:
         result = ql.execute("MERGE a, b ON id STRATEGY active='max'")
         assert result.data[0]["active"] is True
 
-
 # ===================================================================
 # TestMergeQLExplain — 5 tests
 # ===================================================================
@@ -322,7 +319,6 @@ class TestMergeQLExplain:
         assert "MergePlan" in text
         assert "east" in text
 
-
 # ===================================================================
 # TestMergeQLProvenance — 5 tests
 # ===================================================================
@@ -355,7 +351,6 @@ class TestMergeQLProvenance:
         result = ql.execute("MERGE east, west ON id")
         sources_in_prov = {p.get("source") for p in result.provenance}
         assert "west" in sources_in_prov
-
 
 # ===================================================================
 # TestMergeQLIntegration — 10 tests

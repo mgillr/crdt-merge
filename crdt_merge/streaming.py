@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,9 +54,6 @@ from .strategies import MergeSchema, MergeStrategy, LWW
 
 __all__ = ["StreamStats", "merge_stream", "merge_sorted_stream", "count_stream"]
 
-
-
-
 @dataclass
 class StreamStats:
     """Tracks streaming merge statistics."""
@@ -75,7 +76,6 @@ class StreamStats:
         return (f"StreamStats(rows={self.rows_processed}, merged={self.rows_merged}, "
                 f"batches={self.batches_processed}, {self.rows_per_sec:.0f} rows/s, "
                 f"{self.duration_ms:.1f}ms)")
-
 
 def _resolve_row(
     row_a: dict, row_b: dict, columns: List[str],
@@ -100,7 +100,6 @@ def _resolve_row(
             strategy = schema.strategy_for(col) if schema else LWW()
             result[col] = strategy.resolve(val_a, val_b, ts_a, ts_b)
     return result
-
 
 def _resolve_row_fast(
     row_a: dict, row_b: dict, cached_columns: List[str],
@@ -139,14 +138,12 @@ def _resolve_row_fast(
                 result[col] = val_b  # b-wins fallback (matches core merge semantics)
     return result
 
-
 def _emit_batch(output_batch: List[dict], stats: Optional[StreamStats]) -> None:
     """Record stats for a completed batch."""
     if stats:
         stats.rows_processed += len(output_batch)
         stats.batches_processed += 1
         stats.peak_batch_size = max(stats.peak_batch_size, len(output_batch))
-
 
 def merge_stream(
     source_a: Iterable[dict],
@@ -236,7 +233,6 @@ def merge_stream(
         stats.rows_unique_a = unique_a
         stats.rows_unique_b = unique_b
         stats.duration_ms = (time.time() - start) * 1000
-
 
 def merge_sorted_stream(
     source_a: Iterable[dict],
@@ -357,7 +353,6 @@ def merge_sorted_stream(
         stats.rows_unique_a = stats.rows_processed - merged_count - _unique_b_count
         stats.rows_unique_b = _unique_b_count
         stats.duration_ms = (time.time() - start) * 1000
-
 
 def count_stream(source: Iterable[dict]) -> int:
     """Count rows in a stream without loading into memory."""

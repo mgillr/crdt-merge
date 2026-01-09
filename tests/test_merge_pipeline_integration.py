@@ -1,4 +1,17 @@
 #!/usr/bin/env python3
+
+# SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
+#
+# Licensed under the Business Source License 1.1 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 """Integration tests for the full model merge pipeline.
 
 Tests the end-to-end flow:  ModelMerge → schema resolution → per-layer merge.
@@ -19,7 +32,6 @@ from crdt_merge.model import ModelMerge, ModelCRDT, ModelMergeSchema, MergeResul
 from crdt_merge.model.strategies import get_strategy, list_strategies
 from crdt_merge.model.strategies.base import CRDTTier
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -29,19 +41,15 @@ def _make_state_dict(layers, size=16, seed=0):
     rng = np.random.RandomState(seed)
     return {layer: rng.randn(size).tolist() for layer in layers}
 
-
 LAYERS = [f"layer{i}.weight" for i in range(4)]
-
 
 @pytest.fixture
 def models():
     return [_make_state_dict(LAYERS, seed=s) for s in range(3)]
 
-
 @pytest.fixture
 def base_model():
     return _make_state_dict(LAYERS, seed=999)
-
 
 # ---------------------------------------------------------------------------
 # Tests
@@ -58,7 +66,6 @@ class TestModelMergeBackwardCompat:
         crdt = ModelCRDT(schema)
         merge = ModelMerge(schema)
         assert type(crdt) is type(merge)
-
 
 class TestBasicMergePipeline:
     """Test end-to-end merge with various strategies."""
@@ -95,7 +102,6 @@ class TestBasicMergePipeline:
                 f"{strategy}: N-way merge not commutative for {layer}"
             )
 
-
 class TestMultiStrategySchema:
     """Test schemas that assign different strategies to different layers."""
 
@@ -120,7 +126,6 @@ class TestMultiStrategySchema:
         for layer in LAYERS:
             assert layer in result.provenance
             assert result.provenance[layer]["strategy"] == "weight_average"
-
 
 class TestVerifyMethod:
     """Test the verify() method on ModelMerge with the fixed verify_crdt."""
@@ -148,7 +153,6 @@ class TestVerifyMethod:
         assert ta["needs_base"] is True
         assert ta["commutative"] is True
 
-
 class TestCRDTTierClassification:
     """Verify all strategies have correct tier classification."""
 
@@ -169,7 +173,6 @@ class TestCRDTTierClassification:
             assert s.crdt_tier == CRDTTier.NOT_CRDT, (
                 f"{name} should be NOT_CRDT but is {s.crdt_tier}"
             )
-
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])

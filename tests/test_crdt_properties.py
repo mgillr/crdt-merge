@@ -1,4 +1,17 @@
 #!/usr/bin/env python3
+
+# SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
+#
+# Licensed under the Business Source License 1.1 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 """Property-based CRDT law tests using Hypothesis.
 
 Tests commutativity, idempotency, and associativity of model merge strategies
@@ -58,7 +71,6 @@ for name in list_strategies():
     if props.get("idempotent") is True:
         IDEMPOTENT_STRATEGIES.append(name)
 
-
 def _approx_equal(a, b, tol=ABS_TOL):
     """Element-wise approximate equality."""
     a_arr = np.asarray(a, dtype=float).ravel()
@@ -67,11 +79,9 @@ def _approx_equal(a, b, tol=ABS_TOL):
         return False
     return np.allclose(a_arr, b_arr, atol=tol, rtol=0)
 
-
 def _make_tensor(seed, dim=TENSOR_DIM):
     rng = np.random.RandomState(seed)
     return rng.randn(dim).tolist()
-
 
 # ---------------------------------------------------------------------------
 # Hypothesis strategies
@@ -113,7 +123,6 @@ class TestCommutativity:
             f"{strategy_name}: merge(A,B) != merge(B,A)"
         )
 
-
 @pytest.mark.skipif(not HAS_HYPOTHESIS, reason="hypothesis not installed")
 class TestIdempotency:
     """merge(A, A) == A for strategies that declare idempotency."""
@@ -140,7 +149,6 @@ class TestIdempotency:
             f"{strategy_name}: merge(A,A) != A"
         )
 
-
 @pytest.mark.skipif(not HAS_HYPOTHESIS, reason="hypothesis not installed")
 class TestCRDTTierConsistency:
     """Verify that crdt_tier matches crdt_properties for all strategies."""
@@ -164,7 +172,6 @@ class TestCRDTTierConsistency:
             assert tier == CRDTTier.PARTIAL_CRDT, f"{strategy_name}: expected PARTIAL_CRDT"
         else:
             assert tier == CRDTTier.NOT_CRDT, f"{strategy_name}: expected NOT_CRDT"
-
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])

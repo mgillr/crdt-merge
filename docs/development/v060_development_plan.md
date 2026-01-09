@@ -6,7 +6,7 @@
 **Target LOC:** ~6,200 (+2,172) · **Target Tests:** ~720 (+295)
 **Breaking Changes:** 0
 **Contact:** rgillespie83@icloud.com · data@optitransfer.ch
-**Copyright:** Copyright 2026 Ryan Gillespie
+**Copyright:** Copyright 2026 Ryan Gillespie / Optitransfer
 
 ---
 

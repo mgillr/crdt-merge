@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,7 +35,6 @@ from crdt_merge.parallel import (
 )
 from crdt_merge.strategies import MergeSchema, LWW, MaxWins
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -39,7 +42,6 @@ from crdt_merge.strategies import MergeSchema, LWW, MaxWins
 def _make_dataset(n: int, key: str = "id", prefix: str = "") -> List[dict]:
     """Generate a list of *n* dicts with sequential keys."""
     return [{key: i, "value": f"{prefix}{i}"} for i in range(n)]
-
 
 # ===========================================================================
 # 1–2. parallel_merge basic
@@ -52,7 +54,6 @@ def test_parallel_merge_basic_small():
     result = parallel_merge(left, right, key="id")
     assert len(result) == 8  # ids 0..7
 
-
 def test_parallel_merge_basic_result_correctness():
     left = [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]
     right = [{"id": 2, "name": "Bobby"}, {"id": 3, "name": "Charlie"}]
@@ -62,7 +63,6 @@ def test_parallel_merge_basic_result_correctness():
     # id=2 conflict → "Bobby" wins (b-wins default)
     row2 = [r for r in result if r["id"] == 2][0]
     assert row2["name"] == "Bobby"
-
 
 # ===========================================================================
 # 3. parallel_merge with schema
@@ -75,7 +75,6 @@ def test_parallel_merge_with_schema():
     result = parallel_merge(left, right, key="id", schema=schema)
     assert result[0]["score"] == 100
 
-
 # ===========================================================================
 # 4. parallel_merge multi-key
 # ===========================================================================
@@ -86,7 +85,6 @@ def test_parallel_merge_multi_key():
     result = parallel_merge(left, right, key=["a", "b"])
     assert len(result) == 1
     assert result[0]["v"] == "new"
-
 
 # ===========================================================================
 # 5–6. chunk_size configuration
@@ -99,14 +97,12 @@ def test_chunk_size_splits():
     chunks = _compute_chunks(left, right, key="id", chunk_size=5)
     assert len(chunks) == 4  # 20 keys / 5 = 4 chunks
 
-
 def test_chunk_size_large_single_chunk():
     """chunk_size larger than key count → single chunk."""
     left = _make_dataset(10, prefix="L")
     right = _make_dataset(10, prefix="R")
     chunks = _compute_chunks(left, right, key="id", chunk_size=100)
     assert len(chunks) == 1
-
 
 # ===========================================================================
 # 7. max_workers configuration
@@ -118,7 +114,6 @@ def test_max_workers_accepted():
     right = [{"id": 2, "v": "b"}]
     result = parallel_merge(left, right, key="id", max_workers=2)
     assert len(result) == 2
-
 
 # ===========================================================================
 # 8–9. fallback to sequential for small datasets
@@ -132,14 +127,12 @@ def test_fallback_small_dataset():
     result = parallel_merge(left, right, key="id")
     assert len(result) == n  # same keys, so same count
 
-
 def test_fallback_no_key():
     """key=None always falls back to sequential (append + dedup)."""
     left = [{"v": 1}, {"v": 2}]
     right = [{"v": 2}, {"v": 3}]
     result = parallel_merge(left, right, key=None)
     assert len(result) == 3
-
 
 # ===========================================================================
 # 10–11. _compute_chunks correctness
@@ -155,11 +148,9 @@ def test_compute_chunks_all_keys_covered():
         all_ids.update(r["id"] for r in cb)
     assert all_ids == set(range(15))
 
-
 def test_compute_chunks_no_key():
     chunks = _compute_chunks([{"v": 1}], [{"v": 2}], key=None, chunk_size=10)
     assert len(chunks) == 1
-
 
 # ===========================================================================
 # 12. key-aligned chunking
@@ -176,7 +167,6 @@ def test_key_aligned_chunking():
         # Every key present on both sides should appear in both chunk halves
         assert keys_a == keys_b
 
-
 # ===========================================================================
 # 13–14. empty input
 # ===========================================================================
@@ -185,11 +175,9 @@ def test_parallel_merge_empty_left():
     result = parallel_merge([], [{"id": 1, "v": "A"}], key="id")
     assert len(result) == 1
 
-
 def test_parallel_merge_both_empty():
     result = parallel_merge([], [])
     assert result == []
-
 
 # ===========================================================================
 # 15. single-key dataset
@@ -202,7 +190,6 @@ def test_single_key_dataset():
     assert len(result) == 1
     assert result[0]["v"] == "new"
 
-
 # ===========================================================================
 # 16. error in worker propagated
 # ===========================================================================
@@ -213,7 +200,6 @@ def test_worker_error_propagated():
     right = [{"id": 1}]
     with pytest.raises(KeyError):
         parallel_merge(left, right, key="nonexistent")
-
 
 # ===========================================================================
 # 17. thread safety
@@ -243,7 +229,6 @@ def test_thread_safety():
         assert r is not None
         assert len(r) == 50
 
-
 # ===========================================================================
 # 18. parallel_merge_arrow (may not have pyarrow)
 # ===========================================================================
@@ -254,7 +239,6 @@ def test_parallel_merge_arrow_fallback():
     right = [{"id": 2, "v": "b"}]
     result = parallel_merge_arrow(left, right, key="id")
     assert len(result) == 2
-
 
 # ===========================================================================
 # 19. parallel_merge_arrow result correctness
@@ -271,7 +255,6 @@ def test_parallel_merge_arrow_correctness():
         # pyarrow Table — convert to Python
         ids = set(result.column("id").to_pylist())
     assert ids == {1, 2, 3}
-
 
 # ===========================================================================
 # 20. large dataset (10K+ rows)

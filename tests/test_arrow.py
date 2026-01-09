@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,11 +39,9 @@ except ImportError:
 
 pytestmark = pytest.mark.skipif(not HAS_PYARROW, reason="pyarrow not installed")
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
-
 
 @pytest.fixture
 def simple_left():
@@ -50,7 +52,6 @@ def simple_left():
         "score": [10, 20, 30],
     })
 
-
 @pytest.fixture
 def simple_right():
     """Simple right table: id, name, score — overlaps with left on id=2,3."""
@@ -60,13 +61,11 @@ def simple_right():
         "score": [25, 35, 40],
     })
 
-
 @pytest.fixture
 def engine():
     """Default ArrowMerge engine (no schema, no timestamp)."""
     from crdt_merge.arrow import ArrowMerge
     return ArrowMerge()
-
 
 @pytest.fixture
 def tmpdir():
@@ -74,11 +73,9 @@ def tmpdir():
     with tempfile.TemporaryDirectory() as d:
         yield d
 
-
 # ===========================================================================
 # 1. ArrowMerge basic (5 tests)
 # ===========================================================================
-
 
 class TestArrowMergeBasic:
     """Basic ArrowMerge creation and merge tests."""
@@ -118,11 +115,9 @@ class TestArrowMergeBasic:
         assert isinstance(result, pa.Table)
         assert len(result) == 0
 
-
 # ===========================================================================
 # 2. Strategy application (8 tests)
 # ===========================================================================
-
 
 class TestStrategyApplication:
     """Verify all 8 strategy types work with Arrow tables."""
@@ -211,11 +206,9 @@ class TestStrategyApplication:
         assert result.column("high").to_pylist() == [20]
         assert result.column("low").to_pylist() == [50]
 
-
 # ===========================================================================
 # 3. Schema evolution (5 tests)
 # ===========================================================================
-
 
 class TestSchemaEvolution:
     """Merge tables with different column sets."""
@@ -267,11 +260,9 @@ class TestSchemaEvolution:
         result = eng.merge(left, right, key="id")
         assert set(result.column_names) >= {"id", "a", "b", "c", "d"}
 
-
 # ===========================================================================
 # 4. RecordBatch (3 tests)
 # ===========================================================================
-
 
 class TestRecordBatch:
     """Merge with RecordBatch inputs."""
@@ -303,11 +294,9 @@ class TestRecordBatch:
         assert isinstance(result, pa.Table)
         assert len(result) == 2
 
-
 # ===========================================================================
 # 5. Fallback (3 tests)
 # ===========================================================================
-
 
 class TestFallback:
     """arrow_merge fallback and conversion tests."""
@@ -336,11 +325,9 @@ class TestFallback:
         from crdt_merge.arrow import _has_pyarrow
         assert _has_pyarrow() is True
 
-
 # ===========================================================================
 # 6. Streaming (4 tests)
 # ===========================================================================
-
 
 class TestStreaming:
     """Streaming batch merge tests."""
@@ -386,11 +373,9 @@ class TestStreaming:
         assert len(results) == 1
         assert len(results[0]) == 3
 
-
 # ===========================================================================
 # 7. IPC (4 tests)
 # ===========================================================================
-
 
 class TestIPC:
     """IPC file merge tests."""
@@ -471,11 +456,9 @@ class TestIPC:
         merged = reader.read_all()
         assert len(merged) == 3
 
-
 # ===========================================================================
 # 8. Memory-mapped (2 tests)
 # ===========================================================================
-
 
 class TestMemoryMapped:
     """Memory-mapped file merge tests."""
@@ -517,11 +500,9 @@ class TestMemoryMapped:
         assert isinstance(result, pa.Table)
         assert len(result) == 2
 
-
 # ===========================================================================
 # 9. Null handling (3 tests)
 # ===========================================================================
-
 
 class TestNullHandling:
     """Null/None value handling."""
@@ -558,11 +539,9 @@ class TestNullHandling:
         vals = result.column("val").to_pylist()
         assert all(v is None for v in vals)
 
-
 # ===========================================================================
 # 10. Edge cases (5 tests)
 # ===========================================================================
-
 
 class TestEdgeCases:
     """Edge case tests."""
@@ -616,11 +595,9 @@ class TestEdgeCases:
         result = eng.merge(left, right, key="id")
         assert result.column("val").to_pylist() == ["new"]
 
-
 # ===========================================================================
 # 11. Performance (2 tests)
 # ===========================================================================
-
 
 class TestPerformance:
     """Timing-based tests."""
@@ -649,11 +626,9 @@ class TestPerformance:
         assert "speedup" in stats
         assert stats["rows"] > 0
 
-
 # ===========================================================================
 # 12. Serialization (1 test)
 # ===========================================================================
-
 
 class TestSerialization:
     """Output type validation."""
@@ -668,11 +643,9 @@ class TestSerialization:
         rows = result.to_pylist()
         assert len(rows) == 4
 
-
 # ===========================================================================
 # 13. Error handling (3 tests)
 # ===========================================================================
-
 
 class TestErrorHandling:
     """Error condition tests."""
@@ -698,11 +671,9 @@ class TestErrorHandling:
         pa_mod = _import_pyarrow()
         assert pa_mod is not None
 
-
 # ===========================================================================
 # 14. CRDT compliance (2 tests)
 # ===========================================================================
-
 
 class TestCRDTCompliance:
     """Verify Arrow merge satisfies CRDT properties."""
@@ -765,11 +736,9 @@ class TestCRDTCompliance:
             assert ar["id"] == dr["id"]
             assert ar["score"] == dr["score"]
 
-
 # ===========================================================================
 # Additional utility tests
 # ===========================================================================
-
 
 class TestUtilities:
     """Tests for utility functions."""

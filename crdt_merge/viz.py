@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,7 +47,6 @@ import json
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
-
 
 # ---------------------------------------------------------------------------
 # Data classes
@@ -83,7 +86,6 @@ class ConflictRecord:
             "timestamp": self.timestamp,
         }
 
-
 @dataclass
 class ConflictCluster:
     """Group of related conflicts sharing a pattern.
@@ -100,7 +102,6 @@ class ConflictCluster:
     count: int
     pattern: str
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -113,7 +114,6 @@ def _safe(val: Any) -> Any:
         return val
     return repr(val)
 
-
 def _source_pair_key(sources: List[str]) -> str:
     """Deterministic pair key from a source list."""
     s = sorted(set(sources))
@@ -122,7 +122,6 @@ def _source_pair_key(sources: List[str]) -> str:
     if len(s) == 1:
         return s[0]
     return "unknown"
-
 
 # ---------------------------------------------------------------------------
 # Main class

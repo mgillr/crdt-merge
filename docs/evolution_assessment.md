@@ -1,5 +1,10 @@
 # crdt-merge v1.0 Evolution: Strategic Assessment
 
+> **Copyright © 2026 Ryan Gillespie / Optitransfer. All rights reserved.**
+> Licensed under the Business Source License 1.1 (BSL-1.1).
+> See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
+
+
 **For:** Gem — Optitransfer  
 **Date:** 26 March 2026  
 **Classification:** Honest Internal Review  

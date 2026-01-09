@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -80,13 +84,11 @@ _STRATEGY_MAP: Dict[str, type] = {
     "longestwins": LongestWins,
 }
 
-
 def _resolve_strategy_name(name: str) -> MergeStrategy:
     cls = _STRATEGY_MAP.get(name.lower())
     if cls is None:
         raise ValueError(f"Unknown strategy: {name}")
     return cls()
-
 
 # ---------------------------------------------------------------------------
 # Helpers — Arrow ↔ list-of-dicts conversion
@@ -102,7 +104,6 @@ def _table_to_records(table: Any) -> List[dict]:
         n = len(d[cols[0]]) if cols else 0
         return [{c: d[c][i] for c in cols} for i in range(n)]
     return []
-
 
 def _records_to_table(records: List[dict]) -> Any:
     """Convert list-of-dicts to a ``pyarrow.Table``."""
@@ -120,7 +121,6 @@ def _records_to_table(records: List[dict]) -> Any:
     if _pa is not None:
         return _pa.table(cols)
     return records
-
 
 # ---------------------------------------------------------------------------
 # Core merge (same algorithm as duckdb_udf for consistency)
@@ -153,7 +153,6 @@ def _merge_records(
             keyed[k] = dict(row)
     return list(keyed.values()), conflicts
 
-
 def _build_schema(strategies: Optional[Dict[str, str]] = None) -> MergeSchema:
     """Build a ``MergeSchema`` from a strategy name map."""
     if not strategies:
@@ -162,7 +161,6 @@ def _build_schema(strategies: Optional[Dict[str, str]] = None) -> MergeSchema:
     for f, s in strategies.items():
         field_strats[f] = _resolve_strategy_name(s)
     return MergeSchema(default=LWW(), **field_strats)
-
 
 def _parse_metadata(raw_metadata: Any) -> Dict[str, str]:
     """Extract a dict from Arrow Flight metadata bytes/headers.
@@ -187,7 +185,6 @@ def _parse_metadata(raw_metadata: Any) -> Dict[str, str]:
             if isinstance(item, (list, tuple)) and len(item) == 2:
                 out[str(item[0])] = str(item[1])
     return out
-
 
 # ---------------------------------------------------------------------------
 # Flight server implementation
@@ -384,7 +381,6 @@ class FlightMergeServer:
             "cache_entries": len(self._merge_cache),
         }
 
-
 # ---------------------------------------------------------------------------
 # Internal Flight server (wraps pyarrow.flight.FlightServerBase)
 # ---------------------------------------------------------------------------
@@ -421,7 +417,6 @@ class _FlightServerImpl:
     def shutdown(self) -> None:
         if self._inner is not None and hasattr(self._inner, "shutdown"):
             self._inner.shutdown()
-
 
 # ---------------------------------------------------------------------------
 # Client
@@ -486,7 +481,6 @@ class FlightMergeClient:
 
     def __exit__(self, *exc: Any) -> None:
         self.close()
-
 
 __all__ = [
     "FlightMergeServer",

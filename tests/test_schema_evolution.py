@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,11 +30,9 @@ from crdt_merge.schema_evolution import (
     widen_type,
 )
 
-
 # ===================================================================
 # 1. SchemaPolicy values
 # ===================================================================
-
 
 class TestSchemaPolicyValues:
     def test_all_four_policies_exist(self):
@@ -40,11 +42,9 @@ class TestSchemaPolicyValues:
         assert SchemaPolicy.RIGHT_PRIORITY.value == "right_priority"
         assert len(SchemaPolicy) == 4
 
-
 # ===================================================================
 # 2. evolve_schema — UNION policy (4 tests)
 # ===================================================================
-
 
 class TestEvolveSchemaUnion:
     def test_same_schema_no_changes(self):
@@ -84,11 +84,9 @@ class TestEvolveSchemaUnion:
         assert len(changed) == 1
         assert changed[0].resolved_type == "int64"
 
-
 # ===================================================================
 # 3. evolve_schema — INTERSECTION policy (3 tests)
 # ===================================================================
-
 
 class TestEvolveSchemaIntersection:
     def test_same_schema(self):
@@ -108,11 +106,9 @@ class TestEvolveSchemaIntersection:
         result = evolve_schema(old, new, SchemaPolicy.INTERSECTION)
         assert result.resolved_schema == {"b": "str"}
 
-
 # ===================================================================
 # 4. evolve_schema — LEFT_PRIORITY (2 tests)
 # ===================================================================
-
 
 class TestEvolveSchemaLeftPriority:
     def test_new_columns_from_right_added(self):
@@ -127,11 +123,9 @@ class TestEvolveSchemaLeftPriority:
         result = evolve_schema(old, new, SchemaPolicy.LEFT_PRIORITY)
         assert result.resolved_schema["val"] == "int32"
 
-
 # ===================================================================
 # 5. evolve_schema — RIGHT_PRIORITY (2 tests)
 # ===================================================================
-
 
 class TestEvolveSchemaRightPriority:
     def test_old_columns_preserved(self):
@@ -146,11 +140,9 @@ class TestEvolveSchemaRightPriority:
         result = evolve_schema(old, new, SchemaPolicy.RIGHT_PRIORITY)
         assert result.resolved_schema["val"] == "float64"
 
-
 # ===================================================================
 # 6. Type widening (3 tests)
 # ===================================================================
-
 
 class TestTypeWidening:
     def test_int_to_float(self):
@@ -162,11 +154,9 @@ class TestTypeWidening:
     def test_incompatible_types_return_none(self):
         assert widen_type("str", "int64") is None
 
-
 # ===================================================================
 # 7. Type narrowing (2 tests)
 # ===================================================================
-
 
 class TestTypeNarrowing:
     def test_narrowing_rejected_by_default(self):
@@ -185,11 +175,9 @@ class TestTypeNarrowing:
         assert result.resolved_schema["val"] == "str"
         assert len(result.warnings) > 0  # still warns
 
-
 # ===================================================================
 # 8. check_compatibility (2 tests)
 # ===================================================================
-
 
 class TestCheckCompatibility:
     def test_compatible_pair(self):
@@ -206,11 +194,9 @@ class TestCheckCompatibility:
         assert ok is False
         assert len(reasons) > 0
 
-
 # ===================================================================
 # 9. SchemaEvolutionResult serialization (1 test)
 # ===================================================================
-
 
 class TestSchemaEvolutionResultSerialization:
     def test_to_dict_from_dict_roundtrip(self):
@@ -233,11 +219,9 @@ class TestSchemaEvolutionResultSerialization:
             assert orig_c.change_type == rest_c.change_type
             assert orig_c.resolved_type == rest_c.resolved_type
 
-
 # ===================================================================
 # 10. Edge cases (5 tests)
 # ===================================================================
-
 
 class TestEdgeCases:
     def test_empty_old_schema(self):

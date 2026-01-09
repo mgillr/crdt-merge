@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,9 +56,6 @@ from .strategies import MergeSchema, MergeStrategy, LWW
 
 __all__ = ["merge_with_provenance", "export_provenance", "MergeDecision", "MergeRecord", "ProvenanceLog"]
 
-
-
-
 @dataclass
 class MergeDecision:
     """Record of how a single field was resolved during merge.
@@ -86,7 +87,6 @@ class MergeDecision:
             "value": _safe_repr(self.value),
             "alternative": _safe_repr(self.alternative),
         }
-
 
 @dataclass
 class MergeRecord:
@@ -126,7 +126,6 @@ class MergeRecord:
             "conflict_count": self.conflict_count,
             "decisions": [d.to_dict() for d in self.decisions],
         }
-
 
 @dataclass
 class ProvenanceLog:
@@ -185,7 +184,6 @@ class ProvenanceLog:
         return (f"ProvenanceLog(rows={self.total_rows}, conflicts={self.total_conflicts}, "
                 f"{self.duration_ms:.1f}ms)")
 
-
 def _safe_repr(val: Any) -> Any:
     """Convert value to JSON-safe representation."""
     if val is None:
@@ -199,7 +197,6 @@ def _safe_repr(val: Any) -> Any:
     if isinstance(val, set):
         return sorted(_safe_repr(v) for v in val)
     return str(val)
-
 
 def _resolve_with_provenance(
     row_a: dict, row_b: dict, key_val: Any, columns: list,
@@ -249,7 +246,6 @@ def _resolve_with_provenance(
                 value=resolved, alternative=alt))
 
     return result, record
-
 
 def merge_with_provenance(
     df_a, df_b, key: str = "id",
@@ -349,7 +345,6 @@ def merge_with_provenance(
 
     return merged_data, log
 
-
 def _to_dicts(data, key: str) -> list:
     """Convert DataFrame or list-of-dicts to list-of-dicts."""
     if isinstance(data, list):
@@ -359,7 +354,6 @@ def _to_dicts(data, key: str) -> list:
         return data.to_dict('records')
     # Already iterable of dicts
     return list(data)
-
 
 def export_provenance(log: ProvenanceLog, format: str = "json") -> str:
     """

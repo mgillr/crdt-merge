@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,7 +49,6 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, List, Optional, Tuple
 
-
 @dataclass
 class VerificationResult:
     """Result of a CRDT property verification run."""
@@ -60,7 +63,6 @@ class VerificationResult:
     def __repr__(self):
         status = "✅ PASS" if self.passed else f"❌ FAIL ({self.failures}/{self.trials})"
         return f"Verify({self.property_name}): {status} in {self.duration_ms:.1f}ms"
-
 
 @dataclass
 class CRDTVerification:
@@ -90,7 +92,6 @@ class CRDTVerification:
 
     def __repr__(self):
         return f"CRDTVerification(passed={self.passed}, trials={self.total_trials})"
-
 
 def _are_equal(a: Any, b: Any) -> bool:
     """Deep equality check that handles CRDT objects, DataFrames, dicts, floats, etc."""
@@ -161,7 +162,6 @@ def _are_equal(a: Any, b: Any) -> bool:
         return abs(a - b) < 1e-10
     return a == b
 
-
 def verify_commutative(
     merge_fn: Callable[[Any, Any], Any],
     gen_fn: Callable[[], Any],
@@ -208,7 +208,6 @@ def verify_commutative(
         first_failure=first_failure, duration_ms=duration,
     )
 
-
 def verify_associative(
     merge_fn: Callable[[Any, Any], Any],
     gen_fn: Callable[[], Any],
@@ -249,7 +248,6 @@ def verify_associative(
         first_failure=first_failure, duration_ms=duration,
     )
 
-
 def verify_idempotent(
     merge_fn: Callable[[Any, Any], Any],
     gen_fn: Callable[[], Any],
@@ -284,7 +282,6 @@ def verify_idempotent(
         trials=trials, failures=failures,
         first_failure=first_failure, duration_ms=duration,
     )
-
 
 def verify_convergence(
     merge_fn: Callable[[Any, Any], Any],
@@ -344,7 +341,6 @@ def verify_convergence(
         first_failure=first_failure, duration_ms=duration,
     )
 
-
 def verify_crdt(
     merge_fn: Callable[[Any, Any], Any],
     gen_fn: Callable[[], Any],
@@ -371,11 +367,9 @@ def verify_crdt(
         convergence=conv, total_trials=total, total_duration_ms=total_ms,
     )
 
-
 # ─── v0.4.0: @verified_merge decorator ───────────────────────────────────────
 
 from functools import wraps
-
 
 def verified_merge(
     merge_fn=None,
@@ -448,7 +442,6 @@ def verified_merge(
             "@verified_merge requires gen_fn. Use: @verified_merge(gen_fn=...)"
         )
     return decorator
-
 
 class CRDTVerificationError(Exception):
     """Raised when a merge function fails CRDT property verification."""

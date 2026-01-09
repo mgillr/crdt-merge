@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +21,6 @@
 import time
 import pytest
 from crdt_merge.core import GCounter, PNCounter, LWWRegister, ORSet, LWWMap
-
 
 class TestGCounter:
     def test_basic_increment(self):
@@ -69,7 +72,6 @@ class TestGCounter:
         with pytest.raises(ValueError):
             c.increment("n1", -1)
 
-
 class TestPNCounter:
     def test_increment_decrement(self):
         c = PNCounter()
@@ -97,7 +99,6 @@ class TestPNCounter:
         d = c.to_dict()
         r = PNCounter.from_dict(d)
         assert r.value == 7
-
 
 class TestLWWRegister:
     def test_latest_wins(self):
@@ -128,7 +129,6 @@ class TestLWWRegister:
         b = LWWRegister.from_dict(d)
         assert b.value == "hello"
         assert b.timestamp == 42.0
-
 
 class TestORSet:
     def test_add_contains(self):
@@ -185,7 +185,6 @@ class TestORSet:
         d = a.to_dict()
         b = ORSet.from_dict(d)
         assert b.value == {"hello", "world"}
-
 
 class TestLWWMap:
     def test_basic_set_get(self):

@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +28,6 @@ from crdt_merge.wire import (
     MAGIC, PROTOCOL_VERSION, _HEADER_SIZE,
     _encode_value, _decode_value,
 )
-
 
 # ── Low-level encoder round-trips ──────────────────────────────────────
 
@@ -86,7 +89,6 @@ class TestBinaryEncoder:
         val, _ = _decode_value(_encode_value(v), 0)
         assert val == v
 
-
 # ── GCounter round-trip ────────────────────────────────────────────────
 
 class TestGCounterWire:
@@ -120,7 +122,6 @@ class TestGCounterWire:
         data = serialize(gc)
         assert peek_type(data) == 'g_counter'
 
-
 # ── PNCounter round-trip ───────────────────────────────────────────────
 
 class TestPNCounterWire:
@@ -139,7 +140,6 @@ class TestPNCounterWire:
         data = serialize(pn)
         restored = deserialize(data)
         assert restored.value == -50
-
 
 # ── LWWRegister round-trip ─────────────────────────────────────────────
 
@@ -162,7 +162,6 @@ class TestLWWRegisterWire:
         reg = LWWRegister("x")
         assert peek_type(serialize(reg)) == 'lww_register'
 
-
 # ── ORSet round-trip ───────────────────────────────────────────────────
 
 class TestORSetWire:
@@ -182,7 +181,6 @@ class TestORSetWire:
         restored = deserialize(data)
         assert len(restored.value) == 0
 
-
 # ── LWWMap round-trip ──────────────────────────────────────────────────
 
 class TestLWWMapWire:
@@ -195,7 +193,6 @@ class TestLWWMapWire:
         assert isinstance(restored, LWWMap)
         assert restored.get("name") == "Alice"
         assert restored.get("age") == 30
-
 
 # ── Delta round-trip ───────────────────────────────────────────────────
 
@@ -224,7 +221,6 @@ class TestDeltaWire:
         assert isinstance(restored, Delta)
         assert restored.is_empty
 
-
 # ── Generic round-trip ─────────────────────────────────────────────────
 
 class TestGenericWire:
@@ -242,7 +238,6 @@ class TestGenericWire:
 
     def test_peek_generic(self):
         assert peek_type(serialize({"x": 1})) == 'generic'
-
 
 # ── Batch serialize/deserialize ────────────────────────────────────────
 
@@ -273,7 +268,6 @@ class TestBatchWire:
         restored = deserialize_batch(comp)
         assert len(restored) == 50
 
-
 # ── wire_size ──────────────────────────────────────────────────────────
 
 class TestWireSize:
@@ -294,7 +288,6 @@ class TestWireSize:
         data = serialize(gc, compress=True)
         info = wire_size(data)
         assert info['compressed'] is True
-
 
 # ── Error handling ─────────────────────────────────────────────────────
 
@@ -317,7 +310,6 @@ class TestWireErrors:
     def test_unsupported_type(self):
         with pytest.raises(WireError):
             serialize(object())
-
 
 # ── Cross-type merge after wire round-trip ─────────────────────────────
 

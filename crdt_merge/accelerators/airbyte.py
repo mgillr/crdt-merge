@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -49,7 +53,6 @@ from crdt_merge.accelerators import register_accelerator
 _strategies_mod = None
 _provenance_mod = None
 
-
 def _get_strategies():
     """Lazy-import crdt_merge.strategies."""
     global _strategies_mod
@@ -58,7 +61,6 @@ def _get_strategies():
         _strategies_mod = _sm
     return _strategies_mod
 
-
 def _get_provenance():
     """Lazy-import crdt_merge.provenance."""
     global _provenance_mod
@@ -66,7 +68,6 @@ def _get_provenance():
         from crdt_merge import provenance as _pm
         _provenance_mod = _pm
     return _provenance_mod
-
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -94,7 +95,6 @@ _STRATEGY_MAP = {
 # Airbyte protocol message types (simplified)
 # ---------------------------------------------------------------------------
 
-
 @dataclass
 class AirbyteMessage:
     """Simplified Airbyte protocol message."""
@@ -106,7 +106,6 @@ class AirbyteMessage:
     spec: Optional[Dict[str, Any]] = None
     connection_status: Optional[Dict[str, Any]] = None
 
-
 @dataclass
 class AirbyteRecordMessage:
     """An individual Airbyte record."""
@@ -115,7 +114,6 @@ class AirbyteRecordMessage:
     data: Dict[str, Any]
     emitted_at: float = 0.0
     namespace: Optional[str] = None
-
 
 @dataclass
 class StreamConfig:
@@ -131,7 +129,6 @@ class StreamConfig:
         """Return the strategy name for a given column."""
         raw = self.strategies.get(column, self.default_strategy)
         return _STRATEGY_MAP.get(raw.lower(), raw)
-
 
 @dataclass
 class WriteResult:
@@ -153,11 +150,9 @@ class WriteResult:
             "merge_time_ms": self.merge_time_ms,
         }
 
-
 # ---------------------------------------------------------------------------
 # Strategy resolver (lazy)
 # ---------------------------------------------------------------------------
-
 
 def _build_merge_schema(
     stream_cfg: StreamConfig,
@@ -191,7 +186,6 @@ def _build_merge_schema(
 
     return sm.MergeSchema(default=default_cls(), **field_strats)
 
-
 def _resolve_field(
     val_a: Any,
     val_b: Any,
@@ -221,11 +215,9 @@ def _resolve_field(
     resolved = strat.resolve(val_a, val_b, ts_a=ts_a, ts_b=ts_b)
     return resolved, True
 
-
 # ---------------------------------------------------------------------------
 # In-memory stream store
 # ---------------------------------------------------------------------------
-
 
 class _StreamStore:
     """In-memory record store for a single Airbyte stream."""
@@ -279,11 +271,9 @@ class _StreamStore:
         self._records.clear()
         self._timestamps.clear()
 
-
 # ---------------------------------------------------------------------------
 # Destination connector
 # ---------------------------------------------------------------------------
-
 
 @register_accelerator
 class AirbyteMergeDestination:

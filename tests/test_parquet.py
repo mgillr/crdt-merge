@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,11 +33,9 @@ from crdt_merge.parquet import (
 )
 from crdt_merge.strategies import LWW, MaxWins, MinWins, MergeSchema
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 # TestParquetMetadata — 10 tests
 # ═══════════════════════════════════════════════════════════════════════════
-
 
 class TestParquetMetadata:
     """Tests for ParquetMergeMetadata serialization."""
@@ -121,11 +123,9 @@ class TestParquetMetadata:
             restored = ParquetMergeMetadata.from_parquet_metadata(pq)
             assert restored.provenance_enabled is flag
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 # TestSelfMergingParquet — 15 tests
 # ═══════════════════════════════════════════════════════════════════════════
-
 
 class TestSelfMergingParquet:
     """Tests for the SelfMergingParquet container."""
@@ -246,11 +246,9 @@ class TestSelfMergingParquet:
         assert log[0]["source"] == "batch_1"
         assert log[1]["source"] == "batch_2"
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 # TestParquetStrategies — 10 tests
 # ═══════════════════════════════════════════════════════════════════════════
-
 
 class TestParquetStrategies:
     """Tests for strategy application within SelfMergingParquet."""
@@ -339,11 +337,9 @@ class TestParquetStrategies:
         records = smf.read()
         assert records[0]["count"] == 200
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 # TestParquetProvenance — 5 tests
 # ═══════════════════════════════════════════════════════════════════════════
-
 
 class TestParquetProvenance:
     """Tests for provenance tracking in SelfMergingParquet."""
@@ -382,11 +378,9 @@ class TestParquetProvenance:
         meta = smf.metadata()
         assert meta.provenance_enabled is True
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 # TestSelfMergingParquetEdgeCases — extra tests to reach ~40
 # ═══════════════════════════════════════════════════════════════════════════
-
 
 class TestSelfMergingParquetEdgeCases:
     """Edge-case tests."""

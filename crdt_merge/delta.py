@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,9 +50,6 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 from .strategies import MergeSchema, LWW
 
 __all__ = ["Delta", "DeltaStore", "compute_delta", "apply_delta", "compose_deltas"]
-
-
-
 
 class Delta:
     """
@@ -112,7 +113,6 @@ class Delta:
     def __repr__(self):
         return f"Delta(+{len(self.added)} ~{len(self.modified)} -{len(self.removed)}, v{self.version})"
 
-
 def _record_hash(record: dict, key: str) -> str:
     """Hash a record's non-key content for change detection."""
     parts = []
@@ -120,7 +120,6 @@ def _record_hash(record: dict, key: str) -> str:
         if k != key:
             parts.append(f"{k}={record[k]}")
     return hashlib.sha256("|".join(parts).encode()).hexdigest()[:16]
-
 
 def compute_delta(
     old_records: List[dict],
@@ -167,7 +166,6 @@ def compute_delta(
             removed.append(str(k))
 
     return Delta(added, modified, removed, version, source_node=source_node)
-
 
 def apply_delta(
     records: List[dict],
@@ -222,7 +220,6 @@ def apply_delta(
             index[k] = r
 
     return list(index.values())
-
 
 def compose_deltas(*deltas: Delta, key: Optional[str] = None) -> Delta:
     """
@@ -290,7 +287,6 @@ def compose_deltas(*deltas: Delta, key: Optional[str] = None) -> Delta:
         removed=list(net_removed),
         version=max_version,
     )
-
 
 class DeltaStore:
     """

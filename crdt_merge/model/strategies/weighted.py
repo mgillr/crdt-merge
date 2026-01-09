@@ -1,12 +1,15 @@
 # SPDX-License-Identifier: BUSL-1.1
-#
-# Copyright 2026 Ryan Gillespie
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
@@ -36,7 +39,6 @@ from crdt_merge.model.strategies.base import (
     _to_array,
 )
 
-
 # ---------------------------------------------------------------------------
 # Pure-Python vector helpers
 # ---------------------------------------------------------------------------
@@ -44,19 +46,15 @@ from crdt_merge.model.strategies.base import (
 def _py_add(a: list, b: list) -> list:
     return [x + y for x, y in zip(a, b)]
 
-
 def _py_scale(a: list, s: float) -> list:
     return [x * s for x in a]
-
 
 def _py_zeros(n: int) -> list:
     return [0.0] * n
 
-
 def _py_mul(a: list, b: list) -> list:
     """Element-wise multiplication."""
     return [x * y for x, y in zip(a, b)]
-
 
 def _flatten(arr: Any):
     """Flatten array-like to 1-D. Returns (flat, shape)."""
@@ -74,7 +72,6 @@ def _flatten(arr: Any):
         return [float(x) for x in arr], None
     return arr, None
 
-
 def _unflatten(flat: Any, shape):
     if shape is None:
         return flat
@@ -85,7 +82,6 @@ def _unflatten(flat: Any, shape):
         rows, cols = shape
         return [flat[i * cols:(i + 1) * cols] for i in range(rows)]
     return flat
-
 
 # ===================================================================
 # 14. FisherMerge
@@ -194,7 +190,6 @@ class FisherMerge(ModelMergeStrategy):
             result = _unflatten(result, shape)
             return _from_array(result, original)
 
-
 # ===================================================================
 # 15. RegressionMean (RegMean)
 # ===================================================================
@@ -284,7 +279,6 @@ class RegressionMean(ModelMergeStrategy):
             _, shape = _flatten(_to_array(original))
             result = _unflatten(result, shape)
             return _from_array(result, original)
-
 
 # ===================================================================
 # 16. AdaptiveMerging (AdaMerging)
@@ -420,7 +414,6 @@ class AdaptiveMerging(ModelMergeStrategy):
             _, shape = _flatten(_to_array(original))
             result = _unflatten(result, shape)
             return _from_array(result, original)
-
 
 # ===================================================================
 # 17. DifferentiableAdaptiveMerging (DAM)

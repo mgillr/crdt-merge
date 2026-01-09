@@ -1,12 +1,15 @@
 # SPDX-License-Identifier: BUSL-1.1
-#
-# Copyright 2026 Ryan Gillespie
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
@@ -25,7 +28,6 @@ import pytest
 # ===================================================================
 
 from crdt_merge.model.continual import ContinualMerge
-
 
 class TestContinualMergeBasic:
     """Basic ContinualMerge functionality."""
@@ -213,13 +215,11 @@ class TestContinualMergeBasic:
         # Both should exist with different keys
         assert len(cm.history) == 2
 
-
 # ===================================================================
 # FEDERATED MERGE TESTS (~25)
 # ===================================================================
 
 from crdt_merge.model.federated import FederatedMerge, FederatedResult
-
 
 class TestFederatedMergeBasic:
     """FedAvg and FedProx aggregation."""
@@ -420,7 +420,6 @@ class TestFederatedMergeBasic:
         # big should dominate
         assert result.model["w"][0] > 90.0
 
-
 # ===================================================================
 # FORMATS TESTS (~20)
 # ===================================================================
@@ -432,7 +431,6 @@ from crdt_merge.model.formats import (
     REVERSE_STRATEGY_MAP,
 )
 from crdt_merge.model.core import ModelMergeSchema
-
 
 class TestFormatsImport:
     """Import MergeKit configs."""
@@ -525,7 +523,6 @@ class TestFormatsImport:
         _, extra = import_mergekit_config(config)
         assert extra["model_weights"] == [0.6, 0.4]
 
-
 class TestFormatsExport:
     """Export to MergeKit format."""
 
@@ -555,7 +552,6 @@ class TestFormatsExport:
         exported = export_mergekit_config(schema, models=extra["model_paths"])
         assert exported["merge_method"] == "ties"
 
-
 class TestFormatsStrategyMap:
     """Strategy name mapping."""
 
@@ -578,13 +574,11 @@ class TestFormatsStrategyMap:
         assert isinstance(STRATEGY_MAP, dict)
         assert isinstance(REVERSE_STRATEGY_MAP, dict)
 
-
 # ===================================================================
 # GPU TESTS (~25) — ALL MUST WORK WITHOUT TORCH
 # ===================================================================
 
 from crdt_merge.model.gpu import GPUMerge
-
 
 class TestGPUAvailability:
     """GPU availability checks (work without torch)."""
@@ -597,7 +591,6 @@ class TestGPUAvailability:
         # If torch is not installed, should return False (not raise)
         result = GPUMerge.is_gpu_available()
         assert isinstance(result, bool)
-
 
 class TestGPUMergeInstantiation:
     """GPUMerge instantiation and fallback."""
@@ -658,7 +651,6 @@ class TestGPUMergeInstantiation:
             pytest.skip("torch not installed")
         gpu = GPUMerge(device="cpu", chunk_size=10)
         assert gpu._chunk_size == 10
-
 
 class TestGPUMergeFunctionality:
     """GPU merge operations (require torch)."""
@@ -746,7 +738,6 @@ class TestGPUMergeFunctionality:
         assert "layer.0.weight" in result
         assert "layer.1.bias" in result
 
-
 class TestGPUImportError:
     """Test helpful import errors."""
 
@@ -772,7 +763,6 @@ class TestGPUImportError:
     def test_torch_import_error_text(self):
         from crdt_merge.model.gpu import _TORCH_IMPORT_ERROR
         assert "crdt-merge[gpu]" in _TORCH_IMPORT_ERROR
-
 
 class TestGPUMergeWithTorch:
     """Tests that specifically test torch tensor input (skip if no torch)."""
@@ -815,13 +805,11 @@ class TestGPUMergeWithTorch:
         result = gpu.merge([{"w": [1.0]}, {"w": [3.0]}])
         assert abs(result["w"][0] - 2.0) < 1e-3
 
-
 # ===================================================================
 # SAFETY TESTS (~25)
 # ===================================================================
 
 from crdt_merge.model.safety import SafetyAnalyzer, SafetyReport
-
 
 class TestSafetyDetection:
     """Safety-critical layer detection."""
@@ -882,7 +870,6 @@ class TestSafetyDetection:
         analyzer = SafetyAnalyzer()
         layers = analyzer.detect_safety_layers([])
         assert layers == []
-
 
 class TestSafetyReport:
     """SafetyReport generation."""
@@ -990,7 +977,6 @@ class TestSafetyReport:
         ])
         for var in report.layer_variance.values():
             assert var >= 0.0
-
 
 # ===================================================================
 # INTEGRATION / IMPORT TESTS

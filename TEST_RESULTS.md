@@ -1,5 +1,10 @@
 # Test Results — crdt-merge v0.7.1
 
+> **Copyright © 2026 Ryan Gillespie / Optitransfer. All rights reserved.**
+> Licensed under the Business Source License 1.1 (BSL-1.1).
+> See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
+
+
 **1,143 tests across 38 test files. 1,143 passed, 4 expected failures (version/module count assertions), 0 actual failures.**
 
 Run on: 2026-03-28 | Python 3.12 | pytest

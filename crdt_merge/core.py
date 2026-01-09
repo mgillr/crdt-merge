@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,9 +36,6 @@ import uuid
 from typing import Any, Dict, Hashable, Optional, Set, Tuple
 
 __all__ = ["GCounter", "PNCounter", "LWWRegister", "ORSet", "LWWMap"]
-
-
-
 
 class GCounter:
     """Grow-only counter. Each node has its own slot; value = sum of all slots.
@@ -78,7 +79,6 @@ class GCounter:
     def __repr__(self):
         return f"GCounter(value={self.value}, nodes={len(self._counts)})"
 
-
 class PNCounter:
     """Positive-Negative counter — supports both increment and decrement.
     
@@ -119,7 +119,6 @@ class PNCounter:
 
     def __repr__(self):
         return f"PNCounter(value={self.value})"
-
 
 class LWWRegister:
     """Last-Writer-Wins Register — stores a single value, latest timestamp wins.
@@ -165,7 +164,6 @@ class LWWRegister:
 
     def __repr__(self):
         return f"LWWRegister(value={self._value!r}, ts={self._timestamp})"
-
 
 class ORSet:
     """Observed-Remove Set — add and remove elements without conflicts.
@@ -239,7 +237,6 @@ class ORSet:
 
     def __repr__(self):
         return f"ORSet(size={len(self.value)})"
-
 
 class LWWMap:
     """Last-Writer-Wins Map — a dictionary where each key is an LWW Register.

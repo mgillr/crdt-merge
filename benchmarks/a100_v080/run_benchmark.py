@@ -1,4 +1,17 @@
 #!/usr/bin/env python3
+
+# SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
+#
+# Licensed under the Business Source License 1.1 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 """
 crdt-merge v0.8.0 — Benchmark Suite
 ====================================
@@ -136,7 +149,6 @@ d, _ = _bench(bench_orset, "ORSet.add+merge", ops=100_000)
 results["crdt_primitives"]["ORSet.add+merge"] = d
 log(f"| ORSet.add+merge | `ORSet.add()` | 100K | {_fmt(d['ops_per_sec'])}/s | {d['time']:.3f}s |")
 
-
 # ═════════════════════════════════════════════════════════════════
 # 2. MERGE ENGINE SCALING (Python)
 # ═════════════════════════════════════════════════════════════════
@@ -158,7 +170,6 @@ for n in [10_000, 50_000, 100_000, 500_000]:
     d["rows_per_sec"] = round(n / d["time"])
     results["python_engine"][str(n)] = d
     log(f"| {n:>9,} | `merge(a, b, key='id')` | {_fmt(d['rows_per_sec'])}/s | {d['time']:.3f}s |")
-
 
 # ═════════════════════════════════════════════════════════════════
 # 3. STREAMING MERGE
@@ -182,7 +193,6 @@ for n in [100_000, 500_000]:
     d["output_rows"] = total_rows
     results["streaming"][str(n)] = d
     log(f"| {n:>9,} | `merge_stream(a, b, key='id')` | {_fmt(d['rows_per_sec'])}/s | {d['time']:.3f}s |")
-
 
 # ═════════════════════════════════════════════════════════════════
 # 4. WIRE PROTOCOL (v0.8.0.1 with msgpack support)
@@ -211,7 +221,6 @@ log(f"|--------|-------|")
 log(f"| Roundtrips | **{100_000:,}** in **{d['time']:.3f}s** |")
 log(f"| Throughput | **{_fmt(d['per_sec'])}/sec** |")
 log(f"| API | `wire.serialize()` / `wire.deserialize()` |")
-
 
 # ═════════════════════════════════════════════════════════════════
 # 5. CRDT LAW VERIFICATION
@@ -265,7 +274,6 @@ for name, a_orig, b_orig, c_orig in [("GCounter", gc_a, gc_b, gc_c), ("PNCounter
 results["law_verification"]["all_passed"] = all_passed
 log(f"\n**Result: {'✅ ALL PASSED' if all_passed else '❌ FAILURES'}**")
 
-
 # ═════════════════════════════════════════════════════════════════
 # 6. MODEL MERGE — ALL 25 STRATEGIES (NEW v0.8.0)
 # ═════════════════════════════════════════════════════════════════
@@ -304,7 +312,6 @@ for idx, strat in enumerate(STRATEGIES, 1):
     results["model_strategies"][strat] = d
     log(f"| {idx} | `{strat}` | `ModelCRDT.merge()` | {_fmt(d['merges_per_sec'])}/s | {d['time']:.3f}s |")
 
-
 # ═════════════════════════════════════════════════════════════════
 # 7. MODEL MERGE SCALING (NEW v0.8.0)
 # ═════════════════════════════════════════════════════════════════
@@ -333,7 +340,6 @@ for n_layers, param_size in [(10, 64), (32, 256), (64, 512), (128, 1024)]:
     d["total_params"] = total_params
     results["model_scaling"][f"{n_layers}x{param_size}"] = d
     log(f"| {n_layers} × {param_size} | {total_params:>9,} | `ModelCRDT.merge()` | {_fmt(d['merges_per_sec'])}/s | {d['time']:.3f}s |")
-
 
 # ═════════════════════════════════════════════════════════════════
 # 8. LoRA ADAPTER MERGING (NEW v0.8.0)
@@ -380,7 +386,6 @@ for rank_strat in ["max", "min", "mean"]:
     results["lora_merge"][label] = d
     log(f"| Rank harmonization ({rank_strat}) | `merge_adapters(rank_strategy='{rank_strat}')` | r4+r8 | {_fmt(d['merges_per_sec'])}/s | {d['time']:.3f}s |")
 
-
 # ═════════════════════════════════════════════════════════════════
 # 9. CONTINUAL MERGE (NEW v0.8.0)
 # ═════════════════════════════════════════════════════════════════
@@ -406,7 +411,6 @@ for n_absorb in [100, 500]:
     d["absorptions_per_sec"] = round(n_absorb / d["time"])
     results["continual_merge"][str(n_absorb)] = d
     log(f"| {n_absorb} | `ContinualMerge.absorb()` | {d['time']:.3f}s | {_fmt(d['absorptions_per_sec'])}/s |")
-
 
 # ═════════════════════════════════════════════════════════════════
 # 10. FEDERATED LEARNING (NEW v0.8.0)
@@ -441,7 +445,6 @@ for n_clients, strategy in [(10, "fedavg"), (50, "fedavg"), (10, "fedprox")]:
     results["federated_merge"][label] = d
     log(f"| {n_clients} | `FederatedMerge.submit/aggregate()` | {strategy} | {_fmt(d['rounds_per_sec'])}/s | {d['time']:.3f}s |")
 
-
 # ═════════════════════════════════════════════════════════════════
 # 11. MULTI-STAGE PIPELINE (NEW v0.8.0)
 # ═════════════════════════════════════════════════════════════════
@@ -475,7 +478,6 @@ for n_stages in [2, 5, 10]:
     results["pipeline"][f"{n_stages}_stages"] = d
     log(f"| {n_stages} | `MergePipeline.execute()` | {_fmt(d['pipelines_per_sec'])}/s | {d['time']:.3f}s |")
 
-
 # ═════════════════════════════════════════════════════════════════
 # 12. GPU MERGE — CPU PATH (NEW v0.8.0)
 # ═════════════════════════════════════════════════════════════════
@@ -508,7 +510,6 @@ except ImportError:
     log("*Skipped — requires `pip install crdt-merge[gpu]` (PyTorch)*")
     results["gpu_merge_cpu"]["status"] = "skipped_no_torch"
 
-
 # ═════════════════════════════════════════════════════════════════
 # 13. SAFETY ANALYSIS (NEW v0.8.0)
 # ═════════════════════════════════════════════════════════════════
@@ -534,7 +535,6 @@ for n_layers in [10, 50, 100]:
     d["analyses_per_sec"] = round(n_ops / d["time"])
     results["safety_analysis"][f"{n_layers}_layers"] = d
     log(f"| {n_layers} | `SafetyAnalyzer.safety_report()` | {_fmt(d['analyses_per_sec'])}/s | {d['time']:.3f}s |")
-
 
 # ═════════════════════════════════════════════════════════════════
 # 14. CONFLICT HEATMAPS (NEW v0.8.0)
@@ -563,7 +563,6 @@ for n_layers, n_models in [(10, 2), (32, 3), (64, 5)]:
     results["conflict_heatmaps"][label] = d
     log(f"| {n_layers} | {n_models} | `ConflictHeatmap.from_models()` | {_fmt(d['heatmaps_per_sec'])}/s | {d['time']:.3f}s |")
 
-
 # ═════════════════════════════════════════════════════════════════
 # 15. PROVENANCE TRACKING (NEW v0.8.0)
 # ═════════════════════════════════════════════════════════════════
@@ -591,7 +590,6 @@ for n_layers in [10, 50, 100]:
     d["tracks_per_sec"] = round(d["ops"] / d["time"])
     results["provenance_tracking"][f"{n_layers}_layers"] = d
     log(f"| {n_layers} | `ProvenanceTracker.track_merge()` | {_fmt(d['tracks_per_sec'])}/s | {d['time']:.3f}s |")
-
 
 # ═════════════════════════════════════════════════════════════════
 # 16. MERGEKIT COMPATIBILITY (NEW v0.8.0)
@@ -630,7 +628,6 @@ d, _ = _bench(run_roundtrip, "mergekit_roundtrip", ops=n_ops)
 results["mergekit_compat"]["roundtrip"] = d
 log(f"| Roundtrip | `export → import` | {_fmt(d['ops_per_sec'])}/s | {d['time']:.3f}s |")
 
-
 # ═════════════════════════════════════════════════════════════════
 # 17. MODEL MERGE WITH PROVENANCE (NEW v0.8.0)
 # ═════════════════════════════════════════════════════════════════
@@ -657,7 +654,6 @@ for n_layers in [10, 32, 64]:
     d["merges_per_sec"] = round(n_ops / d["time"])
     results["merge_with_provenance"][f"{n_layers}_layers"] = d
     log(f"| {n_layers} | `ModelCRDT.merge_with_provenance()` | {_fmt(d['merges_per_sec'])}/s | {d['time']:.3f}s |")
-
 
 # ═════════════════════════════════════════════════════════════════
 # 18. CRDT LAW VERIFICATION FOR MODEL MERGE (NEW v0.8.0)
@@ -691,7 +687,6 @@ for strat in sorted(list_strategies()):
     ip = "✅" if idem else "❌"
     log(f"| `{strat}` | {tier} | {c} | {a} | {ip} | `ModelMerge.verify()` | 50 |")
 
-
 # ═════════════════════════════════════════════════════════════════
 # 19. JSON MERGE (carry forward)
 # ═════════════════════════════════════════════════════════════════
@@ -716,7 +711,6 @@ for n_keys in [100, 1000, 10_000]:
     d["merges_per_sec"] = round(n_ops / d["time"])
     results["json_merge"][f"{n_keys}_keys"] = d
     log(f"| {n_keys:,} | `merge_dicts(a, b)` | {_fmt(d['merges_per_sec'])}/s | {d['time']:.3f}s |")
-
 
 # ═════════════════════════════════════════════════════════════════
 # 20. DEDUP (carry forward)
@@ -744,7 +738,6 @@ def run_minhash():
 d, _ = _bench(run_minhash, "minhash_1k")
 results["dedup"]["minhash_1k"] = d
 log(f"| MinHash dedup | `MinHashDedup.dedup()` | 1K docs | — | {d['time']:.3f}s |")
-
 
 # ═════════════════════════════════════════════════════════════════
 # 21. DELTA OPERATIONS (carry forward + DEF-007 fix verification)
@@ -776,7 +769,6 @@ def run_delta_list():
 d, _ = _bench(run_delta_list, "compose_deltas_list", ops=n_ops)
 results["delta_ops"]["compose_list"] = d
 log(f"| Compose list (DEF-007 fix) | `compose_deltas([d1, d2])` | {_fmt(n_ops)} | {_fmt(d['ops_per_sec'])}/s | {d['time']:.3f}s |")
-
 
 # ═════════════════════════════════════════════════════════════════
 # SUMMARY

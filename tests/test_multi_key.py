@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +21,6 @@
 
 import pytest
 from crdt_merge.dataframe import merge, diff, _normalize_key, _make_composite_key
-
 
 # ─── Composite key merge tests (3) ──────────────────────────────────────────
 
@@ -79,7 +82,6 @@ class TestCompositeKeyMerge:
         result_a = merge(left, right, key=["x", "y"], prefer="a")
         assert result_a[0]["val"] == "LEFT"
 
-
 # ─── Backward compatibility tests (3) ───────────────────────────────────────
 
 class TestBackwardCompatibility:
@@ -107,7 +109,6 @@ class TestBackwardCompatibility:
         assert d["unchanged"] == 1
         assert len(d["modified"]) == 1
 
-
 # ─── Hierarchical resolution tests (2) ──────────────────────────────────────
 
 class TestHierarchicalResolution:
@@ -134,7 +135,6 @@ class TestHierarchicalResolution:
         assert len(result) == 2
         vals = {r["v"] for r in result}
         assert vals == {"L", "R"}
-
 
 # ─── diff with composite key tests (2) ──────────────────────────────────────
 
@@ -164,7 +164,6 @@ class TestDiffCompositeKey:
         assert d["unchanged"] == 0
         assert len(d["modified"]) == 1
         assert d["modified"][0]["changes"]["v"] == {"old": 10, "new": 99}
-
 
 # ─── Edge case tests (5) ────────────────────────────────────────────────────
 

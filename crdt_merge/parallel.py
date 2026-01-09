@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,12 +41,10 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from crdt_merge.dataframe import merge as sync_merge, _to_records, _from_records
 
-
 # ---------------------------------------------------------------------------
 # Threshold below which parallelism adds more overhead than benefit.
 # ---------------------------------------------------------------------------
 _SEQUENTIAL_THRESHOLD = 10_000
-
 
 def parallel_merge(
     left: Any,
@@ -126,7 +128,6 @@ def parallel_merge(
     all_columns = list(dict.fromkeys(cols_a + [c for c in cols_b if c not in cols_a]))
     return _from_records(merged_records, all_columns, lib_a)
 
-
 def parallel_merge_arrow(
     left: Any,
     right: Any,
@@ -189,7 +190,6 @@ def parallel_merge_arrow(
         left, right, key=key, schema=schema,
         chunk_size=chunk_size, max_workers=max_workers,
     )
-
 
 # ---------------------------------------------------------------------------
 # Internal helpers

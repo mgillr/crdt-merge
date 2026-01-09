@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,7 +44,6 @@ from typing import Any, AsyncIterator, Dict, List, Optional, Union
 
 from crdt_merge.dataframe import merge as sync_merge
 from crdt_merge.streaming import merge_stream, merge_sorted_stream
-
 
 async def amerge(
     left: Any,
@@ -79,7 +82,6 @@ async def amerge(
         schema=schema,
         **kwargs,
     )
-
 
 async def amerge_stream(
     source_a: Any,
@@ -125,7 +127,6 @@ async def amerge_stream(
     for batch in batches:
         yield batch
 
-
 async def amerge_sorted_stream(
     source_a: Any,
     source_b: Any,
@@ -168,7 +169,6 @@ async def amerge_sorted_stream(
     batches: List[List[dict]] = await asyncio.to_thread(_run_sorted)
     for batch in batches:
         yield batch
-
 
 async def _collect(source: Any) -> Any:
     """Collect from an async iterator if needed; pass through sync iterables.

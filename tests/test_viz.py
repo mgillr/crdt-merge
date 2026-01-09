@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +29,6 @@ import pytest
 
 from crdt_merge.viz import ConflictTopology, ConflictRecord, ConflictCluster
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -42,7 +45,6 @@ def _make_conflict(key=1, field="name", sources=None, values=None,
         timestamp=timestamp,
     )
 
-
 def _sample_conflicts():
     return [
         _make_conflict(key=1, field="name", values=["Alice", "Alicia"], resolved_value="Alice"),
@@ -52,7 +54,6 @@ def _sample_conflicts():
                        resolved_value="b@y.com", sources=["east", "west"]),
         _make_conflict(key=3, field="name", values=["Charlie", "Chuck"], resolved_value="Charlie"),
     ]
-
 
 # ---------------------------------------------------------------------------
 # TestConflictTopology (15 tests)
@@ -172,7 +173,6 @@ class TestConflictTopology:
         assert "total_conflicts" in d
         assert d["total_conflicts"] == 5
 
-
 # ---------------------------------------------------------------------------
 # TestTemporalPatterns (5 tests)
 # ---------------------------------------------------------------------------
@@ -219,7 +219,6 @@ class TestTemporalPatterns:
         timestamps = [t["timestamp"] for t in tp]
         assert timestamps == sorted(timestamps)
 
-
 # ---------------------------------------------------------------------------
 # TestClusterAnalysis (5 tests)
 # ---------------------------------------------------------------------------
@@ -259,7 +258,6 @@ class TestClusterAnalysis:
         topo = ConflictTopology([_make_conflict()])
         clusters = topo.clusters()
         assert "conflict" in clusters[0].pattern.lower()
-
 
 # ---------------------------------------------------------------------------
 # TestExport (10 tests)

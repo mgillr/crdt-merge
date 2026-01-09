@@ -1,12 +1,15 @@
 # SPDX-License-Identifier: BUSL-1.1
-#
-# Copyright 2026 Ryan Gillespie
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
@@ -43,7 +46,6 @@ from crdt_merge.model.strategies import get_strategy, list_strategies
 # numpy — always available in test environment
 import numpy as np
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -55,7 +57,6 @@ def _approx_list(a, b, tol=1e-5):
     if len(a_flat) != len(b_flat):
         return False
     return all(abs(x - y) < tol for x, y in zip(a_flat, b_flat))
-
 
 def _to_flat(x):
     """Convert to flat list for comparison."""
@@ -70,7 +71,6 @@ def _to_flat(x):
                 flat.append(item)
         return flat
     return [x]
-
 
 # Fixed test data
 BASE = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
@@ -108,7 +108,6 @@ STRATEGY_CLASSES = [
 STOCHASTIC_STRATEGIES = ["dare", "della", "dare_ties"]
 DETERMINISTIC_STRATEGIES = ["ties", "model_breadcrumbs", "emr", "star", "svd_knot_tying", "adarank"]
 SVD_STRATEGIES = ["star", "svd_knot_tying", "adarank"]
-
 
 # ===================================================================
 # PER-STRATEGY TESTS
@@ -178,7 +177,6 @@ class TestTIESMerge:
         assert props["commutative"] is True
         assert props["associative"] is True
 
-
 # --- DareDropAndRescale ---
 
 class TestDareDropAndRescale:
@@ -238,7 +236,6 @@ class TestDareDropAndRescale:
         r_high = self.s.merge([MODEL_A, MODEL_B], base=BASE, drop_rate=0.9, seed=42)
         assert not _approx_list(_to_flat(r_low), _to_flat(r_high))
 
-
 # --- DellaDropElectLowRank ---
 
 class TestDellaDropElectLowRank:
@@ -288,7 +285,6 @@ class TestDellaDropElectLowRank:
         r2 = self.s.merge([MODEL_A, MODEL_B], base=BASE, epsilon=0.5, seed=42)
         assert not _approx_list(_to_flat(r1), _to_flat(r2))
 
-
 # --- DareTiesHybrid ---
 
 class TestDareTiesHybrid:
@@ -336,7 +332,6 @@ class TestDareTiesHybrid:
     def test_combined_params(self):
         result = self.s.merge([MODEL_A, MODEL_B], base=BASE, drop_rate=0.5, density=0.5, seed=42)
         assert len(_to_flat(result)) == 10
-
 
 # --- ModelBreadcrumbs ---
 
@@ -389,7 +384,6 @@ class TestModelBreadcrumbs:
         result = self.s.merge([MODEL_A, MODEL_B], base=BASE, mask_method="random", seed=42)
         assert len(_to_flat(result)) == 10
 
-
 # --- EMRMerge ---
 
 class TestEMRMerge:
@@ -441,7 +435,6 @@ class TestEMRMerge:
         props = self.s.crdt_properties
         assert props["commutative"] is True
         assert props["associative"] is True
-
 
 # --- STAR ---
 
@@ -504,7 +497,6 @@ class TestSTAR:
         r2 = self.s.merge([NP_A_2D, NP_B_2D], base=NP_BASE_2D, rescale_method="count")
         # energy rescaling should differ from count
         assert not np.allclose(r1, r2, atol=1e-5)
-
 
 # --- SVDKnotTying ---
 
@@ -570,7 +562,6 @@ class TestSVDKnotTying:
         # Different rank → potentially different results
         assert r1.shape == NP_BASE_2D.shape
         assert r2.shape == NP_BASE_2D.shape
-
 
 # --- AdaptiveRankPruning (AdaRank) ---
 
@@ -638,7 +629,6 @@ class TestAdaptiveRankPruning:
         r2 = self.s.merge([NP_A_2D, NP_B_2D], base=NP_BASE_2D, importance="variance")
         assert r1.shape == NP_BASE_2D.shape
         assert r2.shape == NP_BASE_2D.shape
-
 
 # ===================================================================
 # INTEGRATION TESTS

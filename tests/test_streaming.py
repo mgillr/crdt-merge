@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,7 +24,6 @@ import sys
 from crdt_merge.streaming import merge_stream, merge_sorted_stream, StreamStats
 from crdt_merge.strategies import MergeSchema, LWW, MaxWins, UnionSet
 
-
 def gen_rows(n, prefix="a", start=0):
     """Generate n rows with predictable keys."""
     for i in range(start, start + n):
@@ -31,7 +34,6 @@ def gen_rows(n, prefix="a", start=0):
             "tags": f"{prefix}",
             "_ts": float(i),
         }
-
 
 # ===========================================================================
 # Basic Functionality
@@ -95,7 +97,6 @@ class TestMergeStream:
             result.extend(batch)
         assert len(result) == 6
 
-
 class TestMergeStreamWithSchema:
     def test_schema_applied(self):
         """Schema strategies should be applied during merge."""
@@ -117,7 +118,6 @@ class TestMergeStreamWithSchema:
         tag_set = set(row["tags"].split(","))
         assert "x" in tag_set and "y" in tag_set
 
-
 class TestMergeSortedStream:
     def test_sorted_merge(self):
         """Pre-sorted sources should merge correctly."""
@@ -137,7 +137,6 @@ class TestMergeSortedStream:
             result.extend(batch)
         ids = [r["id"] for r in result]
         assert ids == sorted(ids)
-
 
 # ===========================================================================
 # Generators (True Streaming)
@@ -165,7 +164,6 @@ class TestGeneratorSources:
             result.extend(batch)
         assert len(result) == 100
 
-
 # ===========================================================================
 # StreamStats
 # ===========================================================================
@@ -182,7 +180,6 @@ class TestStreamStats:
         assert stats.rows_processed > 0
         assert stats.batches_processed > 0
         assert stats.duration_ms > 0
-
 
 # ===========================================================================
 # Memory Efficiency (Sanity Check)
@@ -209,7 +206,6 @@ class TestMemoryEfficiency:
         # (batch of 100 rows ≈ 20KB)
         # Give generous margin for Python overhead
         assert peak < 10_000_000, f"Peak memory {peak/1e6:.1f}MB — too high for streaming"
-
 
 # ===========================================================================
 # Edge Cases

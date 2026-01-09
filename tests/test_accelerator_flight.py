@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +37,6 @@ from crdt_merge.accelerators.flight_server import (
 )
 from crdt_merge.strategies import MergeSchema, LWW, MaxWins
 from crdt_merge.accelerators import ACCELERATOR_REGISTRY
-
 
 # ===================================================================
 # TestFlightMergeServer — 15 tests
@@ -141,7 +144,6 @@ class TestFlightMergeServer:
         recs = result if isinstance(result, list) else _table_to_records(result)
         assert len(recs) == 0
 
-
 # ===================================================================
 # TestFlightMergeClient — 5 tests
 # ===================================================================
@@ -181,7 +183,6 @@ class TestFlightMergeClient:
             recs = result if isinstance(result, list) else _table_to_records(result)
             assert recs[0]["score"] == 20
 
-
 # ===================================================================
 # TestHelpers — 5 tests
 # ===================================================================
@@ -206,7 +207,6 @@ class TestHelpers:
 
     def test_parse_metadata_none(self):
         assert _parse_metadata(None) == {}
-
 
 class TestMergeRecordsInternal:
     def test_merge_overlap(self):
