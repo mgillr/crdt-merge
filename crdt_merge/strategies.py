@@ -45,6 +45,9 @@ import copy
 import time
 from typing import Any, Callable, Dict, List, Optional, Union
 
+__all__ = ["MergeStrategy", "LWW", "MaxWins", "MinWins", "UnionSet", "Concat", "Priority", "LongestWins", "Custom", "MergeSchema"]
+
+
 
 def _safe_parse_ts(value: Any) -> float:
     """Parse timestamp to float — handles numeric, ISO-8601, None."""
@@ -58,6 +61,7 @@ def _safe_parse_ts(value: Any) -> float:
         except (ValueError, TypeError):
             pass
         from datetime import datetime as _dt
+
         try:
             return _dt.fromisoformat(value.replace("Z", "+00:00")).timestamp()
         except (ValueError, AttributeError, TypeError):
@@ -358,7 +362,16 @@ class MergeSchema:
         strategies = {}
         for field, info in d.items():
             strat_cls = _STRATEGY_REGISTRY.get(info["strategy"], LWW)
-            if strat_cls == UnionSet:
+            if strat_cls == Custom:
+                # DEF-011: Custom strategies can't be deserialized — explicit LWW fallback
+                import warnings
+                warnings.warn(
+                    f"Custom strategy for field '{field}' cannot be deserialized. "
+                    f"Using LWW as fallback. Register a named strategy subclass instead.",
+                    UserWarning, stacklevel=2,
+                )
+                strategies[field] = LWW()
+            elif strat_cls == UnionSet:
                 strategies[field] = UnionSet(separator=info.get("separator", ","))
             elif strat_cls == Concat:
                 strategies[field] = Concat(separator=info.get("separator", " | "), dedup=info.get("dedup", True))

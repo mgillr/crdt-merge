@@ -59,8 +59,19 @@ import struct
 import zlib
 from typing import Any, Optional, Union
 
+# DEF-023: Optional msgpack support — falls back to JSON if not installed
+try:
+    import msgpack as _msgpack
+    _HAS_MSGPACK = True
+except ImportError:
+    _msgpack = None
+    _HAS_MSGPACK = False
+
 from .core import GCounter, PNCounter, LWWRegister, ORSet, LWWMap
 from .probabilistic import MergeableHLL, MergeableBloom, MergeableCMS
+
+__all__ = ["serialize", "deserialize", "peek_type", "wire_size", "serialize_batch", "deserialize_batch", "WireError"]
+
 
 # Lazy import to avoid circular
 _delta_module = None
@@ -70,6 +81,7 @@ def _get_delta_module():
     global _delta_module
     if _delta_module is None:
         from . import delta as dm
+
         _delta_module = dm
     return _delta_module
 
@@ -275,12 +287,40 @@ def _decode_value(data: bytes, offset: int) -> tuple:
 
 # ── v0.6.0 JSON-based wire frame builder ──────────────────────────────────
 
+def _encode_json_payload(data: dict) -> bytes:
+    """DEF-023: Encode payload using msgpack if available, else JSON.
+
+    msgpack produces smaller payloads and is faster to encode/decode.
+    Falls back to JSON transparently for backwards compatibility.
+    """
+    if _HAS_MSGPACK:
+        return _msgpack.packb(data, use_bin_type=True)
+    import json as _json
+    return _json.dumps(data).encode()
+
+
+def _decode_json_payload(payload: bytes) -> dict:
+    """DEF-023: Decode payload — tries msgpack first, falls back to JSON.
+
+    This ensures backward compatibility: payloads encoded with JSON
+    can still be read even when msgpack is available, and vice versa.
+    """
+    if _HAS_MSGPACK:
+        try:
+            return _msgpack.unpackb(payload, raw=False)
+        except Exception:
+            pass
+    # Fall back to JSON
+    import json as _json
+    return _json.loads(payload)
+
+
 def _build_wire_frame(type_tag: int, payload: bytes, compress: bool = False) -> bytes:
-    """Build a wire-format frame for v0.6.0 JSON-encoded types.
+    """Build a wire-format frame for v0.6.0+ encoded types.
 
     Args:
         type_tag: The type tag byte.
-        payload: JSON-encoded payload bytes.
+        payload: Encoded payload bytes (msgpack or JSON).
         compress: If True, apply zlib compression.
 
     Returns:
@@ -332,49 +372,49 @@ def serialize(obj: Any, *, compress: bool = False) -> bytes:
     if type_name == 'VectorClock':
         import json as _json
         from crdt_merge.clocks import VectorClock as _VC
-        payload = _json.dumps(obj.to_dict()).encode()
+        payload = _encode_json_payload(obj.to_dict())
         type_tag = TAG_VECTOR_CLOCK
         return _build_wire_frame(type_tag, payload, compress)
     elif type_name == 'DottedVersionVector':
         import json as _json
         from crdt_merge.clocks import DottedVersionVector as _DVV
-        payload = _json.dumps(obj.to_dict()).encode()
+        payload = _encode_json_payload(obj.to_dict())
         type_tag = TAG_DOTTED_VERSION_VECTOR
         return _build_wire_frame(type_tag, payload, compress)
     elif type_name == 'MerkleTree':
         import json as _json
         from crdt_merge.merkle import MerkleTree as _MT
-        payload = _json.dumps(obj.to_dict()).encode()
+        payload = _encode_json_payload(obj.to_dict())
         type_tag = TAG_MERKLE_TREE
         return _build_wire_frame(type_tag, payload, compress)
     elif type_name == 'GossipState':
         import json as _json
         from crdt_merge.gossip import GossipState as _GS
-        payload = _json.dumps(obj.to_dict()).encode()
+        payload = _encode_json_payload(obj.to_dict())
         type_tag = TAG_GOSSIP_STATE
         return _build_wire_frame(type_tag, payload, compress)
     elif type_name == 'GossipEntry':
         import json as _json
         from crdt_merge.gossip import GossipEntry as _GE
-        payload = _json.dumps(obj.to_dict()).encode()
+        payload = _encode_json_payload(obj.to_dict())
         type_tag = TAG_GOSSIP_ENTRY
         return _build_wire_frame(type_tag, payload, compress)
     elif type_name == 'SchemaEvolutionResult':
         import json as _json
         from crdt_merge.schema_evolution import SchemaEvolutionResult as _SER
-        payload = _json.dumps(obj.to_dict()).encode()
+        payload = _encode_json_payload(obj.to_dict())
         type_tag = TAG_SCHEMA_EVOLUTION_RESULT
         return _build_wire_frame(type_tag, payload, compress)
     elif type_name == 'SchemaChange':
         import json as _json
         from crdt_merge.schema_evolution import SchemaChange as _SC
-        payload = _json.dumps(obj.to_dict()).encode()
+        payload = _encode_json_payload(obj.to_dict())
         type_tag = TAG_SCHEMA_CHANGE
         return _build_wire_frame(type_tag, payload, compress)
     elif type_name == 'MerkleDiff':
         import json as _json
         from crdt_merge.merkle import MerkleDiff as _MD
-        payload = _json.dumps(obj.to_dict()).encode()
+        payload = _encode_json_payload(obj.to_dict())
         type_tag = TAG_MERKLE_DIFF
         return _build_wire_frame(type_tag, payload, compress)
 
@@ -384,39 +424,39 @@ def serialize(obj: Any, *, compress: bool = False) -> bytes:
         from dataclasses import asdict as _asdict
         d = _asdict(obj)
         d['__type'] = 'mergeql_query'
-        payload = _json.dumps(d).encode()
+        payload = _encode_json_payload(d)
         return _build_wire_frame(TAG_MERGEQL_QUERY, payload, compress)
     elif type_name == 'MergePlan':
         import json as _json
         from dataclasses import asdict as _asdict
         d = _asdict(obj)
         d['__type'] = 'merge_plan'
-        payload = _json.dumps(d).encode()
+        payload = _encode_json_payload(d)
         return _build_wire_frame(TAG_MERGE_PLAN, payload, compress)
     elif type_name == 'MergeQLResult':
         import json as _json
         from dataclasses import asdict as _asdict
         d = _asdict(obj)
         d['__type'] = 'mergeql_result'
-        payload = _json.dumps(d).encode()
+        payload = _encode_json_payload(d)
         return _build_wire_frame(TAG_MERGEQL_RESULT, payload, compress)
     elif type_name == 'ParquetMergeMetadata':
         import json as _json
         d = obj.to_dict()
         d['__type'] = 'parquet_merge_metadata'
-        payload = _json.dumps(d).encode()
+        payload = _encode_json_payload(d)
         return _build_wire_frame(TAG_PARQUET_MERGE_META, payload, compress)
     elif type_name == 'MergeRecord':
         import json as _json
         d = obj.to_dict()
         d['__type'] = 'conflict_record'
-        payload = _json.dumps(d).encode()
+        payload = _encode_json_payload(d)
         return _build_wire_frame(TAG_CONFLICT_RECORD, payload, compress)
     elif type_name == 'ProvenanceLog':
         import json as _json
         d = obj.to_dict()
         d['__type'] = 'conflict_topology'
-        payload = _json.dumps(d).encode()
+        payload = _encode_json_payload(d)
         return _build_wire_frame(TAG_CONFLICT_TOPOLOGY, payload, compress)
 
     if isinstance(obj, (GCounter, PNCounter, LWWRegister, ORSet, LWWMap, MergeableHLL, MergeableBloom, MergeableCMS)):
@@ -508,7 +548,7 @@ def deserialize(data: bytes) -> Any:
     # v0.7.0: JSON-based types (0x50–0x55)
     if 0x50 <= type_tag <= 0x55:
         import json as _json
-        d = _json.loads(payload)
+        d = _decode_json_payload(payload)
         d.pop('__type', None)
         if type_tag == TAG_MERGEQL_QUERY:
             from crdt_merge.mergeql import MergeAST
@@ -546,7 +586,7 @@ def deserialize(data: bytes) -> Any:
     # v0.6.0: JSON-based types (0x40–0x47) use JSON payload, not compact binary
     if 0x40 <= type_tag <= 0x47:
         import json as _json
-        d = _json.loads(payload)
+        d = _decode_json_payload(payload)
         if type_tag == TAG_VECTOR_CLOCK:
             from crdt_merge.clocks import VectorClock
             return VectorClock.from_dict(d)

@@ -50,6 +50,10 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from .strategies import MergeSchema, MergeStrategy, LWW
 
+__all__ = ["merge_with_provenance", "export_provenance", "MergeDecision", "MergeRecord", "ProvenanceLog"]
+
+
+
 
 @dataclass
 class MergeDecision:
@@ -331,7 +335,19 @@ def merge_with_provenance(
     log.total_rows = len(merged_rows)
     log.duration_ms = (time.time() - start) * 1000
 
-    return merged_rows, log
+    # DEF-006: Convert back to original DataFrame type if input was a DataFrame
+    if hasattr(df_a, 'to_dict') and hasattr(df_a, 'columns'):
+        # pandas DataFrame
+        import pandas as pd
+        merged_data = pd.DataFrame(merged_rows)
+    elif hasattr(df_a, 'to_dicts') and hasattr(df_a, 'columns'):
+        # polars DataFrame
+        import polars as pl
+        merged_data = pl.DataFrame(merged_rows)
+    else:
+        merged_data = merged_rows
+
+    return merged_data, log
 
 
 def _to_dicts(data, key: str) -> list:

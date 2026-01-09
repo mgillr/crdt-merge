@@ -45,7 +45,7 @@ def _import_torch():
     try:
         import torch
         return torch
-    except ImportError:
+    except (ImportError, OSError):
         raise ImportError(_TORCH_IMPORT_ERROR)
 
 
@@ -232,7 +232,7 @@ class GPUMerge:
         try:
             import torch
             return torch.cuda.is_available()
-        except ImportError:
+        except (ImportError, OSError):
             return False
 
     def device_info(self) -> dict:
