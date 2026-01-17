@@ -1,8 +1,16 @@
 # CRDT Architecture for Model Merging
 
-> **Copyright © 2026 Ryan Gillespie / Optitransfer. All rights reserved.**
-> Licensed under the Business Source License 1.1 (BSL-1.1).
+> **Copyright © 2026 Ryan Gillespie / Optitransfer. All rights reserved.**  
+> Licensed under the Business Source License 1.1 (BSL-1.1).  
 > See LICENSE file for details.
+
+> ⚠️ **Notice**: Implementation internals, including OR-Set mechanics, canonical
+> ordering protocol, deterministic seed derivation, Merkle construction,
+> version-vector merge logic, wire-format specification, and garbage-collection
+> protocol are **proprietary IP** protected under BSL-1.1 and associated patent
+> filings. This document describes *what* the architecture achieves and *why*
+> it works. The *how* is not disclosed publicly. Enterprise partners may request
+> access to implementation details under NDA.
 
 ---
 
@@ -12,13 +20,12 @@
 2. [The Problem: Why Direct CRDT on Tensors Fails](#the-problem)
 3. [Research: Seven Solution Architectures](#research-seven-solution-architectures)
 4. [The Solution: Two-Layer Architecture](#the-solution)
-5. [Implementation Details](#implementation-details)
-6. [Mathematical Proof of CRDT Compliance](#mathematical-proof)
-7. [Benchmark Results](#benchmark-results)
-8. [API Usage](#api-usage)
-9. [All 25 CRDT-Compliant Strategies](#all-25-strategies)
-10. [Future Work](#future-work)
-11. [References](#references)
+5. [Mathematical Proof of CRDT Compliance](#mathematical-proof)
+6. [Benchmark Results](#benchmark-results)
+7. [API Usage](#api-usage)
+8. [All 25 CRDT-Compliant Strategies](#all-25-strategies)
+9. [Future Work](#future-work)
+10. [References](#references)
 
 ---
 
@@ -39,14 +46,14 @@ the problem into two layers:
 
 | Layer | Responsibility | CRDT Property |
 |-------|---------------|---------------|
-| **Layer 1 — `CRDTMergeState`** | Manages a *set* of model contributions | Set union is trivially C+A+I |
+| **Layer 1 — State Management** | Manages a *set* of model contributions | Set union is trivially C+A+I |
 | **Layer 2 — Strategy** | Deterministic pure function over the set | Same inputs → same outputs |
 
 This two-layer design was the winning architecture out of **seven**
 candidate approaches explored during R&D. All seven ultimately achieved
-25/25 strategies passing full CRDT compliance tests, but the two-layer
-OR-Set approach emerged as the production architecture due to its
-simplicity, performance, and mathematical elegance.
+25/25 strategies passing full CRDT compliance tests, but one architecture
+emerged as the production choice due to its simplicity, performance,
+and mathematical elegance.
 
 ---
 
@@ -262,9 +269,9 @@ requiring any individual merge strategy to satisfy CRDT laws.
 │  │                                                      │    │
 │  │  • Manages a SET of model contributions              │    │
 │  │  • Merge operation = set union (trivially C+A+I)     │    │
-│  │  • OR-Set add/remove semantics with tombstones       │    │
-│  │  • Merkle hashing for content-addressability          │    │
-│  │  • Version vectors for causal ordering               │    │
+│  │  • Add/remove semantics with conflict resolution     │    │
+│  │  • Content-addressable hashing for deduplication     │    │
+│  │  • Causal ordering for distributed operation         │    │
 │  │  • Wire serialization for network transfer           │    │
 │  │                                                      │    │
 │  │  CRDT Laws Satisfied Here ✓                          │    │
@@ -302,75 +309,53 @@ guarantees compose to give full CRDT convergence.
 
 ### 4.3 Layer 1: CRDTMergeState
 
-The `CRDTMergeState` class manages the distributed state:
-
-```python
-class CRDTMergeState:
-    """
-    Layer 1 of the two-layer CRDT architecture.
-    
-    Manages a set of model contributions using OR-Set semantics.
-    The merge operation (set union) trivially satisfies:
-        - Commutativity:  S₁ ∪ S₂ = S₂ ∪ S₁
-        - Associativity:  (S₁ ∪ S₂) ∪ S₃ = S₁ ∪ (S₂ ∪ S₃)
-        - Idempotency:    S ∪ S = S
-    """
-    
-    def __init__(self, node_id: str, strategy: str, **kwargs):
-        self.node_id = node_id
-        self.strategy = strategy
-        self.strategy_kwargs = kwargs
-        
-        # OR-Set state
-        self._adds: Dict[str, ModelContribution] = {}      # tag → contribution
-        self._removes: Set[str] = set()                     # tombstoned tags
-        
-        # Version vector for causal ordering
-        self._version_vector: Dict[str, int] = {}
-        
-        # Merkle root for integrity verification
-        self._merkle_root: Optional[str] = None
-        self._dirty = True
-```
-
-#### Key Operations
+The `CRDTMergeState` class manages the distributed state and exposes
+the following public interface:
 
 | Operation | Description | CRDT Semantics |
 |-----------|-------------|----------------|
-| `add(model_id, tensors, weight)` | Add a model contribution | OR-Set add with unique tag |
-| `remove(model_id)` | Remove a contribution | OR-Set remove (tombstone tags) |
+| `add(model_id, tensors, weight)` | Add a model contribution | Set add with unique tag |
+| `remove(model_id)` | Remove a contribution | Tombstone-based remove |
 | `merge(other)` | Merge with remote state | Set union on adds and removes |
 | `resolve()` | Compute merged model | Deterministic strategy over visible set |
-| `state_hash()` | Merkle root of state | Content-addressable verification |
+| `state_hash` | Content-addressable state fingerprint | Merkle root for integrity verification |
 | `serialize()` / `deserialize()` | Wire format | For network transfer |
+| `dominates(other)` | Causal dominance check | Version vector comparison |
+| `gc(known_versions)` | Tombstone garbage collection | Prune fully-observed removes |
+
+> **IP Notice**: The internal implementation of `CRDTMergeState` —
+> including its state representation, tag generation, tombstone
+> semantics, Merkle construction, version-vector merge logic, and
+> wire-format specification — is proprietary and not disclosed in this
+> document.
 
 ### 4.4 Layer 2: Strategy Execution
 
-Strategies are pure functions that take a set of model contributions
-and return a merged model. They are defined in the `strategies/` module
-and are completely unaware of CRDT semantics:
+Strategies are **pure, deterministic functions** that take the visible
+set of model contributions and return a merged model. They are unaware
+of CRDT semantics.
 
-```python
-# Layer 2 strategies are pure functions
-def slerp_merge(contributions: List[ModelContribution], **kwargs) -> Dict[str, Tensor]:
-    """Pure function: same inputs always produce same outputs."""
-    # Sort by canonical key for determinism
-    sorted_contribs = sorted(contributions, key=lambda c: c.canonical_key)
-    # ... apply SLERP algorithm ...
-    return merged_tensors
-```
+**Critical invariants that ensure CRDT compliance across all 25 strategies:**
 
-**Critical invariant**: Strategies MUST be deterministic. Given the same
-set of `ModelContribution` objects (ordered by canonical key), they must
-always produce bit-identical output tensors. This is enforced by:
+1. **Canonical ordering** — Contributions are presented to the strategy
+   in a globally consistent, deterministic order derived from their
+   content. This makes non-commutative strategies commutative at the
+   system level.
 
-1. **Canonical ordering** — Contributions are sorted by their Merkle
-   hash before being passed to the strategy.
-2. **Seeded randomness** — Strategies that use randomness (DARE, DELLA,
-   evolutionary methods) derive their seed from the Merkle root of the
-   input set, ensuring identical seeds across replicas.
+2. **Deterministic randomness** — Strategies that use stochastic
+   operations (DARE, DELLA, EvolutionaryMerge, GeneticMerge) derive
+   their random seed from the state rather than from an external source.
+   This ensures that all replicas with the same visible set will use
+   identical random masks and sequences.
+
 3. **Deterministic numerics** — Floating-point operations are performed
    in a defined order to avoid non-associative accumulation differences.
+
+> **IP Notice**: The specific mechanisms used to implement canonical
+> ordering, deterministic seed derivation, and numeric determinism are
+> proprietary. These mechanisms are the core innovation that makes
+> stochastic strategies — which fail all three CRDT laws on raw tensors
+> — fully CRDT-compliant at the system level.
 
 ### 4.5 Data Flow
 
@@ -399,517 +384,53 @@ resolve() → merged_A            resolve() → merged_B
 
 ---
 
-## 5. Implementation Details <a name="implementation-details"></a>
+## 5. Mathematical Proof of CRDT Compliance <a name="mathematical-proof"></a>
 
-### 5.1 ModelContribution
-
-Each model added to the CRDT state is wrapped in a `ModelContribution`:
-
-```python
-@dataclass(frozen=True)
-class ModelContribution:
-    """Immutable record of a model's contribution to the merge."""
-    
-    model_id: str                          # Human-readable identifier
-    tag: str                               # Unique OR-Set tag (UUID)
-    tensors: Dict[str, np.ndarray]         # Parameter name → tensor
-    weight: float                          # Contribution weight (0.0–1.0)
-    metadata: Dict[str, Any]               # Arbitrary metadata
-    timestamp: float                       # Wall-clock time of addition
-    node_id: str                           # ID of the node that added this
-    content_hash: str                      # SHA-256 of serialized tensors
-    
-    @cached_property
-    def canonical_key(self) -> str:
-        """Deterministic sort key: content_hash ensures global ordering."""
-        return self.content_hash
-```
-
-### 5.2 OR-Set Semantics
-
-The OR-Set (Observed-Remove Set) allows both additions and removals
-without conflicts. Each `add()` generates a globally unique tag; a
-`remove()` tombstones all tags currently associated with that element.
-
-```python
-def add(self, model_id: str, tensors: Dict[str, np.ndarray],
-        weight: float = 1.0, metadata: Optional[Dict] = None) -> str:
-    """Add a model contribution to the CRDT state.
-    
-    Returns the unique tag for this addition.
-    """
-    tag = f"{self.node_id}:{uuid4().hex}"
-    content_hash = self._compute_content_hash(tensors)
-    
-    contribution = ModelContribution(
-        model_id=model_id,
-        tag=tag,
-        tensors=tensors,
-        weight=weight,
-        metadata=metadata or {},
-        timestamp=time.time(),
-        node_id=self.node_id,
-        content_hash=content_hash,
-    )
-    
-    self._adds[tag] = contribution
-    self._increment_version()
-    self._dirty = True
-    return tag
-
-def remove(self, model_id: str) -> int:
-    """Remove all contributions for a model_id.
-    
-    OR-Set semantics: tombstones all currently visible tags for this
-    model_id. Concurrent adds of the same model_id on other replicas
-    will NOT be removed (add wins over concurrent remove).
-    
-    Returns the number of tags tombstoned.
-    """
-    tags_to_remove = {
-        tag for tag, contrib in self._adds.items()
-        if contrib.model_id == model_id and tag not in self._removes
-    }
-    self._removes.update(tags_to_remove)
-    self._increment_version()
-    self._dirty = True
-    return len(tags_to_remove)
-```
-
-#### Add-Wins Semantics
-
-The OR-Set provides "add-wins" conflict resolution: if one replica adds
-a model while another concurrently removes it, the add takes precedence
-(because the remove can only tombstone tags it has *observed*, not
-future tags). This is the standard OR-Set guarantee.
-
-```
-Node A: add("model_X") → tag_1          Node B: remove("model_X") → tombstone tag_0
-    │                                         │
-    └──────────── merge ──────────────────────┘
-    │
-    ▼
-Result: model_X is PRESENT (tag_1 not tombstoned)
-```
-
-### 5.3 Merkle Hashing
-
-Content-addressable hashing provides three benefits:
-
-1. **Integrity** — Detect corruption or tampering
-2. **Deduplication** — Identical tensors get the same hash
-3. **Efficient sync** — Compare Merkle roots to detect divergence
-
-```python
-def _compute_content_hash(self, tensors: Dict[str, np.ndarray]) -> str:
-    """Compute SHA-256 hash of tensor contents.
-    
-    The hash is computed over canonically-ordered (key, value) pairs,
-    where each tensor is serialized to its raw bytes in C-contiguous
-    order with dtype metadata.
-    """
-    hasher = hashlib.sha256()
-    for key in sorted(tensors.keys()):
-        tensor = tensors[key]
-        hasher.update(key.encode('utf-8'))
-        hasher.update(tensor.dtype.str.encode('utf-8'))
-        hasher.update(np.array(tensor.shape, dtype=np.int64).tobytes())
-        hasher.update(np.ascontiguousarray(tensor).tobytes())
-    return hasher.hexdigest()
-
-def _compute_merkle_root(self) -> str:
-    """Compute Merkle root over all visible contributions.
-    
-    Visible = adds minus tombstoned tags, sorted by content_hash.
-    """
-    visible = self._visible_contributions()
-    if not visible:
-        return hashlib.sha256(b"empty").hexdigest()
-    
-    hashes = sorted(c.content_hash for c in visible)
-    
-    # Build Merkle tree bottom-up
-    level = [hashlib.sha256(h.encode()).digest() for h in hashes]
-    while len(level) > 1:
-        next_level = []
-        for i in range(0, len(level), 2):
-            if i + 1 < len(level):
-                combined = level[i] + level[i + 1]
-            else:
-                combined = level[i] + level[i]  # duplicate odd node
-            next_level.append(hashlib.sha256(combined).digest())
-        level = next_level
-    
-    return level[0].hex()
-
-@property
-def state_hash(self) -> str:
-    """Return the Merkle root of the current state."""
-    if self._dirty:
-        self._merkle_root = self._compute_merkle_root()
-        self._dirty = False
-    return self._merkle_root
-```
-
-### 5.4 Version Vectors
-
-Version vectors track the causal history of updates, enabling replicas
-to determine what state they have and haven't seen:
-
-```python
-def _increment_version(self):
-    """Increment this node's entry in the version vector."""
-    self._version_vector[self.node_id] = (
-        self._version_vector.get(self.node_id, 0) + 1
-    )
-
-def _merge_version_vectors(self, other_vv: Dict[str, int]):
-    """Pointwise max of two version vectors."""
-    all_nodes = set(self._version_vector.keys()) | set(other_vv.keys())
-    self._version_vector = {
-        node: max(
-            self._version_vector.get(node, 0),
-            other_vv.get(node, 0)
-        )
-        for node in all_nodes
-    }
-
-def dominates(self, other: 'CRDTMergeState') -> bool:
-    """Returns True if this state causally dominates (includes all updates of) other."""
-    for node, version in other._version_vector.items():
-        if self._version_vector.get(node, 0) < version:
-            return False
-    return True
-```
-
-### 5.5 The Merge Operation
-
-The core CRDT merge is set union — the simplest possible operation:
-
-```python
-def merge(self, other: 'CRDTMergeState') -> 'CRDTMergeState':
-    """Merge remote state into this replica.
-    
-    This is the CRDT merge operation. It is:
-        - Commutative:  self.merge(other) produces same visible set as other.merge(self)
-        - Associative:  (a.merge(b)).merge(c) == a.merge(b.merge(c))
-        - Idempotent:   self.merge(self) doesn't change visible set
-    
-    Returns self for chaining.
-    """
-    if other.strategy != self.strategy:
-        raise ValueError(
-            f"Cannot merge states with different strategies: "
-            f"{self.strategy} vs {other.strategy}"
-        )
-    
-    # Union of adds (OR-Set: keep all unique tags)
-    for tag, contribution in other._adds.items():
-        if tag not in self._adds:
-            self._adds[tag] = contribution
-    
-    # Union of removes (OR-Set: keep all tombstones)
-    self._removes = self._removes | other._removes
-    
-    # Pointwise-max of version vectors
-    self._merge_version_vectors(other._version_vector)
-    
-    # Merge strategy kwargs (last-writer-wins by version)
-    self._merge_strategy_kwargs(other)
-    
-    self._dirty = True
-    return self
-```
-
-### 5.6 The Resolve Operation
-
-`resolve()` computes the final merged model by applying the strategy
-to the visible set of contributions:
-
-```python
-def resolve(self) -> Dict[str, np.ndarray]:
-    """Compute the merged model from the current CRDT state.
-    
-    This applies Layer 2 (the strategy) to the visible set from Layer 1.
-    
-    The result is deterministic: if two replicas have the same visible
-    set (guaranteed by CRDT convergence), they will compute identical
-    merged tensors.
-    """
-    visible = self._visible_contributions()
-    
-    if not visible:
-        raise ValueError("No visible contributions to resolve")
-    
-    # Canonical ordering by content hash — deterministic across replicas
-    ordered = sorted(visible, key=lambda c: c.canonical_key)
-    
-    # Derive deterministic seed from state hash (for stochastic strategies)
-    seed = int(self.state_hash[:8], 16) % (2**31)
-    
-    # Look up and invoke the strategy
-    strategy_fn = get_strategy(self.strategy)
-    merged = strategy_fn(
-        contributions=ordered,
-        seed=seed,
-        **self.strategy_kwargs
-    )
-    
-    return merged
-```
-
-### 5.7 Wire Serialization
-
-For network transfer between replicas:
-
-```python
-def serialize(self) -> bytes:
-    """Serialize state for network transfer.
-    
-    Format:
-        - 4 bytes: magic number (0x43524454 = "CRDT")
-        - 4 bytes: version (1)
-        - 4 bytes: strategy name length
-        - N bytes: strategy name (UTF-8)
-        - 4 bytes: number of adds
-        - For each add:
-            - 4 bytes: tag length
-            - N bytes: tag (UTF-8)
-            - Contribution data (msgpack)
-        - 4 bytes: number of removes
-        - For each remove:
-            - 4 bytes: tag length  
-            - N bytes: tag (UTF-8)
-        - Version vector (msgpack)
-        - 32 bytes: SHA-256 checksum of preceding data
-    """
-    buffer = io.BytesIO()
-    
-    # Header
-    buffer.write(b'\x43\x52\x44\x54')  # Magic: "CRDT"
-    buffer.write(struct.pack('>I', 1))   # Version
-    
-    # Strategy
-    strategy_bytes = self.strategy.encode('utf-8')
-    buffer.write(struct.pack('>I', len(strategy_bytes)))
-    buffer.write(strategy_bytes)
-    
-    # Adds
-    buffer.write(struct.pack('>I', len(self._adds)))
-    for tag, contrib in sorted(self._adds.items()):
-        self._write_contribution(buffer, tag, contrib)
-    
-    # Removes
-    buffer.write(struct.pack('>I', len(self._removes)))
-    for tag in sorted(self._removes):
-        tag_bytes = tag.encode('utf-8')
-        buffer.write(struct.pack('>I', len(tag_bytes)))
-        buffer.write(tag_bytes)
-    
-    # Version vector
-    vv_bytes = msgpack.packb(self._version_vector)
-    buffer.write(vv_bytes)
-    
-    # Checksum
-    data = buffer.getvalue()
-    checksum = hashlib.sha256(data).digest()
-    buffer.write(checksum)
-    
-    return buffer.getvalue()
-
-@classmethod
-def deserialize(cls, data: bytes) -> 'CRDTMergeState':
-    """Deserialize state from wire format.
-    
-    Validates magic number, version, and SHA-256 checksum.
-    Raises ValueError on corruption or version mismatch.
-    """
-    # Verify checksum
-    payload, checksum = data[:-32], data[-32:]
-    if hashlib.sha256(payload).digest() != checksum:
-        raise ValueError("Checksum mismatch: data corrupted in transit")
-    
-    buffer = io.BytesIO(payload)
-    
-    # Verify magic
-    magic = buffer.read(4)
-    if magic != b'\x43\x52\x44\x54':
-        raise ValueError(f"Invalid magic number: {magic.hex()}")
-    
-    # ... deserialize remaining fields ...
-    return state
-```
-
-### 5.8 Garbage Collection
-
-Tombstones accumulate in the OR-Set over time. A garbage collection
-mechanism prunes tombstones once all replicas have observed the
-corresponding remove:
-
-```python
-def gc(self, known_versions: Dict[str, Dict[str, int]]) -> int:
-    """Garbage-collect tombstones that all replicas have observed.
-    
-    Args:
-        known_versions: Map of node_id → version_vector for all known
-                       replicas. A tombstone is safe to prune if every
-                       replica's version vector dominates the version
-                       at which the remove was issued.
-    
-    Returns:
-        Number of tombstones pruned.
-    """
-    prunable = set()
-    for tag in self._removes:
-        if tag in self._adds:
-            # Check if all replicas have seen this remove
-            remove_version = self._remove_versions.get(tag)
-            if remove_version and all(
-                self._version_dominates(vv, remove_version)
-                for vv in known_versions.values()
-            ):
-                prunable.add(tag)
-    
-    # Prune both the tombstone and the original add
-    for tag in prunable:
-        self._adds.pop(tag, None)
-        self._removes.discard(tag)
-        self._remove_versions.pop(tag, None)
-    
-    self._dirty = True
-    return len(prunable)
-```
-
----
-
-## 6. Mathematical Proof of CRDT Compliance <a name="mathematical-proof"></a>
-
-### 6.1 Definitions
+### 5.1 Definitions
 
 Let:
 - `S` denote a `CRDTMergeState` instance
 - `V(S)` denote the *visible set* of contributions in `S`
-  (i.e., `adds \ removes`)
 - `⊔` denote the merge operation
 - `R(S)` denote the result of `resolve(S)`
 - `strategy` denote a deterministic function from ordered contribution
   lists to merged tensors
 
-### 6.2 Theorem: CRDTMergeState Is a CvRDT
+### 5.2 Theorem: CRDTMergeState Is a CvRDT
 
 **Theorem.** The `CRDTMergeState` merge operation `⊔` forms a
 join-semilattice, and the resolved value `R(S)` converges across all
 replicas that have received the same set of updates.
 
-**Proof.** We prove each required property separately.
+**Proof sketch.** The merge operation is set union over the contribution
+set. Since:
 
-#### 6.2.1 Commutativity
+- Set union is **commutative**: `A ∪ B = B ∪ A`
+- Set union is **associative**: `(A ∪ B) ∪ C = A ∪ (B ∪ C)`
+- Set union is **idempotent**: `A ∪ A = A`
 
-For any two states `S₁, S₂`:
+the three CRDT laws hold structurally. Convergence of the resolved
+value follows from the determinism of `resolve()`: if two replicas have
+the same visible set (guaranteed by CRDT convergence), they will
+compute identical merged tensors because the strategy is a deterministic
+function and all sources of non-determinism (ordering, randomness,
+numeric precision) are controlled by the implementation.
 
-```
-S₁ ⊔ S₂ = CRDTMergeState(
-    adds    = S₁.adds ∪ S₂.adds,
-    removes = S₁.removes ∪ S₂.removes,
-    vv      = pointwise_max(S₁.vv, S₂.vv)
-)
-```
+Full formal proof available to enterprise partners under NDA.
 
-Since set union is commutative (`A ∪ B = B ∪ A`) and pointwise max is
-commutative (`max(a,b) = max(b,a)`):
-
-```
-S₁ ⊔ S₂ = S₂ ⊔ S₁                                                    ∎
-```
-
-#### 6.2.2 Associativity
-
-For any three states `S₁, S₂, S₃`:
-
-```
-(S₁ ⊔ S₂) ⊔ S₃
-= CRDTMergeState(
-    adds    = (S₁.adds ∪ S₂.adds) ∪ S₃.adds,
-    removes = (S₁.removes ∪ S₂.removes) ∪ S₃.removes,
-    vv      = pointwise_max(pointwise_max(S₁.vv, S₂.vv), S₃.vv)
-)
-```
-
-Since set union is associative (`(A ∪ B) ∪ C = A ∪ (B ∪ C)`) and
-pointwise max is associative (`max(max(a,b),c) = max(a,max(b,c))`):
-
-```
-(S₁ ⊔ S₂) ⊔ S₃ = S₁ ⊔ (S₂ ⊔ S₃)                                    ∎
-```
-
-#### 6.2.3 Idempotency
-
-For any state `S`:
-
-```
-S ⊔ S = CRDTMergeState(
-    adds    = S.adds ∪ S.adds = S.adds,
-    removes = S.removes ∪ S.removes = S.removes,
-    vv      = pointwise_max(S.vv, S.vv) = S.vv
-)
-```
-
-Since set union is idempotent (`A ∪ A = A`) and pointwise max is
-idempotent (`max(a,a) = a`):
-
-```
-S ⊔ S = S                                                              ∎
-```
-
-#### 6.2.4 Convergence of Resolved Values
-
-**Claim.** If `V(S₁) = V(S₂)`, then `R(S₁) = R(S₂)`.
-
-**Proof.**
-
-1. `V(S) = { c ∈ S.adds : c.tag ∉ S.removes }` — the visible set is
-   a deterministic function of `adds` and `removes`.
-
-2. By the CRDT properties above (C+A+I), if two replicas have received
-   the same set of updates (possibly in different orders), their states
-   after merging satisfy:
-   ```
-   V(S₁) = V(S₂)
-   ```
-
-3. `resolve(S)` proceeds as follows:
-   - Computes `visible = V(S)` — identical on both replicas.
-   - Sorts `visible` by `canonical_key` (the content hash) — identical
-     sort since the visible sets are identical.
-   - Computes `state_hash` — the Merkle root of the sorted hashes —
-     identical since the sorted hashes are identical.
-   - Derives `seed = int(state_hash[:8], 16) % (2**31)` — identical.
-   - Calls `strategy(contributions=ordered, seed=seed, **kwargs)` with
-     identical arguments.
-
-4. Since `strategy` is a deterministic function:
-   ```
-   R(S₁) = strategy(V(S₁), seed₁, kwargs)
-          = strategy(V(S₂), seed₂, kwargs)   [V(S₁)=V(S₂), seed₁=seed₂]
-          = R(S₂)
-   ```
-
-Therefore, the resolved value converges across all replicas.            ∎
-
-### 6.3 Corollary: All 25 Strategies Are CRDTs
+### 5.3 Corollary: All 25 Strategies Are CRDTs
 
 **Corollary.** Every merge strategy `f` in the library, when used via
 the `CRDTMergeState` wrapper, satisfies the CRDT convergence guarantee.
 
-**Proof.** By Theorem 6.2, convergence depends only on:
-1. The merge operation being C+A+I (proven in 6.2.1–6.2.3), and
-2. The strategy being deterministic (enforced by canonical ordering and
-   seeded randomness).
+**Proof.** By Theorem 5.2, convergence depends only on:
+1. The merge operation being C+A+I (proven above), and
+2. The strategy being deterministic (enforced by the implementation).
 
 Since these properties hold for all 25 strategies, all 25 strategies
-are CRDTs when used via `CRDTMergeState`.                              ∎
+are CRDTs when used via `CRDTMergeState`. ∎
 
-### 6.4 Formal Summary
+### 5.4 Formal Summary
 
 ```
 ╔════════════════════════════════════════════════════════════════╗
@@ -922,18 +443,18 @@ are CRDTs when used via `CRDTMergeState`.                              ∎
 ║    Idempotency:     S ∪ S = S                             ∎   ║
 ║                                                                ║
 ║  Since resolve() is a deterministic function of the set        ║
-║  contents (ordered by canonical key), identical sets always    ║
-║  produce identical merged tensors. Therefore the resolved      ║
-║  value also converges across all replicas.                 ∎   ║
+║  contents, identical sets always produce identical merged      ║
+║  tensors. Therefore the resolved value converges across        ║
+║  all replicas.                                            ∎   ║
 ║                                                                ║
 ╚════════════════════════════════════════════════════════════════╝
 ```
 
 ---
 
-## 7. Benchmark Results <a name="benchmark-results"></a>
+## 6. Benchmark Results <a name="benchmark-results"></a>
 
-### 7.1 Test Configuration
+### 6.1 Test Configuration
 
 All benchmarks were run with the following configuration:
 
@@ -942,7 +463,7 @@ All benchmarks were run with the following configuration:
 - **Number of contributions**: 2, 4, 8, 16
 - **Strategies tested**: All 25
 
-### 7.2 CRDT Overhead
+### 6.2 CRDT Overhead
 
 The CRDT wrapper adds minimal overhead compared to raw strategy
 execution:
@@ -961,17 +482,17 @@ execution:
    metadata (not tensor data) takes microseconds regardless of model
    size.
 
-2. **`add()` is dominated by hashing** — SHA-256 over tensor bytes is
-   the primary cost. This is a one-time cost per contribution.
+2. **`add()` is dominated by hashing** — content hashing over tensor
+   bytes is the primary cost. This is a one-time cost per contribution.
 
 3. **`resolve()` cost is strategy-dependent** — the CRDT wrapper adds
-   negligible overhead (sorting, seed derivation) compared to the
+   negligible overhead (ordering, seed derivation) compared to the
    strategy computation itself.
 
 4. **`serialize()` is proportional to model size** — this is expected
    for any serialization scheme.
 
-### 7.3 Strategy Resolve Times (Medium Models, 4 Contributions)
+### 6.3 Strategy Resolve Times (Medium Models, 4 Contributions)
 
 | Strategy | Resolve Time | CRDT Overhead |
 |----------|:------------:|:-------------:|
@@ -1004,7 +525,7 @@ execution:
 **CRDT overhead is consistently < 0.5ms** — negligible compared to all
 strategy execution times.
 
-### 7.4 CRDT Compliance Test Results
+### 6.4 CRDT Compliance Test Results
 
 All 25 strategies were tested for full CRDT compliance using the
 following test matrix:
@@ -1021,7 +542,7 @@ Test Matrix:
     - Pass rate: 1,200 / 1,200 = 100%
 ```
 
-### 7.5 Memory Overhead
+### 6.5 Memory Overhead
 
 | # Contributions | Metadata Overhead | % of Model Size (100M) |
 |:---------------:|:-----------------:|:----------------------:|
@@ -1030,15 +551,15 @@ Test Matrix:
 | 8 | 4.8 KB | 0.0012% |
 | 16 | 9.6 KB | 0.0024% |
 
-The CRDT metadata (tags, version vectors, tombstones) adds negligible
+The CRDT metadata (tags, causal state, tombstones) adds negligible
 memory overhead. The dominant memory cost is the tensor data itself,
 which would be stored regardless of the CRDT wrapper.
 
 ---
 
-## 8. API Usage <a name="api-usage"></a>
+## 7. API Usage <a name="api-usage"></a>
 
-### 8.1 Direct CRDTMergeState Usage
+### 7.1 Direct CRDTMergeState Usage
 
 #### Basic Example: Two-Node Merge
 
@@ -1127,39 +648,36 @@ assert "ft-code-v2" in visible
 merged = team_1.resolve()
 ```
 
-#### Example: SLERP with Seeded Randomness
+#### Example: DARE — Stochastic Strategy, Deterministic Result
 
 ```python
 from crdt_merge import CRDTMergeState
 
-state = CRDTMergeState(node_id="node-1", strategy="slerp", t=0.5)
+# DARE uses random masking — but crdt-merge makes it deterministic
+state_a = CRDTMergeState(node_id="node-1", strategy="dare", drop_rate=0.1)
+state_b = CRDTMergeState(node_id="node-2", strategy="dare", drop_rate=0.1)
 
-state.add("model-a", tensors_a, weight=1.0)
-state.add("model-b", tensors_b, weight=1.0)
+state_a.add("model-a", tensors_a)
+state_a.add("model-b", tensors_b)
 
-# SLERP is deterministic because:
-# 1. Contributions are sorted by canonical key (content hash)
-# 2. Interpolation parameter t is fixed in strategy kwargs
-merged = state.resolve()
+state_b.add("model-b", tensors_b)
+state_b.add("model-a", tensors_a)
+
+# Merge (no-op — both have the same contributions)
+state_a.merge(state_b)
+state_b.merge(state_a)
+
+# Despite DARE being stochastic, both nodes produce identical results
+merged_a = state_a.resolve()
+merged_b = state_b.resolve()
+
+for key in merged_a:
+    assert np.array_equal(merged_a[key], merged_b[key])
+
+print("✓ DARE CRDT convergence verified — random masks are identical!")
 ```
 
-#### Example: DARE with Deterministic Masking
-
-```python
-from crdt_merge import CRDTMergeState
-
-state = CRDTMergeState(node_id="node-1", strategy="dare", drop_rate=0.1)
-
-state.add("model-a", tensors_a)
-state.add("model-b", tensors_b)
-
-# DARE's random mask is derived from state_hash:
-#   seed = int(state.state_hash[:8], 16) % (2**31)
-# This ensures identical masks on all replicas with the same state
-merged = state.resolve()
-```
-
-### 8.2 High-Level API: ModelMerge.crdt_merge()
+### 7.2 High-Level API: ModelMerge.crdt_merge()
 
 For users who don't need direct CRDT state management, the `ModelMerge`
 class provides a convenient high-level API:
@@ -1210,10 +728,7 @@ merge_b.import_crdt_state(state_bytes)
 result = merge_b.crdt_merge()
 ```
 
-### 8.3 Strategy Configuration
-
-Each strategy accepts its own set of parameters, passed as keyword
-arguments to `CRDTMergeState` or `ModelMerge`:
+### 7.3 Strategy Configuration
 
 ```python
 # TIES
@@ -1241,7 +756,7 @@ state = CRDTMergeState(node_id="n1", strategy="evolutionary",
 state = CRDTMergeState(node_id="n1", strategy="weight_average")
 ```
 
-### 8.4 Inspecting CRDT State
+### 7.4 Inspecting CRDT State
 
 ```python
 state = CRDTMergeState(node_id="node-1", strategy="weight_average")
@@ -1254,17 +769,14 @@ for contrib in state.visible_contributions():
           f"hash={contrib.content_hash[:12]}...")
 
 # Check state hash
-print(f"Merkle root: {state.state_hash}")
-
-# View version vector
-print(f"Version vector: {state.version_vector}")
+print(f"State fingerprint: {state.state_hash}")
 
 # Check if state dominates another
 if state.dominates(other_state):
     print("This state includes all updates from the other")
 ```
 
-### 8.5 Error Handling
+### 7.5 Error Handling
 
 ```python
 from crdt_merge import CRDTMergeState, CRDTError, StrategyMismatchError
@@ -1289,18 +801,18 @@ try:
     CRDTMergeState.deserialize(corrupted_bytes)
 except ValueError as e:
     print(f"Deserialization failed: {e}")
-    # "Invalid magic number: ..."
+    # "Checksum mismatch: data corrupted in transit"
 ```
 
 ---
 
-## 9. All 25 CRDT-Compliant Strategies <a name="all-25-strategies"></a>
+## 8. All 25 CRDT-Compliant Strategies <a name="all-25-strategies"></a>
 
 Every strategy below achieves full CRDT compliance via the two-layer
 architecture. The strategy itself operates as a pure, deterministic
 function over the visible contribution set.
 
-### 9.1 Interpolation-Based Strategies
+### 8.1 Interpolation-Based Strategies
 
 | # | Strategy | Description | Key Parameters |
 |---|----------|-------------|----------------|
@@ -1308,7 +820,7 @@ function over the visible contribution set.
 | 2 | **SLERP** | Spherical linear interpolation on the weight hypersphere | `t` (interpolation factor) |
 | 3 | **LinearInterp** | Element-wise linear interpolation between two models | `alpha` |
 
-### 9.2 Task-Vector Strategies
+### 8.2 Task-Vector Strategies
 
 | # | Strategy | Description | Key Parameters |
 |---|----------|-------------|----------------|
@@ -1319,7 +831,7 @@ function over the visible contribution set.
 | 8 | **DARE-TIES** | Combined DARE + TIES pipeline | `drop_rate`, `density` |
 | 9 | **ModelBreadcrumbs** | Sparse task vectors using breadcrumb trails | `density`, `threshold` |
 
-### 9.3 Regularization-Based Strategies
+### 8.3 Regularization-Based Strategies
 
 | # | Strategy | Description | Key Parameters |
 |---|----------|-------------|----------------|
@@ -1328,7 +840,7 @@ function over the visible contribution set.
 | 12 | **FisherMerge** | Fisher-information–weighted parameter merging | `fisher_matrices` |
 | 13 | **AdaMerging** | Adaptive merging with learned layer-wise coefficients | `learning_rate`, `epochs` |
 
-### 9.4 Decomposition-Based Strategies
+### 8.4 Decomposition-Based Strategies
 
 | # | Strategy | Description | Key Parameters |
 |---|----------|-------------|----------------|
@@ -1337,14 +849,14 @@ function over the visible contribution set.
 | 16 | **STAR** | Structured Adaptive Rank merging | `rank_fraction` |
 | 17 | **DAM** | Decompositional Alignment Merging | `alignment_method` |
 
-### 9.5 Evolutionary and Search Strategies
+### 8.5 Evolutionary and Search Strategies
 
 | # | Strategy | Description | Key Parameters |
 |---|----------|-------------|----------------|
 | 18 | **EvolutionaryMerge** | Evolutionary search over merge coefficients | `population_size`, `generations` |
 | 19 | **GeneticMerge** | Genetic algorithm for layer-wise merge ratios | `population_size`, `mutation_rate` |
 
-### 9.6 Specialized Strategies
+### 8.6 Specialized Strategies
 
 | # | Strategy | Description | Key Parameters |
 |---|----------|-------------|----------------|
@@ -1355,7 +867,7 @@ function over the visible contribution set.
 | 24 | **SafeMerge** | Safety-constrained merging with guardrails | `safety_threshold` |
 | 25 | **LEDMerge** | Low-rank Efficient Decomposition merging | `decomposition_rank` |
 
-### 9.7 CRDT Compliance Matrix
+### 8.7 CRDT Compliance Matrix
 
 All 25 strategies pass the full CRDT compliance test suite:
 
@@ -1399,50 +911,22 @@ TOTAL                     |   25/25     |    25/25    |   25/25    |   25/25    
 
 ---
 
-## 10. Future Work <a name="future-work"></a>
+## 9. Future Work <a name="future-work"></a>
 
-### 10.1 Delta Synchronization
+### 9.1 Delta Synchronization
 
 Currently, `serialize()` transmits the full state. A delta-sync
-protocol would transmit only the differences between states, using the
-version vectors to determine what the remote replica is missing:
+protocol would transmit only the differences between states, using
+causal history to determine what the remote replica is missing.
+This is on the roadmap for v1.0.
 
-```python
-def delta_since(self, remote_vv: Dict[str, int]) -> bytes:
-    """Serialize only contributions added since the remote's version vector."""
-    new_adds = {
-        tag: contrib for tag, contrib in self._adds.items()
-        if self._is_new_for(tag, remote_vv)
-    }
-    new_removes = {
-        tag for tag in self._removes
-        if self._is_new_for(tag, remote_vv)
-    }
-    return self._serialize_delta(new_adds, new_removes)
-```
-
-### 10.2 Persistent Storage Backend
+### 9.2 Persistent Storage Backend
 
 For large-scale deployments, tensor data could be stored in an external
 object store (S3, GCS) with only content hashes in the CRDT state.
-This would dramatically reduce memory and network requirements:
+This would dramatically reduce memory and network requirements.
 
-```python
-class RemoteBackedCRDTState(CRDTMergeState):
-    """CRDTMergeState with tensors stored in object storage."""
-    
-    def __init__(self, *args, storage_backend, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.storage = storage_backend
-    
-    def add(self, model_id, tensors, **kwargs):
-        # Store tensors externally, keep only hash
-        content_hash = self._compute_content_hash(tensors)
-        self.storage.put(content_hash, tensors)
-        return super().add(model_id, tensors, **kwargs)
-```
-
-### 10.3 Conflict Resolution Policies
+### 9.3 Conflict Resolution Policies
 
 While the current architecture uses add-wins semantics, future work
 could support configurable conflict resolution:
@@ -1452,34 +936,21 @@ could support configurable conflict resolution:
 - **Voting** — Majority of replicas must agree
 - **Custom** — User-defined resolution functions
 
-### 10.4 Streaming Merge
+### 9.4 Streaming Merge
 
 For extremely large models that don't fit in memory, a streaming merge
-API would process one layer at a time:
+API would process one layer at a time, yielding `(layer_name, tensor)`
+pairs without materialising the full merged model in memory.
 
-```python
-async def streaming_resolve(self) -> AsyncIterator[Tuple[str, np.ndarray]]:
-    """Resolve one layer at a time, yielding (layer_name, tensor) pairs."""
-    visible = self._visible_contributions()
-    ordered = sorted(visible, key=lambda c: c.canonical_key)
-    
-    for layer_name in self._all_layer_names(ordered):
-        layer_tensors = [c.tensors[layer_name] for c in ordered]
-        merged_layer = self._strategy_fn.merge_layer(
-            layer_name, layer_tensors, **self.strategy_kwargs
-        )
-        yield layer_name, merged_layer
-```
+### 9.5 Formal Verification
 
-### 10.5 Formal Verification
-
-The mathematical proof in Section 6 is a paper proof. Future work could
+The mathematical proof in Section 5 is a paper proof. Future work could
 formalize this in Coq or Lean to provide machine-checked verification
 of the CRDT properties.
 
 ---
 
-## 11. References <a name="references"></a>
+## 10. References <a name="references"></a>
 
 ### CRDT Theory
 
@@ -1514,48 +985,8 @@ of the CRDT properties.
    MLLMs, and Beyond: Methods, Theories, Applications and
    Opportunities." *arXiv:2408.07666*.
 
-9. Wortsman, M., Ilharco, G., Gadre, S.Y., Roelofs, R., Gontijo-Lopes, R.,
-   Morcos, A.S., Namkoong, H., Farhadi, A., Carber, Y., Kornblith, S.,
-   & Schmidt, L. (2022). "Model soups: averaging weights of multiple
-   fine-tuned models improves accuracy without increasing inference
-   time." *ICML 2022*.
-
-### Distributed Systems
-
-10. Lamport, L. (1978). "Time, Clocks, and the Ordering of Events in
-    a Distributed System." *Communications of the ACM, 21(7)*.
-
-11. Merkle, R. C. (1988). "A Digital Signature Based on a Conventional
-    Encryption Function." *CRYPTO '87*.
-
-12. Demers, A., Greene, D., Hauser, C., Irish, W., Larson, J.,
-    Shenker, S., Sturgis, H., Swinehart, D., & Terry, D. (1987).
-    "Epidemic Algorithms for Replicated Database Maintenance."
-    *PODC '87*.
-
 ---
 
-## License
-
-```
-Business Source License 1.1
-
-Copyright © 2026 Ryan Gillespie
-
-Licensed under the Business Source License, Version 1.1 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    https://mariadb.com/bsl11/
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-```
-
----
-
-*This document was generated as part of the crdt-merge library.*
-*Last updated: 2026-03-29*
+*For enterprise licensing, NDA-gated implementation documentation,
+or research collaboration enquiries:*
+*[jeremy@optitransfer.ch](mailto:jeremy@optitransfer.ch)*
