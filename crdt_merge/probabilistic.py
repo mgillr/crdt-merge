@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,7 +47,6 @@ import math
 import struct
 from typing import Any, Iterable, Optional
 
-
 # ── Hash Utilities ─────────────────────────────────────────────────────────
 
 def _hash128(item: Any, seed: int = 0) -> int:
@@ -51,11 +54,9 @@ def _hash128(item: Any, seed: int = 0) -> int:
     data = repr(item).encode('utf-8') + struct.pack('>I', seed)
     return int(hashlib.md5(data).hexdigest(), 16)
 
-
 def _hash64(item: Any, seed: int = 0) -> int:
     """Generate a 64-bit hash from any item."""
     return _hash128(item, seed) & 0xFFFFFFFFFFFFFFFF
-
 
 def _leading_zeros(value: int, bits: int = 64) -> int:
     """Count leading zeros in the binary representation."""
@@ -67,7 +68,6 @@ def _leading_zeros(value: int, bits: int = 64) -> int:
             break
         count += 1
     return count
-
 
 # ── MergeableHLL ───────────────────────────────────────────────────────────
 
@@ -208,7 +208,6 @@ class MergeableHLL:
         if not isinstance(other, MergeableHLL):
             return NotImplemented
         return self.precision == other.precision and self.registers == other.registers
-
 
 # ── MergeableBloom ─────────────────────────────────────────────────────────
 
@@ -372,7 +371,6 @@ class MergeableBloom:
         return (self.size == other.size and
                 self.num_hashes == other.num_hashes and
                 self.bits == other.bits)
-
 
 # ── MergeableCMS ───────────────────────────────────────────────────────────
 

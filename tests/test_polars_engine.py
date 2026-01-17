@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -72,7 +76,6 @@ except ImportError:
 needs_polars = pytest.mark.skipif(not HAS_POLARS, reason="polars not installed")
 needs_arrow = pytest.mark.skipif(not HAS_ARROW, reason="pyarrow not installed")
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -93,7 +96,6 @@ def make_arrow_tables(n: int = 10):
     })
     return left, right
 
-
 def make_dict_rows(n: int = 10):
     """Create left/right dict rows with overlapping keys."""
     left = [
@@ -105,7 +107,6 @@ def make_dict_rows(n: int = 10):
         for i in range(n // 2, n + n // 2)
     ]
     return left, right
-
 
 # ===========================================================================
 # 1. Strategy vectorization tests
@@ -133,7 +134,6 @@ class TestMaxWins:
             if 5 <= row["id"] <= 9:
                 assert row["value"] == max(100 + row["id"], 200 + row["id"])
 
-
 class TestMinWins:
     @needs_polars
     @needs_arrow
@@ -145,7 +145,6 @@ class TestMinWins:
         for i, kid in enumerate(rows["id"]):
             if 5 <= kid <= 9:
                 assert rows["value"][i] == min(100 + kid, 200 + (kid - 5))
-
 
 class TestLWW:
     @needs_polars
@@ -184,7 +183,6 @@ class TestLWW:
         assert names[3] == "new_carol"  # right ts=2 > left ts=1
         assert conflicts == 3
 
-
 class TestConcat:
     @needs_polars
     @needs_arrow
@@ -198,7 +196,6 @@ class TestConcat:
         assert tags[1] == "a, b"
         assert tags[2] == "c, d"
 
-
 class TestLongestWins:
     @needs_polars
     @needs_arrow
@@ -211,7 +208,6 @@ class TestLongestWins:
         descs = {rows["id"][i]: rows["desc"][i] for i in range(len(rows["id"]))}
         assert descs[1] == "longer text"          # right is longer
         assert descs[2] == "very long description"  # left is longer
-
 
 class TestPriority:
     @needs_polars
@@ -228,7 +224,6 @@ class TestPriority:
         rows = result.to_pydict()
         assert rows["status"][0] == "approved"
 
-
 class TestCustom:
     @needs_polars
     @needs_arrow
@@ -243,7 +238,6 @@ class TestCustom:
         result, _ = polars_merge_arrow(left, right, "id", schema)
         rows = result.to_pydict()
         assert rows["value"][0] == 30
-
 
 # ===========================================================================
 # 2. Conflict counting
@@ -277,7 +271,6 @@ class TestConflictCounting:
         _, conflicts = polars_merge_arrow(left, right, "id", schema)
         assert conflicts == 3
 
-
 # ===========================================================================
 # 3. Null handling
 # ===========================================================================
@@ -310,7 +303,6 @@ class TestNullHandling:
         result, _ = polars_merge_arrow(left, right, "id", schema)
         assert result.to_pydict()["v"][0] is None
 
-
 # ===========================================================================
 # 4. Empty table edge cases
 # ===========================================================================
@@ -338,7 +330,6 @@ class TestEmptyTables:
         result, conflicts = polars_merge_dicts(left, [], "id", schema)
         assert len(result) == 1
         assert conflicts == 0
-
 
 # ===========================================================================
 # 5. Schema evolution (asymmetric columns)
@@ -369,7 +360,6 @@ class TestSchemaEvolution:
         cols = result.column_names
         assert "bonus" in cols
 
-
 # ===========================================================================
 # 6. Dict round-trip (for accelerators)
 # ===========================================================================
@@ -387,7 +377,6 @@ class TestDictRoundTrip:
         assert result_map[1] == 10   # left only
         assert result_map[2] == 30   # max(20, 30) = 30
         assert result_map[3] == 40   # right only
-
 
 # ===========================================================================
 # 7. Integration with ArrowMerge (engine routing)
@@ -432,7 +421,6 @@ class TestEngineRouting:
         result = arrow_merge(left, right, key="id", schema=schema, engine="polars")
         assert result.num_rows == 15
 
-
 # ===========================================================================
 # 8. Results match between Python and Polars engines
 # ===========================================================================
@@ -458,7 +446,6 @@ class TestEngineConsistency:
         pl_rows = sorted(zip(pl_dict["id"], pl_dict["value"], pl_dict["score"]))
 
         assert py_rows == pl_rows, f"Results differ:\nPython: {py_rows}\nPolars: {pl_rows}"
-
 
 # ===========================================================================
 # 9. Performance test
@@ -488,7 +475,6 @@ class TestPerformance:
         speedup = py_time / pl_time if pl_time > 0 else float("inf")
         print(f"\n  Python: {py_time:.3f}s | Polars: {pl_time:.3f}s | Speedup: {speedup:.1f}×")
         assert speedup >= 5, f"Polars only {speedup:.1f}× faster (expected ≥5×)"
-
 
 # ===========================================================================
 # 10. CRDT laws (associative, commutative, idempotent)

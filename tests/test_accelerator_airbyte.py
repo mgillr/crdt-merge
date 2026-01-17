@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,11 +38,9 @@ from crdt_merge.accelerators.airbyte import (
 )
 from crdt_merge.accelerators import ACCELERATOR_REGISTRY
 
-
 # ===================================================================
 # TestAirbyteMergeDestination — 25 tests
 # ===================================================================
-
 
 class TestAirbyteMergeDestination:
     """Tests for the AirbyteMergeDestination accelerator."""
@@ -222,11 +224,9 @@ class TestAirbyteMergeDestination:
         assert state_msgs[0].state["cursor"] == "abc123"
         assert dest.read_stream("users")[0]["name"] == "Alice"
 
-
 # ===================================================================
 # TestStreamConfig — extra coverage
 # ===================================================================
-
 
 class TestStreamConfig:
     """Test StreamConfig helper."""
@@ -239,11 +239,9 @@ class TestStreamConfig:
         cfg = StreamConfig(key_column="id", strategies={"score": "max"})
         assert cfg.resolve_strategy_name("score") == "MaxWins"
 
-
 # ===================================================================
 # TestStreamStore — extra coverage
 # ===================================================================
-
 
 class TestStreamStore:
     """Test the _StreamStore internal class."""
@@ -278,11 +276,9 @@ class TestStreamStore:
         store.clear()
         assert store.count == 0
 
-
 # ===================================================================
 # TestResolveField — strategy resolution
 # ===================================================================
-
 
 class TestResolveField:
     """Test the _resolve_field helper."""

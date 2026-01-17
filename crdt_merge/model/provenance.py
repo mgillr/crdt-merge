@@ -1,12 +1,15 @@
 # SPDX-License-Identifier: BUSL-1.1
-#
-# Copyright 2026 Ryan Gillespie
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
@@ -49,7 +52,6 @@ __all__ = [
     "compute_conflict_score",
 ]
 
-
 # ---------------------------------------------------------------------------
 # Data classes
 # ---------------------------------------------------------------------------
@@ -81,7 +83,6 @@ class LayerProvenance:
     conflict_score: float
     metadata: Dict[str, Any] = field(default_factory=dict)
 
-
 @dataclass
 class ProvenanceSummary:
     """Aggregated provenance across all layers.
@@ -102,7 +103,6 @@ class ProvenanceSummary:
     dominant_model: int
     layer_conflict_ranking: List[str]
     per_layer: Dict[str, LayerProvenance]
-
 
 # ---------------------------------------------------------------------------
 # Core computation functions
@@ -146,7 +146,6 @@ def compute_contribution(
         contrib[i] = norm_w[i]
 
     return contrib
-
 
 def compute_conflict_score(tensors: list) -> float:
     """Compute conflict score between tensors from different models.
@@ -220,7 +219,6 @@ def compute_conflict_score(tensors: list) -> float:
         mean_mag = total_mag / min_len + eps
         score = mean_var / (mean_mag * mean_mag + eps)
         return max(0.0, min(1.0, score))
-
 
 # ---------------------------------------------------------------------------
 # ProvenanceTracker
@@ -332,7 +330,6 @@ class ProvenanceTracker:
             layer_conflict_ranking=layer_conflict_ranking,
             per_layer=dict(self._layers),
         )
-
 
 # ---------------------------------------------------------------------------
 # Export

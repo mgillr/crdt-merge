@@ -1,12 +1,15 @@
 # SPDX-License-Identifier: BUSL-1.1
-#
-# Copyright 2026 Ryan Gillespie
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
@@ -35,7 +38,6 @@ from crdt_merge.model.strategies.base import _get_np
 
 __all__ = ["SafetyAnalyzer", "SafetyReport"]
 
-
 def _compute_variance(values: List[float]) -> float:
     """Compute population variance of a list of floats."""
     if not values:
@@ -43,7 +45,6 @@ def _compute_variance(values: List[float]) -> float:
     n = len(values)
     mean = sum(values) / n
     return sum((v - mean) ** 2 for v in values) / n
-
 
 def _tensor_mean(tensor: Any) -> float:
     """Compute mean of a tensor-like object."""
@@ -55,7 +56,6 @@ def _tensor_mean(tensor: Any) -> float:
         flat = _flatten(tensor)
         return sum(flat) / len(flat) if flat else 0.0
     return float(tensor)
-
 
 def _tensor_variance(tensor: Any) -> float:
     """Compute variance of a tensor-like object."""
@@ -71,7 +71,6 @@ def _tensor_variance(tensor: Any) -> float:
         return sum((x - mean) ** 2 for x in flat) / len(flat)
     return 0.0
 
-
 def _flatten(lst) -> List[float]:
     """Flatten a nested list to a flat list of floats."""
     result = []
@@ -81,7 +80,6 @@ def _flatten(lst) -> List[float]:
     else:
         result.append(float(lst))
     return result
-
 
 @dataclass
 class SafetyReport:
@@ -103,7 +101,6 @@ class SafetyReport:
     layer_variance: Dict[str, float]
     risk_score: float
     recommendation: str
-
 
 class SafetyAnalyzer:
     """Detect safety-critical layers based on cross-model variance.

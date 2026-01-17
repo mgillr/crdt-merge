@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,11 +33,9 @@ import pytest
 from crdt_merge.clocks import VectorClock
 from crdt_merge.gossip import GossipEntry, GossipState, anti_entropy
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # Helpers
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 def gen_gossip_state() -> GossipState:
     """Generate a random GossipState for property-based tests."""
@@ -44,11 +46,9 @@ def gen_gossip_state() -> GossipState:
         state.update(key, random.randint(0, 100))
     return state
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 1. GossipState creation
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestGossipStateCreation:
     def test_default_creation(self) -> None:
@@ -63,11 +63,9 @@ class TestGossipStateCreation:
         assert state.fanout == 5
         assert state.node_id == "node-2"
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 2. GossipState.update
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestGossipStateUpdate:
     def test_update_new_key(self) -> None:
@@ -91,11 +89,9 @@ class TestGossipStateUpdate:
         clock2 = state.update("key-b", 43)
         assert clock2.get("n1") == 2
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 3. GossipState.delete
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestGossipStateDelete:
     def test_delete_existing_key(self) -> None:
@@ -119,11 +115,9 @@ class TestGossipStateDelete:
         assert entry.tombstone is True
         assert entry.value is None
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 4. GossipState.get
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestGossipStateGet:
     def test_get_existing(self) -> None:
@@ -141,11 +135,9 @@ class TestGossipStateGet:
         state.delete("k")
         assert state.get("k") is None
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 5. GossipState.digest
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestGossipStateDigest:
     def test_digest_non_empty(self) -> None:
@@ -165,11 +157,9 @@ class TestGossipStateDigest:
         d2 = state.digest()
         assert d1 == d2
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 6. Anti-entropy push
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestAntiEntropyPush:
     def test_push_detects_missing(self) -> None:
@@ -187,11 +177,9 @@ class TestAntiEntropyPush:
         to_push = state.anti_entropy_push(remote_digest)
         assert "a" in to_push
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 7. Anti-entropy pull
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestAntiEntropyPull:
     def test_pull_detects_missing(self) -> None:
@@ -208,11 +196,9 @@ class TestAntiEntropyPull:
         to_pull = state.anti_entropy_pull(remote_digest)
         assert "k" in to_pull
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 8. Anti-entropy push-pull (bidirectional)
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestAntiEntropyPushPull:
     def test_bidirectional(self) -> None:
@@ -230,11 +216,9 @@ class TestAntiEntropyPushPull:
         assert "shared" in to_push
         assert "shared" in to_pull
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 9. apply_entries
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestApplyEntries:
     def test_apply_new_entries(self) -> None:
@@ -279,11 +263,9 @@ class TestApplyEntries:
         assert count == 0
         assert s1.get("k") == "new"
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 10. Multi-node convergence
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestMultiNodeConvergence:
     def _sync_pair(self, a: GossipState, b: GossipState) -> None:
@@ -339,11 +321,9 @@ class TestMultiNodeConvergence:
         hot_values = {n.get("hot") for n in nodes}
         assert len(hot_values) == 1
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 11. Serialization round-trips
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestSerialization:
     def test_gossip_entry_roundtrip(self) -> None:
@@ -375,11 +355,9 @@ class TestSerialization:
         assert restored.get("b") == "two"
         assert restored.to_dict() == d
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 12. CRDT law verification
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestCRDTLaws:
     """Property-based tests verifying CRDT merge laws."""
@@ -466,11 +444,9 @@ class TestCRDTLaws:
                 assert e1.value == e2.value == e3.value
                 assert e1.tombstone == e2.tombstone == e3.tombstone
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 13. Standalone anti_entropy function
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestStandaloneAntiEntropy:
     def test_anti_entropy_function(self) -> None:
@@ -481,11 +457,9 @@ class TestStandaloneAntiEntropy:
         assert result["missing_remote"] == ["a"]
         assert result["different"] == ["c"]
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # 14. Edge cases
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class TestEdgeCases:
     def test_empty_state_operations(self) -> None:

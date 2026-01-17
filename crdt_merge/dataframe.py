@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,7 +42,6 @@ from .core import LWWRegister
 
 __all__ = ["merge", "diff"]
 
-
 def _parse_timestamp(value: Any) -> float:
     """Parse a timestamp value to float. Handles numeric, ISO-8601, datetime, and None."""
     if value is None:
@@ -66,7 +69,6 @@ def _parse_timestamp(value: Any) -> float:
             pass
     return 0.0
 
-
 def _normalize_key(key: Optional[Union[str, List[str]]]) -> Optional[List[str]]:
     """Convert key to list form. None → None, 'id' → ['id'], ['id','name'] → ['id','name']."""
     if key is None:
@@ -79,13 +81,11 @@ def _normalize_key(key: Optional[Union[str, List[str]]]) -> Optional[List[str]]:
         return list(key)
     raise TypeError(f"key must be str, List[str], or None, got {type(key)}")
 
-
 def _make_composite_key(record: Dict[str, Any], key_cols: List[str]) -> Any:
     """Extract composite key as tuple. Single key returns the raw value for backward compat."""
     if len(key_cols) == 1:
         return record.get(key_cols[0])
     return tuple(record.get(k) for k in key_cols)
-
 
 def _validate_key_columns(records: List[Dict[str, Any]], key_cols: List[str]) -> None:
     """Validate key columns exist. Raises KeyError with helpful message."""
@@ -95,7 +95,6 @@ def _validate_key_columns(records: List[Dict[str, Any]], key_cols: List[str]) ->
     missing = [k for k in key_cols if k not in first]
     if missing:
         raise KeyError(f"Key columns not found in records: {missing}. Available: {list(first.keys())}")
-
 
 def _to_records(df: Any) -> Tuple[List[Dict[str, Any]], List[str], str]:
     """Convert pandas or polars DataFrame to list of dicts. Returns (records, columns, lib).
@@ -113,7 +112,6 @@ def _to_records(df: Any) -> Tuple[List[Dict[str, Any]], List[str], str]:
         return df, cols, 'dicts'
     else:
         raise TypeError(f"Unsupported type: {type(df)}. Use pandas DataFrame, polars DataFrame, or list of dicts.")
-
 
 def _try_vectorized_merge(
     df_a: Any, df_b: Any, key: str, prefer: str
@@ -159,7 +157,6 @@ def _try_vectorized_merge(
             return None
     return None
 
-
 def _from_records(records: List[Dict[str, Any]], columns: List[str], lib: str) -> Any:
     """Convert records back to the original DataFrame type."""
     if lib == 'pandas':
@@ -175,7 +172,6 @@ def _from_records(records: List[Dict[str, Any]], columns: List[str], lib: str) -
     else:
         return records
 
-
 def _row_hash(row: dict, exclude_keys: Optional[set] = None) -> str:
     """Deterministic hash of a row for dedup."""
     exclude = exclude_keys or set()
@@ -184,7 +180,6 @@ def _row_hash(row: dict, exclude_keys: Optional[set] = None) -> str:
         if k not in exclude:
             parts.append(f"{k}={row[k]}")
     return hashlib.sha256("|".join(parts).encode()).hexdigest()[:16]
-
 
 def merge(
     df_a: Any,
@@ -297,7 +292,6 @@ def merge(
 
     return _from_records(merged, all_columns, lib_a)
 
-
 def _merge_rows(
     row_a: dict, row_b: dict, columns: List[str],
     timestamp_col: Optional[str], prefer: str, schema: Optional[Any] = None
@@ -335,7 +329,6 @@ def _merge_rows(
 
     return result
 
-
 def _dedup_records(
     records: List[dict], columns: List[str],
     exclude_keys: Optional[set] = None
@@ -349,7 +342,6 @@ def _dedup_records(
             seen.add(h)
             unique.append(r)
     return unique
-
 
 def _fuzzy_dedup_records(
     records: List[dict], key: str, columns: List[str],
@@ -387,7 +379,6 @@ def _fuzzy_dedup_records(
             texts.append(t)
 
     return unique
-
 
 def diff(df_a: Any, df_b: Any, key: Union[str, List[str]]) -> Dict[str, Any]:
     """

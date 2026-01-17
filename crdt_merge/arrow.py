@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -54,11 +58,9 @@ from typing import (
 from crdt_merge.strategies import MergeSchema, MergeStrategy, LWW
 from crdt_merge.schema_evolution import evolve_schema, SchemaPolicy
 
-
 # ---------------------------------------------------------------------------
 # Lazy import helpers
 # ---------------------------------------------------------------------------
-
 
 def _import_pyarrow():
     """Import and return the pyarrow module, raising a clear error if missing."""
@@ -71,7 +73,6 @@ def _import_pyarrow():
             "Install with: pip install pyarrow"
         )
 
-
 def _has_pyarrow() -> bool:
     """Return True if pyarrow is importable."""
     try:
@@ -80,11 +81,9 @@ def _has_pyarrow() -> bool:
     except ImportError:
         return False
 
-
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
-
 
 def _ensure_table(obj: Any, pa: Any) -> Any:
     """Convert *obj* to a ``pa.Table`` if it is a RecordBatch or list[dict].
@@ -109,16 +108,13 @@ def _ensure_table(obj: Any, pa: Any) -> Any:
         "Expected pa.Table, pa.RecordBatch, or list[dict]."
     )
 
-
 def _arrow_type_string(arrow_type: Any) -> str:
     """Convert a pyarrow type to a comparable string."""
     return str(arrow_type)
 
-
 def _schema_dict(table: Any) -> Dict[str, str]:
     """Extract {column: type_string} from a pa.Table."""
     return {field.name: _arrow_type_string(field.type) for field in table.schema}
-
 
 def _align_table_to_schema(
     table: Any,
@@ -144,7 +140,6 @@ def _align_table_to_schema(
             arrays.append(null_array)
 
     return pa.table(dict(zip(names, arrays)))
-
 
 def _resolve_column(
     left_col: List[Any],
@@ -176,11 +171,9 @@ def _resolve_column(
             result.append(strategy.resolve(va, vb, tsa, tsb, "a", "b"))
     return result
 
-
 def _table_to_row_dicts(table: Any) -> List[Dict[str, Any]]:
     """Convert a pa.Table to a list of dicts (row-oriented)."""
     return table.to_pylist()
-
 
 def _build_key_index(
     rows: List[Dict[str, Any]], key: str
@@ -192,7 +185,6 @@ def _build_key_index(
         if k is not None:
             idx[k] = i
     return idx
-
 
 def _concat_tables(left: Any, right: Any, pa: Any) -> Any:
     """Concatenate two tables, aligning schemas first."""
@@ -219,7 +211,6 @@ def _concat_tables(left: Any, right: Any, pa: Any) -> Any:
     right_aligned = _align(right, all_cols)
     return pa.concat_tables([left_aligned, right_aligned], promote_options="default")
 
-
 def _dedup_table(table: Any, pa: Any) -> Any:
     """Remove exact duplicate rows from a table.
 
@@ -241,11 +232,9 @@ def _dedup_table(table: Any, pa: Any) -> Any:
         {col: pa.array([], type=table.schema.field(col).type) for col in table.column_names}
     )
 
-
 # ---------------------------------------------------------------------------
 # ArrowMerge — main merge engine
 # ---------------------------------------------------------------------------
-
 
 class ArrowMerge:
     """Arrow-native CRDT merge engine.
@@ -645,11 +634,9 @@ class ArrowMerge:
 
         return pa.Table.from_pylist(merged_rows)
 
-
 # ---------------------------------------------------------------------------
 # Convenience function
 # ---------------------------------------------------------------------------
-
 
 def arrow_merge(
     left: Any,
@@ -697,11 +684,9 @@ def arrow_merge(
             left, right, key=key, schema=schema, timestamp_col=timestamp_col
         )
 
-
 # ---------------------------------------------------------------------------
 # Batch convenience helpers
 # ---------------------------------------------------------------------------
-
 
 def arrow_merge_tables(
     tables: Sequence[Any],
@@ -737,7 +722,6 @@ def arrow_merge_tables(
         result = engine.merge(result, t, key=key)
     return result
 
-
 def table_to_batches(
     table: Any,
     batch_size: int = 10000,
@@ -758,7 +742,6 @@ def table_to_batches(
     pa = _import_pyarrow()
     table = _ensure_table(table, pa)
     return table.to_batches(max_chunksize=batch_size)
-
 
 def write_ipc(table: Any, path: str) -> str:
     """Write a ``pa.Table`` to an Arrow IPC file.
@@ -782,7 +765,6 @@ def write_ipc(table: Any, path: str) -> str:
     writer.close()
     return path
 
-
 def read_ipc(path: str) -> Any:
     """Read an Arrow IPC file and return a ``pa.Table``.
 
@@ -799,11 +781,9 @@ def read_ipc(path: str) -> Any:
     reader = pa.ipc.open_file(path)
     return reader.read_all()
 
-
 # ---------------------------------------------------------------------------
 # Schema inspection utilities
 # ---------------------------------------------------------------------------
-
 
 def arrow_schema_info(table: Any) -> Dict[str, str]:
     """Return a dict mapping column names to Arrow type strings.
@@ -820,7 +800,6 @@ def arrow_schema_info(table: Any) -> Dict[str, str]:
     pa = _import_pyarrow()
     table = _ensure_table(table, pa)
     return _schema_dict(table)
-
 
 def compare_arrow_schemas(
     left: Any,
@@ -866,11 +845,9 @@ def compare_arrow_schemas(
         "compatible": len(mismatches) == 0 and not only_left and not only_right,
     }
 
-
 # ---------------------------------------------------------------------------
 # Performance benchmarking helper
 # ---------------------------------------------------------------------------
-
 
 def benchmark_arrow_merge(
     num_rows: int = 10000,
@@ -960,7 +937,6 @@ def benchmark_arrow_merge(
         "rows": len(arrow_result),
     }
 
-
 # ---------------------------------------------------------------------------
 # Optional fast engine
 # ---------------------------------------------------------------------------
@@ -973,7 +949,6 @@ try:
 except ImportError:
     HAS_POLARS = False
     polars_merge_arrow = None  # type: ignore[assignment]
-
 
 # ---------------------------------------------------------------------------
 # Module-level __all__

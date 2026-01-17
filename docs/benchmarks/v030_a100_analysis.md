@@ -1,5 +1,10 @@
 # crdt-merge v0.3.0 — A100 Stress Test Analysis
 
+> **Copyright © 2026 Ryan Gillespie / Optitransfer. All rights reserved.**
+> Licensed under the Business Source License 1.1 (BSL-1.1).
+> See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
+
+
 ## Executive Summary
 
 **173 measurements. 8 test suites. 83.5 GB RAM. Zero failures.**

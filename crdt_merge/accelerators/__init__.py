@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +32,6 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
 
-
 @runtime_checkable
 class AcceleratorProtocol(Protocol):
     """Base protocol for all crdt-merge accelerators."""
@@ -44,13 +47,11 @@ class AcceleratorProtocol(Protocol):
         """Check whether external dependencies are available."""
         ...
 
-
 # ---------------------------------------------------------------------------
 # Global registry
 # ---------------------------------------------------------------------------
 
 ACCELERATOR_REGISTRY: Dict[str, type] = {}
-
 
 def register_accelerator(cls: type) -> type:
     """Decorator to register an accelerator.
@@ -67,7 +68,6 @@ def register_accelerator(cls: type) -> type:
     ACCELERATOR_REGISTRY[name] = cls
     return cls
 
-
 def get_accelerator(name: str) -> type:
     """Get a registered accelerator class by name.
 
@@ -81,11 +81,9 @@ def get_accelerator(name: str) -> type:
         )
     return ACCELERATOR_REGISTRY[name]
 
-
 def list_accelerators() -> List[str]:
     """List all registered accelerator names."""
     return list(ACCELERATOR_REGISTRY.keys())
-
 
 __all__ = [
     "AcceleratorProtocol",

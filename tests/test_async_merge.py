@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +30,6 @@ import pytest_asyncio  # noqa: F401  — ensures plugin is loaded
 from crdt_merge.async_merge import amerge, amerge_stream, amerge_sorted_stream, _collect
 from crdt_merge.strategies import MergeSchema, LWW, MaxWins
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -36,12 +39,10 @@ async def _async_iter(items):
     for item in items:
         yield item
 
-
 async def _async_batch_iter(items, batch_size=2):
     """Yield items in list-batches via an async iterator."""
     for i in range(0, len(items), batch_size):
         yield items[i:i + batch_size]
-
 
 async def _collect_async_gen(agen) -> List:
     """Consume an async generator into a list."""
@@ -52,7 +53,6 @@ async def _collect_async_gen(agen) -> List:
         else:
             result.append(batch)
     return result
-
 
 # ===========================================================================
 # 1–2. amerge basic merge
@@ -67,14 +67,12 @@ async def test_amerge_basic():
     ids = {r["id"] for r in result}
     assert ids == {1, 2, 3}
 
-
 @pytest.mark.asyncio
 async def test_amerge_basic_prefer_a():
     left = [{"id": 1, "v": "A"}]
     right = [{"id": 1, "v": "B"}]
     result = await amerge(left, right, key="id", prefer="a")
     assert result[0]["v"] == "A"
-
 
 # ===========================================================================
 # 3–4. amerge with schema
@@ -88,7 +86,6 @@ async def test_amerge_with_schema_lww():
     result = await amerge(left, right, key="id", schema=schema, timestamp_col="_ts")
     assert result[0]["v"] == 20
 
-
 @pytest.mark.asyncio
 async def test_amerge_with_schema_max():
     schema = MergeSchema(default=LWW(), score=MaxWins())
@@ -96,7 +93,6 @@ async def test_amerge_with_schema_max():
     right = [{"id": 1, "score": 50}]
     result = await amerge(left, right, key="id", schema=schema)
     assert result[0]["score"] == 100
-
 
 # ===========================================================================
 # 5. amerge with multi-key
@@ -110,7 +106,6 @@ async def test_amerge_multi_key():
     assert len(result) == 1
     assert result[0]["v"] == "new"  # b-wins default
 
-
 # ===========================================================================
 # 6. amerge key=None (append + dedup)
 # ===========================================================================
@@ -122,7 +117,6 @@ async def test_amerge_no_key():
     result = await amerge(left, right)
     assert len(result) == 3  # deduped
 
-
 # ===========================================================================
 # 7–8. amerge empty input
 # ===========================================================================
@@ -132,12 +126,10 @@ async def test_amerge_empty_left():
     result = await amerge([], [{"id": 1, "v": "A"}], key="id")
     assert len(result) == 1
 
-
 @pytest.mark.asyncio
 async def test_amerge_both_empty():
     result = await amerge([], [])
     assert result == []
-
 
 # ===========================================================================
 # 9–10. amerge_stream basic
@@ -150,7 +142,6 @@ async def test_amerge_stream_basic():
     rows = await _collect_async_gen(amerge_stream(a, b, key="id"))
     assert len(rows) == 3
 
-
 @pytest.mark.asyncio
 async def test_amerge_stream_yields_lists():
     a = [{"id": i, "v": i} for i in range(10)]
@@ -161,7 +152,6 @@ async def test_amerge_stream_yields_lists():
         batches.append(batch)
     total = sum(len(b) for b in batches)
     assert total == 15  # ids 0..14
-
 
 # ===========================================================================
 # 11. amerge_stream batch size
@@ -178,7 +168,6 @@ async def test_amerge_stream_batch_size():
     for batch in batches[:-1]:
         assert len(batch) <= 7
 
-
 # ===========================================================================
 # 12. amerge_sorted_stream basic
 # ===========================================================================
@@ -189,7 +178,6 @@ async def test_amerge_sorted_stream_basic():
     b = [{"id": 2, "v": "b"}, {"id": 3, "v": "C"}]
     rows = await _collect_async_gen(amerge_sorted_stream(a, b, key="id"))
     assert len(rows) == 3
-
 
 # ===========================================================================
 # 13. amerge_sorted_stream with schema
@@ -205,7 +193,6 @@ async def test_amerge_sorted_stream_with_schema():
     )
     assert rows[0]["v"] == 20
 
-
 # ===========================================================================
 # 14–15. async iterator input
 # ===========================================================================
@@ -219,13 +206,11 @@ async def test_amerge_stream_async_iter_input():
     )
     assert len(rows) == 3
 
-
 @pytest.mark.asyncio
 async def test_collect_async_batch_iter():
     items = [{"id": i} for i in range(5)]
     collected = await _collect(_async_batch_iter(items, batch_size=2))
     assert len(collected) == 5
-
 
 # ===========================================================================
 # 16. concurrent amerge calls
@@ -244,7 +229,6 @@ async def test_concurrent_amerge():
     for r in results:
         assert len(r) == 75
 
-
 # ===========================================================================
 # 17–18. error propagation
 # ===========================================================================
@@ -256,12 +240,10 @@ async def test_amerge_bad_key_propagates():
     with pytest.raises(KeyError):
         await amerge(left, right, key="nonexistent")
 
-
 @pytest.mark.asyncio
 async def test_amerge_bad_type_propagates():
     with pytest.raises(TypeError):
         await amerge("not a df", "also bad", key="id")
-
 
 # ===========================================================================
 # 19. cancellation handling
@@ -276,7 +258,6 @@ async def test_amerge_cancellation():
     task.cancel()
     with pytest.raises(asyncio.CancelledError):
         await task
-
 
 # ===========================================================================
 # 20. empty stream

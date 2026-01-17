@@ -1,7 +1,7 @@
 # crdt-merge v0.7.0 — Synchronized Development Plan
 # "The Integration Release"
 
-**Copyright 2026 Ryan Gillespie**
+**Copyright 2026 Ryan Gillespie / Optitransfer**
 **Contact:** rgillespie83@icloud.com · data@optitransfer.ch
 **License:** BSL-1.1
 

@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,22 +37,18 @@ from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 from .core import ORSet
 
-
 def _normalize(text: str) -> str:
     """Normalize text for comparison."""
     return " ".join(text.lower().split())
-
 
 def _hash_text(text: str) -> str:
     """SHA-256 hash of normalized text."""
     return hashlib.sha256(_normalize(text).encode('utf-8')).hexdigest()
 
-
 def _bigrams(text: str) -> Set[str]:
     """Generate character bigrams."""
     t = _normalize(text)
     return {t[i:i+2] for i in range(len(t)-1)} if len(t) >= 2 else {t}
-
 
 def _dice_similarity(a: str, b: str) -> float:
     """Dice coefficient between two strings."""
@@ -56,7 +56,6 @@ def _dice_similarity(a: str, b: str) -> float:
     if not ba or not bb:
         return 0.0
     return 2.0 * len(ba & bb) / (len(ba) + len(bb))
-
 
 class DedupIndex:
     """
@@ -114,7 +113,6 @@ class DedupIndex:
     def __repr__(self):
         return f"DedupIndex(seen={self.size}, node={self.node_id})"
 
-
 def dedup_list(
     items: List[str],
     method: str = "exact",
@@ -157,7 +155,6 @@ def dedup_list(
             dup_indices.append(i)
 
     return unique, dup_indices
-
 
 def dedup_records(
     records: List[dict],
@@ -205,7 +202,6 @@ def dedup_records(
             removed += 1
 
     return unique, removed
-
 
 class MinHashDedup:
     """

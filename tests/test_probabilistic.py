@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,7 +20,6 @@
 """Tests for probabilistic CRDTs (v0.5.0)."""
 import pytest
 from crdt_merge.probabilistic import MergeableHLL, MergeableBloom, MergeableCMS
-
 
 # ══════════════════════════════════════════════════════════════════════════
 # MergeableHLL Tests
@@ -61,7 +64,6 @@ class TestHLLBasic:
     def test_standard_error(self):
         hll = MergeableHLL(precision=14)
         assert abs(hll.standard_error() - 0.0081) < 0.001
-
 
 class TestHLLMerge:
     def test_merge_disjoint(self):
@@ -109,7 +111,6 @@ class TestHLLMerge:
         with pytest.raises(ValueError):
             a.merge(b)
 
-
 class TestHLLSerialization:
     def test_roundtrip(self):
         hll = MergeableHLL(precision=10)
@@ -129,7 +130,6 @@ class TestHLLSerialization:
         restored = deserialize(data)
         hll2 = MergeableHLL.from_dict(restored)
         assert hll2 == hll
-
 
 # ══════════════════════════════════════════════════════════════════════════
 # MergeableBloom Tests
@@ -165,7 +165,6 @@ class TestBloomBasic:
         fp = sum(1 for i in range(10000, 11000) if bloom.contains(i))
         # Should be around 1% = 10 out of 1000, allow 5x margin
         assert fp < 50, f"False positive rate too high: {fp}/1000"
-
 
 class TestBloomMerge:
     def test_merge_contains_both(self):
@@ -204,7 +203,6 @@ class TestBloomMerge:
         with pytest.raises(ValueError):
             a.merge(b)
 
-
 class TestBloomSerialization:
     def test_roundtrip(self):
         bloom = MergeableBloom(capacity=1000, fp_rate=0.01)
@@ -223,7 +221,6 @@ class TestBloomSerialization:
         restored = deserialize(data)
         bloom2 = MergeableBloom.from_dict(restored)
         assert bloom2 == bloom
-
 
 # ══════════════════════════════════════════════════════════════════════════
 # MergeableCMS Tests
@@ -266,7 +263,6 @@ class TestCMSBasic:
         with pytest.raises(ValueError):
             MergeableCMS(width=0, depth=5)
 
-
 class TestCMSMerge:
     def test_merge_takes_max(self):
         a = MergeableCMS(width=1000, depth=5)
@@ -303,7 +299,6 @@ class TestCMSMerge:
         with pytest.raises(ValueError):
             a.merge(b)
 
-
 class TestCMSSerialization:
     def test_roundtrip(self):
         cms = MergeableCMS(width=100, depth=3)
@@ -323,7 +318,6 @@ class TestCMSSerialization:
         restored = deserialize(data)
         cms2 = MergeableCMS.from_dict(restored)
         assert cms2 == cms
-
 
 # ══════════════════════════════════════════════════════════════════════════
 # Cross-type CRDT verification (all 3 types)

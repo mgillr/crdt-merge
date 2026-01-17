@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,21 +35,17 @@ from crdt_merge.accelerators.ducklake import (
     SnapshotDiff,
 )
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
-
 
 @pytest.fixture
 def schema():
     return MergeSchema(default=LWW(), salary=MaxWins(), score=MinWins())
 
-
 @pytest.fixture
 def resolver(schema):
     return DuckLakeConflictResolver(schema=schema)
-
 
 @pytest.fixture
 def snap_a():
@@ -54,7 +54,6 @@ def snap_a():
         {"id": 2, "name": "Bob", "salary": 200, "score": 70},
     ]
 
-
 @pytest.fixture
 def snap_b():
     return [
@@ -62,11 +61,9 @@ def snap_b():
         {"id": 3, "name": "Charlie", "salary": 300, "score": 60},
     ]
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 # TestMergeSnapshots — core merge
 # ═══════════════════════════════════════════════════════════════════════════
-
 
 class TestMergeSnapshots:
     """Core snapshot merge tests."""
@@ -124,11 +121,9 @@ class TestMergeSnapshots:
         result = resolver.merge_snapshots(snap_a, snap_b, key="id")
         assert result.merge_time_ms >= 0
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 # TestDetectChanges — change detection
 # ═══════════════════════════════════════════════════════════════════════════
-
 
 class TestDetectChanges:
     """Merkle-based change detection."""
@@ -161,11 +156,9 @@ class TestDetectChanges:
         assert "removed_keys" in d
         assert "modified_fields" in d
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 # TestAuditTrail
 # ═══════════════════════════════════════════════════════════════════════════
-
 
 class TestAuditTrail:
     """Audit trail after merge."""
@@ -195,11 +188,9 @@ class TestAuditTrail:
         for c in conflicts:
             assert c["strategy"] in ("LWW", "MaxWins", "MinWins")
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 # TestBranching
 # ═══════════════════════════════════════════════════════════════════════════
-
 
 class TestBranching:
     """Branch management."""
@@ -239,11 +230,9 @@ class TestBranching:
         assert len(data) == 1
         assert data[0]["id"] == 10
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 # TestSnapshots — snapshot registration
 # ═══════════════════════════════════════════════════════════════════════════
-
 
 class TestSnapshots:
     """Snapshot registration and listing."""
@@ -262,11 +251,9 @@ class TestSnapshots:
         with pytest.raises(KeyError, match="not found"):
             resolver.merge_snapshots("nonexistent", [], key="id")
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 # TestHealthCheck
 # ═══════════════════════════════════════════════════════════════════════════
-
 
 class TestHealthCheck:
     """Health check and availability."""

@@ -1,3 +1,15 @@
+# SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
+#
+# Licensed under the Business Source License 1.1 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 """
 Comprehensive tests for CRDTMergeState — verifies CRDT laws hold for ALL 25 strategies.
 
@@ -23,7 +35,6 @@ from crdt_merge.model.crdt_state import (
 )
 from crdt_merge.model.strategies import list_strategies
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -35,10 +46,8 @@ NUM_TRIALS = 20
 BASE_REQUIRED = CRDTMergeState.BASE_REQUIRED
 STOCHASTIC = CRDTMergeState.STOCHASTIC
 
-
 def gen(seed, size=TENSOR_SIZE):
     return np.random.RandomState(seed).randn(size).astype(np.float64)
-
 
 def make_state(strategy, trial=0):
     """Create three single-contribution states + optional base."""
@@ -51,7 +60,6 @@ def make_state(strategy, trial=0):
     sc = CRDTMergeState(strategy, base=base, seed=42)
     sc.add(gen(trial * 100 + 3), model_id="C", weight=1.0)
     return sa, sb, sc
-
 
 # ===========================================================================
 # 1. CRDT LAW PROOFS — All 25 Strategies
@@ -122,7 +130,6 @@ class TestCRDTLaws:
                 err_msg=f"{strategy} trial {trial}: resolve not idempotent"
             )
 
-
 # ===========================================================================
 # 2. RESOLVE CONSISTENCY — All merge orderings produce same output
 # ===========================================================================
@@ -147,7 +154,6 @@ class TestResolveConsistency:
                 results[0], r, atol=1e-6, rtol=1e-6,
                 err_msg=f"{strategy}: ordering {i} differs from ordering 0"
             )
-
 
 # ===========================================================================
 # 3. OR-SET SEMANTICS — Add/Remove with concurrent operations
@@ -187,7 +193,6 @@ class TestORSetSemantics:
         state.add(gen(2), model_id="X", version=2)
         assert "X" in state.model_ids
 
-
 # ===========================================================================
 # 4. VERSIONED REGISTRY — Model update support
 # ===========================================================================
@@ -223,7 +228,6 @@ class TestVersionedRegistry:
         assert m2.get_contribution("X").version == 5
         assert m1 == m2
 
-
 # ===========================================================================
 # 5. SERIALIZATION ROUNDTRIP
 # ===========================================================================
@@ -252,7 +256,6 @@ class TestSerialization:
         restored_resolve = restored.resolve()
 
         np.testing.assert_allclose(original_resolve, restored_resolve, atol=1e-10)
-
 
 # ===========================================================================
 # 6. EDGE CASES
@@ -310,7 +313,6 @@ class TestEdgeCases:
         r2 = states[3].merge(states[0]).merge(states[2]).merge(states[1])
         np.testing.assert_allclose(r1.resolve(), r2.resolve(), atol=1e-6)
 
-
 # ===========================================================================
 # 7. PROVENANCE / MERKLE INTEGRITY
 # ===========================================================================
@@ -341,7 +343,6 @@ class TestProvenance:
         assert prov[0]["model_id"] == "node-a-llama"
         assert prov[0]["metadata"]["node"] == "a"
         assert len(prov[0]["merkle_hash"]) == 64
-
 
 # ===========================================================================
 # GRAND FINALE: Full matrix confirmation

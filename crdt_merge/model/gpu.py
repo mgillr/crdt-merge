@@ -1,12 +1,15 @@
 # SPDX-License-Identifier: BUSL-1.1
-#
-# Copyright 2026 Ryan Gillespie
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
@@ -39,7 +42,6 @@ _TORCH_IMPORT_ERROR = (
     "Install with: pip install crdt-merge[gpu]  or  pip install torch"
 )
 
-
 def _import_torch():
     """Lazy-import torch, raising helpful error if not available."""
     try:
@@ -47,7 +49,6 @@ def _import_torch():
         return torch
     except (ImportError, OSError):
         raise ImportError(_TORCH_IMPORT_ERROR)
-
 
 # ---------------------------------------------------------------------------
 # Dtype mapping
@@ -64,12 +65,10 @@ _DTYPE_MAP = {
     "bf16": "bfloat16",
 }
 
-
 def _resolve_dtype(torch_module, dtype_str: str):
     """Resolve a dtype string to a torch dtype."""
     canonical = _DTYPE_MAP.get(dtype_str, dtype_str)
     return getattr(torch_module, canonical)
-
 
 # ---------------------------------------------------------------------------
 # GPUMerge

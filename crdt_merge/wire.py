@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -72,10 +76,8 @@ from .probabilistic import MergeableHLL, MergeableBloom, MergeableCMS
 
 __all__ = ["serialize", "deserialize", "peek_type", "wire_size", "serialize_batch", "deserialize_batch", "WireError"]
 
-
 # Lazy import to avoid circular
 _delta_module = None
-
 
 def _get_delta_module():
     global _delta_module
@@ -84,8 +86,6 @@ def _get_delta_module():
 
         _delta_module = dm
     return _delta_module
-
-
 
 def _is_delta(obj):
     """Check if obj is a Delta without circular import."""
@@ -178,13 +178,11 @@ _TAG_TO_TYPE = {v: k for k, v in _TYPE_TO_TAG.items()}
 _HEADER_FMT = '>4sHBBI'
 _HEADER_SIZE = struct.calcsize(_HEADER_FMT)
 
-
 # ── Compact Binary Encoder ────────────────────────────────────────────────
 
 class WireError(Exception):
     """Raised on serialization/deserialization errors."""
     pass
-
 
 def _encode_value(val: Any) -> bytes:
     """Encode a Python value to compact binary."""
@@ -224,7 +222,6 @@ def _encode_value(val: Any) -> bytes:
     else:
         # Fallback: convert to string
         return _encode_value(str(val))
-
 
 def _decode_value(data: bytes, offset: int) -> tuple:
     """Decode a value from binary data at the given offset. Returns (value, new_offset)."""
@@ -284,7 +281,6 @@ def _decode_value(data: bytes, offset: int) -> tuple:
     else:
         raise WireError(f"Unknown encoding tag: 0x{tag:02x} at offset {offset - 1}")
 
-
 # ── v0.6.0 JSON-based wire frame builder ──────────────────────────────────
 
 def _encode_json_payload(data: dict) -> bytes:
@@ -297,7 +293,6 @@ def _encode_json_payload(data: dict) -> bytes:
         return _msgpack.packb(data, use_bin_type=True)
     import json as _json
     return _json.dumps(data).encode()
-
 
 def _decode_json_payload(payload: bytes) -> dict:
     """DEF-023: Decode payload — tries msgpack first, falls back to JSON.
@@ -313,7 +308,6 @@ def _decode_json_payload(payload: bytes) -> dict:
     # Fall back to JSON
     import json as _json
     return _json.loads(payload)
-
 
 def _build_wire_frame(type_tag: int, payload: bytes, compress: bool = False) -> bytes:
     """Build a wire-format frame for v0.6.0+ encoded types.
@@ -334,7 +328,6 @@ def _build_wire_frame(type_tag: int, payload: bytes, compress: bool = False) -> 
             flags |= FLAG_COMPRESSED
     header = struct.pack(_HEADER_FMT, MAGIC, PROTOCOL_VERSION, type_tag, flags, len(payload))
     return header + payload
-
 
 # ── Public API ─────────────────────────────────────────────────────────────
 
@@ -490,7 +483,6 @@ def serialize(obj: Any, *, compress: bool = False) -> bytes:
     header = struct.pack(_HEADER_FMT, MAGIC, PROTOCOL_VERSION, type_tag, flags, len(payload))
 
     return header + payload
-
 
 def deserialize(data: bytes) -> Any:
     """
@@ -648,7 +640,6 @@ def deserialize(data: bytes) -> Any:
     else:
         raise WireError(f"Unknown type tag: 0x{type_tag:02x}")
 
-
 def peek_type(data: bytes) -> str:
     """
     Read the type tag from wire format bytes without deserializing.
@@ -675,7 +666,6 @@ def peek_type(data: bytes) -> str:
 
     return _TAG_TO_TYPE.get(type_tag, 'generic')
 
-
 def wire_size(data: bytes) -> dict:
     """
     Get size information about wire-format data without deserializing.
@@ -701,7 +691,6 @@ def wire_size(data: bytes) -> dict:
         'type_name': _TAG_TO_TYPE.get(type_tag, 'generic'),
     }
 
-
 def serialize_batch(objects: list, *, compress: bool = False) -> bytes:
     """
     Serialize multiple CRDT objects into a single byte stream.
@@ -721,7 +710,6 @@ def serialize_batch(objects: list, *, compress: bool = False) -> bytes:
         parts.append(struct.pack('>I', len(encoded)))
         parts.append(encoded)
     return b''.join(parts)
-
 
 def deserialize_batch(data: bytes) -> list:
     """

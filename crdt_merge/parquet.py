@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -65,11 +69,9 @@ _KEY_COLUMN_KEY = f"{_META_PREFIX}key_column"
 
 SCHEMA_VERSION = "1.0"
 
-
 # ---------------------------------------------------------------------------
 # Data classes
 # ---------------------------------------------------------------------------
-
 
 @dataclass
 class ParquetMergeMetadata:
@@ -168,7 +170,6 @@ class ParquetMergeMetadata:
             merge_count=d.get("merge_count", 0),
         )
 
-
 @dataclass
 class IngestResult:
     """Result of ingesting data into a self-merging Parquet file."""
@@ -180,7 +181,6 @@ class IngestResult:
     merge_time_ms: float = 0.0
     provenance_entries: int = 0
 
-
 @dataclass
 class CompactResult:
     """Result of compacting a self-merging Parquet file."""
@@ -189,7 +189,6 @@ class CompactResult:
     records_after: int = 0
     duplicates_removed: int = 0
     compact_time_ms: float = 0.0
-
 
 @dataclass
 class ProvenanceEntry:
@@ -212,11 +211,9 @@ class ProvenanceEntry:
             "updated_records": self.updated_records,
         }
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-
 
 def _row_hash(row: dict) -> str:
     """Deterministic content hash for a single record."""
@@ -224,7 +221,6 @@ def _row_hash(row: dict) -> str:
     for k in sorted(row.keys()):
         parts.append(f"{k}={row[k]!r}")
     return hashlib.sha256("|".join(parts).encode()).hexdigest()[:16]
-
 
 def _build_merge_schema(
     key: str, strategies: Dict[str, str]
@@ -258,11 +254,9 @@ def _build_merge_schema(
         field_strats[fld] = cls()
     return MergeSchema(default=LWW(), **field_strats)
 
-
 # ---------------------------------------------------------------------------
 # SelfMergingParquet
 # ---------------------------------------------------------------------------
-
 
 class SelfMergingParquet:
     """Parquet files with embedded CRDT merge semantics.
@@ -620,7 +614,6 @@ class SelfMergingParquet:
         if key_value not in self._data:
             raise KeyError(f"Key {key_value!r} not found")
         return dict(self._data[key_value])
-
 
 __all__ = [
     "SelfMergingParquet",

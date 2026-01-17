@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,7 +45,6 @@ from crdt_merge.mergeql import MergeAST, MergePlan, MergeQLResult
 from crdt_merge.parquet import ParquetMergeMetadata
 from crdt_merge.provenance import MergeRecord, MergeDecision, ProvenanceLog
 
-
 # ---------------------------------------------------------------------------
 # Tag constants
 # ---------------------------------------------------------------------------
@@ -74,7 +77,6 @@ class TestV070TagConstants:
         assert _TAG_TO_TYPE[TAG_PARQUET_MERGE_META] == "parquet_merge_metadata"
         assert _TAG_TO_TYPE[TAG_CONFLICT_RECORD] == "conflict_record"
         assert _TAG_TO_TYPE[TAG_CONFLICT_TOPOLOGY] == "conflict_topology"
-
 
 # ---------------------------------------------------------------------------
 # MergeAST wire round-trip
@@ -111,7 +113,6 @@ class TestMergeASTWire:
         assert restored.where_clause == "val > 0"
         assert restored.limit == 100
         assert restored.explain is True
-
 
 # ---------------------------------------------------------------------------
 # MergePlan wire round-trip
@@ -156,7 +157,6 @@ class TestMergePlanWire:
         info = wire_size(data)
         assert info["type_name"] == "merge_plan"
 
-
 # ---------------------------------------------------------------------------
 # MergeQLResult wire round-trip
 # ---------------------------------------------------------------------------
@@ -195,7 +195,6 @@ class TestMergeQLResultWire:
         data = serialize(self._make_result())
         assert peek_type(data) == "mergeql_result"
 
-
 # ---------------------------------------------------------------------------
 # ParquetMergeMetadata wire round-trip
 # ---------------------------------------------------------------------------
@@ -227,7 +226,6 @@ class TestParquetMergeMetadataWire:
         meta = ParquetMergeMetadata(key_column="id", strategies={})
         data = serialize(meta)
         assert peek_type(data) == "parquet_merge_metadata"
-
 
 # ---------------------------------------------------------------------------
 # MergeRecord (conflict_record) wire round-trip
@@ -277,7 +275,6 @@ class TestConflictRecordWire:
         data = serialize(self._make_record())
         assert peek_type(data) == "conflict_record"
 
-
 # ---------------------------------------------------------------------------
 # ProvenanceLog (conflict_topology) wire round-trip
 # ---------------------------------------------------------------------------
@@ -325,7 +322,6 @@ class TestConflictTopologyWire:
         restored = deserialize(data)
         assert len(restored.records) == 0
         assert restored.total_rows == 0
-
 
 # ---------------------------------------------------------------------------
 # Batch with v0.7.0 types

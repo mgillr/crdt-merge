@@ -1,12 +1,15 @@
 # SPDX-License-Identifier: BUSL-1.1
-#
-# Copyright 2026 Ryan Gillespie
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
@@ -68,7 +71,6 @@ from crdt_merge.model import (
     list_strategies_by_category as pub_list_cat,
 )
 
-
 class _LinearMerge(ModelMergeStrategy):
     """Simple weighted linear interpolation for testing."""
 
@@ -109,7 +111,6 @@ class _LinearMerge(ModelMergeStrategy):
 
         raise TypeError("Cannot merge: no numpy and inputs are not lists")
 
-
 class _MaxMerge(ModelMergeStrategy):
     """Element-wise max for testing."""
 
@@ -137,7 +138,6 @@ class _MaxMerge(ModelMergeStrategy):
                 np_mod.maximum.reduce(arr), tensors[0]
             )
         raise TypeError("Cannot merge")
-
 
 class _TaskArithmetic(ModelMergeStrategy):
     """Task arithmetic: base + sum(w_i * (model_i - base))."""
@@ -174,7 +174,6 @@ class _TaskArithmetic(ModelMergeStrategy):
             return _from_array(b + deltas, tensors[0])
         raise TypeError("Cannot merge")
 
-
 # Fixture to register/unregister test strategies
 @pytest.fixture(autouse=True)
 def _clean_registry():
@@ -184,7 +183,6 @@ def _clean_registry():
     _REGISTRY.clear()
     _REGISTRY.update(saved)
 
-
 def _register_test_strategies():
     """Register test strategies if not already present."""
     if "test_linear" not in _REGISTRY:
@@ -193,7 +191,6 @@ def _register_test_strategies():
         _REGISTRY["test_max"] = _MaxMerge
     if "test_task_arith" not in _REGISTRY:
         _REGISTRY["test_task_arith"] = _TaskArithmetic
-
 
 # ============================================================================
 # 1. BASE CLASS TESTS (~20)
@@ -287,7 +284,6 @@ class TestModelMergeStrategyABC:
         r = s.verify_crdt(trials=50)
         assert r["associative"] is False
 
-
 class TestMergeResult:
     """MergeResult dataclass tests."""
 
@@ -311,7 +307,6 @@ class TestMergeResult:
     def test_tensor_can_be_dict(self):
         r = MergeResult(tensor={"layer": [1, 2]})
         assert isinstance(r.tensor, dict)
-
 
 class TestHelpers:
     """Tests for _to_array, _from_array, _normalize_weights."""
@@ -396,7 +391,6 @@ class TestHelpers:
 
     def test_approx_equal_different_lengths(self):
         assert not _approx_equal([1.0], [1.0, 2.0])
-
 
 # ============================================================================
 # 2. REGISTRY TESTS (~20)
@@ -529,7 +523,6 @@ class TestRegistry:
             def name(self): return "inherit_check"
         assert issubclass(I, ModelMergeStrategy)
         assert issubclass(I, _LinearMerge)
-
 
 # ============================================================================
 # 3. SCHEMA TESTS (~30)
@@ -737,7 +730,6 @@ class TestModelMergeSchema:
         })
         strat = s.strategy_for("layers.0.weight")
         assert strat.name == "test_linear"
-
 
 # ============================================================================
 # 4. MODEL CRDT TESTS (~40)
@@ -1064,7 +1056,6 @@ class TestModelCRDT:
         result = crdt.merge(models, weights=[1, 1, 1, 1, 1])
         assert abs(result.tensor["w"][0] - 30.0) < 1e-9
 
-
 # ============================================================================
 # 5. PATTERN HELPER TESTS
 # ============================================================================
@@ -1110,7 +1101,6 @@ class TestPatternHelpers:
     def test_ordered_union_empty(self):
         result = _ordered_union([])
         assert result == []
-
 
 # ============================================================================
 # 6. INTEGRATION TESTS (~10)
@@ -1272,7 +1262,6 @@ class TestIntegration:
         assert "test_linear" in results
         assert "test_max" in results
         assert "test_task_arith" in results
-
 
 # ============================================================================
 # 7. PUBLIC API SURFACE TESTS

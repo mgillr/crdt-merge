@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -63,7 +67,6 @@ _STRATEGY_MAP: Dict[str, type] = {
 
 _STRATEGY_LABELS: List[str] = list(_STRATEGY_MAP.keys())
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -81,7 +84,6 @@ def _to_records(data: Any) -> List[Dict[str, Any]]:
     if hasattr(data, "to_dicts"):
         return data.to_dicts()
     raise TypeError(f"Unsupported data type: {type(data)}")
-
 
 def _detect_conflicts(
     left: List[Dict[str, Any]],
@@ -116,7 +118,6 @@ def _detect_conflicts(
                 })
     return conflicts, sorted_cols
 
-
 def _resolve_merge(
     left: List[Dict[str, Any]],
     right: List[Dict[str, Any]],
@@ -150,7 +151,6 @@ def _resolve_merge(
         elif row_r:
             merged.append(dict(row_r))
     return merged
-
 
 # ---------------------------------------------------------------------------
 # Streamlit Merge UI

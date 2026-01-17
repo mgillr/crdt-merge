@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -64,7 +68,6 @@ except ImportError:  # pragma: no cover
     pa = None  # type: ignore[assignment]
     HAS_ARROW = False
 
-
 # ---------------------------------------------------------------------------
 # Strategy → Polars expression compiler
 # ---------------------------------------------------------------------------
@@ -72,7 +75,6 @@ except ImportError:  # pragma: no cover
 def _is_strategy(strategy: Any, name: str) -> bool:
     """Check strategy type by class name to avoid circular imports."""
     return type(strategy).__name__ == name
-
 
 def strategy_to_expr(
     col: str,
@@ -179,7 +181,6 @@ def strategy_to_expr(
         .map_elements(_resolve_row, return_dtype=_rdtype)
         .alias(col)
     )
-
 
 # ---------------------------------------------------------------------------
 # Core merge kernel — Arrow tables
@@ -300,7 +301,6 @@ def polars_merge_arrow(
 
     return result_arrow, conflict_count
 
-
 # ---------------------------------------------------------------------------
 # Core merge kernel — List[dict] (for accelerators)
 # ---------------------------------------------------------------------------
@@ -401,7 +401,6 @@ def polars_merge_dicts(
     result_pl = joined.select(exprs)
 
     return result_pl.to_dicts(), conflict_count
-
 
 # ---------------------------------------------------------------------------
 # Helpers

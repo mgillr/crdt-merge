@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,11 +29,9 @@ from unittest.mock import MagicMock, patch
 
 from crdt_merge.strategies import LWW, MaxWins, MinWins, MergeSchema
 
-
 # ---------------------------------------------------------------------------
 # Mock polars module
 # ---------------------------------------------------------------------------
-
 
 class _MockDataFrame:
     """Minimal mock for polars.DataFrame."""
@@ -52,7 +54,6 @@ class _MockDataFrame:
     def __repr__(self):
         return f"MockPolarsDF(rows={len(self._data)})"
 
-
 class _MockLazyFrame:
     """Minimal mock for polars.LazyFrame."""
 
@@ -62,22 +63,18 @@ class _MockLazyFrame:
     def collect(self):
         return _MockDataFrame(self._data)
 
-
 def _mock_polars_dataframe(records=None):
     """Create mock that behaves like pl.DataFrame(records)."""
     return _MockDataFrame(records)
-
 
 # Create a mock polars module
 _mock_pl = types.ModuleType("polars")
 _mock_pl.__version__ = "1.0.0"
 _mock_pl.DataFrame = _mock_polars_dataframe
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
-
 
 @pytest.fixture(autouse=True)
 def _patch_polars():
@@ -88,12 +85,10 @@ def _patch_polars():
     yield
     mod._pl = original
 
-
 @pytest.fixture
 def merger():
     from crdt_merge.accelerators.polars_plugin import PolarsCRDTMerge
     return PolarsCRDTMerge(schema=MergeSchema(default=LWW(), salary=MaxWins()))
-
 
 @pytest.fixture
 def left_data():
@@ -102,7 +97,6 @@ def left_data():
         {"id": 2, "name": "Bob", "salary": 200},
     ]
 
-
 @pytest.fixture
 def right_data():
     return [
@@ -110,11 +104,9 @@ def right_data():
         {"id": 3, "name": "Charlie", "salary": 300},
     ]
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 # TestPolarsMerge — core merge
 # ═══════════════════════════════════════════════════════════════════════════
-
 
 class TestPolarsMerge:
     """Core merge functionality."""
@@ -174,11 +166,9 @@ class TestPolarsMerge:
         result = merger.merge(left_data, right_data, key="id")
         assert result.merge_time_ms >= 0
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 # TestPolarsLazy — lazy merge
 # ═══════════════════════════════════════════════════════════════════════════
-
 
 class TestPolarsLazy:
     """Lazy merge functionality."""
@@ -194,11 +184,9 @@ class TestPolarsLazy:
         result = merger.merge_lazy(left_data, right_data, key="id")
         assert result.rows_merged == 1
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 # TestPolarsExpression — expression API
 # ═══════════════════════════════════════════════════════════════════════════
-
 
 class TestPolarsExpression:
     """Expression API."""
@@ -233,11 +221,9 @@ class TestPolarsExpression:
         assert expr.field == "score"
         assert expr.apply(10, 5) == 5
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 # TestPolarsStrategyOverrides
 # ═══════════════════════════════════════════════════════════════════════════
-
 
 class TestPolarsStrategyOverrides:
     """Strategy override via merge() call."""
@@ -258,11 +244,9 @@ class TestPolarsStrategyOverrides:
         )
         assert dict(merger._schema.fields) == original_fields
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 # TestPolarsHealthCheck
 # ═══════════════════════════════════════════════════════════════════════════
-
 
 class TestPolarsHealthCheck:
     """Health check and availability."""

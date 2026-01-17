@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -72,12 +76,10 @@ _STRATEGY_MAP: Dict[str, type] = {
     "longestwins": LongestWins,
 }
 
-
 def _resolve_strategy(name: str) -> MergeStrategy:
     """Instantiate a strategy from its name."""
     cls = _STRATEGY_MAP.get(name.lower(), LWW)
     return cls()
-
 
 def _get_sqlite3() -> Any:
     """Lazy import of sqlite3."""
@@ -90,14 +92,12 @@ def _get_sqlite3() -> Any:
             "It is part of the Python standard library."
         )
 
-
 # ---------------------------------------------------------------------------
 # Internal: CRDT metadata table management
 # ---------------------------------------------------------------------------
 
 _META_TABLE = "__crdt_meta__"
 _CLOCK_TABLE = "__crdt_clock__"
-
 
 # ---------------------------------------------------------------------------
 # Main class

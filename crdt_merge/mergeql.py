@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -78,16 +82,13 @@ class MergeQLError(Exception):
     """Base exception for MergeQL errors."""
     pass
 
-
 class MergeQLSyntaxError(MergeQLError):
     """Raised when MergeQL query has syntax errors."""
     pass
 
-
 class MergeQLValidationError(MergeQLError):
     """Raised when MergeQL query references invalid sources or strategies."""
     pass
-
 
 # ---------------------------------------------------------------------------
 # AST Nodes
@@ -103,7 +104,6 @@ class MergeAST:
     explain: bool = False
     schema_mapping: Optional[Dict[str, str]] = None
     limit: Optional[int] = None
-
 
 @dataclass
 class MergePlan:
@@ -132,7 +132,6 @@ class MergePlan:
             lines.append(f"    {i}. {step}")
         return "\n".join(lines)
 
-
 @dataclass
 class MergeQLResult:
     """Result of a MergeQL execution."""
@@ -142,7 +141,6 @@ class MergeQLResult:
     provenance: Optional[List[dict]] = None
     merge_time_ms: float = 0.0
     sources_merged: int = 0
-
 
 # ---------------------------------------------------------------------------
 # Tokenizer helpers
@@ -158,7 +156,6 @@ _TOKEN_RE = re.compile(
     """,
     re.VERBOSE,
 )
-
 
 # ---------------------------------------------------------------------------
 # Parser
@@ -362,7 +359,6 @@ class MergeQLParser:
             mapping[old_col] = new_col
         return mapping if mapping else None, pos
 
-
 # ---------------------------------------------------------------------------
 # WHERE clause evaluator (simple expressions on record dicts)
 # ---------------------------------------------------------------------------
@@ -431,7 +427,6 @@ def _eval_where(record: dict, clause: str) -> bool:
     if op == "<=":
         return str_rec <= raw_val
     return True
-
 
 # ---------------------------------------------------------------------------
 # Engine
@@ -731,7 +726,6 @@ class MergeQL:
             merge_time_ms=round(elapsed_ms, 3),
             sources_merged=len(ast.sources),
         )
-
 
 # ---------------------------------------------------------------------------
 # Module-level convenience

@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -62,11 +66,9 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 
 from crdt_merge.clocks import Ordering, VectorClock
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # GossipEntry — a single key-value entry with causal metadata
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 @dataclass
 class GossipEntry:
@@ -122,11 +124,9 @@ class GossipEntry:
             f"clock={self.clock}{tomb})"
         )
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # GossipState — the gossip protocol state machine
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 class GossipState:
     """Gossip protocol state machine for distributed CRDT synchronization.
@@ -502,11 +502,9 @@ class GossipState:
             f"size={self.size}, clock={self._clock})"
         )
 
-
 # ═════════════════════════════════════════════════════════════════════════════
 # Standalone anti-entropy helper
 # ═════════════════════════════════════════════════════════════════════════════
-
 
 def anti_entropy(
     local_digest: Dict[str, str], remote_digest: Dict[str, str]

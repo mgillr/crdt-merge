@@ -1,5 +1,10 @@
 # Strategy Order-Dependency Reference
 
+> **Copyright © 2026 Ryan Gillespie / Optitransfer. All rights reserved.**
+> Licensed under the Business Source License 1.1 (BSL-1.1).
+> See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
+
+
 > **Generated from:** crdt-merge v0.8.1 CRDT law analysis
 
 This document classifies every model-merge strategy by its CRDT compliance

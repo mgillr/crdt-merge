@@ -2,16 +2,83 @@
 
 **Conflict-free merge for structured data, AI model weights, and agent memory.** Define strategies. Merge anything. Prove correctness. Audit every field. Stream at any scale. Zero dependencies.
 
-[![PyPI](https://img.shields.io/badge/pypi-v0.8.0-orange)](https://pypi.org/project/crdt-merge/0.8.0/)
+[![PyPI](https://img.shields.io/badge/pypi-v0.8.1-orange)](https://pypi.org/project/crdt-merge/0.8.1/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: BSL 1.1](https://img.shields.io/badge/license-BSL%201.1-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-1923%20passed-brightgreen)](TEST_RESULTS.md)
+[![Tests](https://img.shields.io/badge/tests-2118%20passed-brightgreen)](TEST_RESULTS.md)
 
 ---
 
-## What's New in v0.8.0
+## 🆕 What's New
 
-### v0.8.0 — "The Intelligence Release" (2026-03-29)
+### v0.8.1 — The CRDT Architecture Release (2026-03-29)
+
+**All 25 model merge strategies are now provably true CRDTs.**
+
+v0.8.0 introduced 25 model merge strategies, but a fundamental mathematical limitation meant strategies like SLERP, TIES, DARE, and Fisher could not satisfy CRDT laws (commutativity, associativity, idempotency) when applied directly to raw tensors.
+
+v0.8.1 solves this with a **two-layer architecture**:
+
+| Layer | Responsibility | CRDT? |
+|-------|---------------|-------|
+| **CRDTMergeState** | Collects models via set union | ✅ Provably C+A+I |
+| **Strategy** (unchanged) | Computes merged model atomically | Deterministic pure function |
+
+Set union is trivially commutative, associative, and idempotent. Strategies are applied once to the full set during `resolve()` — never pairwise.
+
+```python
+from crdt_merge.model import CRDTMergeState
+
+# Create CRDT states on different replicas
+state_a = CRDTMergeState("slerp")
+state_a.add(model_weights_1, model_id="llama-7b")
+
+state_b = CRDTMergeState("slerp")
+state_b.add(model_weights_2, model_id="mistral-7b")
+
+# Merge in any order — always converges
+merged = state_a.merge(state_b)  # Same result as state_b.merge(state_a)
+result = merged.resolve()         # Deterministic merged weights
+```
+
+**Key features of `CRDTMergeState`:**
+- OR-Set add/remove semantics with tombstones (add-wins)
+- SHA-256 Merkle hashing for content-addressable provenance
+- Version vectors with configurable conflict resolution
+- Canonical hash-sorted ordering for deterministic cross-replica convergence
+- Wire serialization via `to_dict()` / `from_dict()`
+- Batch operations: `add_batch()`, `merge_many()`
+- 195 new tests — all 25 strategies × 3 CRDT laws verified
+
+Or use the high-level API:
+```python
+from crdt_merge.model import ModelMerge, ModelMergeSchema
+
+schema = ModelMergeSchema(strategies={"default": "slerp"})
+merger = ModelMerge(schema)
+result = merger.crdt_merge(
+    models=[model_a, model_b, model_c],
+    model_ids=["llama", "mistral", "phi"],
+)
+assert result.metadata["crdt_guaranteed"] is True
+```
+
+📖 **[Full Architecture Analysis →](docs/CRDT_ARCHITECTURE.md)**
+📊 **[Benchmark Results →](benchmarks/v081/benchmark_results.json)**
+
+### v0.8.0 — The Intelligence Release (2026-03-29)
+
+**25 model merge strategies** across 8 categories, powered by CRDT-native architecture:
+
+| Category | Strategies |
+|----------|-----------|
+| Basic | WeightAverage, SLERP, TaskArithmetic, LinearInterp |
+| Subspace | TIES, DARE, DELLA, DARE-TIES, ModelBreadcrumbs, EMR, STAR, SVDKnotTying, AdaRank |
+| Weighted | FisherMerge, RegMean, AdaMerging, DAM |
+| Evolutionary | EvolutionaryMerge, GeneticMerge |
+| Unlearning | NegMerge, SplitUnlearnMerge |
+| Calibration | WeightScopeAlignment, RepresentationSurgery |
+| Safety | SafeMerge, LEDMerge |
 
 **25 model merge strategies. 1,923 tests. 44 modules. Zero breaking changes.** crdt-merge enters the AI model merging space with CRDT guarantees, per-parameter provenance, and formal verification.
 
@@ -26,6 +93,17 @@
 - **MergeKit compatibility** — import/export MergeKit YAML configs
 - **GPU acceleration** — torch-based acceleration for large models
 - 1,923 tests passing. Zero regressions. Zero breaking changes.
+
+Plus:
+- Per-parameter provenance tracking
+- Conflict heatmaps with D3/Plotly export
+- LoRA adapter merging with rank harmonization
+- Multi-stage DAG merge pipelines
+- Continual merge with memory budget
+- Federated learning bridge (FedAvg + FedProx)
+- MergeKit compatibility (import/export YAML)
+- GPU acceleration with CUDA-aware chunking
+- 775 new model tests
 
 ```bash
 pip install crdt-merge            # Zero deps, tabular + model core
@@ -609,7 +687,7 @@ crdt-merge follows a **reference + protocol** architecture:
 
 | Language | Package | Version | Status |
 |----------|---------|---------|--------|
-| **Python** (reference) | [crdt-merge](https://pypi.org/project/crdt-merge/) | v0.7.1 | ✅ Full feature set + 8 accelerators + Polars engine |
+| **Python** (reference) | [crdt-merge](https://pypi.org/project/crdt-merge/) | v0.8.1 | ✅ Full feature set + 25 model merge strategies + CRDT architecture + 8 accelerators + Polars engine |
 | TypeScript | [crdt-merge](https://www.npmjs.com/package/crdt-merge) | v0.2.0 | Core CRDTs + merge |
 | Rust | [crdt-merge](https://crates.io/crates/crdt-merge) | v0.2.0 | Core CRDTs + merge |
 | Java | [crdt-merge](https://github.com/mgillr/crdt-merge-java) | v0.2.0 | Source complete |
@@ -633,12 +711,12 @@ crdt-merge follows a **reference + protocol** architecture:
 | v0.7.0 | The Ecosystem Release | MergeQL, self-merging Parquet, conflict visualization, 8 ecosystem accelerators (DuckDB, dbt, Polars, Arrow Flight, Airbyte, SQLite, Streamlit, DuckLake) |
 | v0.7.1 | The Polars Engine Release | Polars merge engine (38.8× on A100), shared `_polars_engine.py`, `engine="auto"` fallback, zero-dependency core preserved |
 | v0.8.0 | The Intelligence Release | ModelCRDT — 25 model merge strategies (TIES/DARE/SLERP/LoRA), per-parameter provenance, conflict heatmaps, safety analyzer, federated bridge, GPU acceleration. 1,923 tests. |
+| v0.8.1 | The CRDT Architecture Release | Two-layer CRDT architecture — CRDTMergeState with OR-Set semantics, all 25 strategies provably CRDT-compliant, SHA-256 Merkle hashing, version vectors, 195 new tests (2,118 total). |
 
 ### Upcoming
 
 | Version | Name | Key Features |
 |---------|------|-------------|
-| **v0.8.1** | The Adoption Release | Context Memory (manifests + sidecars + bloom dedup), Agentic AI State Merge, MergeKit Migration CLI, Flower FL Plugin |
 | **v0.9.0** | The Enterprise Release | UnmergeEngine, EU AI Act compliance report generator (⚠️ Aug 2026 deadline), model unmerging, encryption, RBAC, observability |
 | **v1.0.0** | The Platform Release | API freeze, formal spec, security audit, cross-language port sync, comprehensive docs |
 
@@ -694,7 +772,7 @@ pip install crdt-merge[sqlite]     # SQLite extension
 
 ## Test Results
 
-**1,923 tests across 58+ test files. 1,923 passed, 0 actual failures. v0.8.0 added 775 new model merge tests across 20 new modules.**
+**2,118 tests across 60+ test files. 2,118 passed, 0 actual failures. v0.8.1 added 195 new CRDT architecture tests verifying all 25 strategies × 3 CRDT laws.**
 
 | Test File | Tests | Status |
 |-----------|------:|:------:|
@@ -735,6 +813,8 @@ pip install crdt-merge[sqlite]     # SQLite extension
 | test_accelerator_streamlit.py | 38 | ✅ |
 | test_multi_key.py | 8 | ✅ |
 | test_polars_engine.py | 30 | ✅ |
+| test_crdt_merge_state.py | 95 | ✅ |
+| test_crdt_architecture.py | 100 | ✅ |
 
 **Version history:**
 
@@ -749,6 +829,7 @@ pip install crdt-merge[sqlite]     # SQLite extension
 | v0.7.0 | 1,114 | +394 |
 | v0.7.1 | 1,148 | +34 |
 | v0.8.0 | 1,923 | +775 |
+| v0.8.1 | 2,118 | +195 |
 
 Full details: [TEST_RESULTS.md](TEST_RESULTS.md)
 
@@ -758,16 +839,25 @@ Full details: [TEST_RESULTS.md](TEST_RESULTS.md)
 
 | Metric | Value |
 |--------|-------|
-| Core modules | 44 (24 tabular + 20 model) |
+| Core modules | 46 (24 tabular + 20 model + 2 CRDT architecture) |
 | Ecosystem accelerators | 8 |
 | Model merge strategies | 25 |
-| Source lines | ~30,000 |
-| Test files | 58+ |
-| Tests passing | 1,923 |
+| Source lines | ~32,000 |
+| Test files | 60+ |
+| Tests passing | 2,118 |
 | Dependencies | 0 (required) |
-| Merge domains | Tabular data, Model weights (Agent memory in v0.8.1) |
+| Merge domains | Tabular data, Model weights, CRDT-verified model merging |
 | Python versions | 3.9, 3.10, 3.11, 3.12 |
 | License | BSL-1.1 |
+
+---
+
+## 📚 Documentation
+
+- [CRDT Architecture Analysis](docs/CRDT_ARCHITECTURE.md) — Deep dive into the two-layer CRDT architecture
+- [Roadmap v2.0](docs/roadmap/roadmap_v2_0.md) — Full development roadmap
+- [Benchmark Results](benchmarks/v081/benchmark_results.json) — v0.8.1 performance benchmarks
+- [CHANGELOG](CHANGELOG.md) — Full version history
 
 ---
 

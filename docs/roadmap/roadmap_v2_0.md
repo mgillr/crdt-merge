@@ -4,7 +4,7 @@
 **Date:** March 28, 2026  
 **Contact:** rgillespie83@icloud.com · data@optitransfer.ch  
 **License:** BSL-1.1 (Business Source License 1.1)  
-**Copyright:** Copyright 2026 Ryan Gillespie
+**Copyright:** Copyright 2026 Ryan Gillespie / Optitransfer / Optitransfer
 
 ---
 
@@ -45,7 +45,9 @@ crdt-merge is the **complete merge toolkit** that sits beneath all of these — 
 | **v0.7.0** | The Ecosystem Release | MergeQL (SQL), 8 accelerators, self-merging Parquet, conflict viz | 17,172 | 1,114 | ✅ COMPLETE |
 | **v0.7.1** | The Polars Engine Release | Polars merge engine (38.8× A100), `engine="auto"` fallback, `[fast]` opt-in | ~17,500 | 1,148 | ✅ COMPLETE |
 | **v0.8.0** | The Intelligence Release | ModelCRDT (25 strategies), LoRA, evolutionary merge, provenance, heatmaps, federated bridge | ~30,000 | 1,923 | ✅ COMPLETE |
-| **v0.8.1** | The Adoption Release | Context Memory (manifests+sidecars+bloom), Agentic AI State Merge, MergeKit CLI, Flower FL Plugin | ~32,000 | ~2,200 | 📋 Planned |
+| **v0.8.1** | The CRDT Architecture Release | Two-layer CRDT architecture, all 25 strategies provably satisfy CRDT laws | ~30,600 | 2,118 | ✅ COMPLETE |
+| **v0.8.2** | The Adoption Release | Context Memory (manifests+sidecars+bloom), Agentic AI State Merge, MergeKit CLI, Flower FL Plugin | ~32,000 | ~2,200 | 📋 Planned |
+| **v0.8.3** | The Research Release | Continual Merge Engine, HuggingFace Hub Native Integration | ~33,500 | ~2,400 | 📋 Planned |
 | **v0.9.0** | The Enterprise Release | UnmergeEngine, EU AI Act compliance, model unmerging, encryption, RBAC, observability | ~35,000 | ~2,700 | 📋 Planned |
 | **v1.0.0** | The Platform Release | API freeze, formal spec, security audit, comprehensive docs, certification | ~36,000 | ~3,000 | 📋 Planned |
 
@@ -1249,7 +1251,89 @@ All 105 skipped tests are legitimate optional-dependency guards:
 
 ---
 
-## v0.8.1 — "The Adoption Release" (Context Memory + Community Bridges)
+## v0.8.1 — "The CRDT Architecture Release" ✅ COMPLETE
+
+**Status:** Released 2026-03-29 · **LOC:** ~30,600 (+~600) · **Tests:** 2,118 (+195) · **Breaking Changes:** 0
+
+This release resolves a fundamental mathematical limitation in the original model merge architecture. The original v0.8.0 implementation attempted to make each merge strategy's `merge()` function satisfy CRDT laws directly on raw tensors — which is **mathematically impossible** for most algorithms (SLERP, TIES, DARE, Fisher, etc.).
+
+The solution: a **two-layer architecture** that separates CRDT state management (provably correct set union) from merge strategy execution (deterministic pure functions).
+
+**Full technical analysis:** [`docs/CRDT_ARCHITECTURE.md`](../CRDT_ARCHITECTURE.md)
+
+---
+
+### The Problem
+
+Model merge strategies like SLERP, TIES, DARE, Fisher-weighted averaging, etc. are mathematically non-commutative, non-associative, or non-idempotent when applied pairwise to raw tensors:
+
+- **SLERP**: Non-associative (SLERP(SLERP(A,B), C) ≠ SLERP(A, SLERP(B,C)))
+- **TIES**: Sign election depends on input order
+- **DARE**: Stochastic dropping produces different results per application
+- **Fisher**: Information matrix weighting is order-dependent
+- **AdaMerging**: Learned coefficients are path-dependent
+
+This means the v0.8.0 claim that all 25 strategies were "CRDT-verified" was only valid for the direct merge path — it did NOT guarantee convergence across distributed replicas applying merges in different orders.
+
+### The Solution: Two-Layer Architecture
+
+Seven distinct solution architectures were researched, prototyped, and tested. All seven achieved 25/25 strategies as true CRDTs. The production implementation (`CRDTMergeState`) unifies the best features of all seven into a single architecture.
+
+
+**The key insight:** You don't need the merge algorithm to be a CRDT. You need the merge protocol to be a CRDT.
+
+```
+Layer 1: CRDTMergeState          Layer 2: Strategy (unchanged)
+┌─────────────────────┐          ┌──────────────────────────┐
+│ Collects models via  │          │ Computes merged model    │
+│ set union            │  ──────▶ │ atomically from full set │
+│ ✅ Provably C+A+I    │ resolve()│ Deterministic pure fn    │
+└─────────────────────┘          └──────────────────────────┘
+```
+
+### What Shipped
+
+**`CRDTMergeState`** — Production-ready CRDT wrapper (`crdt_state.py`, 948 lines):
+- **OR-Set semantics** — add/remove contributions with tombstones (add-wins)
+- **Merkle hashing** — SHA-256 content-addressable provenance for every contribution
+- **Version vectors** — conflict resolution via HIGHEST_VERSION, LAST_WRITE_WINS, FIRST_WRITE_WINS
+- **Canonical ordering** — deterministic hash-sorted resolution across all replicas
+- **Wire serialization** — `to_dict()` / `from_dict()` for cross-node state transfer
+- **Performance optimizations** — cached active contributions, batch add, N-way merge
+- **Input validation** — tensor shape checking, strategy name validation
+- **Memory estimation** — `estimated_memory_bytes` property
+
+**`ModelMerge.crdt_merge()`** — New high-level API method:
+- Wraps every layer merge in `CRDTMergeState`
+- Returns `MergeResult` with `metadata["crdt_guaranteed"] = True`
+- Model deduplication via content-hash IDs
+- Deterministic seed propagation for stochastic strategies
+
+**195 new tests** — All 25 strategies × 3 CRDT laws × state + resolve levels + OR-Set + versioning + serialization + edge cases
+
+**Architecture document** — [`docs/CRDT_ARCHITECTURE.md`](../CRDT_ARCHITECTURE.md) — comprehensive technical analysis of the failure, R&D process, and solution
+
+### Mathematical Proof
+
+For any state type whose merge operation is set union:
+
+    Commutativity:  S₁ ∪ S₂ = S₂ ∪ S₁                        ∎
+    Associativity:  (S₁ ∪ S₂) ∪ S₃ = S₁ ∪ (S₂ ∪ S₃)         ∎
+    Idempotency:    S ∪ S = S                                   ∎
+
+Since `resolve()` is a deterministic function of canonically-ordered set contents, identical sets always produce identical merged tensors. Therefore the resolved value converges across all replicas. ∎
+
+### Stats
+
+- Source lines: ~30,000 → **~30,600** (+~600)
+- Tests passing: 1,923 → **2,118** (+195)
+- New files: `docs/CRDT_ARCHITECTURE.md` (1,744 lines)
+- Modified: `crdt_state.py` (606 → 948 lines), `core.py` (minor)
+- Zero regressions against v0.8.0 baseline
+
+---
+
+## v0.8.2 — "The Adoption Release" (Context Memory + Community Bridges)
 
 **Target LOC:** ~32,000 (+~2,000) · **Target Tests:** ~2,200 (+~280) · **Breaking Changes:** 0
 
@@ -1400,7 +1484,7 @@ fl.server.start_server(strategy=strategy)
 
 ### cr-sqlite Community Adoption (Marketing — Zero Code)
 
-cr-sqlite (6,000+ ⭐) was archived July 2025, orphaning its community. Our ACC-7 SQLite extension (`accelerators/sqlite_ext.py`) already fills this gap. This is a pure marketing play alongside v0.8.1:
+cr-sqlite (6,000+ ⭐) was archived July 2025, orphaning its community. Our ACC-7 SQLite extension (`accelerators/sqlite_ext.py`) already fills this gap. This is a pure marketing play alongside v0.8.2:
 
 - Post in cr-sqlite discussions: "cr-sqlite users: crdt-merge has a SQLite extension"
 - Update ACC-7 README with migration guide from cr-sqlite
@@ -1409,16 +1493,16 @@ cr-sqlite (6,000+ ⭐) was archived July 2025, orphaning its community. Our ACC-
 
 ---
 
-### Unicorn Features Delivered at v0.8.1
+### Unicorn Features Delivered at v0.8.2
 
-- **#0–#7:** All previous ✅
-- **#8: CRDT-merged agent memory with manifest attestation** — v0.8.1 🆕
-- **#9: O(1) memory dedup via bloom filter** — v0.8.1 🆕
-- **#10: Context provenance chains (agent → fact → merge → output)** — v0.8.1 🆕
+- **#0–#8.5:** All previous ✅
+- **#9: CRDT-merged agent memory with manifest attestation** — v0.8.2 🆕
+- **#10: O(1) memory dedup via bloom filter** — v0.8.2 🆕
+- **#11: Context provenance chains (agent → fact → merge → output)** — v0.8.2 🆕
 
-### Competitive Position at v0.8.1
+### Competitive Position at v0.8.2
 
-| Capability | crdt-merge v0.8.1 | MemGPT/Letta | LangChain | Automerge | cr-sqlite (archived) |
+| Capability | crdt-merge v0.8.2 | MemGPT/Letta | LangChain | Automerge | cr-sqlite (archived) |
 |-----------|-------------------|-------------|-----------|-----------|---------------------|
 | Agent memory merge | ✅ CRDT-verified | ❌ (truncates) | ❌ (appends) | ❌ (documents only) | ❌ (archived) |
 | Memory dedup | ✅ Bloom (10M/s) | ❌ | ❌ | ❌ | ❌ |
@@ -1431,11 +1515,11 @@ cr-sqlite (6,000+ ⭐) was archived July 2025, orphaning its community. Our ACC-
 | Zero dependencies | ✅ | ❌ | ❌ | ❌ (WASM) | ❌ (SQLite ext) |
 | License | BSL-1.1 (ultra-open) | Apache-2.0 | MIT | MIT | MIT (abandoned) |
 
-**The positioning:** After v0.8.1, crdt-merge is the only framework spanning **tabular data + model weights + agent memory** under one algebraic framework. That's the moat.
+**The positioning:** After v0.8.2, crdt-merge is the only framework spanning **tabular data + model weights + agent memory** under one algebraic framework. That's the moat.
 
 ---
 
-## v0.8.2 — "The Research Release" (Continual Merge + HuggingFace Hub)
+## v0.8.3 — "The Research Release" (Continual Merge + HuggingFace Hub)
 
 **Target LOC:** ~33,500 (+~1,500) · **Target Tests:** ~2,400 (+~200) · **Breaking Changes:** 0
 
@@ -1533,15 +1617,15 @@ print(result.model_card)
 
 ---
 
-### Unicorn Features Delivered at v0.8.2
+### Unicorn Features Delivered at v0.8.3
 
-- **#8–#10:** All previous ✅
-- **#11: Continual merge with CRDT convergence proofs** — v0.8.2 🆕
-- **#12: HuggingFace Hub native with provenance model cards** — v0.8.2 🆕
+- **#9–#11:** All previous ✅
+- **#12: Continual merge with CRDT convergence proofs** — v0.8.3 🆕
+- **#13: HuggingFace Hub native with provenance model cards** — v0.8.3 🆕
 
-### Competitive Position at v0.8.2
+### Competitive Position at v0.8.3
 
-| Capability | crdt-merge v0.8.2 | MergeKit (broken) | FusionBench | mergeoo |
+| Capability | crdt-merge v0.8.3 | MergeKit (broken) | FusionBench | mergeoo |
 |-----------|-------------------|-------------------|-------------|---------|
 | Continual merge | ✅ CRDT-verified | ❌ | ❌ | ❌ |
 | HuggingFace Hub native | ✅ (with provenance cards) | ✅ (broken on Qwen3) | ❌ | ❌ |
@@ -1747,7 +1831,7 @@ from crdt_merge.compliance import EUAIActReport
 report = EUAIActReport(
     model_provenance=model_merge_provenance,
     training_data_provenance=training_provenance,
-    context_manifests=memory_manifests,  # From v0.8.1 Context Memory
+    context_manifests=memory_manifests,  # From v0.8.2 Context Memory
 )
 
 # Generate full compliance package
@@ -1768,7 +1852,7 @@ print(validation.coverage)   # 94% of Article 13 requirements covered
 - **Fear sells.** August 2, 2026 is 4 months away. Companies need solutions NOW.
 - **Zero competitors** offer merge-level EU AI Act compliance
 - **Our provenance + manifests are the hard part** — the report generator is just formatting
-- **Combined with v0.8.1 Context Memory manifests**, this provides end-to-end traceability from raw input → agent memory → model weights → merged output → compliance report
+- **Combined with v0.8.2 Context Memory manifests**, this provides end-to-end traceability from raw input → agent memory → model weights → merged output → compliance report
 
 **Module:** `crdt_merge/compliance/eu_ai_act.py`
 **Dependencies:** None new (provenance already captured)
@@ -1777,12 +1861,12 @@ print(validation.coverage)   # 94% of Article 13 requirements covered
 
 ### Unicorn Features Delivered at v0.9.0
 
-- **#8–#12:** All previous ✅
-- **#13: Reversible merge (UnmergeEngine)** — v0.9.0 🆕
-- **#14: Model unmerging with provenance-guided contributor removal** — v0.9.0 🆕
-- **#15: GDPR "right to be forgotten" at the merge layer** — v0.9.0 🆕
-- **#16: EU AI Act compliance report generator** — v0.9.0 🆕
-- **#17: Merge Observability Dashboard with drift detection** — v0.9.0 🆕
+- **#8.5–#13:** All previous ✅
+- **#14: Reversible merge (UnmergeEngine)** — v0.9.0 🆕
+- **#15: Model unmerging with provenance-guided contributor removal** — v0.9.0 🆕
+- **#16: GDPR "right to be forgotten" at the merge layer** — v0.9.0 🆕
+- **#17: EU AI Act compliance report generator** — v0.9.0 🆕
+- **#18: Merge Observability Dashboard with drift detection** — v0.9.0 🆕
 
 ### Competitive Position at v0.9.0
 
@@ -1865,31 +1949,32 @@ crdt-merge-spec/
 | 5 | CRDT-verified model merging (25 strategies) | v0.8.0 | ✅ |
 | 6 | LoRA-native merge with rank harmonization | v0.8.0 | ✅ |
 | 7 | Evolutionary merge optimization | v0.8.0 | ✅ |
-| 8 | CRDT-merged agent memory with manifest attestation | v0.8.1 | 📋 |
-| 9 | O(1) memory dedup via bloom filter | v0.8.1 | 📋 |
-| 10 | Context provenance chains | v0.8.1 | 📋 |
-| 11 | Continual merge with CRDT convergence proofs | v0.8.2 | 📋 |
-| 12 | HuggingFace Hub native with provenance model cards | v0.8.2 | 📋 |
-| 13 | Reversible merge (UnmergeEngine) | v0.9.0 | 📋 |
-| 14 | Model unmerging (provenance-guided) | v0.9.0 | 📋 |
-| 15 | GDPR "right to be forgotten" at merge layer | v0.9.0 | 📋 |
-| 16 | EU AI Act compliance report generator | v0.9.0 | 📋 |
-| 17 | Merge Observability Dashboard with drift detection | v0.9.0 | 📋 |
+| 8.5 | True CRDT guarantees for all 25 model merge strategies via two-layer architecture | v0.8.1 | ✅ |
+| 9 | CRDT-merged agent memory with manifest attestation | v0.8.2 | 📋 |
+| 10 | O(1) memory dedup via bloom filter | v0.8.2 | 📋 |
+| 11 | Context provenance chains | v0.8.2 | 📋 |
+| 12 | Continual merge with CRDT convergence proofs | v0.8.3 | 📋 |
+| 13 | HuggingFace Hub native with provenance model cards | v0.8.3 | 📋 |
+| 14 | Reversible merge (UnmergeEngine) | v0.9.0 | 📋 |
+| 15 | Model unmerging (provenance-guided) | v0.9.0 | 📋 |
+| 16 | GDPR "right to be forgotten" at merge layer | v0.9.0 | 📋 |
+| 17 | EU AI Act compliance report generator | v0.9.0 | 📋 |
+| 18 | Merge Observability Dashboard with drift detection | v0.9.0 | 📋 |
 
 ---
 
 ## Evolution Summary Table
 
-| Metric | v0.5.1 | v0.6.0 | v0.7.0 | v0.7.1 | v0.8.0 | v0.8.0.1 | v0.8.1 | v0.8.2 | v0.9.0 | v1.0.0 |
-|--------|--------|--------|--------|--------|--------|----------|--------|--------|--------|--------|
-| **LOC** | 4,028 | 6,478 | 17,172 | ~17,500 | ~30,000 | ~30,100 | ~32,000 | ~33,500 | ~36,000 | ~37,000 |
-| **Tests** | 425 | 685 | 1,114 | 1,148 | 1,923 | 1,903+ | ~2,200 | ~2,400 | ~2,900 | ~3,200 |
-| **Modules** | 13 | 20 | 38 | 38 | 44 | 44 | ~50 | ~54 | ~61 | ~64 |
-| **Merge Strategies (tabular)** | 8 | 8 | 8 | 8 | 8 | 8 | 8 | 8 | 8 | 8 |
-| **Merge Strategies (model)** | 0 | 0 | 0 | 0 | 25 | 25 | 25 | 26 | 26 | 26+ |
-| **Merge Domains** | 1 | 1 | 1 | 1 | 2 | 2 | 3 | 3 | 3 | 3 |
-| **Dependencies (required)** | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| **Unicorn Features** | 2 | 2 | 3 | 3 | 8 | 8 | 11 | 13 | 17 | 17 |
+| Metric | v0.5.1 | v0.6.0 | v0.7.0 | v0.7.1 | v0.8.0 | v0.8.0.1 | v0.8.1 | v0.8.2 | v0.8.3 | v0.9.0 | v1.0.0 |
+|--------|--------|--------|--------|--------|--------|----------|--------|--------|--------|--------|--------|
+| **LOC** | 4,028 | 6,478 | 17,172 | ~17,500 | ~30,000 | ~30,100 | ~30,600 | ~32,000 | ~33,500 | ~36,000 | ~37,000 |
+| **Tests** | 425 | 685 | 1,114 | 1,148 | 1,923 | 1,903+ | 2,118 | ~2,200 | ~2,400 | ~2,900 | ~3,200 |
+| **Modules** | 13 | 20 | 38 | 38 | 44 | 44 | 44 | ~50 | ~54 | ~61 | ~64 |
+| **Merge Strategies (tabular)** | 8 | 8 | 8 | 8 | 8 | 8 | 8 | 8 | 8 | 8 | 8 |
+| **Merge Strategies (model)** | 0 | 0 | 0 | 0 | 25 | 25 | 25 | 25 | 26 | 26 | 26+ |
+| **Merge Domains** | 1 | 1 | 1 | 1 | 2 | 2 | 2 | 3 | 3 | 3 | 3 |
+| **Dependencies (required)** | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| **Unicorn Features** | 2 | 2 | 3 | 3 | 8 | 8 | 9 | 12 | 14 | 18 | 18 |
 
 ---
 
@@ -1913,10 +1998,13 @@ crdt-merge-spec/
 2026 Q1  ████████████████████████  v0.8.0.1 COMPLETE ✅ (shipped 2026-03-29)
          │                          12 defect fixes, all tests passing, GPU-001 resolved
          │
-2026 Q2  ████████████████████████  v0.8.1 — Context Memory, Agentic AI, MergeKit CLI, Flower
+2026 Q1  ████████████████████████  v0.8.1 COMPLETE ✅ (shipped 2026-03-29)
+         │                          Two-layer CRDT architecture, 25/25 strategies provably CRDT, 2,118 tests
+         │
+2026 Q2  ████████████████████████  v0.8.2 — Context Memory, Agentic AI, MergeKit CLI, Flower
          │                          Target: May 2026
          │
-2026 Q2  ████████████████████████  v0.8.2 — Continual Merge Engine, HuggingFace Hub Native
+2026 Q2  ████████████████████████  v0.8.3 — Continual Merge Engine, HuggingFace Hub Native
          │                          Target: June 2026
          │
 2026 Q3  ████████████████████████  v0.9.0 — UnmergeEngine, EU AI Act (⚠️ Aug 2), Dashboard, RBAC
@@ -1999,7 +2087,7 @@ Competitors would need to rebuild 36,000+ lines of algebraically-verified merge 
 
 ### 9. Three Merge Domains → One Framework
 
-After v0.8.1, crdt-merge is the only framework spanning **tabular data + model weights + agent memory** under one algebraic framework. Same strategies, same provenance, same verification, same accelerators across all three domains. To compete, someone needs to build all three — plus manifests, bloom dedup, sidecars, and compliance reporting.
+After v0.8.2, crdt-merge is the only framework spanning **tabular data + model weights + agent memory** under one algebraic framework. Same strategies, same provenance, same verification, same accelerators across all three domains. To compete, someone needs to build all three — plus manifests, bloom dedup, sidecars, and compliance reporting.
 
 ### 10. The EU AI Act Moat
 
@@ -2039,8 +2127,10 @@ The August 2, 2026 enforcement deadline creates urgency that no amount of market
 
 **Legend:** C = Commutative, A = Associative, I = Idempotent, S = Stochastic (seed-deterministic), Meta = Meta-level (final merge verified), Post = Post-processing, ⚠️ = Conditional
 
+> **Note (v0.8.1):** The ⚠️ markers above describe the *raw strategy math* when applied pairwise. With the **Two-Layer CRDT Architecture** shipped in v0.8.1, ALL 25 strategies are provably commutative, associative, and idempotent at the protocol level via `CRDTMergeState`. See [`docs/CRDT_ARCHITECTURE.md`](../CRDT_ARCHITECTURE.md) for the full analysis.
+
 ---
 
 **Contact:** rgillespie83@icloud.com · data@optitransfer.ch  
 **License:** BSL-1.1 (Business Source License 1.1) — auto-converts to Apache-2.0 on 2028-03-29  
-**Copyright:** Copyright 2026 Ryan Gillespie
+**Copyright:** Copyright 2026 Ryan Gillespie / Optitransfer / Optitransfer

@@ -1,5 +1,10 @@
 # Contributor License Agreement (CLA)
 
+> **Copyright © 2026 Ryan Gillespie / Optitransfer. All rights reserved.**
+> Licensed under the Business Source License 1.1 (BSL-1.1).
+> See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
+
+
 ## crdt-merge — Individual Contributor License Agreement
 
 Thank you for your interest in contributing to **crdt-merge**, owned by

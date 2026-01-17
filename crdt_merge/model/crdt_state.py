@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: BUSL-1.1
-#
 # Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
@@ -7,6 +6,10 @@
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
@@ -91,6 +94,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sys
 import time
 from collections import OrderedDict
 from enum import Enum
@@ -102,13 +106,11 @@ __all__ = [
     "ConflictResolution",
 ]
 
-
 class ConflictResolution(str, Enum):
     """Strategy for resolving conflicts when the same model_id appears twice."""
     FIRST_WRITE_WINS = "first_write_wins"
     LAST_WRITE_WINS = "last_write_wins"
     HIGHEST_VERSION = "highest_version"
-
 
 class MergeContribution:
     """A single model contribution in the CRDT state.
@@ -199,7 +201,6 @@ class MergeContribution:
             f"version={self.version}, hash={self.merkle_hash[:8]})"
         )
 
-
 class CRDTMergeState:
     """Conflict-Free Replicated merge state for model merging.
 
@@ -214,6 +215,7 @@ class CRDTMergeState:
     ----------
     strategy_name : str
         Name of the merge strategy (e.g., "weight_average", "ties", "slerp").
+        Must be one of the known registered strategy names.
     base : array-like, optional
         Base/pretrained model for task-vector strategies.
     conflict_resolution : ConflictResolution
@@ -227,12 +229,36 @@ class CRDTMergeState:
     - **Commutativity**: ``S₁.merge(S₂) == S₂.merge(S₁)``
     - **Associativity**: ``S₁.merge(S₂).merge(S₃) == S₁.merge(S₂.merge(S₃))``
     - **Idempotency**: ``S.merge(S) == S``
+
+    Thread Safety
+    -------------
+    This class is **NOT** thread-safe. Concurrent calls to mutating methods
+    (``add``, ``add_batch``, ``remove``, ``merge``) from multiple threads
+    may corrupt internal state. Callers must provide their own
+    synchronization (e.g., ``threading.Lock``) when sharing a
+    ``CRDTMergeState`` instance across threads.
+
+    Read-only properties and ``resolve()`` are safe to call concurrently
+    only if no other thread is mutating the state at the same time.
     """
 
     __slots__ = (
         'strategy_name', 'base', 'conflict_resolution', 'seed',
         '_contributions', '_tombstones',
+        '_active_cache', '_cache_valid',
     )
+
+    # All 25 built-in registered strategy names
+    KNOWN_STRATEGIES = frozenset({
+        'weight_average', 'slerp', 'task_arithmetic', 'linear',
+        'weight_scope_alignment', 'representation_surgery',
+        'evolutionary_merge', 'genetic_merge',
+        'safe_merge', 'led_merge',
+        'ties', 'dare', 'della', 'dare_ties',
+        'model_breadcrumbs', 'emr', 'star', 'svd_knot_tying', 'adarank',
+        'negative_merge', 'split_unlearn_merge',
+        'fisher_merge', 'regression_mean', 'ada_merging', 'dam',
+    })
 
     # Strategies that require a base model
     BASE_REQUIRED = frozenset({
@@ -253,6 +279,13 @@ class CRDTMergeState:
         conflict_resolution: ConflictResolution = ConflictResolution.HIGHEST_VERSION,
         seed: Optional[int] = None,
     ):
+        # Validate strategy name
+        if strategy_name not in self.KNOWN_STRATEGIES:
+            raise ValueError(
+                f"Unknown strategy '{strategy_name}'. "
+                f"Known strategies: {sorted(self.KNOWN_STRATEGIES)}"
+            )
+
         self.strategy_name = strategy_name
         self.conflict_resolution = conflict_resolution
         self.seed = seed if seed is not None else 42
@@ -270,6 +303,25 @@ class CRDTMergeState:
         # OR-Set state: contributions + tombstones
         self._contributions: Dict[str, MergeContribution] = OrderedDict()
         self._tombstones: Set[str] = set()
+
+        # Cache for _active_contributions()
+        self._active_cache: Optional[Dict[str, MergeContribution]] = None
+        self._cache_valid: bool = False
+
+    # ------------------------------------------------------------------
+    # Cache management
+    # ------------------------------------------------------------------
+
+    def _invalidate_cache(self) -> None:
+        """Invalidate the active-contributions cache.
+
+        Must be called after any mutation to ``_contributions`` or
+        ``_tombstones``.
+
+        .. note:: Not thread-safe — see class docstring.
+        """
+        self._active_cache = None
+        self._cache_valid = False
 
     # ------------------------------------------------------------------
     # Core CRDT Operations
@@ -307,6 +359,13 @@ class CRDTMergeState:
         -------
         self : CRDTMergeState
             For method chaining.
+
+        Raises
+        ------
+        ValueError
+            If the tensor shape does not match existing contributions.
+
+        .. note:: Not thread-safe — see class docstring.
         """
         contrib = MergeContribution(
             model_id=model_id or self._auto_id(tensor),
@@ -315,6 +374,9 @@ class CRDTMergeState:
             version=version,
             metadata=metadata,
         )
+
+        # Validate tensor shape against existing contributions
+        self._validate_tensor_shape(contrib.tensor)
 
         existing = self._contributions.get(contrib.model_id)
         if existing is not None:
@@ -332,6 +394,107 @@ class CRDTMergeState:
         # Remove from tombstones if re-added (add-wins semantics)
         self._tombstones.discard(contrib._tag)
 
+        self._invalidate_cache()
+        return self
+
+    def add_batch(
+        self,
+        contributions: List[
+            Union[
+                Tuple[Any, str],
+                Tuple[Any, str, float],
+                Tuple[Any, str, float, int],
+                Dict[str, Any],
+            ]
+        ],
+    ) -> "CRDTMergeState":
+        """Add multiple model contributions at once.
+
+        More efficient than repeated ``add()`` calls because the
+        active-contributions cache is invalidated only once after all
+        items are inserted.
+
+        Each element of *contributions* is either:
+
+        - A tuple ``(tensor, model_id)``
+        - A tuple ``(tensor, model_id, weight)``
+        - A tuple ``(tensor, model_id, weight, version)``
+        - A dict with keys ``tensor``, ``model_id`` and optional
+          ``weight``, ``version``, ``metadata``
+
+        Parameters
+        ----------
+        contributions : list
+            Sequence of contributions to add.
+
+        Returns
+        -------
+        self : CRDTMergeState
+            For method chaining.
+
+        Raises
+        ------
+        ValueError
+            If any tensor shape does not match existing contributions.
+        TypeError
+            If an element is not a supported type.
+
+        .. note:: Not thread-safe — see class docstring.
+        """
+        if not contributions:
+            return self
+
+        mutated = False
+        for item in contributions:
+            if isinstance(item, dict):
+                tensor = item["tensor"]
+                mid = item.get("model_id") or self._auto_id(tensor)
+                weight = item.get("weight", 1.0)
+                version = item.get("version", 1)
+                metadata = item.get("metadata", None)
+            elif isinstance(item, (tuple, list)):
+                if len(item) < 2:
+                    raise TypeError(
+                        "Tuple contributions must have at least (tensor, model_id)"
+                    )
+                tensor = item[0]
+                mid = item[1]
+                weight = item[2] if len(item) > 2 else 1.0
+                version = item[3] if len(item) > 3 else 1
+                metadata = None
+            else:
+                raise TypeError(
+                    f"Unsupported contribution type: {type(item).__name__}. "
+                    "Expected dict or tuple."
+                )
+
+            contrib = MergeContribution(
+                model_id=mid,
+                tensor=tensor,
+                weight=weight,
+                version=version,
+                metadata=metadata,
+            )
+
+            # Validate tensor shape against existing contributions
+            self._validate_tensor_shape(contrib.tensor)
+
+            existing = self._contributions.get(contrib.model_id)
+            if existing is not None:
+                if self.conflict_resolution == ConflictResolution.FIRST_WRITE_WINS:
+                    continue  # Keep existing
+                elif self.conflict_resolution == ConflictResolution.LAST_WRITE_WINS:
+                    pass  # Overwrite below
+                elif self.conflict_resolution == ConflictResolution.HIGHEST_VERSION:
+                    if existing.version >= contrib.version:
+                        continue  # Existing is newer or same
+
+            self._contributions[contrib.model_id] = contrib
+            self._tombstones.discard(contrib._tag)
+            mutated = True
+
+        if mutated:
+            self._invalidate_cache()
         return self
 
     def remove(self, model_id: str) -> "CRDTMergeState":
@@ -343,11 +506,14 @@ class CRDTMergeState:
         Returns
         -------
         self : CRDTMergeState
+
+        .. note:: Not thread-safe — see class docstring.
         """
         contrib = self._contributions.get(model_id)
         if contrib is not None:
             self._tombstones.add(contrib._tag)
             del self._contributions[model_id]
+            self._invalidate_cache()
         return self
 
     def merge(self, other: "CRDTMergeState") -> "CRDTMergeState":
@@ -401,6 +567,97 @@ class CRDTMergeState:
                         if contrib.timestamp > existing.timestamp:
                             all_contribs[mid] = contrib
                     # FIRST_WRITE_WINS: keep existing (do nothing)
+                else:
+                    all_contribs[mid] = contrib
+
+        result._contributions = OrderedDict(
+            sorted(all_contribs.items(), key=lambda x: x[0])
+        )
+
+        # Cache is already invalid in the fresh `result` (initialized False)
+        return result
+
+    @classmethod
+    def merge_many(cls, states: List["CRDTMergeState"]) -> "CRDTMergeState":
+        """Merge N states at once (more efficient than chained pairwise merges).
+
+        Performs a single-pass union over all contribution sets, avoiding
+        the O(N²) intermediate-state overhead of sequential pairwise
+        ``merge()`` calls.
+
+        The result is identical to ``s1.merge(s2).merge(s3)...`` in any
+        order (by CRDT associativity and commutativity).
+
+        Parameters
+        ----------
+        states : list of CRDTMergeState
+            Two or more states to merge. All must share the same
+            ``strategy_name``.
+
+        Returns
+        -------
+        merged : CRDTMergeState
+            New state containing the union of all contribution sets.
+
+        Raises
+        ------
+        ValueError
+            If *states* is empty or contains inconsistent strategy names.
+        """
+        if not states:
+            raise ValueError("merge_many() requires at least one state")
+        if len(states) == 1:
+            # Return a copy via merge-with-self (idempotent)
+            return states[0].merge(states[0])
+
+        first = states[0]
+
+        # Validate all share the same strategy
+        for s in states[1:]:
+            if s.strategy_name != first.strategy_name:
+                raise ValueError(
+                    f"Cannot merge states with different strategies: "
+                    f"{first.strategy_name!r} vs {s.strategy_name!r}"
+                )
+
+        # Pick the first available base
+        base = None
+        for s in states:
+            if s.base is not None:
+                base = s.base
+                break
+
+        result = cls(
+            strategy_name=first.strategy_name,
+            base=base,
+            conflict_resolution=first.conflict_resolution,
+            seed=first.seed,
+        )
+
+        # Union of all tombstones
+        all_tombstones: Set[str] = set()
+        for s in states:
+            all_tombstones |= s._tombstones
+        result._tombstones = all_tombstones
+
+        # Single-pass union of all contributions
+        all_contribs: Dict[str, MergeContribution] = {}
+        for s in states:
+            for mid, contrib in s._contributions.items():
+                if contrib._tag in all_tombstones:
+                    continue
+                if mid in all_contribs:
+                    existing = all_contribs[mid]
+                    if first.conflict_resolution == ConflictResolution.HIGHEST_VERSION:
+                        if contrib.version > existing.version:
+                            all_contribs[mid] = contrib
+                        elif contrib.version == existing.version:
+                            if contrib.merkle_hash < existing.merkle_hash:
+                                all_contribs[mid] = contrib
+                    elif first.conflict_resolution == ConflictResolution.LAST_WRITE_WINS:
+                        if contrib.timestamp > existing.timestamp:
+                            all_contribs[mid] = contrib
+                    # FIRST_WRITE_WINS: keep existing
                 else:
                     all_contribs[mid] = contrib
 
@@ -484,6 +741,51 @@ class CRDTMergeState:
         """Whether this state's strategy has internal RNG."""
         return self.strategy_name in self.STOCHASTIC
 
+    @property
+    def estimated_memory_bytes(self) -> int:
+        """Estimate the total memory footprint of this state in bytes.
+
+        Accounts for tensor data in all contributions (active and
+        tombstoned entries still held in ``_contributions``), the base
+        model tensor, and a fixed overhead estimate for Python objects.
+
+        Returns
+        -------
+        int
+            Estimated memory usage in bytes.
+        """
+        total = 0
+
+        # Fixed overhead for the state object itself + dicts + sets
+        total += sys.getsizeof(self._contributions)
+        total += sys.getsizeof(self._tombstones)
+
+        # Base model
+        if self.base is not None:
+            try:
+                import numpy as np
+                total += np.asarray(self.base).nbytes
+            except ImportError:
+                total += sys.getsizeof(self.base)
+
+        # All contributions (including tombstoned ones still in dict)
+        for contrib in self._contributions.values():
+            try:
+                import numpy as np
+                total += np.asarray(contrib.tensor).nbytes
+            except ImportError:
+                total += sys.getsizeof(contrib.tensor)
+            # Per-contribution object overhead (strings, metadata, etc.)
+            total += (
+                sys.getsizeof(contrib.model_id)
+                + sys.getsizeof(contrib.merkle_hash)
+                + sys.getsizeof(contrib.metadata)
+                + sys.getsizeof(contrib._tag)
+                + 64  # slots overhead estimate
+            )
+
+        return total
+
     def get_contribution(self, model_id: str) -> Optional[MergeContribution]:
         """Get a specific contribution by model ID."""
         return self._active_contributions().get(model_id)
@@ -541,6 +843,7 @@ class CRDTMergeState:
             contrib = MergeContribution.from_dict(cd)
             state._contributions[mid] = contrib
         state._tombstones = set(d.get("tombstones", []))
+        state._invalidate_cache()
         return state
 
     # ------------------------------------------------------------------
@@ -582,11 +885,21 @@ class CRDTMergeState:
     # ------------------------------------------------------------------
 
     def _active_contributions(self) -> Dict[str, MergeContribution]:
-        """Get contributions not in tombstones."""
-        return OrderedDict(
+        """Get contributions not in tombstones.
+
+        Results are cached and returned on subsequent calls until the
+        cache is invalidated by a mutating operation.
+        """
+        if self._cache_valid and self._active_cache is not None:
+            return self._active_cache
+
+        result = OrderedDict(
             (mid, c) for mid, c in self._contributions.items()
             if c._tag not in self._tombstones
         )
+        self._active_cache = result
+        self._cache_valid = True
+        return result
 
     def _active_ids(self) -> frozenset:
         """Frozen set of active model IDs."""
@@ -594,6 +907,35 @@ class CRDTMergeState:
             mid for mid, c in self._contributions.items()
             if c._tag not in self._tombstones
         )
+
+    def _validate_tensor_shape(self, tensor: Any) -> None:
+        """Validate that *tensor* has the same shape as existing contributions.
+
+        Raises ``ValueError`` if shapes are incompatible.  Skipped when
+        there are no existing contributions yet.
+        """
+        if not self._contributions:
+            return
+        # Get the first existing contribution's tensor for shape reference
+        first = next(iter(self._contributions.values()))
+        try:
+            import numpy as np
+            new_shape = np.asarray(tensor).shape
+            existing_shape = np.asarray(first.tensor).shape
+            if new_shape != existing_shape:
+                raise ValueError(
+                    f"Tensor shape mismatch: new tensor has shape {new_shape} "
+                    f"but existing contributions have shape {existing_shape}"
+                )
+        except ImportError:
+            # Without numpy, do a best-effort length check for lists
+            if isinstance(tensor, list) and isinstance(first.tensor, list):
+                if len(tensor) != len(first.tensor):
+                    raise ValueError(
+                        f"Tensor length mismatch: new tensor has length "
+                        f"{len(tensor)} but existing contributions have "
+                        f"length {len(first.tensor)}"
+                    )
 
     @staticmethod
     def _auto_id(tensor: Any) -> str:

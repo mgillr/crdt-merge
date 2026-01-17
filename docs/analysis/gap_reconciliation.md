@@ -1,5 +1,10 @@
 # crdt-merge — Gap Reconciliation & Feature Classification
 
+> **Copyright © 2026 Ryan Gillespie / Optitransfer. All rights reserved.**
+> Licensed under the Business Source License 1.1 (BSL-1.1).
+> See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
+
+
 **Date:** 2026-03-28 (v0.5.1 original) → **Updated: 2026-03-29 (v0.7.1)**
 **Source:** Deep codebase audit of all 34 source modules + 9 accelerator modules + 38 test files
 **Scope:** Original 10 gaps + 8 accelerator gaps + competitive feature analysis + roadmap assessment

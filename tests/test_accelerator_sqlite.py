@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +30,6 @@ import pytest
 from crdt_merge.accelerators.sqlite_ext import SQLiteCRDTMerge
 from crdt_merge.strategies import MergeSchema, MaxWins, LWW
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -44,7 +47,6 @@ def ext():
     )
     return e
 
-
 @pytest.fixture
 def populated_ext(ext):
     """Extension with sample data inserted."""
@@ -53,7 +55,6 @@ def populated_ext(ext):
         {"id": "2", "name": "Bob", "salary": 200},
     ])
     return ext
-
 
 # ---------------------------------------------------------------------------
 # Tests (25)
@@ -96,7 +97,6 @@ class TestSQLiteCRDTMerge:
     def test_table_info_not_found(self, ext):
         with pytest.raises(ValueError):
             ext.table_info("nonexistent")
-
 
 class TestMergeInsert:
     def test_insert_new_records(self, ext):
@@ -147,7 +147,6 @@ class TestMergeInsert:
         with pytest.raises(ValueError):
             ext.merge_insert("nonexistent", [{"id": "1"}])
 
-
 class TestReadTable:
     def test_read_empty(self, ext):
         rows = ext.read_table("users")
@@ -165,7 +164,6 @@ class TestReadTable:
         assert "_crdt_ts" in rows[0]
         assert "_crdt_node" in rows[0]
 
-
 class TestMergeTables:
     def test_merge_two_tables(self, ext):
         ext.conn.execute("CREATE TABLE t1 (id TEXT PRIMARY KEY, val REAL)")
@@ -179,7 +177,6 @@ class TestMergeTables:
         assert len(merged) == 2
         ra = next(r for r in merged if r["id"] == "a")
         assert ra["val"] == 20.0
-
 
 class TestSync:
     def test_sync_from_remote(self, ext):
@@ -201,7 +198,6 @@ class TestSync:
             assert "10" in ids
         finally:
             os.unlink(tmppath)
-
 
 class TestUtility:
     def test_execute_sql(self, populated_ext):

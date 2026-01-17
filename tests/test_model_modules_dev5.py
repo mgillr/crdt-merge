@@ -1,12 +1,15 @@
 # SPDX-License-Identifier: BUSL-1.1
-#
-# Copyright 2026 Ryan Gillespie
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
@@ -39,7 +42,6 @@ from crdt_merge.model.provenance import (
 )
 from crdt_merge.model.heatmap import ConflictHeatmap
 
-
 # ===========================================================================
 # Fixtures / helpers
 # ===========================================================================
@@ -55,17 +57,14 @@ def _make_adapter(modules, rank=4, in_f=8, out_f=8, seed=0):
         }
     return adapter
 
-
 def _make_model(layers, size=8, seed=0):
     """Create a simple model state_dict."""
     rng = np.random.RandomState(seed)
     return {layer: rng.randn(size, size) for layer in layers}
 
-
 # ===========================================================================
 # LoRA Tests (~35)
 # ===========================================================================
-
 
 class TestLoRAMergeSchema:
     """Tests for LoRAMergeSchema."""
@@ -117,7 +116,6 @@ class TestLoRAMergeSchema:
             "attn": "linear",
         })
         assert schema.strategy_for("self_attn.q_proj").name == "linear"
-
 
 class TestLoRAMerge:
     """Tests for LoRAMerge."""
@@ -337,11 +335,9 @@ class TestLoRAMerge:
         with pytest.raises(ValueError, match="Unknown rank_strategy"):
             merger.merge_adapters([a1, a2], rank_strategy="invalid")
 
-
 # ===========================================================================
 # Pipeline Tests (~30)
 # ===========================================================================
-
 
 class TestPipelineResult:
     """Test PipelineResult dataclass."""
@@ -355,7 +351,6 @@ class TestPipelineResult:
         )
         assert pr.final_model == {"a": 1}
         assert pr.execution_order == ["s1"]
-
 
 class TestMergePipeline:
     """Tests for MergePipeline."""
@@ -553,11 +548,9 @@ class TestMergePipeline:
         errors = pipeline.validate()
         assert any("name" in e.lower() or "missing" in e.lower() for e in errors)
 
-
 # ===========================================================================
 # Provenance Tests (~40)
 # ===========================================================================
-
 
 class TestComputeContribution:
     """Tests for compute_contribution."""
@@ -588,7 +581,6 @@ class TestComputeContribution:
         for i in range(3):
             assert abs(contrib[i] - 1.0 / 3) < 1e-6
 
-
 class TestComputeConflictScore:
     """Tests for compute_conflict_score."""
 
@@ -618,7 +610,6 @@ class TestComputeConflictScore:
         score = compute_conflict_score([])
         assert score == 0.0
 
-
 class TestLayerProvenance:
     """Tests for LayerProvenance dataclass."""
 
@@ -644,7 +635,6 @@ class TestLayerProvenance:
             metadata={"trimmed_fraction": 0.2},
         )
         assert lp.metadata["trimmed_fraction"] == 0.2
-
 
 class TestProvenanceTracker:
     """Tests for ProvenanceTracker."""
@@ -734,7 +724,6 @@ class TestProvenanceTracker:
         summary = tracker.summary()
         assert list(summary.per_layer.keys()) == names
 
-
 class TestExportProvenance:
     """Tests for export_provenance."""
 
@@ -790,11 +779,9 @@ class TestExportProvenance:
         data = json.loads(export_provenance(summary, format="json"))
         assert data["layer_conflict_ranking"][0] == "high"
 
-
 # ===========================================================================
 # Heatmap Tests (~35)
 # ===========================================================================
-
 
 class TestConflictHeatmapFromMerge:
     """Tests for ConflictHeatmap.from_merge."""
@@ -843,7 +830,6 @@ class TestConflictHeatmapFromMerge:
         assert hm.num_layers == 0
         assert hm.overall_conflict == 0.0
 
-
 class TestConflictHeatmapFromModels:
     """Tests for ConflictHeatmap.from_models."""
 
@@ -888,7 +874,6 @@ class TestConflictHeatmapFromModels:
         models = [_make_model(["l0"], seed=i) for i in range(3)]
         hm = ConflictHeatmap.from_models(models)
         assert hm.num_models == 3
-
 
 class TestConflictHeatmapMethods:
     """Tests for ConflictHeatmap methods."""
@@ -1025,11 +1010,9 @@ class TestConflictHeatmapMethods:
         most = hm.most_conflicted_layers(5)
         assert len(most) == 5
 
-
 # ===========================================================================
 # Additional LoRA Tests (bring total ~35)
 # ===========================================================================
-
 
 class TestLoRAMergeExtra:
     """Additional LoRA tests."""
@@ -1102,11 +1085,9 @@ class TestLoRAMergeExtra:
         _, prov = merger.merge_adapters_with_provenance([a1, a2])
         assert prov["q_proj"]["strategy"] == "linear"
 
-
 # ===========================================================================
 # Additional Pipeline Tests (bring total ~30)
 # ===========================================================================
-
 
 class TestMergePipelineExtra:
     """Additional pipeline tests."""
@@ -1162,11 +1143,9 @@ class TestMergePipelineExtra:
         errors = pipeline.validate()
         assert any("unknown" in e for e in errors)
 
-
 # ===========================================================================
 # Additional Provenance Tests (bring total ~40)
 # ===========================================================================
-
 
 class TestProvenanceExtra:
     """Additional provenance tests."""
@@ -1234,11 +1213,9 @@ class TestProvenanceExtra:
         assert "layer.0.attn" in csv
         assert "weight_average" in csv
 
-
 # ===========================================================================
 # Additional Heatmap Tests (bring total ~35)
 # ===========================================================================
-
 
 class TestConflictHeatmapExtra:
     """Additional heatmap tests."""

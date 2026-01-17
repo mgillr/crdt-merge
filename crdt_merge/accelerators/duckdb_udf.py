@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -77,14 +81,12 @@ _STRATEGY_MAP: Dict[str, type] = {
     "longestwins": LongestWins,
 }
 
-
 def _resolve_strategy(name: str) -> MergeStrategy:
     """Return a strategy instance by lowercase name."""
     cls = _STRATEGY_MAP.get(name.lower())
     if cls is None:
         raise ValueError(f"Unknown strategy: {name}")
     return cls()
-
 
 def _records_from_relation(rel: Any) -> List[dict]:
     """Convert a DuckDB relation / result to list-of-dicts."""
@@ -93,7 +95,6 @@ def _records_from_relation(rel: Any) -> List[dict]:
     cols = rel.columns if hasattr(rel, "columns") else []
     rows = rel.fetchall() if hasattr(rel, "fetchall") else []
     return [dict(zip(cols, row)) for row in rows]
-
 
 # ---------------------------------------------------------------------------
 # Core merge logic (operates on list-of-dicts, strategy-aware)
@@ -127,7 +128,6 @@ def _merge_records(
             keyed[k] = dict(row)
     return list(keyed.values()), conflicts
 
-
 def _diff_records(left: List[dict], right: List[dict], key: str) -> Dict[str, Any]:
     """Compute diff between two record lists."""
     left_map = {r.get(key): r for r in left if r.get(key) is not None}
@@ -148,7 +148,6 @@ def _diff_records(left: List[dict], right: List[dict], key: str) -> Dict[str, An
         "modified": modified,
         "unchanged_count": unchanged,
     }
-
 
 # ---------------------------------------------------------------------------
 # UDF wrapper
@@ -341,7 +340,6 @@ class DuckDBMergeUDF:
                 field_strats[field_name] = _resolve_strategy(strat_name)
         return MergeSchema(default=self._schema.default, **field_strats)
 
-
 # ---------------------------------------------------------------------------
 # MergeQL bridge
 # ---------------------------------------------------------------------------
@@ -386,7 +384,6 @@ class DuckDBMergeQLExtension:
         ql = MergeQL(arrow_backend=False)
         plan = ql.explain(query)
         return str(plan)
-
 
 __all__ = [
     "DuckDBMergeUDF",

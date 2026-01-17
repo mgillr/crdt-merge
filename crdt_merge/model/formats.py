@@ -1,12 +1,15 @@
 # SPDX-License-Identifier: BUSL-1.1
-#
-# Copyright 2026 Ryan Gillespie
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
@@ -59,16 +62,13 @@ REVERSE_STRATEGY_MAP: Dict[str, str] = {v: k for k, v in STRATEGY_MAP.items()}
 # Ensure dare maps back properly (dare -> dare_linear)
 REVERSE_STRATEGY_MAP["dare"] = "dare_linear"
 
-
 def _map_to_crdt(mergekit_name: str) -> str:
     """Map a MergeKit strategy name to crdt-merge equivalent."""
     return STRATEGY_MAP.get(mergekit_name, mergekit_name)
 
-
 def _map_to_mergekit(crdt_name: str) -> str:
     """Map a crdt-merge strategy name to MergeKit equivalent."""
     return REVERSE_STRATEGY_MAP.get(crdt_name, crdt_name)
-
 
 # ---------------------------------------------------------------------------
 # Import
@@ -85,7 +85,6 @@ def _parse_yaml_string(yaml_str: str) -> dict:
             "PyYAML is required to parse YAML strings. "
             "Install with: pip install pyyaml"
         )
-
 
 def import_mergekit_config(
     config: Union[dict, str],
@@ -169,7 +168,6 @@ def import_mergekit_config(
         extra_config["dtype"] = config["dtype"]
 
     return schema, extra_config
-
 
 # ---------------------------------------------------------------------------
 # Export

@@ -6,7 +6,7 @@
 >
 > **License:** BSL-1.1 (Business Source License) — ultra-open Additional Use Grant
 >
-> **Copyright:** 2026 Ryan Gillespie
+> **Copyright:** 2026 Ryan Gillespie / Optitransfer
 
 ---
 

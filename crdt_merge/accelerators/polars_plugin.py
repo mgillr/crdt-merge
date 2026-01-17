@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,7 +44,6 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from crdt_merge.strategies import LWW, MergeSchema, MergeStrategy
 
-
 def _safe_parse_ts(value):
     """Parse timestamp to float — handles numeric, ISO-8601, None."""
     if value is None:
@@ -70,7 +73,6 @@ try:
 except ImportError:
     _pl = None  # type: ignore[assignment]
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -79,13 +81,11 @@ _POLARS_INSTALL_MSG = (
     "Polars is required for this accelerator. Install it with: pip install polars"
 )
 
-
 def _require_polars() -> Any:
     """Return the ``polars`` module or raise ImportError."""
     if _pl is None:
         raise ImportError(_POLARS_INSTALL_MSG)
     return _pl
-
 
 def _to_dicts(df: Any) -> List[dict]:
     """Convert a Polars DataFrame to list of dicts."""
@@ -95,13 +95,11 @@ def _to_dicts(df: Any) -> List[dict]:
         return df
     raise TypeError(f"Expected Polars DataFrame or list of dicts, got {type(df)}")
 
-
 def _from_dicts(records: List[dict], pl: Any) -> Any:
     """Create a Polars DataFrame from list of dicts."""
     if not records:
         return pl.DataFrame()
     return pl.DataFrame(records)
-
 
 # ---------------------------------------------------------------------------
 # Expression wrapper
@@ -139,7 +137,6 @@ class CRDTMergeExpression:
 
     def __repr__(self) -> str:
         return f"CRDTMergeExpression(field={self._field!r}, strategy={self.strategy_name})"
-
 
 # ---------------------------------------------------------------------------
 # Merge result
@@ -190,7 +187,6 @@ class PolarsMergeResult:
             f"PolarsMergeResult(rows={total}, conflicts={self.conflicts}, "
             f"{self.merge_time_ms:.1f}ms)"
         )
-
 
 # ---------------------------------------------------------------------------
 # Main accelerator class
@@ -498,7 +494,6 @@ class PolarsCRDTMerge:
         avail = "available" if self.is_available() else "not installed"
         return f"PolarsCRDTMerge(polars={avail}, fields={len(self._schema.fields)})"
 
-
 # ---------------------------------------------------------------------------
 # Module-level convenience function
 # ---------------------------------------------------------------------------
@@ -513,7 +508,6 @@ def crdt_merge_expr(field: str, strategy: str = "lww") -> CRDTMergeExpression:
     """
     merger = PolarsCRDTMerge()
     return merger.as_expression(field, strategy)
-
 
 __all__ = [
     "PolarsCRDTMerge",

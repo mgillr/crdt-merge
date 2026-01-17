@@ -1,5 +1,10 @@
 # crdt-merge v0.5.0 — Master Defect Register
 
+> **Copyright © 2026 Ryan Gillespie / Optitransfer. All rights reserved.**
+> Licensed under the Business Source License 1.1 (BSL-1.1).
+> See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
+
+
 **Package:** crdt-merge v0.5.0
 **Date:** 2026-03-28
 **Source:** 10-Developer Documentation Audit + Forensic Code Analysis

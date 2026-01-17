@@ -1,5 +1,43 @@
 # Changelog
 
+> **Copyright © 2026 Ryan Gillespie / Optitransfer. All rights reserved.**
+> Licensed under the Business Source License 1.1 (BSL-1.1).
+> See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
+
+
+## [0.8.1] - 2026-03-29 — "The CRDT Architecture Release"
+
+### Added
+- **Two-Layer CRDT Architecture** — Resolves fundamental mathematical limitation where model merge strategies (SLERP, TIES, DARE, Fisher, etc.) cannot satisfy CRDT laws on raw tensors. New architecture separates CRDT state management (set union) from strategy execution (deterministic pure functions).
+- **`CRDTMergeState`** — Production-ready CRDT wrapper (948 lines) with:
+  - OR-Set add/remove semantics with tombstones (add-wins)
+  - SHA-256 Merkle hashing for content-addressable provenance
+  - Version vectors with configurable conflict resolution (HIGHEST_VERSION, LWW, FWW)
+  - Canonical hash-sorted ordering for deterministic cross-replica convergence
+  - Wire serialization via `to_dict()` / `from_dict()`
+  - Cached active contributions with automatic invalidation
+  - Batch add (`add_batch()`) and N-way merge (`merge_many()`)
+  - Tensor shape validation and strategy name validation
+  - Memory estimation via `estimated_memory_bytes` property
+- **`ModelMerge.crdt_merge()`** — High-level API wrapping every layer merge in CRDTMergeState, returns `MergeResult` with `metadata["crdt_guaranteed"] = True`
+- **195 new tests** — All 25 strategies × 3 CRDT laws × state + resolve levels + OR-Set + versioning + serialization + edge cases
+- **Architecture document** — `docs/CRDT_ARCHITECTURE.md` (1,744 lines) documenting the failure, 7 R&D architectures tested (all 25/25), and production solution
+
+### Research (Internal)
+- 7 distinct CRDT solution architectures designed, prototyped, and tested
+- All 7 achieved 25/25 strategies as true CRDTs
+- Production implementation unifies best features of all seven
+
+### Removed
+- `research/` directory (internal R&D artifacts)
+
+### Stats
+- Source lines: ~30,000 → **~30,600** (+~600)
+- Tests passing: 1,923 → **2,118** (+195)
+- New files: `docs/CRDT_ARCHITECTURE.md`
+- Modified: `crdt_state.py` (606 → 948 lines), `core.py` (minor)
+- Zero breaking changes, zero regressions
+
 ## [0.8.0] - 2026-03-29 — "The Intelligence Release"
 
 ### Added

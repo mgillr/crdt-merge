@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -47,8 +51,6 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 __all__ = ["MergeStrategy", "LWW", "MaxWins", "MinWins", "UnionSet", "Concat", "Priority", "LongestWins", "Custom", "MergeSchema"]
 
-
-
 def _safe_parse_ts(value: Any) -> float:
     """Parse timestamp to float — handles numeric, ISO-8601, None."""
     if value is None:
@@ -73,7 +75,6 @@ def _safe_parse_ts(value: Any) -> float:
             pass
     return 0.0
 
-
 class MergeStrategy:
     """Base class for merge strategies. Subclass and implement resolve()."""
 
@@ -84,7 +85,6 @@ class MergeStrategy:
 
     def name(self) -> str:
         return self.__class__.__name__
-
 
 class LWW(MergeStrategy):
     """Last-Writer-Wins — latest timestamp wins. Tie-break: deterministic value comparison."""
@@ -103,7 +103,6 @@ class LWW(MergeStrategy):
             return val_a if str_a >= str_b else val_b
         return val_a
 
-
 class MaxWins(MergeStrategy):
     """Higher value wins. Works with numbers and comparable types."""
 
@@ -119,7 +118,6 @@ class MaxWins(MergeStrategy):
             # Incomparable types: deterministic tiebreak via repr
             return val_a if str(val_a) >= str(val_b) else val_b
 
-
 class MinWins(MergeStrategy):
     """Lower value wins. Works with numbers and comparable types."""
 
@@ -133,7 +131,6 @@ class MinWins(MergeStrategy):
             return val_a if val_a <= val_b else val_b
         except TypeError:
             return val_a if str(val_a) <= str(val_b) else val_b
-
 
 class UnionSet(MergeStrategy):
     """Merge separated values as a set union. Sorted for determinism."""
@@ -152,7 +149,6 @@ class UnionSet(MergeStrategy):
         if val is None:
             return set()
         return {s.strip() for s in str(val).split(self.separator) if s.strip()}
-
 
 class Concat(MergeStrategy):
     """Concatenate both values with dedup. Sorted for commutativity."""
@@ -176,7 +172,6 @@ class Concat(MergeStrategy):
             return self.separator.join(sorted(unique))
         # Without dedup: still sort for commutativity
         return self.separator.join(sorted(parts_a + parts_b))
-
 
 class Priority(MergeStrategy):
     """
@@ -205,7 +200,6 @@ class Priority(MergeStrategy):
         # Equal rank: deterministic tiebreak via string comparison for commutativity
         return val_a if str(val_a) >= str(val_b) else val_b
 
-
 class LongestWins(MergeStrategy):
     """Longer string wins. Equal length falls back to LWW."""
 
@@ -219,7 +213,6 @@ class LongestWins(MergeStrategy):
             return val_b
         # Same length: LWW fallback
         return LWW().resolve(val_a, val_b, ts_a, ts_b, node_a, node_b)
-
 
 class Custom(MergeStrategy):
     """
@@ -240,7 +233,6 @@ class Custom(MergeStrategy):
             # Simple fn(a, b) signature
             return self._fn(val_a, val_b)
 
-
 # ---------------------------------------------------------------------------
 # Registry for serialization
 # ---------------------------------------------------------------------------
@@ -255,7 +247,6 @@ _STRATEGY_REGISTRY: Dict[str, type] = {
     "LongestWins": LongestWins,
     "Custom": Custom,
 }
-
 
 class MergeSchema:
     """

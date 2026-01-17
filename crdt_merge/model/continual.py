@@ -1,12 +1,15 @@
 # SPDX-License-Identifier: BUSL-1.1
-#
-# Copyright 2026 Ryan Gillespie
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
@@ -33,7 +36,6 @@ from crdt_merge.model.strategies.base import _to_array, _from_array, _get_np
 
 __all__ = ["ContinualMerge"]
 
-
 def _weighted_add(a: Any, b: Any, wa: float, wb: float) -> Any:
     """Compute wa*a + wb*b element-wise."""
     np = _get_np()
@@ -47,7 +49,6 @@ def _weighted_add(a: Any, b: Any, wa: float, wb: float) -> Any:
     # Scalars
     return wa * a + wb * b
 
-
 def _scale(tensor: Any, s: float) -> Any:
     """Multiply tensor by scalar."""
     np = _get_np()
@@ -56,7 +57,6 @@ def _scale(tensor: Any, s: float) -> Any:
     if isinstance(tensor, (list, tuple)):
         return [x * s for x in tensor]
     return tensor * s
-
 
 class ContinualMerge:
     """Absorb model updates over time without catastrophic forgetting.

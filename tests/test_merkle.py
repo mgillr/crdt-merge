@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +33,6 @@ from crdt_merge.verify import (
     verify_idempotent,
 )
 
-
 # ─── Helpers ────────────────────────────────────────────────────────────────
 
 def _make_records(n: int, prefix: str = "k", seed: int | None = None) -> list[dict]:
@@ -40,18 +43,15 @@ def _make_records(n: int, prefix: str = "k", seed: int | None = None) -> list[di
         rng = random.Random()
     return [{"id": f"{prefix}{i}", "value": rng.randint(0, 1000)} for i in range(n)]
 
-
 def _eq_merkle(a: MerkleTree, b: MerkleTree) -> bool:
     """Equality based on root hash — the canonical CRDT equality for MerkleTree."""
     return a.root_hash == b.root_hash
-
 
 def gen_merkle_tree() -> MerkleTree:
     """Generator for property-based CRDT verification tests."""
     n = random.randint(1, 50)
     records = [{"id": f"k{i}", "value": random.randint(0, 100)} for i in range(n)]
     return MerkleTree.from_records(records, key="id")
-
 
 # ─── 1. MerkleTree creation ────────────────────────────────────────────────
 
@@ -79,7 +79,6 @@ class TestMerkleTreeCreation:
         assert t4.size == t16.size == 20
         assert t4.height >= t16.height  # smaller BF → taller tree
 
-
 # ─── 2. MerkleTree.root_hash ───────────────────────────────────────────────
 
 class TestRootHash:
@@ -101,7 +100,6 @@ class TestRootHash:
         t2 = MerkleTree(branching_factor=4)
         # Both empty → same hash
         assert t1.root_hash == t2.root_hash
-
 
 # ─── 3. MerkleTree.insert ──────────────────────────────────────────────────
 
@@ -126,7 +124,6 @@ class TestInsert:
         assert tree.root_hash != h_before
         assert tree.size == 6
 
-
 # ─── 4. MerkleTree.delete ──────────────────────────────────────────────────
 
 class TestDelete:
@@ -141,7 +138,6 @@ class TestDelete:
         assert tree.delete("nonexistent") is False
         assert tree.size == 3
 
-
 # ─── 5. MerkleTree.contains / get_hash ─────────────────────────────────────
 
 class TestContainsGetHash:
@@ -155,7 +151,6 @@ class TestContainsGetHash:
         tree = MerkleTree.from_records([{"id": "x", "value": 10}], key="id")
         assert not tree.contains("y")
         assert tree.get_hash("y") is None
-
 
 # ─── 6. MerkleTree.merge ───────────────────────────────────────────────────
 
@@ -194,7 +189,6 @@ class TestMerge:
         assert a.size == 1
         assert b.size == 1
 
-
 # ─── 7. merkle_diff — identical ─────────────────────────────────────────────
 
 class TestDiffIdentical:
@@ -210,7 +204,6 @@ class TestDiffIdentical:
         diff = merkle_diff(MerkleTree(), MerkleTree())
         assert diff.is_identical
         assert diff.comparisons_made == 1
-
 
 # ─── 8. merkle_diff — different ─────────────────────────────────────────────
 
@@ -237,7 +230,6 @@ class TestDiffDifferent:
         assert len(diff.only_in_left) == 0
         assert len(diff.only_in_right) == 0
 
-
 # ─── 9. Serialisation ──────────────────────────────────────────────────────
 
 class TestSerialisation:
@@ -258,7 +250,6 @@ class TestSerialisation:
         # And a second roundtrip
         d2 = restored.to_dict()
         assert MerkleTree.from_dict(d2).root_hash == original_hash
-
 
 # ─── 10. CRDT law verification ─────────────────────────────────────────────
 
@@ -286,7 +277,6 @@ class TestCRDTLaws:
             lambda a, b: a.merge(b), gen_merkle_tree, trials=100, eq_fn=_eq_merkle,
         )
         assert result.passed, f"Convergence failed: {result.first_failure}"
-
 
 # ─── 11. Scale tests ───────────────────────────────────────────────────────
 
@@ -321,7 +311,6 @@ class TestScale:
         assert a.size == 5000
         assert b.size == 5000
 
-
 # ─── 12. Edge cases ────────────────────────────────────────────────────────
 
 class TestEdgeCases:
@@ -351,7 +340,6 @@ class TestEdgeCases:
         # Merging empty with empty
         merged = tree.merge(MerkleTree())
         assert merged.size == 0
-
 
 # ─── Additional edge-case & integration tests ──────────────────────────────
 

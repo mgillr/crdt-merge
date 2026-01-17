@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -57,7 +61,6 @@ TYPE_WIDENING: Dict[Tuple[str, str], str] = {
 # Enum
 # ---------------------------------------------------------------------------
 
-
 class SchemaPolicy(Enum):
     """Policy for resolving schema drift between two schemas."""
 
@@ -66,11 +69,9 @@ class SchemaPolicy(Enum):
     LEFT_PRIORITY = "left_priority"    # Left schema primary, add new from right
     RIGHT_PRIORITY = "right_priority"  # Right schema primary, add new from left
 
-
 # ---------------------------------------------------------------------------
 # Data classes
 # ---------------------------------------------------------------------------
-
 
 @dataclass
 class SchemaChange:
@@ -108,7 +109,6 @@ class SchemaChange:
             default_value=d.get("default_value"),
         )
 
-
 @dataclass
 class SchemaEvolutionResult:
     """Full result of a schema evolution operation."""
@@ -145,11 +145,9 @@ class SchemaEvolutionResult:
             warnings=d.get("warnings", []),
         )
 
-
 # ---------------------------------------------------------------------------
 # Public helpers
 # ---------------------------------------------------------------------------
-
 
 def widen_type(type_a: str, type_b: str) -> Optional[str]:
     """Return the widened type that covers both *type_a* and *type_b*.
@@ -160,7 +158,6 @@ def widen_type(type_a: str, type_b: str) -> Optional[str]:
     if type_a == type_b:
         return type_a
     return TYPE_WIDENING.get((type_a, type_b))
-
 
 def check_compatibility(
     schema_a: Dict[str, str],
@@ -202,11 +199,9 @@ def check_compatibility(
 
     return (len(reasons) == 0, reasons)
 
-
 # ---------------------------------------------------------------------------
 # Core evolution logic
 # ---------------------------------------------------------------------------
-
 
 def _resolve_type_conflict(
     column: str,
@@ -236,7 +231,6 @@ def _resolve_type_conflict(
         f"keeping old type {old_type!r}"
     )
     return old_type, False
-
 
 def evolve_schema(
     old: Dict[str, str],

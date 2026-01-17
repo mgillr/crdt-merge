@@ -1,12 +1,15 @@
 # SPDX-License-Identifier: BUSL-1.1
-#
-# Copyright 2026 Ryan Gillespie
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
@@ -49,23 +52,19 @@ from crdt_merge.model.core import ModelCRDT, ModelMergeSchema
 
 SEED = 42
 
-
 def _rand_vec(n: int = 10, seed: int | None = None) -> list:
     """Return a random list of *n* floats in [0, 1)."""
     rng = random.Random(seed)
     return [rng.random() for _ in range(n)]
-
 
 def _rand_np(n: int = 10, seed: int | None = None) -> np.ndarray:
     """Return a random numpy array of *n* floats."""
     rng = np.random.RandomState(seed if seed is not None else SEED)
     return rng.rand(n)
 
-
 def _approx(a, b, tol=1e-6) -> bool:
     """Check approximate equality for arrays/lists."""
     return _approx_equal(a, b, tol=tol)
-
 
 # ===================================================================
 # WeightAverage
@@ -203,7 +202,6 @@ class TestWeightAverage:
         assert props["associative"] is True
         assert props["idempotent"] is True
 
-
 # ===================================================================
 # SLERP
 # ===================================================================
@@ -339,7 +337,6 @@ class TestSLERP:
         # Anti-parallel: omega = pi, sin(pi) ≈ 0, should still produce a result
         assert len(result) == 2
 
-
 # ===================================================================
 # TaskArithmetic
 # ===================================================================
@@ -473,7 +470,6 @@ class TestTaskArithmetic:
         assert props["associative"] is True
         assert props["idempotent"] is False
 
-
 # ===================================================================
 # LinearInterpolation
 # ===================================================================
@@ -581,7 +577,6 @@ class TestLinearInterpolation:
         assert props["associative"] is False
         assert props["idempotent"] is True
 
-
 # ===================================================================
 # Integration Tests
 # ===================================================================
@@ -613,7 +608,6 @@ class TestRegistryIntegration:
     def test_unknown_strategy_raises(self):
         with pytest.raises(KeyError):
             get_strategy("nonexistent_strategy_xyz")
-
 
 class TestModelCRDTIntegration:
     """Integration with ModelCRDT and ModelMergeSchema."""
@@ -669,7 +663,6 @@ class TestModelCRDTIntegration:
         assert _approx(result.tensor["attn.q"], [3.0])
         assert _approx(result.tensor["mlp.w"], [5.0])
 
-
 class TestProvenanceTracking:
     """Provenance tracking with each strategy."""
 
@@ -724,7 +717,6 @@ class TestProvenanceTracking:
         assert "weights" in prov
         assert abs(sum(prov["weights"]) - 1.0) < 1e-6
 
-
 class TestLargePerformance:
     """Performance tests with large tensors."""
 
@@ -769,7 +761,6 @@ class TestLargePerformance:
         result = s.merge([a, b], base=base)
         assert isinstance(result, np.ndarray)
         assert abs(result.mean() - 3.0) < 1e-6
-
 
 class TestEdgeCases:
     """Cross-strategy edge case tests."""

@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +36,6 @@ from crdt_merge.accelerators.duckdb_udf import (
 from crdt_merge.strategies import MergeSchema, LWW, MaxWins, MinWins
 from crdt_merge.accelerators import ACCELERATOR_REGISTRY
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -43,7 +46,6 @@ def _mock_relation(columns, rows):
     rel.columns = columns
     rel.fetchall.return_value = rows
     return rel
-
 
 def _mock_conn(tables=None):
     """Build a mock DuckDB connection with optional tables."""
@@ -58,7 +60,6 @@ def _mock_conn(tables=None):
 
     conn.sql.side_effect = sql_side_effect
     return conn
-
 
 # ===================================================================
 # TestDuckDBMergeUDF — 25 tests
@@ -180,7 +181,6 @@ class TestDuckDBMergeUDF:
         with pytest.raises(ValueError):
             udf.get_strategy_info("nonexistent")
 
-
 class TestMergeRecords:
     def test_merge_no_overlap(self):
         left = [{"id": 1, "v": "a"}]
@@ -208,7 +208,6 @@ class TestMergeRecords:
         assert result == []
         assert conflicts == 0
 
-
 class TestDiffRecords:
     def test_diff_identical(self):
         data = [{"id": 1, "v": "a"}]
@@ -223,7 +222,6 @@ class TestDiffRecords:
         diff = _diff_records(left, right, "id")
         assert len(diff["added"]) == 1
 
-
 class TestResolveStrategy:
     def test_resolve_lww(self):
         s = _resolve_strategy("lww")
@@ -232,7 +230,6 @@ class TestResolveStrategy:
     def test_resolve_unknown(self):
         with pytest.raises(ValueError):
             _resolve_strategy("nonexistent")
-
 
 class TestRecordsFromRelation:
     def test_from_none(self):

@@ -1,11 +1,15 @@
-# Copyright 2026 Ryan Gillespie / Optitransfer
 # SPDX-License-Identifier: BUSL-1.1
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +21,6 @@
 
 import json
 import pytest
-
 
 class TestMergeDecision:
     """Test MergeDecision dataclass."""
@@ -44,7 +47,6 @@ class TestMergeDecision:
         assert result["field"] == "x"
         assert result["source"] == "a_only"
         assert result["value"] == 42
-
 
 class TestMergeRecord:
     """Test MergeRecord dataclass."""
@@ -74,7 +76,6 @@ class TestMergeRecord:
         rec = MergeRecord(key=99, origin="unique_a")
         assert rec.conflict_count == 0
         assert rec.origin == "unique_a"
-
 
 class TestMergeWithProvenance:
     """Test the main merge_with_provenance function."""
@@ -202,7 +203,6 @@ class TestMergeWithProvenance:
         assert log.merged_rows == n
         assert log.total_conflicts > 0  # val and score differ
 
-
 class TestExportProvenance:
     """Test export_provenance function."""
 
@@ -231,7 +231,6 @@ class TestExportProvenance:
         log = ProvenanceLog()
         with pytest.raises(ValueError, match="Unknown format"):
             export_provenance(log, format="xml")
-
 
 class TestProvenanceIntegration:
     """Integration tests — provenance with strategies and streaming-style data."""

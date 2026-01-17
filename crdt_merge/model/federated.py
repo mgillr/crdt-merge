@@ -1,12 +1,15 @@
 # SPDX-License-Identifier: BUSL-1.1
-#
-# Copyright 2026 Ryan Gillespie
+# Copyright 2026 Ryan Gillespie / Optitransfer
 #
 # Licensed under the Business Source License 1.1 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+#
+# Change Date: 2028-03-29
+# Change License: Apache License, Version 2.0
+
 #
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
@@ -32,7 +35,6 @@ from crdt_merge.model.strategies.base import _get_np
 
 __all__ = ["FederatedMerge", "FederatedResult"]
 
-
 def _weighted_combine(tensors: list, weights: List[float]) -> Any:
     """Weighted combination of tensor-like objects."""
     np = _get_np()
@@ -51,7 +53,6 @@ def _weighted_combine(tensors: list, weights: List[float]) -> Any:
     # Scalars
     return sum(w * t for w, t in zip(weights, tensors))
 
-
 def _subtract(a: Any, b: Any) -> Any:
     """Element-wise subtraction a - b."""
     np = _get_np()
@@ -60,7 +61,6 @@ def _subtract(a: Any, b: Any) -> Any:
     if isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
         return [x - y for x, y in zip(a, b)]
     return a - b
-
 
 def _add(a: Any, b: Any) -> Any:
     """Element-wise addition."""
@@ -71,7 +71,6 @@ def _add(a: Any, b: Any) -> Any:
         return [x + y for x, y in zip(a, b)]
     return a + b
 
-
 def _scale(tensor: Any, s: float) -> Any:
     """Multiply tensor by scalar."""
     np = _get_np()
@@ -80,7 +79,6 @@ def _scale(tensor: Any, s: float) -> Any:
     if isinstance(tensor, (list, tuple)):
         return [x * s for x in tensor]
     return tensor * s
-
 
 @dataclass
 class FederatedResult:
@@ -105,7 +103,6 @@ class FederatedResult:
     num_clients: int
     total_samples: int
     strategy_used: str
-
 
 class FederatedMerge:
     """Federated learning bridge for FedAvg and FedProx aggregation.
