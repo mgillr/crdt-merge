@@ -36,29 +36,9 @@ The solution is a **two-layer architecture** that separates concerns:
         Pure functions that compute a merged model from a set of inputs.
         Applied atomically during ``resolve()`` — never pairwise.
 
-This module provides ``CRDTMergeState``, which unifies the best features
-from seven R&D prototypes:
-
-    - **G-Set semantics** (SOL-1): grow-only set of contributions
-    - **Delta-state optimization** (SOL-2): optional delta-from-base storage
-    - **Monoid accumulation** (SOL-3): algebraic resolution for linear strategies
-    - **Canonical ordering** (SOL-4): deterministic hash-sorted resolution
-    - **Merkle hashing** (SOL-5): content-addressable provenance
-    - **OR-Set add/remove** (SOL-6): support for removing contributions
-    - **Versioned registry** (SOL-7): model update support via version vectors
-
-Mathematical Proof
-==================
-
-For any state type whose merge operation is set union:
-
-    Commutativity:  S₁ ∪ S₂ = S₂ ∪ S₁                        ∎
-    Associativity:  (S₁ ∪ S₂) ∪ S₃ = S₁ ∪ (S₂ ∪ S₃)         ∎
-    Idempotency:    S ∪ S = S                                   ∎
-
-Since ``resolve()`` is a deterministic function of the set contents (ordered
-by canonical key), identical sets always produce identical merged tensors.
-Therefore the **resolved value** also converges across all replicas.        ∎
+``CRDTMergeState`` provides the CRDT wrapper layer that makes all 25
+strategies satisfy the three CRDT laws. Implementation internals are
+proprietary — see LICENSE and PATENTS for details.
 
 Usage
 =====
@@ -224,11 +204,10 @@ class CRDTMergeState:
         RNG seed for stochastic strategies (dare, evolutionary, genetic).
         Required for deterministic resolution across replicas.
 
-    CRDT Laws (proven by construction)
-    -----------------------------------
-    - **Commutativity**: ``S₁.merge(S₂) == S₂.merge(S₁)``
-    - **Associativity**: ``S₁.merge(S₂).merge(S₃) == S₁.merge(S₂.merge(S₃))``
-    - **Idempotency**: ``S.merge(S) == S``
+    CRDT Guarantees
+    ---------------
+    All three CRDT laws (commutativity, associativity, idempotency) are
+    satisfied by construction. See PATENTS for implementation details.
 
     Thread Safety
     -------------
@@ -519,10 +498,9 @@ class CRDTMergeState:
     def merge(self, other: "CRDTMergeState") -> "CRDTMergeState":
         """CRDT merge: set union of contributions with conflict resolution.
 
-        This operation is:
-        - **Commutative**: ``A.merge(B) == B.merge(A)``
-        - **Associative**: ``A.merge(B).merge(C) == A.merge(B.merge(C))``
-        - **Idempotent**: ``A.merge(A) == A``
+        This operation satisfies all three CRDT laws: commutativity,
+        associativity, and idempotency. The resulting state is equivalent
+        regardless of merge order.
 
         Parameters
         ----------
