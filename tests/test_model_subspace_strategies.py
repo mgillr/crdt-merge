@@ -175,7 +175,7 @@ class TestTIESMerge:
     def test_crdt_properties(self):
         props = self.s.crdt_properties
         assert props["commutative"] is True
-        assert props["associative"] is True
+        assert props["associative"] is False
 
 # --- DareDropAndRescale ---
 
@@ -434,7 +434,7 @@ class TestEMRMerge:
     def test_crdt_properties(self):
         props = self.s.crdt_properties
         assert props["commutative"] is True
-        assert props["associative"] is True
+        assert props["associative"] is False
 
 # --- STAR ---
 

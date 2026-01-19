@@ -55,7 +55,7 @@ Usage:
     merged = merge_datasets("user/dataset-a", "user/dataset-b", key="id")
 """
 
-__version__ = "0.8.1"
+__version__ = "0.8.2"
 
 # Core CRDT types
 from .core import GCounter, PNCounter, LWWRegister, ORSet, LWWMap
@@ -143,6 +143,16 @@ def _load_model():
     """Lazy loader for the model-merge sub-package."""
     from crdt_merge import model as _model
     return _model
+
+# v0.8.2: Context Memory System
+from .context import (
+    MemorySidecar, ContextManifest, ContextBloom,
+    ContextConsolidator, ConsolidatedBlock, MemoryChunk,
+    ContextMerge, MergeResult,
+)
+
+# v0.8.2: Agentic AI State Merge
+from .agentic import AgentState, SharedKnowledge, Fact
 
 # Optional fast engine
 try:

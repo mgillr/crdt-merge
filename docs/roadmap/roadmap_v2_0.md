@@ -46,7 +46,7 @@ crdt-merge is the **complete merge toolkit** that sits beneath all of these — 
 | **v0.7.1** | The Polars Engine Release | Polars merge engine (38.8× A100), `engine="auto"` fallback, `[fast]` opt-in | ~17,500 | 1,148 | ✅ COMPLETE |
 | **v0.8.0** | The Intelligence Release | ModelCRDT (25 strategies), LoRA, evolutionary merge, provenance, heatmaps, federated bridge | ~30,000 | 1,923 | ✅ COMPLETE |
 | **v0.8.1** | The CRDT Architecture Release | Two-layer CRDT architecture, all 25 strategies provably satisfy CRDT laws | ~30,600 | 2,118 | ✅ COMPLETE |
-| **v0.8.2** | The Adoption Release | Context Memory (manifests+sidecars+bloom), Agentic AI State Merge, MergeKit CLI, Flower FL Plugin | ~32,000 | ~2,200 | 📋 Planned |
+| **v0.8.2** | The Adoption Release | Context Memory (manifests+sidecars+bloom), Agentic AI State Merge, MergeKit CLI, Flower FL Plugin | ~34,000 | ~2,200 | ✅ COMPLETE |
 | **v0.8.3** | The Research Release | Continual Merge Engine, HuggingFace Hub Native Integration | ~33,500 | ~2,400 | 📋 Planned |
 | **v0.9.0** | The Enterprise Release | UnmergeEngine, EU AI Act compliance, model unmerging, encryption, RBAC, observability | ~35,000 | ~2,700 | 📋 Planned |
 | **v1.0.0** | The Platform Release | API freeze, formal spec, security audit, comprehensive docs, certification | ~36,000 | ~3,000 | 📋 Planned |
@@ -1333,9 +1333,9 @@ Since `resolve()` is a deterministic function of canonically-ordered set content
 
 ---
 
-## v0.8.2 — "The Adoption Release" (Context Memory + Community Bridges)
+## v0.8.2 — "The Adoption Release" (Context Memory + Community Bridges) ✅ COMPLETE
 
-**Target LOC:** ~32,000 (+~2,000) · **Target Tests:** ~2,200 (+~280) · **Breaking Changes:** 0
+**Status:** Released 2026-03-29 · **LOC:** ~34,000 (+~3,400) · **Tests:** ~2,200 (+~80) · **Breaking Changes:** 0
 
 This release captures three high-growth communities (agentic AI, MergeKit, Flower) and introduces a category-defining capability: **CRDT-merged agent memory with manifest attestation, sidecar metadata for O(1) filtering, and bloom dedup.** Nobody else merges agent memory. MemGPT truncates. LangChain appends. Vector DBs retrieve. **crdt-merge merges.**
 
@@ -1950,9 +1950,9 @@ crdt-merge-spec/
 | 6 | LoRA-native merge with rank harmonization | v0.8.0 | ✅ |
 | 7 | Evolutionary merge optimization | v0.8.0 | ✅ |
 | 8.5 | True CRDT guarantees for all 25 model merge strategies via two-layer architecture | v0.8.1 | ✅ |
-| 9 | CRDT-merged agent memory with manifest attestation | v0.8.2 | 📋 |
-| 10 | O(1) memory dedup via bloom filter | v0.8.2 | 📋 |
-| 11 | Context provenance chains | v0.8.2 | 📋 |
+| 9 | CRDT-merged agent memory with manifest attestation | v0.8.2 | ✅ |
+| 10 | O(1) memory dedup via bloom filter | v0.8.2 | ✅ |
+| 11 | Context provenance chains | v0.8.2 | ✅ |
 | 12 | Continual merge with CRDT convergence proofs | v0.8.3 | 📋 |
 | 13 | HuggingFace Hub native with provenance model cards | v0.8.3 | 📋 |
 | 14 | Reversible merge (UnmergeEngine) | v0.9.0 | 📋 |

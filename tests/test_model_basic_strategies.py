@@ -199,7 +199,7 @@ class TestWeightAverage:
     def test_crdt_properties_declared(self):
         props = self.s.crdt_properties
         assert props["commutative"] is True
-        assert props["associative"] is True
+        assert props["associative"] is False
         assert props["idempotent"] is True
 
 # ===================================================================

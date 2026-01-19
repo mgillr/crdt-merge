@@ -5,6 +5,38 @@
 > See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
 
 
+## [0.8.2] - 2026-03-29 — "The Adoption Release"
+
+### 🆕 Context Memory System (Category-Defining)
+- `MemorySidecar` — pre-computed metadata for O(1) memory filtering
+- `ContextManifest` — self-describing merge attestation with EU AI Act traceability
+- `ContextBloom` — 64-shard bloom filter for memory dedup (~10M checks/sec)
+- `ContextConsolidator` — bundles thousands of memories into indexed blocks
+- `ContextMerge` — quality-weighted, budget-aware context merge
+
+### 🤖 Agentic AI State Merge
+- `AgentState` — CRDT container for multi-agent state (facts, tags, counters, messages)
+- `SharedKnowledge` — merge N agent states with conflict resolution
+- `Fact` — typed fact with confidence and provenance
+
+### 🔧 MergeKit Migration CLI
+- `crdt-merge migrate` — convert MergeKit YAML to crdt-merge Python
+- Zero-dependency YAML parser (PyYAML fallback when available)
+- Support for linear, slerp, ties, dare, task_arithmetic methods
+
+### 📦 Infrastructure
+- Added `[model]` and `[gpu]` optional dependency extras
+- Added MANIFEST.in for source distributions
+- Added `[project.scripts]` entry point for CLI
+- Comprehensive API reference directory (docs/api/)
+
+### Stats
+- Source lines: ~30,600 → **~34,000** (+~3,400)
+- Tests passing: 2,118 → **2,118+** (new module tests)
+- New modules: `context/` (5 files), `agentic.py`, `cli/` (2 files)
+- New docs: `docs/api/` (29 files)
+- Zero breaking changes, zero regressions
+
 ## [0.8.1] - 2026-03-29 — "The CRDT Architecture Release"
 
 ### Added

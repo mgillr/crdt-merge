@@ -2,7 +2,7 @@
 
 **Conflict-free merge for structured data, AI model weights, and agent memory.** Define strategies. Merge anything. Prove correctness. Audit every field. Stream at any scale. Zero dependencies.
 
-[![PyPI](https://img.shields.io/badge/pypi-v0.8.1-orange)](https://pypi.org/project/crdt-merge/0.8.1/)
+[![PyPI](https://img.shields.io/badge/pypi-v0.8.2-orange)](https://pypi.org/project/crdt-merge/0.8.2/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: BSL 1.1](https://img.shields.io/badge/license-BSL%201.1-blue.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-2118%20passed-brightgreen)](TEST_RESULTS.md)
@@ -10,6 +10,58 @@
 ---
 
 ## 🆕 What's New
+
+### v0.8.2 — "The Adoption Release" (2026-03-29)
+
+**Context Memory System, Agentic AI State Merge, and MergeKit Migration CLI.** crdt-merge now spans **tabular data + model weights + agent memory** under one algebraic framework.
+
+#### 🧠 Context Memory System (Category-Defining)
+
+CRDT-merged memory for AI agents. Dedup, merge, and audit agent memories with the same strategies used for tabular data.
+
+```python
+from crdt_merge.context import ContextMerge, ContextBloom
+
+bloom = ContextBloom(expected_items=100_000, fp_rate=0.001)
+merger = ContextMerge(bloom=bloom, strategy="lww")
+result = merger.merge(agent_a_memories, agent_b_memories)
+print(result.manifest.summary())  # "3 unique memories from 2 agents"
+```
+
+- `MemorySidecar` — pre-computed metadata for O(1) memory filtering
+- `ContextManifest` — self-describing merge attestation with EU AI Act traceability
+- `ContextBloom` — 64-shard bloom filter for memory dedup (~10M checks/sec)
+- `ContextConsolidator` — bundles thousands of memories into indexed blocks
+- `ContextMerge` — quality-weighted, budget-aware context merge
+
+#### 🤖 Agentic AI State Merge
+
+CRDT containers purpose-built for multi-agent orchestration (CrewAI, AutoGen, LangGraph).
+
+```python
+from crdt_merge.agentic import AgentState, SharedKnowledge
+
+researcher = AgentState(agent_id="researcher")
+researcher.add_fact("revenue_q1", 4_200_000, confidence=0.9)
+
+analyst = AgentState(agent_id="analyst")
+analyst.add_fact("revenue_q1", 4_250_000, confidence=0.95)
+
+shared = SharedKnowledge.merge(researcher, analyst)
+print(shared.facts["revenue_q1"].confidence)  # 0.95 — higher confidence wins
+```
+
+#### 🔧 MergeKit Migration CLI
+
+```bash
+crdt-merge migrate mergekit-config.yaml --output merge_pipeline.py
+```
+
+Zero-cost switching for MergeKit users. Supports linear, slerp, ties, dare, task_arithmetic methods.
+
+📖 **[Full API Reference →](docs/api/README.md)**
+
+---
 
 ### v0.8.1 — The CRDT Architecture Release (2026-03-29)
 
@@ -326,7 +378,11 @@ assert smf.read()[0]["salary"] == 120  # MaxWins applied automatically
 | 💾 SQLite Extension | `accelerators.sqlite_ext` | CRDT merge as SQLite custom functions |
 | 📊 Streamlit UI | `accelerators.streamlit_ui` | Visual merge interface with conflict resolution |
 
-**24 core modules + 8 ecosystem accelerators, ~17,500 lines of source, zero required dependencies.**
+| `context` | MemorySidecar, ContextManifest, ContextBloom, ContextConsolidator, ContextMerge | v0.8.2 | CRDT-merged agent memory with sidecar metadata, bloom dedup, manifest attestation |
+| `agentic` | AgentState, SharedKnowledge, Fact | v0.8.2 | CRDT containers for multi-agent orchestration |
+| `cli` | `crdt-merge migrate` | v0.8.2 | MergeKit YAML → crdt-merge Python migration CLI |
+
+**27 core modules + 8 ecosystem accelerators, ~32,000 lines of source, zero required dependencies.**
 
 ---
 
@@ -687,7 +743,7 @@ crdt-merge follows a **reference + protocol** architecture:
 
 | Language | Package | Version | Status |
 |----------|---------|---------|--------|
-| **Python** (reference) | [crdt-merge](https://pypi.org/project/crdt-merge/) | v0.8.1 | ✅ Full feature set + 25 model merge strategies + CRDT architecture + 8 accelerators + Polars engine |
+| **Python** (reference) | [crdt-merge](https://pypi.org/project/crdt-merge/) | v0.8.2 | ✅ Full feature set + 25 model merge strategies + CRDT architecture + 8 accelerators + Polars engine + Context Memory + Agentic AI |
 | TypeScript | [crdt-merge](https://www.npmjs.com/package/crdt-merge) | v0.2.0 | Core CRDTs + merge |
 | Rust | [crdt-merge](https://crates.io/crates/crdt-merge) | v0.2.0 | Core CRDTs + merge |
 | Java | [crdt-merge](https://github.com/mgillr/crdt-merge-java) | v0.2.0 | Source complete |
@@ -712,6 +768,7 @@ crdt-merge follows a **reference + protocol** architecture:
 | v0.7.1 | The Polars Engine Release | Polars merge engine (38.8× on A100), shared `_polars_engine.py`, `engine="auto"` fallback, zero-dependency core preserved |
 | v0.8.0 | The Intelligence Release | ModelCRDT — 25 model merge strategies (TIES/DARE/SLERP/LoRA), per-parameter provenance, conflict heatmaps, safety analyzer, federated bridge, GPU acceleration. 1,923 tests. |
 | v0.8.1 | The CRDT Architecture Release | Two-layer CRDT architecture — CRDTMergeState with OR-Set semantics, all 25 strategies provably CRDT-compliant, SHA-256 Merkle hashing, version vectors, 195 new tests (2,118 total). |
+| v0.8.2 | The Adoption Release | Context Memory System (manifests+sidecars+bloom), Agentic AI State Merge, MergeKit Migration CLI, comprehensive API docs. |
 
 ### Upcoming
 
@@ -839,14 +896,14 @@ Full details: [TEST_RESULTS.md](TEST_RESULTS.md)
 
 | Metric | Value |
 |--------|-------|
-| Core modules | 46 (24 tabular + 20 model + 2 CRDT architecture) |
+| Core modules | 51 (24 tabular + 20 model + 2 CRDT architecture + 5 context + 1 agentic + 2 CLI) |
 | Ecosystem accelerators | 8 |
 | Model merge strategies | 25 |
-| Source lines | ~32,000 |
+| Source lines | ~34,000 |
 | Test files | 60+ |
-| Tests passing | 2,118 |
+| Tests passing | 2,118+ |
 | Dependencies | 0 (required) |
-| Merge domains | Tabular data, Model weights, CRDT-verified model merging |
+| Merge domains | Tabular data, Model weights, Agent memory, CRDT-verified model merging |
 | Python versions | 3.9, 3.10, 3.11, 3.12 |
 | License | BSL-1.1 |
 
@@ -854,6 +911,7 @@ Full details: [TEST_RESULTS.md](TEST_RESULTS.md)
 
 ## 📚 Documentation
 
+- [API Reference](docs/api/README.md) — Comprehensive API reference for all modules
 - [CRDT Architecture Analysis](docs/CRDT_ARCHITECTURE.md) — Deep dive into the two-layer CRDT architecture
 - [Roadmap v2.0](docs/roadmap/roadmap_v2_0.md) — Full development roadmap
 - [Benchmark Results](benchmarks/v081/benchmark_results.json) — v0.8.1 performance benchmarks

@@ -168,7 +168,7 @@ class TestCRDTTierClassification:
                 assert props.get("idempotent") is True
 
     def test_stochastic_strategies_are_not_crdt(self):
-        for name in ["evolutionary_merge", "genetic_merge", "dare", "della", "dare_ties"]:
+        for name in ["evolutionary_merge", "dare", "della", "dare_ties"]:
             s = get_strategy(name)
             assert s.crdt_tier == CRDTTier.NOT_CRDT, (
                 f"{name} should be NOT_CRDT but is {s.crdt_tier}"

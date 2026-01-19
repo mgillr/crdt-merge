@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "crdt-merge"
-version = "0.8.1"
+version = "0.8.2"
 description = "The Merge Algebra Toolkit — composable, streaming, verified CRDT merge for datasets"
 readme = "README.md"
 license = {text = "BUSL-1.1"}
@@ -36,8 +36,13 @@ fast = ["polars>=0.19", "orjson>=3.9", "xxhash>=3.0"]
 pandas = ["pandas>=1.5"]
 polars = ["polars>=0.19"]
 datasets = ["datasets>=2.0"]
-all = ["pandas>=1.5", "polars>=0.19", "datasets>=2.0", "orjson>=3.9", "xxhash>=3.0"]
+model = ["numpy>=1.21"]
+gpu = ["torch>=2.0"]
+all = ["pandas>=1.5", "polars>=0.19", "datasets>=2.0", "orjson>=3.9", "xxhash>=3.0", "numpy>=1.21"]
 dev = ["pytest>=7", "hypothesis>=6.80"]
+
+[project.scripts]
+crdt-merge = "crdt_merge.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/mgillr/crdt-merge"
