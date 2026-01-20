@@ -6,6 +6,7 @@
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+# Patent Pending: UK Application No. 2607132.4
 #
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
