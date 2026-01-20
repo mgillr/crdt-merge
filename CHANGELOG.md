@@ -5,7 +5,7 @@
 > See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
 
 
-## [0.8.2.post1] — 2026-03-30
+## [0.8.2] — 2026-03-30 (metadata update)
 
 ### Changed
 - **README**: Complete rewrite — value-first positioning for developer adoption
