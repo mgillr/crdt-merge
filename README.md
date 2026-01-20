@@ -5,7 +5,7 @@
 <p><strong>The first merge library where every operation is mathematically guaranteed to converge.</strong><br/>
 Tabular data. Neural network weights. Distributed agents. One unified CRDT layer.</p>
 
-[![PyPI version](https://img.shields.io/badge/pypi-v0.8.3-orange)](https://pypi.org/project/crdt-merge/)
+[![PyPI version](https://img.shields.io/badge/pypi-v0.8.2-orange)](https://pypi.org/project/crdt-merge/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![Tests](https://img.shields.io/badge/tests-2%2C118%20passing-brightgreen)](TEST_RESULTS.md)
 [![CRDT Compliance](https://img.shields.io/badge/CRDT%20compliance-25%2F25%20strategies-blue)](docs/CRDT_ARCHITECTURE.md)
@@ -93,7 +93,7 @@ When all three hold, your distributed system **always converges** — no coordin
 | Architectures evaluated during R&D | **7 candidates, 1 production winner** |
 | Core modules | **51 across 3 namespaces** |
 | Ecosystem accelerators | **8** |
-| Benchmark verified on | **A100 GPU (Colab), v0.6.0 -- v0.8.3** |
+| Benchmark verified on | **A100 GPU (Colab), v0.6.0 -- v0.8.2** |
 | Model speedup vs. naive baseline | **38.8x** |
 | Lines of source | **~34,000** |
 | Python versions | **3.9 -- 3.12** |
@@ -198,7 +198,7 @@ def my_merge(a, b):
 
 ---
 
-## What's New in v0.8.3 — "The Adoption Release"
+## What's New in v0.8.2 — "The Adoption Release"
 
 **Context Memory System, Agentic AI State Merge, and MergeKit Migration CLI.** crdt-merge now spans **tabular data + model weights + agent memory** under one algebraic framework.
 
@@ -376,9 +376,9 @@ provenance = model.provenance()
 | GPU acceleration | ✅ |
 | Model merge pipeline | ✅ |
 | CRDTMergeState (two-layer architecture) | ✅ v0.8.1 |
-| Context Memory System | ✅ v0.8.3 |
-| Agentic AI State Merge | ✅ v0.8.3 |
-| MergeKit Migration CLI | ✅ v0.8.3 |
+| Context Memory System | ✅ v0.8.2 |
+| Agentic AI State Merge | ✅ v0.8.2 |
+| MergeKit Migration CLI | ✅ v0.8.2 |
 
 ### Ecosystem Accelerators
 
@@ -821,7 +821,7 @@ crdt-merge follows a **reference + protocol** architecture:
 
 | Language | Package | Version | Status |
 |----------|---------|---------|--------|
-| **Python** (reference) | [crdt-merge](https://pypi.org/project/crdt-merge/) | v0.8.3 | ✅ Full feature set + 25 model merge strategies + CRDT architecture + 8 accelerators + Context Memory + Agentic AI |
+| **Python** (reference) | [crdt-merge](https://pypi.org/project/crdt-merge/) | v0.8.2 | ✅ Full feature set + 25 model merge strategies + CRDT architecture + 8 accelerators + Context Memory + Agentic AI |
 | Rust | [crdt-merge](https://crates.io/crates/crdt-merge) | v0.2.0 | Core CRDTs + merge |
 | TypeScript | [crdt-merge](https://www.npmjs.com/package/crdt-merge) | v0.2.0 | Core CRDTs + merge |
 | Java | [crdt-merge](https://github.com/mgillr/crdt-merge-java) | v0.2.0 | Source complete |
@@ -880,7 +880,7 @@ See [CHANGELOG.md](CHANGELOG.md) for the full project history.
 
 | Version | Focus | Status |
 |---|---|---|
-| v0.8.3 | Context Memory, Agentic AI, MergeKit CLI | ✅ Released |
+| v0.8.2 | Context Memory, Agentic AI, MergeKit CLI | ✅ Released |
 | v0.8.1 | Two-layer CRDT architecture, 25/25 compliance | ✅ Released |
 | v0.9 | Enterprise: UnmergeEngine, EU AI Act compliance, encryption, RBAC | In progress |
 | v1.0 | Stable API, formal spec, security audit, cross-language parity | Planned |
