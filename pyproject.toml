@@ -4,15 +4,17 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "crdt-merge"
-version = "0.8.2"
-description = "The Merge Algebra Toolkit — composable, streaming, verified CRDT merge for datasets"
+version = "0.8.3"
+description = "Mathematically proven conflict-free merge for AI model weights, datasets, and agent memory. Zero dependencies. Patent pending."
 readme = "README.md"
 license = {text = "BUSL-1.1"}
 requires-python = ">=3.9"
 authors = [{name = "Ryan Gillespie", email = "rgillespie83@icloud.com"}]
 keywords = [
-    "crdt", "merge", "dedup", "dataframe", "conflict-free", "datasets",
-    "streaming", "schema", "conflict-resolution", "distributed-systems",
+    "crdt", "merge", "model-merging", "llm", "neural-network",
+    "conflict-free", "deterministic", "federated-learning",
+    "huggingface", "safetensors", "agent-memory", "datasets",
+    "streaming", "distributed-systems", "dedup", "dataframe",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -27,6 +29,8 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Database",
     "Topic :: Software Development :: Libraries :: Python Modules",
+    "Operating System :: OS Independent",
+    "Typing :: Typed",
 ]
 dependencies = []
 

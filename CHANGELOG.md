@@ -5,6 +5,18 @@
 > See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
 
 
+## [0.8.3] — 2026-03-30
+
+### Changed
+- **README**: Complete rewrite — value-first positioning for developer adoption
+- **PyPI metadata**: Updated description, keywords targeting AI/ML model merging community
+- **CRDT_ARCHITECTURE.md**: Full technical architecture document restored with patent notice
+- **Patent notice**: Added UK Patent Application No. 2607132.4 to core source files
+
+### Added
+- **PATENTS** file with full patent application details
+- **CONTRIBUTING.md** with contributor guide and CLA instructions
+
 ## [0.8.2] - 2026-03-29 — "The Adoption Release"
 
 ### 🆕 Context Memory System (Category-Defining)
