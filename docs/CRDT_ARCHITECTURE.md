@@ -1,9 +1,20 @@
 # CRDT Architecture for Model Merging
 
+> ⚠️ **PATENT PENDING — UK Application No. 2607132.4 (filed 30 March 2026)**
+>
 > **Copyright © 2026 Ryan Gillespie / Optitransfer. All rights reserved.**
-> Licensed under the Business Source License 1.1 (BSL-1.1).
-> **Patent Pending — UK Application No. 2607132.4 (filed 30 March 2026)**
-> See LICENSE file for details.
+>
+> Licensed under the **Business Source License 1.1** (BSL-1.1).
+> Licensor: Ryan Gillespie / Optitransfer
+> Licensed Work: crdt-merge
+> Change Date: 2028-03-29
+> Change License: Apache License, Version 2.0
+>
+> You may use, modify, and deploy this work for any purpose — including commercial
+> production use — with one restriction: you may not offer it (or a substantially
+> similar derivative) as a standalone CRDT-based merge engine or as-a-service product.
+>
+> Full terms: [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE)
 
 ---
 
