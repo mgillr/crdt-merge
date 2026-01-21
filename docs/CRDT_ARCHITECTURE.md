@@ -206,11 +206,10 @@ model-merge algorithms. A different approach is required.
 
 ## 3. Research: Seven Solution Architectures <a name="research-seven-solution-architectures"></a>
 
-During the R&D phase, seven distinct solution architectures were
-designed, implemented, and tested for full CRDT compliance. Each
-architecture took a different approach to reconciling the algebraic
-requirements of CRDTs with the mathematical properties of model-merge
-strategies.
+During the R&D phase, seven distinct CRDT-based architectures were
+designed, implemented as full prototypes, and tested for compliance
+with all three CRDT laws (commutativity, associativity, idempotency)
+across all 25 merge strategies.
 
 The architectures explored ranged from minimal append-only structures
 to complex multi-component lattice designs. Each prototype represented
@@ -251,11 +250,10 @@ reasons:
    including content-addressable hashing for integrity and causal
    ordering for distributed operation.
 
-The production CRDTMergeState class represents the culmination of
+The production `CRDTMergeState` class represents the culmination of
 this extensive R&D process.
 
 ---
-
 
 ## 4. The Solution: Two-Layer Architecture <a name="the-solution"></a>
 
