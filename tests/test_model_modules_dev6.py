@@ -10,11 +10,7 @@
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
 
-#
-# Change Date: 2028-03-29
-# Change License: Apache License, Version 2.0
-
-"""Tests for Dev 6 modules: continual, federated, formats, gpu, safety.
+"""Tests for model modules: continual, federated, formats, gpu, safety.
 
 ~120 tests covering all public APIs.
 """

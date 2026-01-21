@@ -10,11 +10,7 @@
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
 
-#
-# Change Date: 2028-03-29
-# Change License: Apache License, Version 2.0
-
-"""Tests for Dev 5 modules: LoRA, Pipeline, Provenance, Heatmap.
+"""Tests for model modules: LoRA, Pipeline, Provenance, Heatmap.
 
 ~140 tests covering all four modules.
 """
