@@ -808,7 +808,7 @@ class TestLEDMerge:
 # ===================================================================
 
 class TestIntegration:
-    """Integration tests across all 25 strategies."""
+    """Integration tests across all 26 strategies."""
 
     NEW_STRATEGIES = [
         "fisher_merge", "regression_mean", "ada_merging", "dam",
@@ -825,7 +825,7 @@ class TestIntegration:
 
     def test_total_strategy_count(self):
         strats = list_strategies()
-        assert len(strats) == 25, f"Expected 25 strategies, got {len(strats)}: {strats}"
+        assert len(strats) == 26, f"Expected 26 strategies, got {len(strats)}: {strats}"
 
     def test_all_categories_present(self):
         cats = list_strategies_by_category()

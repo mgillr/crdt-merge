@@ -11,13 +11,13 @@
 # Change License: Apache License, Version 2.0
 
 """
-Comprehensive tests for CRDTMergeState — verifies CRDT laws hold for ALL 25 strategies.
+Comprehensive tests for CRDTMergeState — verifies CRDT laws hold for ALL 26 strategies.
 
 This test suite proves that the two-layer architecture (CRDT state + atomic resolution)
 delivers true CRDT guarantees for every strategy in crdt-merge.
 
 Test categories:
-  1. CRDT Law Proofs (C/A/I) for all 25 strategies
+  1. CRDT Law Proofs (C/A/I) for all 26 strategies
   2. Resolve consistency (merge order doesn't change output)
   3. OR-Set semantics (add/remove with concurrent ops)
   4. Versioned registry (model update support)
@@ -349,7 +349,7 @@ class TestProvenance:
 # ===========================================================================
 
 class TestGrandFinale:
-    """One comprehensive test that confirms ALL 25 strategies × ALL 3 laws."""
+    """One comprehensive test that confirms ALL 26 strategies × ALL 3 laws."""
 
     def test_all_25_strategies_are_true_crdts(self):
         """Every registered strategy satisfies all CRDT laws via CRDTMergeState."""
