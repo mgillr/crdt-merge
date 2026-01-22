@@ -1277,8 +1277,7 @@ This means the v0.8.0 claim that all 25 strategies were "CRDT-verified" was only
 
 ### The Solution: Two-Layer Architecture
 
-Seven distinct solution architectures were researched, prototyped, and tested. All seven achieved 25/25 strategies as true CRDTs. The production implementation (`CRDTMergeState`) unifies the best features of all seven into a single architecture.
-
+Seven distinct solution architectures were researched, prototyped, and tested. All seven achieved 25/25 strategies as true CRDTs — confirming that the core insight (separating CRDT state management from strategy execution) is robust across a wide design space. The production implementation (`CRDTMergeState`) unifies the best features of all seven into a single architecture.
 
 **The key insight:** You don't need the merge algorithm to be a CRDT. You need the merge protocol to be a CRDT.
 
