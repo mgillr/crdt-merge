@@ -238,6 +238,7 @@ class CRDTMergeState:
         'model_breadcrumbs', 'emr', 'star', 'svd_knot_tying', 'adarank',
         'negative_merge', 'split_unlearn_merge',
         'fisher_merge', 'regression_mean', 'ada_merging', 'dam',
+        'dual_projection',
     })
 
     # Strategies that require a base model

@@ -197,5 +197,9 @@ def _auto_register():
         from crdt_merge.model.strategies import safety       # noqa: F401
     except ImportError:
         pass
+    try:
+        from crdt_merge.model.strategies import continual    # noqa: F401
+    except ImportError:
+        pass
 
 _auto_register()
