@@ -47,7 +47,7 @@ crdt-merge is the **complete merge toolkit** that sits beneath all of these — 
 | **v0.8.0** | The Intelligence Release | ModelCRDT (25 strategies), LoRA, evolutionary merge, provenance, heatmaps, federated bridge | ~30,000 | 1,923 | ✅ COMPLETE |
 | **v0.8.1** | The CRDT Architecture Release | Two-layer CRDT architecture, all 25 strategies provably satisfy CRDT laws | ~30,600 | 2,118 | ✅ COMPLETE |
 | **v0.8.2** | The Adoption Release | Context Memory (manifests+sidecars+bloom), Agentic AI State Merge, MergeKit CLI, Flower FL Plugin | ~34,000 | ~2,200 | ✅ COMPLETE |
-| **v0.8.3** | The Research Release | Continual Merge Engine, HuggingFace Hub Native Integration | ~33,500 | ~2,400 | 📋 Planned |
+| **v0.8.3** | The Research Release | Continual Merge Engine, HuggingFace Hub Native Integration | ~36,500 | ~2,600 | ✅ COMPLETE |
 | **v0.9.0** | The Enterprise Release | UnmergeEngine, EU AI Act compliance, model unmerging, encryption, RBAC, observability | ~35,000 | ~2,700 | 📋 Planned |
 | **v1.0.0** | The Platform Release | API freeze, formal spec, security audit, comprehensive docs, certification | ~36,000 | ~3,000 | 📋 Planned |
 

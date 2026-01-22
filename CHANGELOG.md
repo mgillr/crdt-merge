@@ -5,6 +5,31 @@
 > See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
 
 
+## [0.8.3] - 2026-03-30 — "The Research Release"
+
+### 🧠 Continual Merge Engine
+- `DualProjectionMerge` strategy — SVD-based dual-projection decomposition with shared/task-specific subspace separation
+- `ConvergenceProof` — empirical verification of commutativity, associativity, and idempotency for continual merge sequences
+- `ContinualBenchmark` — benchmark suite comparing dual_projection vs weight_average vs crdt modes
+- Extended `ContinualMerge` with `convergence="crdt"` parameter, `verify_convergence()`, and `measure_stability()`
+- `StabilityResult` dataclass for knowledge retention measurement
+- Strategy count: 25 → **26** (added `dual_projection`)
+
+### 🌐 HuggingFace Hub Native Integration
+- `HFMergeHub` — push, pull, and merge models on HuggingFace Hub with CRDT verification
+- `AutoModelCard` — provenance-enriched model card generation with merge lineage
+- `ModelCardConfig` — configurable card generation (lineage, strategies, CRDT badge, EU AI Act)
+- `HfSource` / `HfTarget` — merge pipeline adapters for HF Hub
+- EU AI Act traceability metadata via JSON-LD export
+- Zero required dependencies — `huggingface_hub` lazy-imported
+
+### Stats
+- Source lines: ~34,000 → **~36,500** (+~2,500)
+- Tests passing: ~2,400 → **~2,600+** (+172 new)
+- New modules: `hub/` (3 files), `model/targets/` (2 files), `model/strategies/continual.py`, `model/continual_verify.py`, `model/continual_bench.py`
+- Strategy count: 25 → 26
+- Zero breaking changes, zero regressions
+
 ## [0.8.2] — 2026-03-30 (metadata update)
 
 ### Changed

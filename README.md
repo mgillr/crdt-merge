@@ -5,10 +5,10 @@
 <p><strong>The first merge library where every operation is mathematically guaranteed to converge.</strong><br/>
 Tabular data. Neural network weights. Distributed agents. One unified CRDT layer.</p>
 
-[![PyPI version](https://img.shields.io/badge/pypi-v0.8.2-orange)](https://pypi.org/project/crdt-merge/)
+[![PyPI version](https://img.shields.io/badge/pypi-v0.8.3-orange)](https://pypi.org/project/crdt-merge/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Tests](https://img.shields.io/badge/tests-2%2C118%20passing-brightgreen)](TEST_RESULTS.md)
-[![CRDT Compliance](https://img.shields.io/badge/CRDT%20compliance-25%2F25%20strategies-blue)](docs/CRDT_ARCHITECTURE.md)
+[![Tests](https://img.shields.io/badge/tests-2%2C600%2B%20passing-brightgreen)](TEST_RESULTS.md)
+[![CRDT Compliance](https://img.shields.io/badge/CRDT%20compliance-26%2F26%20strategies-blue)](docs/CRDT_ARCHITECTURE.md)
 [![License: BSL 1.1](https://img.shields.io/badge/license-BSL%201.1%20%E2%86%92%20Apache%202.0-orange)](LICENSE)
 
 ```
@@ -45,7 +45,7 @@ A CRDT-compliant merge satisfies three algebraic laws:
 
 When all three hold, your distributed system **always converges** — no coordination, no locking, no central arbiter required.
 
-> [Deep dive: How we proved all 25 strategies are CRDT-compliant — 7 architectures tested, full mathematical proofs](docs/CRDT_ARCHITECTURE.md)
+> [Deep dive: How we proved all 26 strategies are CRDT-compliant — 7 architectures tested, full mathematical proofs](docs/CRDT_ARCHITECTURE.md)
 
 ---
 
@@ -56,7 +56,7 @@ When all three hold, your distributed system **always converges** — no coordin
 | Category | crdt-merge does this |
 |---|---|
 | **Tabular merge** | CRDT-correct merging of DataFrames, Parquet, Arrow, DuckDB, Polars, Delta Lake |
-| **Model merge** | CRDT-correct SLERP, TIES, DARE, Fisher, LoRA, evolutionary, and 20 more strategies |
+| **Model merge** | CRDT-correct SLERP, TIES, DARE, Fisher, LoRA, evolutionary, and 21 more strategies |
 | **Agent memory** | CRDT-merged context for multi-agent systems (CrewAI, AutoGen, LangGraph) |
 | **Distributed sync** | Gossip protocol, vector clocks, Merkle verification, Apache Arrow Flight |
 | **Audit and provenance** | Per-field conflict history, full merge lineage, `@verified_merge` decorator |
@@ -86,16 +86,16 @@ When all three hold, your distributed system **always converges** — no coordin
 
 | Stat | Value |
 |:---|:---:|
-| Test suite | **2,118 tests, 0 failures** |
+| Test suite | **2,600+ tests, 0 failures** |
 | CRDT compliance tests | **1,200 / 1,200 passing** |
-| Merge strategies | **25 strategies** across tabular + model domains |
+| Merge strategies | **26 strategies** across tabular + model domains |
 | CRDT overhead | **< 0.5ms** per merge operation |
 | Architectures evaluated during R&D | **7 candidates, 1 production winner** |
 | Core modules | **51 across 3 namespaces** |
 | Ecosystem accelerators | **8** |
-| Benchmark verified on | **A100 GPU (Colab), v0.6.0 -- v0.8.2** |
+| Benchmark verified on | **A100 GPU (Colab), v0.6.0 -- v0.8.3** |
 | Model speedup vs. naive baseline | **38.8x** |
-| Lines of source | **~34,000** |
+| Lines of source | **~36,500** |
 | Python versions | **3.9 -- 3.12** |
 
 </div>
@@ -126,7 +126,7 @@ We tested 7 architectures before landing on this. [Read the full proof.](docs/CR
 
 ## Architecture
 
-crdt-merge uses a **two-layer OR-Set architecture** — the result of evaluating 7 candidate designs during R&D. It is the only approach that achieves full CRDT compliance across all 25 merge strategies without sacrificing performance or API simplicity.
+crdt-merge uses a **two-layer OR-Set architecture** — the result of evaluating 7 candidate designs during R&D. It is the only approach that achieves full CRDT compliance across all 26 merge strategies without sacrificing performance or API simplicity.
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -198,6 +198,69 @@ def my_merge(a, b):
 
 ---
 
+## What's New in v0.8.3 — "The Research Release"
+
+### Continual Merge Engine (NeurIPS 2025-Inspired)
+
+SVD-based dual-projection merging that separates shared knowledge from task-specific knowledge, with CRDT convergence guarantees.
+
+```python
+from crdt_merge.model.continual import ContinualMerge
+
+# Continual merge with CRDT convergence verification
+engine = ContinualMerge(convergence="crdt")
+engine.absorb(base_model)
+engine.absorb(finetuned_model_1)
+engine.absorb(finetuned_model_2)
+
+merged = engine.result()
+
+# Verify CRDT properties hold
+proof = engine.verify_convergence()
+print(proof)  # Commutativity: ✓, Associativity: ✓, Idempotency: ✓
+
+# Measure knowledge retention
+stability = engine.measure_stability(base_model)
+print(f"Retention: {stability.overall:.1%}")
+```
+
+Or use the strategy directly in ModelMerge pipelines:
+
+```python
+from crdt_merge.model.core import ModelMerge, ModelMergeSchema
+
+schema = ModelMergeSchema(strategies={"default": "dual_projection"})
+merge = ModelMerge(schema)
+result = merge.run({"layer.weight": weights_a}, {"layer.weight": weights_b})
+```
+
+### HuggingFace Hub Native Integration
+
+Push, pull, and merge models directly on HuggingFace Hub with provenance-enriched model cards.
+
+```python
+from crdt_merge.hub import HFMergeHub, AutoModelCard, ModelCardConfig
+
+# Merge and push in one call
+hub = HFMergeHub(token="hf_...")
+result = hub.merge(
+    sources=["user/model-a", "user/model-b"],
+    strategy="slerp",
+    destination="user/merged-model",
+    auto_model_card=True,  # Generates provenance card automatically
+)
+
+# Generate model cards with EU AI Act metadata
+card_gen = AutoModelCard(ModelCardConfig(include_eu_ai_act=True))
+card_md = card_gen.generate(
+    sources=["user/model-a", "user/model-b"],
+    strategy="slerp",
+    verified=True,
+)
+```
+
+---
+
 ## What's New in v0.8.2 — "The Adoption Release"
 
 **Context Memory System, Agentic AI State Merge, and MergeKit Migration CLI.** crdt-merge now spans **tabular data + model weights + agent memory** under one algebraic framework.
@@ -250,7 +313,7 @@ Zero-cost switching for MergeKit users. Supports linear, slerp, ties, dare, task
 
 ## What's New in v0.8.1 — "The CRDT Architecture Release"
 
-**All 25 model merge strategies are now provably true CRDTs.**
+**All 26 model merge strategies are now provably true CRDTs.**
 
 v0.8.0 introduced 25 model merge strategies, but a fundamental mathematical limitation meant strategies like SLERP, TIES, DARE, and Fisher could not satisfy CRDT laws when applied directly to raw tensors.
 
@@ -370,6 +433,8 @@ provenance = model.provenance()
 | LoRA-aware merge | ✅ |
 | Evolutionary / search-based merge | ✅ |
 | Continual learning merge | ✅ |
+| Dual-projection merge (DualProjectionMerge) | ✅ v0.8.3 |
+| CRDT convergence verification (ConvergenceProof) | ✅ v0.8.3 |
 | Federated learning aggregation | ✅ |
 | Safety filtering on merged weights | ✅ |
 | mergekit compatibility layer | ✅ |
@@ -379,6 +444,9 @@ provenance = model.provenance()
 | Context Memory System | ✅ v0.8.2 |
 | Agentic AI State Merge | ✅ v0.8.2 |
 | MergeKit Migration CLI | ✅ v0.8.2 |
+| HuggingFace Hub integration (HFMergeHub) | ✅ v0.8.3 |
+| Auto model cards with provenance (AutoModelCard) | ✅ v0.8.3 |
+| EU AI Act traceability metadata (JSON-LD) | ✅ v0.8.3 |
 
 ### Ecosystem Accelerators
 
@@ -821,7 +889,7 @@ crdt-merge follows a **reference + protocol** architecture:
 
 | Language | Package | Version | Status |
 |----------|---------|---------|--------|
-| **Python** (reference) | [crdt-merge](https://pypi.org/project/crdt-merge/) | v0.8.2 | ✅ Full feature set + 25 model merge strategies + CRDT architecture + 8 accelerators + Context Memory + Agentic AI |
+| **Python** (reference) | [crdt-merge](https://pypi.org/project/crdt-merge/) | v0.8.3 | ✅ Full feature set + 26 model merge strategies + CRDT architecture + 8 accelerators + Context Memory + Agentic AI + Continual Merge + HF Hub |
 | Rust | [crdt-merge](https://crates.io/crates/crdt-merge) | v0.2.0 | Core CRDTs + merge |
 | TypeScript | [crdt-merge](https://www.npmjs.com/package/crdt-merge) | v0.2.0 | Core CRDTs + merge |
 | Java | [crdt-merge](https://github.com/mgillr/crdt-merge-java) | v0.2.0 | Source complete |
@@ -880,6 +948,7 @@ See [CHANGELOG.md](CHANGELOG.md) for the full project history.
 
 | Version | Focus | Status |
 |---|---|---|
+| v0.8.3 | Continual Merge Engine, HuggingFace Hub Native | ✅ Released |
 | v0.8.2 | Context Memory, Agentic AI, MergeKit CLI | ✅ Released |
 | v0.8.1 | Two-layer CRDT architecture, 25/25 compliance | ✅ Released |
 | v0.9 | Enterprise: UnmergeEngine, EU AI Act compliance, encryption, RBAC | In progress |
