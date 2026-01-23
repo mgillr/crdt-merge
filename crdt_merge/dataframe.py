@@ -199,8 +199,9 @@ def merge(
         df_a: First DataFrame (pandas, polars, or list of dicts)
         df_b: Second DataFrame
         key: Column to match rows on. If None, performs append + dedup.
-        timestamp_col: Column with timestamps for LWW resolution. If None, df_b wins ties.
-        prefer: "latest" (default) or "a" or "b" — how to resolve conflicts when no timestamp.
+        timestamp_col: Column with timestamps for LWW resolution. If None, auto-detects '_ts' column.
+            When timestamps are tied, uses deterministic value-based tie-breaking for CRDT commutativity.
+        prefer: "latest" (default, deterministic value-based resolution) or "a" or "b" — how to resolve conflicts when no timestamp.
         dedup: If True, remove exact duplicate rows in output.
         fuzzy_dedup: If True, also remove near-duplicate rows (requires key).
         fuzzy_threshold: Similarity threshold for fuzzy dedup (0.0 to 1.0).
@@ -214,6 +215,11 @@ def merge(
 
     records_a, cols_a, lib_a = _to_records(df_a)
     records_b, cols_b, lib_b = _to_records(df_b)
+
+    # Auto-detect _ts column for CRDT semantics
+    if timestamp_col is None and records_a and records_b:
+        if "_ts" in records_a[0] and "_ts" in records_b[0]:
+            timestamp_col = "_ts"
 
     all_columns = list(dict.fromkeys(cols_a + [c for c in cols_b if c not in cols_a]))
 
@@ -317,15 +323,17 @@ def _merge_rows(
                 strategy = schema.strategy_for(col)
                 result[col] = strategy.resolve(val_a, val_b, ts_a, ts_b, "a", "b")
             elif timestamp_col:
-                reg_a = LWWRegister(val_a, ts_a, "a")
-                reg_b = LWWRegister(val_b, ts_b, "b")
+                # Use stringified values as node_ids for deterministic tie-breaking
+                reg_a = LWWRegister(val_a, ts_a, str(val_a))
+                reg_b = LWWRegister(val_b, ts_b, str(val_b))
                 result[col] = reg_a.merge(reg_b).value
             elif prefer == "b":
                 result[col] = val_b
             elif prefer == "a":
                 result[col] = val_a
-            else:  # "latest" — b wins as the "newer" source
-                result[col] = val_b
+            else:  # "latest" — deterministic value-based tie-break for CRDT commutativity
+                str_a, str_b = str(val_a), str(val_b)
+                result[col] = val_a if str_a >= str_b else val_b
 
     return result
 

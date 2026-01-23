@@ -135,14 +135,23 @@ def strategy_to_expr(
         if timestamp_col:
             ts_l = pl.col(timestamp_col)
             ts_r = pl.col(f"{timestamp_col}{suffix}")
+            # Tie-break: deterministic value-based comparison for CRDT commutativity
+            tie_expr = (
+                pl.when(left.cast(pl.Utf8) >= right.cast(pl.Utf8)).then(left)
+                .otherwise(right)
+            )
             inner = (
                 pl.when(ts_r > ts_l).then(right)
                 .when(ts_l > ts_r).then(left)
-                .otherwise(right)  # tie → deterministic (right/higher node)
+                .otherwise(tie_expr)
             )
             return _wrap_null(inner)
-        # No timestamp → coalesce right-wins (same as base LWW with equal ts)
-        return _wrap_null(right)
+        # No timestamp → deterministic value-based tie-break for CRDT commutativity
+        tie_expr = (
+            pl.when(left.cast(pl.Utf8) >= right.cast(pl.Utf8)).then(left)
+            .otherwise(right)
+        )
+        return _wrap_null(tie_expr)
 
     # ── Concat ───────────────────────────────────────────────
     if _is_strategy(strategy, "Concat"):

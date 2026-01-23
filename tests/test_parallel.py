@@ -84,7 +84,8 @@ def test_parallel_merge_multi_key():
     right = [{"a": 1, "b": "x", "v": "new"}]
     result = parallel_merge(left, right, key=["a", "b"])
     assert len(result) == 1
-    assert result[0]["v"] == "new"
+    # Deterministic value-based tie-breaking: "old" > "new" lexicographically
+    assert result[0]["v"] == "old"
 
 # ===========================================================================
 # 5–6. chunk_size configuration
@@ -188,7 +189,8 @@ def test_single_key_dataset():
     right = [{"id": 1, "v": "new"}]
     result = parallel_merge(left, right, key="id")
     assert len(result) == 1
-    assert result[0]["v"] == "new"
+    # Deterministic value-based tie-breaking: "old" > "new" lexicographically
+    assert result[0]["v"] == "old"
 
 # ===========================================================================
 # 16. error in worker propagated
