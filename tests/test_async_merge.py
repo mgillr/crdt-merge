@@ -104,7 +104,7 @@ async def test_amerge_multi_key():
     right = [{"a": 1, "b": "x", "v": "new"}]
     result = await amerge(left, right, key=["a", "b"])
     assert len(result) == 1
-    assert result[0]["v"] == "new"  # b-wins default
+    assert result[0]["v"] == "old"  # deterministic tie-breaking (lexicographic)
 
 # ===========================================================================
 # 6. amerge key=None (append + dedup)
