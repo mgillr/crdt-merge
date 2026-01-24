@@ -30,6 +30,12 @@
 - Strategy count: 25 → 26
 - Zero breaking changes, zero regressions
 
+### 🔒 CRDT Integrity
+- **Fixed**: Commutativity violation on tied timestamps — `merge(A, B)` now always equals `merge(B, A)` regardless of input ordering
+- Deterministic tie-breaking via lexicographic value comparison across all merge paths
+- Verified all 6 tabular strategies and all 26 model strategies for full CRDT compliance
+- Pre-release audit: 16 issues investigated, 1 genuine bug fixed, 15 false positives documented
+
 ## [0.8.2] — 2026-03-30 (metadata update)
 
 ### Changed
