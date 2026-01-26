@@ -364,7 +364,7 @@ assert result.metadata["crdt_guaranteed"] is True
 
 ### v0.8.0 — "The Intelligence Release"
 
-**25 model merge strategies** across 8 categories, powered by CRDT-native architecture:
+**26 model merge strategies** across 8 categories, powered by CRDT-native architecture:
 
 | Category | Strategies |
 |----------|-----------|
@@ -917,7 +917,7 @@ crdt-merge is released under the **Business Source License 1.1 (BSL 1.1)**.
 
 - ✅ **Free for research, personal use, and most production use** — the Additional Use Grant is unusually broad and explicitly covers DuckDB, Polars, dbt, and similar open-data tooling
 - ✅ **Source-available** — you can read, audit, fork, and contribute
-- ✅ **Converts to Apache 2.0 on 1 January 2028** — fully open source, permanently, on a fixed public date
+- ✅ **Converts to Apache 2.0 on 29 March 2028** — fully open source, permanently, on a fixed public date
 - ❌ **Not free** if you are building a *competing commercial merge service* (SaaS) without a commercial license
 
 The [PATENTS](PATENTS) file includes a defensive patent grant. Patent pending (UK Application 2607132.4). The [CLA](CLA.md) covers contributions.
