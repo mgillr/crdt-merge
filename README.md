@@ -5,7 +5,7 @@
 <p><strong>The first merge library where every operation is mathematically guaranteed to converge.</strong><br/>
 Tabular data. Neural network weights. Distributed agents. One unified CRDT layer.</p>
 
-[![PyPI version](https://img.shields.io/badge/pypi-v0.8.3-orange)](https://pypi.org/project/crdt-merge/)
+[![PyPI version](https://img.shields.io/badge/pypi-v0.9.0-orange)](https://pypi.org/project/crdt-merge/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![Tests](https://img.shields.io/badge/tests-2%2C600%2B%20passing-brightgreen)](TEST_RESULTS.md)
 [![CRDT Compliance](https://img.shields.io/badge/CRDT%20compliance-26%2F26%20strategies-blue)](docs/CRDT_ARCHITECTURE.md)
@@ -59,7 +59,7 @@ When all three hold, your distributed system **always converges** — no coordin
 | **Model merge** | CRDT-correct SLERP, TIES, DARE, Fisher, LoRA, evolutionary, and 21 more strategies |
 | **Agent memory** | CRDT-merged context for multi-agent systems (CrewAI, AutoGen, LangGraph) |
 | **Distributed sync** | Gossip protocol, vector clocks, Merkle verification, Apache Arrow Flight |
-| **Audit and provenance** | Per-field conflict history, full merge lineage, `@verified_merge` decorator |
+| **Audit and provenance** | Per-field conflict history, full merge lineage, `@verified_merge` decorator, immutable hash-chain audit log |
 | **Schema evolution** | Non-breaking column additions, type widening, backwards-compatible deltas |
 | **Streaming** | Incremental merge, real-time CRDT state updates |
 | **Federated learning** | CRDT-safe weight aggregation without a parameter server |
@@ -195,6 +195,86 @@ def my_merge(a, b):
 # Raises CRDTViolationError if commutativity, associativity,
 # or idempotency is broken — automatically tested on every call
 ```
+
+---
+
+## Enterprise Features
+
+> New in v0.9.0 — zero external dependencies, composable with each other and existing merge pipelines.
+
+### Merge Undo & GDPR Compliance
+```python
+from crdt_merge.unmerge import UnmergeEngine, GDPRForget
+
+# Selective rollback of a contributor's records
+engine = UnmergeEngine()
+rolled_back = engine.unmerge(merged_records, provenance_log, remove_source="node-2", key_field="id")
+
+# GDPR right-to-be-forgotten
+gdpr = GDPRForget()
+result = gdpr.forget_data(merged_records, provenance_log, contributor="user-123", key_field="id")
+print(result)  # ForgetResult with scrubbed records and compliance metadata
+```
+
+### Audit Trail
+```python
+from crdt_merge.audit import AuditedMerge
+
+audited = AuditedMerge(node_id="server-1")
+result, entry = audited.merge(left, right, key="id")
+assert audited.audit_log.verify_chain()  # SHA-256 hash chain tamper detection
+```
+
+### Field-Level Encryption
+```python
+from crdt_merge.encryption import EncryptedMerge, StaticKeyProvider
+import os
+
+provider = StaticKeyProvider(key=os.urandom(32))
+em = EncryptedMerge(provider)
+encrypted = em.encrypt_records(records, fields=["salary", "ssn"])
+merged = em.merge_encrypted(enc_left, enc_right, key="id")
+decrypted = em.decrypt_records(merged, fields=["salary", "ssn"])
+```
+
+### Role-Based Access Control
+```python
+from crdt_merge.rbac import RBACController, SecureMerge, Policy, AccessContext, READER
+
+rbac = RBACController()
+rbac.add_policy("analyst", Policy(role=READER, denied_fields={"salary", "ssn"}))
+secure = SecureMerge(rbac)
+result = secure.merge(left, right, key="id",
+    context=AccessContext(node_id="analyst", role=READER))
+```
+
+### Observability & Health Monitoring
+```python
+from crdt_merge.observability import ObservedMerge, HealthCheck
+
+observed = ObservedMerge(node_id="prod-1")
+result, metric = observed.merge(left, right, key="id")
+print(f"Merge took {metric.duration_ms:.1f}ms, {metric.conflicts_resolved} conflicts resolved")
+
+health = HealthCheck(observed.collector)
+status = health.check_health()  # {"status": "healthy", ...}
+```
+
+---
+
+## What's New in v0.9.0 — "The Enterprise Release"
+
+Five new enterprise modules — all stdlib-only, all composable with each other and the existing merge pipeline:
+
+| Module | Key Classes | Purpose |
+|--------|------------|---------|
+| `unmerge` | `UnmergeEngine`, `ModelUnmerge`, `GDPRForget` | Selective rollback, GDPR right-to-be-forgotten |
+| `audit` | `AuditLog`, `AuditedMerge` | Immutable hash-chained audit trail |
+| `encryption` | `EncryptedMerge`, `StaticKeyProvider` | Field-level encryption with key rotation |
+| `rbac` | `RBACController`, `SecureMerge` | Policy-based access control |
+| `observability` | `ObservedMerge`, `HealthCheck`, `MetricsCollector` | Timing, conflict metrics, health monitoring |
+
+Enterprise modules compose cleanly — wrap a single merge pipeline with audit + encryption + RBAC + observability simultaneously.
 
 ---
 
@@ -447,6 +527,23 @@ provenance = model.provenance()
 | HuggingFace Hub integration (HFMergeHub) | ✅ v0.8.3 |
 | Auto model cards with provenance (AutoModelCard) | ✅ v0.8.3 |
 | EU AI Act traceability metadata (JSON-LD) | ✅ v0.8.3 |
+
+### Enterprise Layer
+
+| Feature | Status |
+|---|---|
+| UnmergeEngine — selective merge rollback | ✅ v0.9.0 |
+| ModelUnmerge — neural weight contribution removal | ✅ v0.9.0 |
+| GDPRForget — privacy-compliant data removal | ✅ v0.9.0 |
+| AuditLog — SHA-256 hash-chained audit trail | ✅ v0.9.0 |
+| AuditedMerge — auto-logging merge wrapper | ✅ v0.9.0 |
+| EncryptedMerge — field-level encryption | ✅ v0.9.0 |
+| Key rotation — re-encrypt on credential cycling | ✅ v0.9.0 |
+| RBACController — policy-based access control | ✅ v0.9.0 |
+| SecureMerge — RBAC-enforced merge operations | ✅ v0.9.0 |
+| MetricsCollector — operation timing and conflict tracking | ✅ v0.9.0 |
+| ObservedMerge — auto-instrumented merge wrapper | ✅ v0.9.0 |
+| HealthCheck — configurable degradation thresholds | ✅ v0.9.0 |
 
 ### Ecosystem Accelerators
 
@@ -889,7 +986,7 @@ crdt-merge follows a **reference + protocol** architecture:
 
 | Language | Package | Version | Status |
 |----------|---------|---------|--------|
-| **Python** (reference) | [crdt-merge](https://pypi.org/project/crdt-merge/) | v0.8.3 | ✅ Full feature set + 26 model merge strategies + CRDT architecture + 8 accelerators + Context Memory + Agentic AI + Continual Merge + HF Hub |
+| **Python** (reference) | [crdt-merge](https://pypi.org/project/crdt-merge/) | v0.9.0 | ✅ Full feature set + 26 model merge strategies + CRDT architecture + 8 accelerators + Context Memory + Agentic AI + Continual Merge + HF Hub + Enterprise (Unmerge, Audit, Encryption, RBAC, Observability) |
 | Rust | [crdt-merge](https://crates.io/crates/crdt-merge) | v0.2.0 | Core CRDTs + merge |
 | TypeScript | [crdt-merge](https://www.npmjs.com/package/crdt-merge) | v0.2.0 | Core CRDTs + merge |
 | Java | [crdt-merge](https://github.com/mgillr/crdt-merge-java) | v0.2.0 | Source complete |
@@ -951,7 +1048,7 @@ See [CHANGELOG.md](CHANGELOG.md) for the full project history.
 | v0.8.3 | Continual Merge Engine, HuggingFace Hub Native | ✅ Released |
 | v0.8.2 | Context Memory, Agentic AI, MergeKit CLI | ✅ Released |
 | v0.8.1 | Two-layer CRDT architecture, 25/25 compliance | ✅ Released |
-| v0.9 | Enterprise: UnmergeEngine, EU AI Act compliance, encryption, RBAC | In progress |
+| v0.9.0 | Enterprise: UnmergeEngine, Audit, Encryption, RBAC, Observability | ✅ Released |
 | v1.0 | Stable API, formal spec, security audit, cross-language parity | Planned |
 
 **Full roadmap:** [`docs/roadmap/roadmap_v2_0.md`](docs/roadmap/roadmap_v2_0.md)

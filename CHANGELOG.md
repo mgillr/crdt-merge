@@ -5,6 +5,28 @@
 > See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
 
 
+## [0.9.0] - 2026-03-30 — "The Enterprise Release"
+
+### New Features
+- **UnmergeEngine**: Selective rollback of merge operations with provenance-aware undo
+- **ModelUnmerge**: Neural network weight separation and contribution removal
+- **GDPRForget**: Privacy-compliant data removal with cryptographic verification
+- **AuditLog**: Immutable append-only audit trail with SHA-256 hash chain verification
+- **AuditedMerge**: Auto-logging merge wrapper for compliance workflows
+- **EncryptedMerge**: Field-level encryption with order-preserving tags for encrypted strategy resolution
+- **Key rotation**: Re-encrypt records when cycling credentials
+- **RBACController**: Policy-based role and field-level access control
+- **SecureMerge**: RBAC-enforced merge operations
+- **MetricsCollector**: Operation timing, conflict tracking, and throughput metrics
+- **ObservedMerge**: Auto-instrumented merge wrapper for monitoring
+- **HealthCheck**: Configurable health monitoring with degradation thresholds
+
+### Architecture
+- All new modules use zero external dependencies (stdlib only)
+- Enterprise modules compose cleanly: AuditedMerge + SecureMerge + ObservedMerge can wrap the same merge pipeline
+- Cryptographic hash chain in AuditLog provides tamper detection for regulatory compliance
+
+
 ## [0.8.3] - 2026-03-30 — "The Research Release"
 
 ### 🧠 Continual Merge Engine

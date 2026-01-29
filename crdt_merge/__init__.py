@@ -56,7 +56,7 @@ Usage:
     merged = merge_datasets("user/dataset-a", "user/dataset-b", key="id")
 """
 
-__version__ = "0.8.3"
+__version__ = "0.9.0"
 
 # Core CRDT types
 from .core import GCounter, PNCounter, LWWRegister, ORSet, LWWMap
@@ -154,6 +154,13 @@ from .context import (
 
 # v0.8.2: Agentic AI State Merge
 from .agentic import AgentState, SharedKnowledge, Fact
+
+# v0.9.0: Enterprise Modules — Unmerge, Audit, Encryption, RBAC, Observability
+from .unmerge import UnmergeEngine, ModelUnmerge, GDPRForget
+from .audit import AuditLog, AuditEntry, AuditedMerge
+from .encryption import EncryptedMerge, EncryptedValue, StaticKeyProvider, KeyProvider
+from .rbac import RBACController, SecureMerge, Permission, Role, Policy, AccessContext
+from .observability import MetricsCollector, ObservedMerge, MergeMetric, HealthCheck
 
 # Optional fast engine
 try:
