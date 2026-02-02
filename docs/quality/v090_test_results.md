@@ -82,7 +82,6 @@ All 2,599 pre-existing tests pass. Skips (97): test_arrow.py (56, requires PyArr
 | LICENSE Change Date: 2028-03-29 | PASS |
 | NOTICE Apache conversion: 2028-03-29 | PASS |
 | README Apache conversion: 29 March 2028 | PASS |
-| No tokens/secrets in repo | PASS |
 
 ## Commits
 
