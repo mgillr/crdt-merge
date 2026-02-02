@@ -24,6 +24,18 @@ Architecture:
   - Order tags: HMAC of canonical value representation for sortable comparisons
 
 Zero external dependencies — stdlib only (hashlib, hmac, secrets, struct, json).
+
+.. warning:: Security Notice
+
+   The XOR keystream used here is derived from HMAC-SHA256 in a counter-mode
+   construction.  This is **NOT** a standard AEAD cipher (e.g., AES-GCM,
+   ChaCha20-Poly1305) and has **not** been audited by professional
+   cryptographers.  It is provided as a convenience for low-sensitivity use
+   cases where adding a third-party cryptography dependency is undesirable.
+
+   **Do not rely on this module for production systems handling sensitive
+   data.**  Instead, layer a standard AEAD encryption scheme (e.g., AES-GCM
+   via the ``cryptography`` package) on top of, or in place of, this module.
 """
 
 from __future__ import annotations
@@ -36,6 +48,7 @@ import json
 import os
 import secrets
 import struct
+import warnings
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Sequence
 
@@ -65,6 +78,7 @@ def _derive_field_key(master_key: bytes, field_name: str) -> bytes:
     return hmac.new(master_key, field_name.encode("utf-8"), hashlib.sha256).digest()
 
 
+# NOTE: This is a non-standard construction. See module docstring for security guidance.
 def _keystream(key: bytes, nonce: bytes, length: int) -> bytes:
     """Generate *length* bytes of keystream: HMAC(key, nonce || counter)."""
     blocks_needed = (length + _BLOCK_BYTES - 1) // _BLOCK_BYTES
@@ -199,7 +213,17 @@ class EncryptedMerge:
     decrypting the underlying data.
     """
 
+    _warned: bool = False
+
     def __init__(self, key_provider: KeyProvider) -> None:
+        if not EncryptedMerge._warned:
+            warnings.warn(
+                "crdt_merge.encryption uses a HMAC-SHA256 derived XOR keystream, not a standard AEAD cipher. "
+                "For production use with sensitive data, use an external encryption layer (e.g., AES-GCM via the cryptography package).",
+                UserWarning,
+                stacklevel=2,
+            )
+            EncryptedMerge._warned = True
         self._kp = key_provider
 
     # -- Single-field operations ---------------------------------------------
