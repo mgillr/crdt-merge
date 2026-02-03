@@ -5,9 +5,9 @@
 <p><strong>The first merge library where every operation is mathematically guaranteed to converge.</strong><br/>
 Tabular data. Neural network weights. Distributed agents. One unified CRDT layer.</p>
 
-[![PyPI version](https://img.shields.io/badge/pypi-v0.9.0-orange)](https://pypi.org/project/crdt-merge/)
+[![PyPI version](https://img.shields.io/badge/pypi-v0.9.1-orange)](https://pypi.org/project/crdt-merge/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Tests](https://img.shields.io/badge/tests-2%2C600%2B%20passing-brightgreen)](TEST_RESULTS.md)
+[![Tests](https://img.shields.io/badge/tests-3%2C041%20passing-brightgreen)](TEST_RESULTS.md)
 [![CRDT Compliance](https://img.shields.io/badge/CRDT%20compliance-26%2F26%20strategies-blue)](docs/CRDT_ARCHITECTURE.md)
 [![License: BSL 1.1](https://img.shields.io/badge/license-BSL%201.1%20%E2%86%92%20Apache%202.0-orange)](LICENSE)
 
@@ -86,16 +86,18 @@ When all three hold, your distributed system **always converges** — no coordin
 
 | Stat | Value |
 |:---|:---:|
-| Test suite | **2,600+ tests, 0 failures** |
+| Test suite | **3,041 tests, 0 failures** |
+| Property-based (Hypothesis) tests | **137** |
 | CRDT compliance tests | **1,200 / 1,200 passing** |
 | Merge strategies | **26 strategies** across tabular + model domains |
+| Encryption backends | **4** (AES-256-GCM, AES-GCM-SIV, ChaCha20-Poly1305, XOR legacy) |
 | CRDT overhead | **< 0.5ms** per merge operation |
 | Architectures evaluated during R&D | **7 candidates, 1 production winner** |
 | Core modules | **51 across 3 namespaces** |
 | Ecosystem accelerators | **8** |
 | Benchmark verified on | **A100 GPU (Colab), v0.6.0 -- v0.8.3** |
 | Model speedup vs. naive baseline | **38.8x** |
-| Lines of source | **~36,500** |
+| Lines of source | **~37,800** |
 | Python versions | **3.9 -- 3.12** |
 
 </div>
@@ -231,10 +233,18 @@ from crdt_merge.encryption import EncryptedMerge, StaticKeyProvider
 import os
 
 provider = StaticKeyProvider(key=os.urandom(32))
-em = EncryptedMerge(provider)
+
+# Auto-selects best available backend (AES-256-GCM > AES-GCM-SIV > ChaCha20 > XOR)
+em = EncryptedMerge(provider, backend="auto")
+
+# Or choose explicitly: "aes-256-gcm", "aes-256-gcm-siv", "chacha20-poly1305", "xor"
+em = EncryptedMerge(provider, backend="aes-256-gcm-siv")  # nonce-misuse resistant
+
 encrypted = em.encrypt_records(records, fields=["salary", "ssn"])
 merged = em.merge_encrypted(enc_left, enc_right, key="id")
 decrypted = em.decrypt_records(merged, fields=["salary", "ssn"])
+
+# Cross-backend decryption works automatically — migrate backends without re-encrypting
 ```
 
 ### Role-Based Access Control
@@ -262,6 +272,60 @@ status = health.check_health()  # {"status": "healthy", ...}
 
 ---
 
+## What's New in v0.9.1 — "The Iron Dome Release"
+
+Production-grade encryption and comprehensive property-based testing — closing every developer-addressable finding from the independent due-diligence audit.
+
+### Pluggable Crypto Backend System
+
+The encryption module now supports four interchangeable backends behind a single `CryptoBackend` protocol:
+
+| Backend | Standard | Key Feature | Best For |
+|---------|----------|-------------|----------|
+| **AES-256-GCM** | NIST SP 800-38D | Hardware-accelerated (AES-NI) | General production (default) |
+| **AES-256-GCM-SIV** | RFC 8452 | Nonce-misuse resistant | CRDT multi-replica encryption |
+| **ChaCha20-Poly1305** | IETF RFC 8439 | Constant-time on all architectures | ARM/embedded, side-channel sensitive |
+| **XOR** | — | Zero dependencies | Stdlib-only environments (legacy) |
+
+```python
+from crdt_merge.encryption import EncryptedMerge, StaticKeyProvider, register_backend, get_backend
+import os
+
+provider = StaticKeyProvider(key=os.urandom(32))
+
+# Auto-selects strongest available backend
+em = EncryptedMerge(provider, backend="auto")
+
+# Or choose explicitly
+em = EncryptedMerge(provider, backend="aes-256-gcm-siv")
+
+# Register custom or post-quantum backends
+from crdt_merge.encryption import CryptoBackend
+register_backend("my-pqc-backend", MyPQCBackend())
+```
+
+**Key design properties:**
+- **Backward-compatible wire format** — v1 (XOR) payloads are auto-detected and decrypted by any backend
+- **Cross-backend decryption** — Migrate from XOR → AES-GCM or AES-GCM → ChaCha20 without re-encrypting existing data
+- **Post-quantum ready** — `register_backend()` accepts any future backend (ML-KEM, CRYSTALS-Kyber) without core changes
+- **Zero new required dependencies** — AEAD backends activate only when `cryptography` is installed
+
+### 135 Property-Based Tests via Hypothesis
+
+Full CRDT law verification across all module families:
+
+| Module Group | Tests | Laws Verified |
+|---|---|---|
+| Core primitives & strategies | 32 | Commutativity, associativity, idempotency, monotonicity |
+| DataFrame & JSON merge | 30 | Merge correctness, conflict resolution, schema evolution |
+| Streaming & delta | 27 | Chunk reassembly, ordering invariants, delta composition |
+| Probabilistic & wire format | 25 | HLL/Bloom merge, encode/decode round-trips |
+| Verify, dedup & provenance | 21 | Verified merge, dedup stability, provenance integrity |
+
+Total test suite: **3,041 tests** (up from 2,855), **0 failures**.
+
+---
+
 ## What's New in v0.9.0 — "The Enterprise Release"
 
 Five new enterprise modules — all stdlib-only, all composable with each other and the existing merge pipeline:
@@ -270,7 +334,7 @@ Five new enterprise modules — all stdlib-only, all composable with each other 
 |--------|------------|---------|
 | `unmerge` | `UnmergeEngine`, `ModelUnmerge`, `GDPRForget` | Selective rollback, GDPR right-to-be-forgotten |
 | `audit` | `AuditLog`, `AuditedMerge` | Immutable hash-chained audit trail |
-| `encryption` | `EncryptedMerge`, `StaticKeyProvider` | Field-level encryption with key rotation |
+| `encryption` | `EncryptedMerge`, `StaticKeyProvider`, `CryptoBackend`, `register_backend` | Field-level encryption with 4 pluggable backends and key rotation |
 | `rbac` | `RBACController`, `SecureMerge` | Policy-based access control |
 | `observability` | `ObservedMerge`, `HealthCheck`, `MetricsCollector` | Timing, conflict metrics, health monitoring |
 
@@ -538,6 +602,10 @@ provenance = model.provenance()
 | AuditLog — SHA-256 hash-chained audit trail | ✅ v0.9.0 |
 | AuditedMerge — auto-logging merge wrapper | ✅ v0.9.0 |
 | EncryptedMerge — field-level encryption | ✅ v0.9.0 |
+| Pluggable crypto backends (AES-256-GCM, AES-GCM-SIV, ChaCha20-Poly1305) | ✅ v0.9.1 |
+| Auto-detection of best available backend | ✅ v0.9.1 |
+| Cross-backend decryption (migrate without re-encrypting) | ✅ v0.9.1 |
+| Post-quantum ready backend registry (`register_backend()`) | ✅ v0.9.1 |
 | Key rotation — re-encrypt on credential cycling | ✅ v0.9.0 |
 | RBACController — policy-based access control | ✅ v0.9.0 |
 | SecureMerge — RBAC-enforced merge operations | ✅ v0.9.0 |
@@ -573,6 +641,9 @@ pip install crdt-merge[fast]          # DuckDB + Polars (38.8x on A100)
 pip install crdt-merge[polars]        # Polars plugin
 pip install crdt-merge[pandas]        # pandas support
 pip install crdt-merge[datasets]      # HuggingFace datasets
+
+# AEAD encryption backends (AES-256-GCM, AES-GCM-SIV, ChaCha20-Poly1305)
+pip install crdt-merge[crypto]        # Installs cryptography library
 
 # Model merging
 pip install crdt-merge[model]         # PyTorch model weights
@@ -986,7 +1057,7 @@ crdt-merge follows a **reference + protocol** architecture:
 
 | Language | Package | Version | Status |
 |----------|---------|---------|--------|
-| **Python** (reference) | [crdt-merge](https://pypi.org/project/crdt-merge/) | v0.9.0 | ✅ Full feature set + 26 model merge strategies + CRDT architecture + 8 accelerators + Context Memory + Agentic AI + Continual Merge + HF Hub + Enterprise (Unmerge, Audit, Encryption, RBAC, Observability) |
+| **Python** (reference) | [crdt-merge](https://pypi.org/project/crdt-merge/) | v0.9.1 | ✅ Full feature set + 26 model merge strategies + CRDT architecture + 8 accelerators + Context Memory + Agentic AI + Continual Merge + HF Hub + Enterprise (Unmerge, Audit, Encryption w/ 4 AEAD backends, RBAC, Observability) |
 | Rust | [crdt-merge](https://crates.io/crates/crdt-merge) | v0.2.0 | Core CRDTs + merge |
 | TypeScript | [crdt-merge](https://www.npmjs.com/package/crdt-merge) | v0.2.0 | Core CRDTs + merge |
 | Java | [crdt-merge](https://github.com/mgillr/crdt-merge-java) | v0.2.0 | Source complete |
@@ -1049,6 +1120,7 @@ See [CHANGELOG.md](CHANGELOG.md) for the full project history.
 | v0.8.2 | Context Memory, Agentic AI, MergeKit CLI | ✅ Released |
 | v0.8.1 | Two-layer CRDT architecture, 25/25 compliance | ✅ Released |
 | v0.9.0 | Enterprise: UnmergeEngine, Audit, Encryption, RBAC, Observability | ✅ Released |
+| v0.9.1 | Iron Dome: Pluggable crypto backends, 186 new tests, audit remediation | ✅ Released |
 | v1.0 | Stable API, formal spec, security audit, cross-language parity | Planned |
 
 **Full roadmap:** [`docs/roadmap/roadmap_v2_0.md`](docs/roadmap/roadmap_v2_0.md)
