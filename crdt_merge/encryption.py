@@ -12,30 +12,38 @@
 # Change License: Apache License, Version 2.0
 
 """
-Field-level encryption for CRDT merge operations.
+Field-level encryption for CRDT merge operations — pluggable crypto backends.
 
 Provides authenticated encryption with order-preserving tags that enable
 LWW / Max / Min strategy resolution on encrypted data without decryption.
 
 Architecture:
-  - HMAC-SHA256 for authentication
-  - XOR stream cipher from HMAC-derived keystream
+  - Pluggable crypto backend system with auto-detection
+  - HMAC-SHA256 order tags for sortable encrypted comparisons
   - Per-field key derivation from a master key
-  - Order tags: HMAC of canonical value representation for sortable comparisons
+  - Wire-format versioning (v1 = legacy XOR, v2 = named cipher)
 
-Zero external dependencies — stdlib only (hashlib, hmac, secrets, struct, json).
+Available backends (in auto-detection priority order):
+  1. **AES-256-GCM** — industry-standard AEAD (requires ``cryptography`` package)
+  2. **AES-256-GCM-SIV** — nonce-misuse-resistant AEAD, ideal for CRDTs
+  3. **ChaCha20-Poly1305** — modern AEAD, fast on CPUs without AES-NI
+  4. **XOR Legacy** — HMAC-SHA256 derived keystream (stdlib only, zero deps)
 
-.. warning:: Security Notice
+When ``backend="auto"`` is explicitly passed, AES-256-GCM is used if the
+``cryptography`` package is installed; otherwise the XOR legacy backend
+is selected with a warning.
 
-   The XOR keystream used here is derived from HMAC-SHA256 in a counter-mode
-   construction.  This is **NOT** a standard AEAD cipher (e.g., AES-GCM,
-   ChaCha20-Poly1305) and has **not** been audited by professional
-   cryptographers.  It is provided as a convenience for low-sensitivity use
-   cases where adding a third-party cryptography dependency is undesirable.
+When no *backend* argument is provided the XOR legacy backend is used for
+backward compatibility with existing serialised data.
 
-   **Do not rely on this module for production systems handling sensitive
-   data.**  Instead, layer a standard AEAD encryption scheme (e.g., AES-GCM
-   via the ``cryptography`` package) on top of, or in place of, this module.
+.. note::
+
+   The XOR legacy backend is a non-standard construction provided for
+   zero-dependency environments.  For production systems handling sensitive
+   data, install the ``cryptography`` package and pass ``backend="auto"``
+   or an explicit backend name::
+
+       pip install crdt-merge[crypto]
 """
 
 from __future__ import annotations
@@ -50,7 +58,7 @@ import secrets
 import struct
 import warnings
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from crdt_merge import merge
 from crdt_merge.strategies import MergeSchema
@@ -62,6 +70,9 @@ from crdt_merge.strategies import MergeSchema
 _NONCE_BYTES = 16
 _KEY_BYTES = 32
 _BLOCK_BYTES = 32  # HMAC-SHA256 output size
+
+# Sentinel for "no backend argument was passed"
+_BACKEND_UNSET = object()
 
 
 # ---------------------------------------------------------------------------
@@ -95,13 +106,181 @@ def _xor_bytes(data: bytes, mask: bytes) -> bytes:
 
 
 # ---------------------------------------------------------------------------
+# CryptoBackend ABC
+# ---------------------------------------------------------------------------
+
+class CryptoBackend(ABC):
+    """Abstract cryptographic backend for field-level encryption."""
+
+    name: str  # e.g. "aes-256-gcm"
+
+    @abstractmethod
+    def encrypt(self, key: bytes, plaintext: bytes, associated_data: bytes | None = None) -> Tuple[bytes, bytes, bytes]:
+        """Encrypt *plaintext* with *key*.
+
+        Returns ``(ciphertext, nonce, tag)``.
+        """
+
+    @abstractmethod
+    def decrypt(self, key: bytes, ciphertext: bytes, nonce: bytes, tag: bytes, associated_data: bytes | None = None) -> bytes:
+        """Decrypt *ciphertext* with *key*.
+
+        Returns plaintext.  Raises ``ValueError`` on authentication failure.
+        """
+
+
+# ---------------------------------------------------------------------------
+# Backend implementations
+# ---------------------------------------------------------------------------
+
+class XORLegacyBackend(CryptoBackend):
+    """HMAC-SHA256 derived XOR keystream with HMAC auth tag (stdlib only)."""
+
+    name = "xor-legacy"
+
+    def encrypt(self, key: bytes, plaintext: bytes, associated_data: bytes | None = None) -> Tuple[bytes, bytes, bytes]:
+        nonce = secrets.token_bytes(_NONCE_BYTES)
+        stream = _keystream(key, nonce, len(plaintext))
+        ciphertext = _xor_bytes(plaintext, stream)
+        tag_input = nonce + ciphertext
+        tag = hmac.new(key, tag_input, hashlib.sha256).digest()
+        return ciphertext, nonce, tag
+
+    def decrypt(self, key: bytes, ciphertext: bytes, nonce: bytes, tag: bytes, associated_data: bytes | None = None) -> bytes:
+        tag_input = nonce + ciphertext
+        expected_tag = hmac.new(key, tag_input, hashlib.sha256).digest()
+        if not hmac.compare_digest(expected_tag, tag):
+            raise ValueError("Authentication failed: ciphertext may have been tampered with")
+        stream = _keystream(key, nonce, len(ciphertext))
+        return _xor_bytes(ciphertext, stream)
+
+
+class AES256GCMBackend(CryptoBackend):
+    """AES-256-GCM via the ``cryptography`` package."""
+
+    name = "aes-256-gcm"
+
+    def encrypt(self, key: bytes, plaintext: bytes, associated_data: bytes | None = None) -> Tuple[bytes, bytes, bytes]:
+        from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+        aesgcm = AESGCM(key)
+        nonce = secrets.token_bytes(12)
+        ct_with_tag = aesgcm.encrypt(nonce, plaintext, associated_data)
+        # AESGCM appends a 16-byte tag
+        tag = ct_with_tag[-16:]
+        ciphertext = ct_with_tag[:-16]
+        return ciphertext, nonce, tag
+
+    def decrypt(self, key: bytes, ciphertext: bytes, nonce: bytes, tag: bytes, associated_data: bytes | None = None) -> bytes:
+        from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+        aesgcm = AESGCM(key)
+        ct_with_tag = ciphertext + tag
+        try:
+            return aesgcm.decrypt(nonce, ct_with_tag, associated_data)
+        except Exception as exc:
+            raise ValueError("Authentication failed: ciphertext may have been tampered with") from exc
+
+
+class AESGCMSIVBackend(CryptoBackend):
+    """AES-256-GCM-SIV — nonce-misuse-resistant AEAD, ideal for CRDTs."""
+
+    name = "aes-256-gcm-siv"
+
+    def encrypt(self, key: bytes, plaintext: bytes, associated_data: bytes | None = None) -> Tuple[bytes, bytes, bytes]:
+        from cryptography.hazmat.primitives.ciphers.aead import AESGCMSIV
+        cipher = AESGCMSIV(key)
+        nonce = secrets.token_bytes(12)
+        ct_with_tag = cipher.encrypt(nonce, plaintext, associated_data)
+        tag = ct_with_tag[-16:]
+        ciphertext = ct_with_tag[:-16]
+        return ciphertext, nonce, tag
+
+    def decrypt(self, key: bytes, ciphertext: bytes, nonce: bytes, tag: bytes, associated_data: bytes | None = None) -> bytes:
+        from cryptography.hazmat.primitives.ciphers.aead import AESGCMSIV
+        cipher = AESGCMSIV(key)
+        ct_with_tag = ciphertext + tag
+        try:
+            return cipher.decrypt(nonce, ct_with_tag, associated_data)
+        except Exception as exc:
+            raise ValueError("Authentication failed: ciphertext may have been tampered with") from exc
+
+
+class ChaCha20Poly1305Backend(CryptoBackend):
+    """ChaCha20-Poly1305 AEAD."""
+
+    name = "chacha20-poly1305"
+
+    def encrypt(self, key: bytes, plaintext: bytes, associated_data: bytes | None = None) -> Tuple[bytes, bytes, bytes]:
+        from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
+        cipher = ChaCha20Poly1305(key)
+        nonce = secrets.token_bytes(12)
+        ct_with_tag = cipher.encrypt(nonce, plaintext, associated_data)
+        tag = ct_with_tag[-16:]
+        ciphertext = ct_with_tag[:-16]
+        return ciphertext, nonce, tag
+
+    def decrypt(self, key: bytes, ciphertext: bytes, nonce: bytes, tag: bytes, associated_data: bytes | None = None) -> bytes:
+        from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
+        cipher = ChaCha20Poly1305(key)
+        ct_with_tag = ciphertext + tag
+        try:
+            return cipher.decrypt(nonce, ct_with_tag, associated_data)
+        except Exception as exc:
+            raise ValueError("Authentication failed: ciphertext may have been tampered with") from exc
+
+
+# ---------------------------------------------------------------------------
+# Backend registry
+# ---------------------------------------------------------------------------
+
+_BACKEND_REGISTRY: Dict[str, type] = {}
+
+
+def register_backend(name: str, cls: type) -> None:
+    """Register a crypto backend class under *name*."""
+    _BACKEND_REGISTRY[name] = cls
+
+
+def get_backend(name: str) -> CryptoBackend:
+    """Return a new instance of the backend registered as *name*.
+
+    Raises ``ValueError`` if *name* is not registered.
+    """
+    if name not in _BACKEND_REGISTRY:
+        raise ValueError(f"Unknown crypto backend: {name!r}. Available: {list(_BACKEND_REGISTRY)}")
+    return _BACKEND_REGISTRY[name]()
+
+
+# Always available (stdlib only)
+register_backend("xor-legacy", XORLegacyBackend)
+
+# AEAD backends — only if cryptography is installed
+try:
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM as _AESGCM  # noqa: F401
+    register_backend("aes-256-gcm", AES256GCMBackend)
+except ImportError:
+    pass
+
+try:
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCMSIV as _AESGCMSIV  # noqa: F401
+    register_backend("aes-256-gcm-siv", AESGCMSIVBackend)
+except ImportError:
+    pass
+
+try:
+    from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305 as _ChaCha  # noqa: F401
+    register_backend("chacha20-poly1305", ChaCha20Poly1305Backend)
+except ImportError:
+    pass
+
+
+# ---------------------------------------------------------------------------
 # EncryptedValue
 # ---------------------------------------------------------------------------
 
 class EncryptedValue:
     """Container for an encrypted field value with order-preserving tag."""
 
-    __slots__ = ("ciphertext", "nonce", "tag", "order_tag", "field_name")
+    __slots__ = ("ciphertext", "nonce", "tag", "order_tag", "field_name", "cipher")
 
     def __init__(
         self,
@@ -116,6 +295,7 @@ class EncryptedValue:
         self.tag = tag
         self.order_tag = order_tag
         self.field_name = field_name
+        self.cipher: Optional[str] = None
 
     # -- Comparison via order_tag (enables LWW / Max / Min on ciphertext) ---
 
@@ -155,7 +335,7 @@ class EncryptedValue:
 
     def to_dict(self) -> Dict[str, str]:
         """Serialize to a JSON-safe dict with base64-encoded byte fields."""
-        return {
+        d: Dict[str, Any] = {
             "__encrypted__": True,
             "ciphertext": base64.b64encode(self.ciphertext).decode("ascii"),
             "nonce": base64.b64encode(self.nonce).decode("ascii"),
@@ -163,17 +343,25 @@ class EncryptedValue:
             "order_tag": base64.b64encode(self.order_tag).decode("ascii"),
             "field_name": self.field_name,
         }
+        if self.cipher:
+            d["cipher"] = self.cipher
+            d["version"] = 2
+        return d
 
     @classmethod
     def from_dict(cls, d: Dict[str, Any]) -> "EncryptedValue":
         """Deserialize from a dict produced by *to_dict*."""
-        return cls(
+        ev = cls(
             ciphertext=base64.b64decode(d["ciphertext"]),
             nonce=base64.b64decode(d["nonce"]),
             tag=base64.b64decode(d["tag"]),
             field_name=d["field_name"],
             order_tag=base64.b64decode(d.get("order_tag", "")),
         )
+        cipher = d.get("cipher")  # None for v1
+        if cipher:
+            ev.cipher = cipher
+        return ev
 
 
 # ---------------------------------------------------------------------------
@@ -215,16 +403,39 @@ class EncryptedMerge:
 
     _warned: bool = False
 
-    def __init__(self, key_provider: KeyProvider) -> None:
-        if not EncryptedMerge._warned:
-            warnings.warn(
-                "crdt_merge.encryption uses a HMAC-SHA256 derived XOR keystream, not a standard AEAD cipher. "
-                "For production use with sensitive data, use an external encryption layer (e.g., AES-GCM via the cryptography package).",
-                UserWarning,
-                stacklevel=2,
-            )
-            EncryptedMerge._warned = True
+    def __init__(self, key_provider: KeyProvider, *, backend: str = _BACKEND_UNSET) -> None:
         self._kp = key_provider
+
+        if backend is _BACKEND_UNSET:
+            # Legacy default: XOR keystream with one-time warning.
+            # Preserves backward compatibility for callers that do not
+            # pass an explicit *backend* argument.
+            if not EncryptedMerge._warned:
+                warnings.warn(
+                    "crdt_merge.encryption uses a HMAC-SHA256 derived XOR keystream, not a standard AEAD cipher. "
+                    "For production use with sensitive data, use an external encryption layer (e.g., AES-GCM via the cryptography package).",
+                    UserWarning,
+                    stacklevel=2,
+                )
+                EncryptedMerge._warned = True
+            self._backend: CryptoBackend = XORLegacyBackend()
+        elif backend == "auto":
+            try:
+                from cryptography.hazmat.primitives.ciphers.aead import AESGCM  # noqa: F401
+                self._backend = AES256GCMBackend()
+            except ImportError:
+                if not EncryptedMerge._warned:
+                    warnings.warn(
+                        "crdt_merge.encryption: 'cryptography' package not installed. "
+                        "Falling back to XOR keystream (NOT production-grade). "
+                        "Install with: pip install crdt-merge[crypto]",
+                        UserWarning,
+                        stacklevel=2,
+                    )
+                    EncryptedMerge._warned = True
+                self._backend = XORLegacyBackend()
+        else:
+            self._backend = get_backend(backend)
 
     # -- Single-field operations ---------------------------------------------
 
@@ -237,29 +448,25 @@ class EncryptedMerge:
         field_key = self._kp.get_key(field_name)
         plaintext = json.dumps(value, sort_keys=True, default=str).encode("utf-8")
 
-        # Random nonce
-        nonce = secrets.token_bytes(_NONCE_BYTES)
-
-        # Encrypt: XOR with HMAC-derived keystream
-        stream = _keystream(field_key, nonce, len(plaintext))
-        ciphertext = _xor_bytes(plaintext, stream)
-
-        # Auth tag: HMAC(field_key, nonce || ciphertext)
-        tag_input = nonce + ciphertext
-        tag = hmac.new(field_key, tag_input, hashlib.sha256).digest()
+        # Encrypt using the active backend
+        ciphertext, nonce, tag = self._backend.encrypt(field_key, plaintext)
 
         # Order-preserving tag: HMAC(field_key, canonical(value))
         order_tag = hmac.new(
             field_key, _canonical_repr(value), hashlib.sha256
         ).digest()
 
-        return EncryptedValue(
+        ev = EncryptedValue(
             ciphertext=ciphertext,
             nonce=nonce,
             tag=tag,
             field_name=field_name,
             order_tag=order_tag,
         )
+        # Tag the cipher used (skip for xor-legacy to keep v1 wire compat)
+        if self._backend.name != "xor-legacy":
+            ev.cipher = self._backend.name
+        return ev
 
     def decrypt_field(self, encrypted: EncryptedValue) -> Any:
         """Decrypt and verify an ``EncryptedValue``.
@@ -269,18 +476,17 @@ class EncryptedMerge:
         """
         field_key = self._kp.get_key(encrypted.field_name)
 
-        # Verify auth tag
-        tag_input = encrypted.nonce + encrypted.ciphertext
-        expected_tag = hmac.new(field_key, tag_input, hashlib.sha256).digest()
-        if not hmac.compare_digest(expected_tag, encrypted.tag):
-            raise ValueError(
-                f"Authentication failed for field {encrypted.field_name!r}: "
-                "ciphertext may have been tampered with"
-            )
+        # Route to the correct backend based on cipher metadata
+        cipher_name = getattr(encrypted, "cipher", None)
+        if not cipher_name:
+            # v1 / legacy — always use XOR backend regardless of current backend
+            backend = XORLegacyBackend()
+        else:
+            # v2 — use the named backend
+            backend = get_backend(cipher_name)
 
-        # Decrypt
-        stream = _keystream(field_key, encrypted.nonce, len(encrypted.ciphertext))
-        plaintext = _xor_bytes(encrypted.ciphertext, stream)
+        plaintext = backend.decrypt(field_key, encrypted.ciphertext, encrypted.nonce, encrypted.tag)
+
         return json.loads(plaintext.decode("utf-8"))
 
     # -- Bulk record operations ----------------------------------------------
@@ -414,8 +620,10 @@ class EncryptedMerge:
         Decrypts each encrypted field with the old key, then re-encrypts with
         the new key. Non-encrypted fields pass through unchanged.
         """
-        old_em = EncryptedMerge(old_provider)
-        new_em = EncryptedMerge(new_provider)
+        # old_em only needs the key provider for decryption; decrypt_field
+        # auto-routes to the correct backend via the cipher metadata.
+        old_em = EncryptedMerge(old_provider, backend="xor-legacy")
+        new_em = EncryptedMerge(new_provider, backend=self._backend.name)
         out: List[Dict[str, Any]] = []
         for rec in records:
             new_rec: Dict[str, Any] = {}
