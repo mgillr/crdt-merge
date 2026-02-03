@@ -46,11 +46,17 @@ crdt-merge is the **complete merge toolkit** that sits beneath all of these — 
 | **v0.7.1** | The Polars Engine Release | Polars merge engine (38.8× A100), `engine="auto"` fallback, `[fast]` opt-in | ~17,500 | 1,148 | ✅ COMPLETE |
 | **v0.8.0** | The Intelligence Release | ModelCRDT (25 strategies), LoRA, evolutionary merge, provenance, heatmaps, federated bridge | ~30,000 | 1,923 | ✅ COMPLETE |
 | **v0.8.1** | The CRDT Architecture Release | Two-layer CRDT architecture, all 25 strategies provably satisfy CRDT laws | ~30,600 | 2,118 | ✅ COMPLETE |
-| **v0.8.2** | The Adoption Release | Context Memory (manifests+sidecars+bloom), Agentic AI State Merge, MergeKit CLI, Flower FL Plugin | ~34,000 | ~2,200 | ✅ COMPLETE |
+| **v0.8.2** | The Adoption Release | Context Memory (manifests+sidecars+bloom), Agentic AI State Merge, MergeKit CLI | ~34,000 | ~2,200 | ✅ COMPLETE ¹ |
 | **v0.8.3** | The Research Release | Continual Merge Engine, HuggingFace Hub Native Integration | ~36,500 | ~2,600 | ✅ COMPLETE |
-| **v0.9.0** | The Enterprise Release | UnmergeEngine, EU AI Act compliance, model unmerging, encryption, RBAC, observability | ~35,000 | ~2,700 | ✅ COMPLETE |
+| **v0.9.0** | The Enterprise Release | UnmergeEngine, model unmerging, encryption, RBAC, foundational observability | ~35,000 | ~2,700 | ⚡ CORE SHIPPED ² |
 | **v0.9.1** | The Iron Dome Release | Pluggable crypto backends (AES-256-GCM, AES-GCM-SIV, ChaCha20-Poly1305), 186 new tests (135 PBT + 51 backend), audit remediation | ~37,800 | ~3,041 | ✅ COMPLETE |
-| **v1.0.0** | The Platform Release | API freeze, formal spec, security audit, comprehensive docs, certification | ~39,000 | ~3,500 | 📋 Planned |
+| **v0.9.1.1** | The Backfill Patch | `[crypto]` optional dependency fix in pyproject.toml | ~37,800 | ~3,041 | 📋 Planned |
+| **v0.9.2** | The Completion Release | ComplianceAuditor, EU AI Act reports, full observability (OTel/Prometheus/Grafana/drift), Flower FL plugin | ~39,500 | ~3,300 | 📋 Planned |
+| **v1.0.0** | The Platform Release | API freeze, formal spec, security audit, comprehensive docs, certification | ~40,500 | ~3,600 | 📋 Planned |
+
+> ¹ Flower FL Plugin (`flwr-crdt-merge`) deferred — underlying `FederatedMerge` engine shipped in v0.8.0; Flower adapter targeted for v0.9.2 as a separate PyPI package.
+>
+> ² Core enterprise primitives shipped: UnmergeEngine (tabular + model + GDPR), pluggable encryption, RBAC, foundational observability (MetricsCollector, HealthCheck, ObservedMerge). Compliance suite (ComplianceAuditor, EUAIActReport) and full observability integration (OTel, Prometheus, Grafana, drift detection) deferred to v0.9.2 — see rationale below.
 
 ---
 
@@ -1457,7 +1463,9 @@ result = pipeline.execute()
 
 ---
 
-### Flower FL Plugin (~150 lines)
+### Flower FL Plugin (~150 lines) — 🔧 Deferred to v0.9.2
+
+> **Status: DEFERRED** — The underlying `FederatedMerge` engine (FedAvg/FedProx with provenance) shipped in v0.8.0. The Flower-specific `CRDTStrategy` adapter (`flwr-crdt-merge` separate PyPI package) was deferred to allow proper integration testing with Flower's evolving Strategy API. Targeted for v0.9.2.
 
 Separate PyPI package (`flwr-crdt-merge`) that plugs into every Flower federated learning project. Trojan horse into the FL research community (5.4K ⭐).
 
@@ -1636,9 +1644,11 @@ print(result.model_card)
 
 ---
 
-## v0.9.0 — "The Enterprise Release" (UnmergeEngine + Compliance)
+## v0.9.0 — "The Enterprise Release" (UnmergeEngine + Compliance Foundation)
 
-**Target LOC:** ~35,000 (+~3,000) · **Target Tests:** ~2,700 (+~500) · **Breaking Changes:** 0
+**Status:** Core shipped 2026-03-29 · **LOC:** ~35,000 (+~3,000) · **Tests:** ~2,700 (+~500) · **Breaking Changes:** 0
+
+> **Scope Note:** The core enterprise features shipped in v0.9.0: UnmergeEngine (tabular + model unmerging + GDPR), encryption (pluggable backends extended in v0.9.1), RBAC, and foundational observability (MetricsCollector, HealthCheck, ObservedMerge). The compliance report generation layer (ComplianceAuditor, EUAIActReport) and full observability integration suite (OpenTelemetry, Prometheus, Grafana, drift detection) were deferred to v0.9.2 to ensure production-quality implementation. The underlying data capture layers are complete — v0.9.2 adds the reporting and external integration layers on top.
 
 ### UnmergeEngine (~600 lines)
 
@@ -1744,7 +1754,11 @@ policy = MergePolicy({
 result = merge(left, right, schema, policy=policy, role=current_user.role)
 ```
 
-### Observability + Merge Dashboard (~500 lines)
+### Observability + Merge Dashboard (~500 lines) — ⚡ Foundation Shipped
+
+> **What shipped in v0.9.0:** `MetricsCollector` (thread-safe FIFO metrics recording + querying), `HealthCheck` (threshold-based merge health evaluation), `ObservedMerge` (auto-instrumented merge wrapper with timing) — ~420 LOC in `observability.py`.
+>
+> **Deferred to v0.9.2:** `MergeTracer` (OTel spans), `DriftDetector`, `MergeDashboard` (Grafana template), Prometheus export — ~500 additional LOC across 4 submodules. See v0.9.2 section below.
 
 Datadog-for-model-merges: real-time lineage tracking, drift detection, quality monitoring. Every merge operation emits OpenTelemetry spans with full CRDT lineage metadata. Includes a Grafana dashboard template for out-of-the-box visualization.
 
@@ -1796,7 +1810,11 @@ dashboard_json = MergeDashboard.grafana_template()
 | **MergeDashboard** | `observability/dashboard.py` | 100 | Grafana dashboard JSON template |
 | **Prometheus Export** | `observability/prometheus.py` | 100 | Metrics export for monitoring |
 
-### Compliance Suite (~400 lines)
+### Compliance Suite (~400 lines) — 🔧 Deferred to v0.9.2
+
+> **Foundation available:** Hash-chained `AuditLog` (`audit.py`), `ContextManifest` with EU AI Act Article 13 metadata (`context/manifest.py`), `GDPRForget` (`unmerge.py`), full provenance chains across all merge domains. The data capture layer is complete.
+>
+> **Deferred to v0.9.2:** `ComplianceAuditor` class, `EUAIActReport` PDF generator, framework-specific report templates (GDPR, HIPAA, SOX). The report generation layer requires careful validation against regulatory requirements before shipping.
 
 ```python
 from crdt_merge.compliance import ComplianceAuditor
@@ -1821,7 +1839,9 @@ ai_act_report = auditor.ai_act_compliance(
 )
 ```
 
-### EU AI Act Compliance Report Generator (~300 lines) — 🚨 Time-Critical
+### EU AI Act Compliance Report Generator (~300 lines) — 🚨 Time-Critical — 🔧 Deferred to v0.9.2
+
+> **Deferred rationale:** The underlying provenance + manifest data capture shipped in v0.8.2–v0.9.0. The report generator formats this data into auditor-ready PDFs. Given the regulatory sensitivity, this was deferred to v0.9.2 for proper legal review of report templates. Target: June 2026 — 6 weeks before the August 2 enforcement deadline.
 
 **Enforcement deadline: August 2, 2026.** Every company deploying AI in the EU needs Article 13 traceability documentation. crdt-merge's provenance system already captures the data — this module generates the report.
 
@@ -1865,8 +1885,8 @@ print(validation.coverage)   # 94% of Article 13 requirements covered
 - **#14: Reversible merge (UnmergeEngine)** — v0.9.0 🆕
 - **#15: Model unmerging with provenance-guided contributor removal** — v0.9.0 🆕
 - **#16: GDPR "right to be forgotten" at the merge layer** — v0.9.0 🆕
-- **#17: EU AI Act compliance report generator** — v0.9.0 🆕
-- **#18: Merge Observability Dashboard with drift detection** — v0.9.0 🆕
+- **#17: EU AI Act compliance report generator** — foundation in v0.8.2–v0.9.0, report generator targeted for v0.9.2
+- **#18: Merge Observability Dashboard with drift detection** — foundation in v0.9.0 (MetricsCollector/HealthCheck), full suite (OTel/Prometheus/Grafana/drift) targeted for v0.9.2
 
 ### Competitive Position at v0.9.0
 
@@ -1884,6 +1904,178 @@ print(validation.coverage)   # 94% of Article 13 requirements covered
 | Open source | ✅ BSL-1.1 (ultra-open) | ❌ | ✅ | ✅ |
 
 ---
+
+---
+
+## v0.9.1.1 — "The Backfill Patch" 📋 Planned
+
+**Target:** Immediate · **LOC delta:** +5 lines · **Tests:** ~3,041 (unchanged) · **Breaking Changes:** 0
+
+Micro-patch to fix a documented install path that doesn't resolve.
+
+### `[crypto]` Optional Dependency — pyproject.toml Fix
+
+**The issue:** `encryption.py` documents `pip install crdt-merge[crypto]` but no `crypto` extra exists in `pyproject.toml`. Users following the documentation get a pip resolution error.
+
+**The fix (2 lines):**
+```toml
+[project.optional-dependencies]
+# ... existing extras ...
+crypto = ["cryptography>=41"]
+# Update 'all' to include crypto:
+all = ["pandas>=1.5", "polars>=0.19", "datasets>=2.0", "orjson>=3.9", "xxhash>=3.0", "numpy>=1.21", "cryptography>=41"]
+```
+
+**Justification:** Documentation-code mismatch, not a functional bug. The encryption module works correctly with manual `pip install cryptography`. The extras syntax is a packaging convenience that should match the docs.
+
+---
+
+## v0.9.2 — "The Completion Release" (Compliance + Full Observability) 📋 Planned
+
+**Target:** June 2026 (before EU AI Act enforcement August 2, 2026) · **Est. LOC:** ~39,500 (+~1,700) · **Est. Tests:** ~3,300 (+~260) · **Breaking Changes:** 0
+
+This release completes the enterprise feature set. The underlying data capture layers (audit logs, provenance chains, manifests, basic metrics) shipped across v0.8.2–v0.9.1. v0.9.2 adds the **report generation** and **external integration** layers on top.
+
+### Why These Were Deferred — Engineering Rationale
+
+The v0.9.0 development cycle prioritised the core enterprise primitives — UnmergeEngine, encryption backends, RBAC, and the foundational observability layer. These are the hard engineering problems that everything else builds on. The reporting and integration layers were deferred because they require:
+
+1. **Regulatory review** — EU AI Act report templates need legal validation before shipping. Getting the format wrong carries real liability.
+2. **External dependency testing** — OTel, Prometheus, and Grafana integrations require compatibility testing across versions. Shipping untested integrations into enterprise environments is worse than not shipping.
+3. **Community feedback** — shipping the foundations first allows early adopters to validate the data model before committing to report formats.
+
+This is standard enterprise software practice: **ship the engine, then ship the dashboard.**
+
+---
+
+### Compliance Suite (~400 lines)
+
+Complete compliance report generation, building on the data capture foundation.
+
+**Foundation already shipped:**
+
+| Component | Shipped In | Module | LOC |
+|-----------|-----------|--------|-----|
+| Hash-chained audit log | v0.9.0 | `audit.py` — `AuditLog`, `AuditedMerge` | ~370 |
+| Context manifests (EU AI Act Art. 13) | v0.8.2 | `context/manifest.py` — `ContextManifest` | ~200 |
+| GDPR "Right to Be Forgotten" | v0.9.0 | `unmerge.py` — `GDPRForget` | ~200 |
+| Full provenance chains | v0.8.0 | `provenance.py` — per-field + per-parameter | ~540 |
+| Agent memory provenance | v0.8.2 | `context/merge.py` — memory lineage tracking | ~250 |
+
+**New in v0.9.2:**
+
+```python
+from crdt_merge.compliance import ComplianceAuditor
+
+auditor = ComplianceAuditor(framework="gdpr")  # or "hipaa", "sox", "eu_ai_act"
+audit_result = auditor.audit(merge_provenance)
+report = auditor.generate_report(format="pdf", include_provenance=True)
+```
+
+| Component | Module | Est. LOC | What It Does |
+|-----------|--------|---------|-------------|
+| **ComplianceAuditor** | `compliance/auditor.py` | 200 | Framework-aware audit engine (GDPR, HIPAA, SOX, EU AI Act) |
+| **EUAIActReport** | `compliance/eu_ai_act.py` | 200 | Article 13 traceability PDF generator |
+
+---
+
+### EU AI Act Report Generator — 🚨 CRITICAL PATH
+
+**Enforcement deadline: August 2, 2026.** This is the highest-priority item in v0.9.2.
+
+```python
+from crdt_merge.compliance import EUAIActReport
+
+report = EUAIActReport(
+    model_provenance=model_merge_provenance,
+    training_data_provenance=training_provenance,
+    context_manifests=memory_manifests,
+)
+report.generate(format="pdf")
+validation = report.validate()
+print(validation.coverage)  # Target: 94%+ of Article 13 requirements
+```
+
+The data is already captured — `ContextManifest` (v0.8.2) stores EU AI Act Article 13 metadata, `AuditLog` (v0.9.0) provides hash-chained merge history, and provenance chains (v0.8.0+) track full data lineage. v0.9.2 adds the formatting layer that transforms this into auditor-ready compliance documents.
+
+---
+
+### Full Observability Suite (~500 lines)
+
+Expands the foundational `observability.py` (shipped v0.9.0) into a full monitoring integration suite.
+
+**Foundation already shipped (v0.9.0):**
+
+| Component | Status | What It Does |
+|-----------|--------|-------------|
+| `MetricsCollector` | ✅ Shipped | Thread-safe FIFO merge metrics recording + querying |
+| `HealthCheck` | ✅ Shipped | Threshold-based merge health evaluation |
+| `ObservedMerge` | ✅ Shipped | Auto-instrumented merge wrapper with timing |
+
+**New in v0.9.2:**
+
+| Component | Module | Est. LOC | What It Does |
+|-----------|--------|---------|-------------|
+| **MergeTracer** | `observability/tracer.py` | 200 | OpenTelemetry spans with merge lineage metadata |
+| **DriftDetector** | `observability/drift.py` | 100 | Statistical drift detection between merge outputs over time |
+| **MergeDashboard** | `observability/dashboard.py` | 100 | Pre-built Grafana dashboard JSON template |
+| **Prometheus Export** | `observability/prometheus.py` | 100 | `prometheus_client`-compatible metrics export |
+
+```python
+from crdt_merge.observability import MergeTracer, DriftDetector
+
+tracer = MergeTracer()
+with tracer.trace_merge("customer_sync") as span:
+    result = merge(left, right, schema)
+
+drift = DriftDetector().detect(baseline=yesterday, current=today, threshold=0.05)
+tracer.export_prometheus()
+```
+
+**New optional dependencies:** `opentelemetry-api` (optional), `prometheus_client` (optional)
+
+---
+
+### Flower FL Plugin (~150 lines) — Separate Package
+
+Completes the deferred v0.8.2 deliverable. Separate PyPI package (`flwr-crdt-merge`) wrapping the existing `FederatedMerge` engine (shipped v0.8.0).
+
+```python
+# pip install flwr-crdt-merge
+from flwr_crdt_merge import CRDTStrategy
+
+strategy = CRDTStrategy(merge_strategy="fisher", provenance=True)
+fl.server.start_server(strategy=strategy)
+```
+
+**Foundation already shipped:** `FederatedMerge` in `model/federated.py` (FedAvg, FedProx, sample-weighted aggregation, client provenance)
+
+**New:** `CRDTStrategy` adapter class conforming to Flower's `Strategy` interface
+
+---
+
+### v0.9.2 Delivery Checklist
+
+| Deliverable | Priority | Est. Effort | Foundation |
+|-------------|----------|-------------|------------|
+| `compliance/auditor.py` | 🔴 Critical | 1 day | `audit.py` + `provenance.py` |
+| `compliance/eu_ai_act.py` | 🔴 Critical | 1 day | `context/manifest.py` + provenance |
+| `observability/tracer.py` (OTel) | 🟡 High | 0.5 day | `observability.py` MetricsCollector |
+| `observability/drift.py` | 🟡 High | 0.5 day | `observability.py` MetricsCollector |
+| `observability/prometheus.py` | 🟡 High | 0.5 day | `observability.py` MetricsCollector |
+| `observability/dashboard.py` (Grafana) | 🟡 High | 0.5 day | tracer.py + prometheus.py |
+| `flwr-crdt-merge` package | 🟢 Medium | 1 day | `model/federated.py` |
+| Tests (~260 new) | Required | Included | All above |
+
+**Total estimated effort:** 5–6 days
+**Target release:** June 2026 (6 weeks before EU AI Act enforcement)
+
+### Unicorn Features Delivered at v0.9.2
+
+- **#0–#16:** All previous ✅
+- **#17: EU AI Act compliance report generator** — v0.9.2 🆕
+- **#18: Merge Observability Dashboard with drift detection** — v0.9.2 🆕
+
 
 ## v1.0.0 — "The Platform Release" (Freeze + Certify)
 
@@ -1958,23 +2150,23 @@ crdt-merge-spec/
 | 14 | Reversible merge (UnmergeEngine) | v0.9.0 | 📋 |
 | 15 | Model unmerging (provenance-guided) | v0.9.0 | 📋 |
 | 16 | GDPR "right to be forgotten" at merge layer | v0.9.0 | 📋 |
-| 17 | EU AI Act compliance report generator | v0.9.0 | 📋 |
-| 18 | Merge Observability Dashboard with drift detection | v0.9.0 | 📋 |
+| 17 | EU AI Act compliance report generator | v0.9.2 | 📋 |
+| 18 | Merge Observability Dashboard with drift detection | v0.9.2 | 📋 |
 
 ---
 
 ## Evolution Summary Table
 
-| Metric | v0.5.1 | v0.6.0 | v0.7.0 | v0.7.1 | v0.8.0 | v0.8.0.1 | v0.8.1 | v0.8.2 | v0.8.3 | v0.9.0 | v1.0.0 |
-|--------|--------|--------|--------|--------|--------|----------|--------|--------|--------|--------|--------|
-| **LOC** | 4,028 | 6,478 | 17,172 | ~17,500 | ~30,000 | ~30,100 | ~30,600 | ~32,000 | ~33,500 | ~36,000 | ~37,000 |
-| **Tests** | 425 | 685 | 1,114 | 1,148 | 1,923 | 1,903+ | 2,118 | ~2,200 | ~2,400 | ~2,900 | ~3,200 |
-| **Modules** | 13 | 20 | 38 | 38 | 44 | 44 | 44 | ~50 | ~54 | ~61 | ~64 |
-| **Merge Strategies (tabular)** | 8 | 8 | 8 | 8 | 8 | 8 | 8 | 8 | 8 | 8 | 8 |
-| **Merge Strategies (model)** | 0 | 0 | 0 | 0 | 25 | 25 | 25 | 25 | 26 | 26 | 26+ |
-| **Merge Domains** | 1 | 1 | 1 | 1 | 2 | 2 | 2 | 3 | 3 | 3 | 3 |
-| **Dependencies (required)** | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| **Unicorn Features** | 2 | 2 | 3 | 3 | 8 | 8 | 9 | 12 | 14 | 18 | 18 |
+| Metric | v0.5.1 | v0.6.0 | v0.7.0 | v0.7.1 | v0.8.0 | v0.8.0.1 | v0.8.1 | v0.8.2 | v0.8.3 | v0.9.0 | v0.9.1 | v0.9.1.1 | v0.9.2 | v1.0.0 |
+|--------|--------|--------|--------|--------|--------|----------|--------|--------|--------|--------|--------|----------|--------|--------|
+| **LOC** | 4,028 | 6,478 | 17,172 | ~17,500 | ~30,000 | ~30,100 | ~30,600 | ~32,000 | ~33,500 | ~35,000 | ~37,800 | ~37,800 | ~39,500 | ~40,500 |
+| **Tests** | 425 | 685 | 1,114 | 1,148 | 1,923 | 1,903+ | 2,118 | ~2,200 | ~2,400 | ~2,700 | ~3,041 | ~3,041 | ~3,300 | ~3,600 |
+| **Modules** | 13 | 20 | 38 | 38 | 44 | 44 | 44 | ~50 | ~54 | ~58 | ~58 | ~58 | ~64 | ~67 |
+| **Merge Strategies (tabular)** | 8 | 8 | 8 | 8 | 8 | 8 | 8 | 8 | 8 | 8 | 8 | 8 | 8 | 8 |
+| **Merge Strategies (model)** | 0 | 0 | 0 | 0 | 25 | 25 | 25 | 25 | 26 | 26 | 26 | 26 | 26 | 26+ |
+| **Merge Domains** | 1 | 1 | 1 | 1 | 2 | 2 | 2 | 3 | 3 | 3 | 3 | 3 | 3 | 3 |
+| **Dependencies (required)** | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| **Unicorn Features** | 2 | 2 | 3 | 3 | 8 | 8 | 9 | 12 | 14 | 16 | 16 | 16 | 18 | 18 |
 
 ---
 
@@ -2001,14 +2193,22 @@ crdt-merge-spec/
 2026 Q1  ████████████████████████  v0.8.1 COMPLETE ✅ (shipped 2026-03-29)
          │                          Two-layer CRDT architecture, 25/25 strategies provably CRDT, 2,118 tests
          │
-2026 Q2  ████████████████████████  v0.8.2 — Context Memory, Agentic AI, MergeKit CLI, Flower
-         │                          Target: May 2026
+2026 Q2  ████████████████████████  v0.8.2 COMPLETE ✅ — Context Memory, Agentic AI, MergeKit CLI
+         │                          Flower FL Plugin deferred to v0.9.2 (FederatedMerge foundation shipped v0.8.0)
          │
 2026 Q2  ████████████████████████  v0.8.3 — Continual Merge Engine, HuggingFace Hub Native
          │                          Target: June 2026
          │
-2026 Q3  ████████████████████████  v0.9.0 — UnmergeEngine, EU AI Act (⚠️ Aug 2), Dashboard, RBAC
-         │                          Target: July 2026 (before EU AI Act enforcement)
+2026 Q2  ████████████████████████  v0.9.0 CORE SHIPPED ⚡ — UnmergeEngine, Encryption, RBAC, Basic Observability
+         │                          Compliance suite + full observability deferred to v0.9.2
+         │
+2026 Q2  ████████████████████████  v0.9.1 COMPLETE ✅ — Pluggable crypto backends (AES-256-GCM, AES-GCM-SIV,
+         │                          ChaCha20-Poly1305), 186 new tests, audit remediation
+         │
+2026 Q2  ██░░░░░░░░░░░░░░░░░░░░░░  v0.9.1.1 PLANNED — [crypto] extras fix (pyproject.toml)
+         │
+2026 Q2  ██░░░░░░░░░░░░░░░░░░░░░░  v0.9.2 PLANNED — ComplianceAuditor, EU AI Act reports, full observability,
+         │                          Flower FL Plugin. Target: June 2026 (before EU AI Act Aug 2)
          │
 2026 Q4  ████████████████████████  v1.0.0 — API Freeze, Formal Spec, Security Audit, Docs
                                     Target: October 2026
