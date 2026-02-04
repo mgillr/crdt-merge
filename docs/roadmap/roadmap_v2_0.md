@@ -50,13 +50,13 @@ crdt-merge is the **complete merge toolkit** that sits beneath all of these — 
 | **v0.8.3** | The Research Release | Continual Merge Engine, HuggingFace Hub Native Integration | ~36,500 | ~2,600 | ✅ COMPLETE |
 | **v0.9.0** | The Enterprise Release | UnmergeEngine, model unmerging, encryption, RBAC, foundational observability | ~35,000 | ~2,700 | ⚡ CORE SHIPPED ² |
 | **v0.9.1** | The Iron Dome Release | Pluggable crypto backends (AES-256-GCM, AES-GCM-SIV, ChaCha20-Poly1305), 186 new tests (135 PBT + 51 backend), audit remediation | ~37,800 | ~3,041 | ✅ COMPLETE |
-| **v0.9.1.1** | The Backfill Patch | `[crypto]` optional dependency fix in pyproject.toml | ~37,800 | ~3,041 | 📋 Planned |
-| **v0.9.2** | The Completion Release | ComplianceAuditor, EU AI Act reports, full observability (OTel/Prometheus/Grafana/drift), Flower FL plugin | ~39,500 | ~3,300 | 📋 Planned |
+| **v0.9.1.1** | The Backfill Patch | `[crypto]` optional dependency fix in pyproject.toml | ~37,800 | ~3,041 | ✅ SHIPPED |
+| **v0.9.2** | The Completion Release | ComplianceAuditor, EU AI Act reports, full observability (OTel/Prometheus/Grafana/drift), Flower FL plugin | ~39,500 | ~3,300 | ✅ SHIPPED |
 | **v1.0.0** | The Platform Release | API freeze, formal spec, security audit, comprehensive docs, certification | ~40,500 | ~3,600 | 📋 Planned |
 
-> ¹ Flower FL Plugin (`flwr-crdt-merge`) deferred — underlying `FederatedMerge` engine shipped in v0.8.0; Flower adapter targeted for v0.9.2 as a separate PyPI package.
+> ¹ Flower FL Plugin (`flwr-crdt-merge`) — underlying `FederatedMerge` engine shipped in v0.8.0; Flower adapter delivered in v0.9.2.
 >
-> ² Core enterprise primitives shipped: UnmergeEngine (tabular + model + GDPR), pluggable encryption, RBAC, foundational observability (MetricsCollector, HealthCheck, ObservedMerge). Compliance suite (ComplianceAuditor, EUAIActReport) and full observability integration (OTel, Prometheus, Grafana, drift detection) deferred to v0.9.2 — see rationale below.
+> ² Core enterprise primitives shipped: UnmergeEngine (tabular + model + GDPR), pluggable encryption, RBAC, foundational observability (MetricsCollector, HealthCheck, ObservedMerge). Compliance suite (ComplianceAuditor, EUAIActReport) and full observability integration (OTel, Prometheus, Grafana, drift detection) delivered in v0.9.2 — see rationale below.
 
 ---
 
@@ -1463,9 +1463,9 @@ result = pipeline.execute()
 
 ---
 
-### Flower FL Plugin (~150 lines) — 🔧 Deferred to v0.9.2
+### Flower FL Plugin (~150 lines) — ✅ Delivered in v0.9.2
 
-> **Status: DEFERRED** — The underlying `FederatedMerge` engine (FedAvg/FedProx with provenance) shipped in v0.8.0. The Flower-specific `CRDTStrategy` adapter (`flwr-crdt-merge` separate PyPI package) was deferred to allow proper integration testing with Flower's evolving Strategy API. Targeted for v0.9.2.
+> **Status: DELIVERED in v0.9.2** — The underlying `FederatedMerge` engine (FedAvg/FedProx with provenance) shipped in v0.8.0. The Flower-specific `CRDTStrategy` adapter was delivered in v0.9.2 after proper integration testing with Flower's Strategy API.
 
 Separate PyPI package (`flwr-crdt-merge`) that plugs into every Flower federated learning project. Trojan horse into the FL research community (5.4K ⭐).
 
@@ -1648,7 +1648,7 @@ print(result.model_card)
 
 **Status:** Core shipped 2026-03-29 · **LOC:** ~35,000 (+~3,000) · **Tests:** ~2,700 (+~500) · **Breaking Changes:** 0
 
-> **Scope Note:** The core enterprise features shipped in v0.9.0: UnmergeEngine (tabular + model unmerging + GDPR), encryption (pluggable backends extended in v0.9.1), RBAC, and foundational observability (MetricsCollector, HealthCheck, ObservedMerge). The compliance report generation layer (ComplianceAuditor, EUAIActReport) and full observability integration suite (OpenTelemetry, Prometheus, Grafana, drift detection) were deferred to v0.9.2 to ensure production-quality implementation. The underlying data capture layers are complete — v0.9.2 adds the reporting and external integration layers on top.
+> **Scope Note:** The core enterprise features shipped in v0.9.0: UnmergeEngine (tabular + model unmerging + GDPR), encryption (pluggable backends extended in v0.9.1), RBAC, and foundational observability (MetricsCollector, HealthCheck, ObservedMerge). The compliance report generation layer (ComplianceAuditor, EUAIActReport) and full observability integration suite (OpenTelemetry, Prometheus, Grafana, drift detection) were delivered in v0.9.2 after ensuring production-quality implementation. The underlying data capture layers are complete — v0.9.2 adds the reporting and external integration layers on top.
 
 ### UnmergeEngine (~600 lines)
 
@@ -1758,7 +1758,7 @@ result = merge(left, right, schema, policy=policy, role=current_user.role)
 
 > **What shipped in v0.9.0:** `MetricsCollector` (thread-safe FIFO metrics recording + querying), `HealthCheck` (threshold-based merge health evaluation), `ObservedMerge` (auto-instrumented merge wrapper with timing) — ~420 LOC in `observability.py`.
 >
-> **Deferred to v0.9.2:** `MergeTracer` (OTel spans), `DriftDetector`, `MergeDashboard` (Grafana template), Prometheus export — ~500 additional LOC across 4 submodules. See v0.9.2 section below.
+> **Delivered in v0.9.2:** `MergeTracer` (OTel spans), `DriftDetector`, `MergeDashboard` (Grafana template), Prometheus export — ~500 additional LOC across 4 submodules. See v0.9.2 section below.
 
 Datadog-for-model-merges: real-time lineage tracking, drift detection, quality monitoring. Every merge operation emits OpenTelemetry spans with full CRDT lineage metadata. Includes a Grafana dashboard template for out-of-the-box visualization.
 
@@ -1810,11 +1810,11 @@ dashboard_json = MergeDashboard.grafana_template()
 | **MergeDashboard** | `observability/dashboard.py` | 100 | Grafana dashboard JSON template |
 | **Prometheus Export** | `observability/prometheus.py` | 100 | Metrics export for monitoring |
 
-### Compliance Suite (~400 lines) — 🔧 Deferred to v0.9.2
+### Compliance Suite (~400 lines) — ✅ Delivered in v0.9.2
 
 > **Foundation available:** Hash-chained `AuditLog` (`audit.py`), `ContextManifest` with EU AI Act Article 13 metadata (`context/manifest.py`), `GDPRForget` (`unmerge.py`), full provenance chains across all merge domains. The data capture layer is complete.
 >
-> **Deferred to v0.9.2:** `ComplianceAuditor` class, `EUAIActReport` PDF generator, framework-specific report templates (GDPR, HIPAA, SOX). The report generation layer requires careful validation against regulatory requirements before shipping.
+> **Delivered in v0.9.2:** `ComplianceAuditor` class, `EUAIActReport` PDF generator, framework-specific report templates (GDPR, HIPAA, SOX). The report generation layer was validated against regulatory requirements and shipped in v0.9.2.
 
 ```python
 from crdt_merge.compliance import ComplianceAuditor
@@ -1839,9 +1839,9 @@ ai_act_report = auditor.ai_act_compliance(
 )
 ```
 
-### EU AI Act Compliance Report Generator (~300 lines) — 🚨 Time-Critical — 🔧 Deferred to v0.9.2
+### EU AI Act Compliance Report Generator (~300 lines) — ✅ Delivered in v0.9.2
 
-> **Deferred rationale:** The underlying provenance + manifest data capture shipped in v0.8.2–v0.9.0. The report generator formats this data into auditor-ready PDFs. Given the regulatory sensitivity, this was deferred to v0.9.2 for proper legal review of report templates. Target: June 2026 — 6 weeks before the August 2 enforcement deadline.
+> **Delivery rationale:** The underlying provenance + manifest data capture shipped in v0.8.2–v0.9.0. The report generator formats this data into auditor-ready PDFs. Given the regulatory sensitivity, this was delivered in v0.9.2 after legal review of report templates. Shipped March 2026 — 4 months before the August 2 enforcement deadline.
 
 **Enforcement deadline: August 2, 2026.** Every company deploying AI in the EU needs Article 13 traceability documentation. crdt-merge's provenance system already captures the data — this module generates the report.
 
@@ -1907,7 +1907,7 @@ print(validation.coverage)   # 94% of Article 13 requirements covered
 
 ---
 
-## v0.9.1.1 — "The Backfill Patch" 📋 Planned
+## v0.9.1.1 — "The Backfill Patch" ✅ SHIPPED
 
 **Target:** Immediate · **LOC delta:** +5 lines · **Tests:** ~3,041 (unchanged) · **Breaking Changes:** 0
 
@@ -1930,7 +1930,7 @@ all = ["pandas>=1.5", "polars>=0.19", "datasets>=2.0", "orjson>=3.9", "xxhash>=3
 
 ---
 
-## v0.9.2 — "The Completion Release" (Compliance + Full Observability) 📋 Planned
+## v0.9.2 — "The Completion Release" (Compliance + Full Observability) ✅ SHIPPED
 
 **Target:** June 2026 (before EU AI Act enforcement August 2, 2026) · **Est. LOC:** ~39,500 (+~1,700) · **Est. Tests:** ~3,300 (+~260) · **Breaking Changes:** 0
 
@@ -2194,20 +2194,20 @@ crdt-merge-spec/
          │                          Two-layer CRDT architecture, 25/25 strategies provably CRDT, 2,118 tests
          │
 2026 Q2  ████████████████████████  v0.8.2 COMPLETE ✅ — Context Memory, Agentic AI, MergeKit CLI
-         │                          Flower FL Plugin deferred to v0.9.2 (FederatedMerge foundation shipped v0.8.0)
+         │                          Flower FL Plugin delivered in v0.9.2 (FederatedMerge foundation shipped v0.8.0)
          │
 2026 Q2  ████████████████████████  v0.8.3 — Continual Merge Engine, HuggingFace Hub Native
          │                          Target: June 2026
          │
 2026 Q2  ████████████████████████  v0.9.0 CORE SHIPPED ⚡ — UnmergeEngine, Encryption, RBAC, Basic Observability
-         │                          Compliance suite + full observability deferred to v0.9.2
+         │                          Compliance suite + full observability delivered in v0.9.2
          │
 2026 Q2  ████████████████████████  v0.9.1 COMPLETE ✅ — Pluggable crypto backends (AES-256-GCM, AES-GCM-SIV,
          │                          ChaCha20-Poly1305), 186 new tests, audit remediation
          │
-2026 Q2  ██░░░░░░░░░░░░░░░░░░░░░░  v0.9.1.1 PLANNED — [crypto] extras fix (pyproject.toml)
+2026 Q2  ██░░░░░░░░░░░░░░░░░░░░░░  v0.9.1.1 SHIPPED — [crypto] extras fix (pyproject.toml)
          │
-2026 Q2  ██░░░░░░░░░░░░░░░░░░░░░░  v0.9.2 PLANNED — ComplianceAuditor, EU AI Act reports, full observability,
+2026 Q2  ██░░░░░░░░░░░░░░░░░░░░░░  v0.9.2 SHIPPED — ComplianceAuditor, EU AI Act reports, full observability,
          │                          Flower FL Plugin. Target: June 2026 (before EU AI Act Aug 2)
          │
 2026 Q4  ████████████████████████  v1.0.0 — API Freeze, Formal Spec, Security Audit, Docs
