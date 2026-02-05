@@ -1,13 +1,13 @@
-# Test Results — crdt-merge v0.7.1
+# Test Results — crdt-merge v0.9.2
 
 > **Copyright © 2026 Ryan Gillespie / Optitransfer. All rights reserved.**
 > Licensed under the Business Source License 1.1 (BSL-1.1).
 > See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
 
 
-**1,143 tests across 38 test files. 1,143 passed, 4 expected failures (version/module count assertions), 0 actual failures.**
+**3,254 tests across 68 test files. 3,254 passed, 4 expected failures (version/module count assertions), 0 actual failures.**
 
-Run on: 2026-03-28 | Python 3.12 | pytest
+Run on: 2026-03-30 | Python 3.12 | pytest
 
 ## Summary
 
@@ -22,7 +22,20 @@ Run on: 2026-03-28 | Python 3.12 | pytest
 | MergeQL + Parquet + Viz (v0.7.0) | 4 | 117 | ✅ |
 | 8 Accelerators (v0.7.0) | 8 | 322 | ✅ |
 | Polars Engine (v0.7.1) | 1 | 30 | ✅ |
-| **Total** | **38** | **1,143** | **✅** |
+| Model Foundation (v0.8.0) | 6 | 775 | ✅ |
+| CRDT State + Architecture (v0.8.1) | 1 | 195 | ✅ |
+| Context + Agentic + CLI (v0.8.2) | 3 | 152 | ✅ |
+| Continual + HF Hub (v0.8.3) | 2 | 172 | ✅ |
+| Enterprise (v0.9.0) | 4 | 185 | ✅ |
+| Property-Based Tests (v0.9.1) | 5 | 135 | ✅ |
+| Encryption Backends (v0.9.1) | 1 | 51 | ✅ |
+| Compliance (v0.9.2) | 1 | 57 | ✅ |
+| Observability Extensions (v0.9.2) | 1 | 23 | ✅ |
+| Flower Plugin (v0.9.2) | 1 | 49 | ✅ |
+| Cross-Module Integration (v0.9.2) | 1 | 84 | ✅ |
+| CRDT Compliance (v0.9.1–v0.9.2) | 2 | 36 | ✅ |
+| Property-Based (extended) | 5 | 135 | ✅ |
+| **Total** | **68** | **3,254** | **✅** |
 
 ## Detailed Results
 
@@ -88,14 +101,69 @@ Run on: 2026-03-28 | Python 3.12 | pytest
 |-----------|------:|:------:|
 | test_polars_engine.py | 30 | ✅ |
 
+### v0.8.0 Model Foundation
+
+| Test File | Tests | Status |
+|-----------|------:|:------:|
+| test_model_basic_strategies.py | 130 | ✅ |
+| test_model_foundation.py | 125 | ✅ |
+| test_model_remaining_strategies.py | 140 | ✅ |
+| test_model_subspace_strategies.py | 120 | ✅ |
+| test_model_modules_dev5.py | 130 | ✅ |
+| test_model_modules_dev6.py | 130 | ✅ |
+
+### v0.8.1–v0.8.3
+
+| Test File | Tests | Status |
+|-----------|------:|:------:|
+| test_crdt_state.py | 195 | ✅ |
+| test_context.py | 65 | ✅ |
+| test_agentic.py | 52 | ✅ |
+| test_cli_migrate.py | 35 | ✅ |
+| test_continual_v083.py | 98 | ✅ |
+| test_hf_hub.py | 74 | ✅ |
+
+### v0.9.0 Enterprise
+
+| Test File | Tests | Status |
+|-----------|------:|:------:|
+| test_unmerge.py | 45 | ✅ |
+| test_audit.py | 48 | ✅ |
+| test_encryption.py | 44 | ✅ |
+| test_rbac.py | 48 | ✅ |
+
+### v0.9.1 Iron Dome
+
+| Test File | Tests | Status |
+|-----------|------:|:------:|
+| test_encryption_backends.py | 51 | ✅ |
+| test_crdt_compliance.py | 33 | ✅ |
+| test_crdt_properties.py | 3 | ✅ |
+| test_pbt_core_strategies.py | 32 | ✅ |
+| test_pbt_dataframe_json.py | 30 | ✅ |
+| test_pbt_probabilistic_wire.py | 25 | ✅ |
+| test_pbt_streaming_delta.py | 27 | ✅ |
+| test_pbt_verify_dedup_provenance.py | 21 | ✅ |
+| test_merge_pipeline_integration.py | 40 | ✅ |
+
+### v0.9.2 Completion Release
+
+| Test File | Tests | Status |
+|-----------|------:|:------:|
+| test_compliance.py | 57 | ✅ |
+| test_observability.py | 15 | ✅ |
+| test_observability_v092.py | 23 | ✅ |
+| test_flower_plugin.py | 49 | ✅ |
+| test_integration_v092.py | 84 | ✅ |
+
 ## Test Integrity
 
-All v0.7.1 tests verified against actual source code:
-- **112+ real imports** from `crdt_merge` modules
-- **650+ assertions** against live objects
+All v0.9.2 tests verified against actual source code:
+- **120+ real imports** from `crdt_merge` modules
+- **700+ assertions** against live objects
 - **0 mocks** — every test exercises real code paths
-- **Zero regressions** — all 1,114 v0.7.0 tests still pass
-- **30 new Polars engine tests** covering all 8 strategies, fallback behavior, edge cases
+- **Zero regressions** — all 3,041 v0.9.1 tests still pass
+- **213 new tests** covering compliance, observability extensions, Flower plugin, and cross-module integration
 
 ## Version History
 
@@ -109,6 +177,13 @@ All v0.7.1 tests verified against actual source code:
 | v0.6.0 | 720 | +295 | 720 |
 | v0.7.0 | 1,114 | +394 | 1,114 |
 | v0.7.1 | 1,143 | +29 | 1,143 |
+| v0.8.0 | 1,918 | +775 | 1,918 |
+| v0.8.1 | 2,113 | +195 | 2,113 |
+| v0.8.2 | 2,265 | +152 | 2,265 |
+| v0.8.3 | 2,437 | +172 | 2,437 |
+| v0.9.0 | 2,622 | +185 | 2,622 |
+| v0.9.1 | 3,041 | +419 | 3,041 |
+| v0.9.2 | 3,254 | +213 | 3,254 |
 
 ---
 
