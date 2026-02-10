@@ -215,6 +215,21 @@ class CRDTStrategy(_FlowerStrategyBase):
         }
         return merged, metrics
 
+    def initialize_parameters(
+        self,
+        client_manager: Any = None,
+    ) -> Any:
+        """Return initial global parameters (None lets clients decide)."""
+        return None
+
+    def evaluate(
+        self,
+        server_round: int,
+        parameters: Any = None,
+    ) -> Any:
+        """Server-side evaluation (optional). Returns None to skip."""
+        return None
+
     def configure_evaluate(
         self,
         server_round: int,
