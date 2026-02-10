@@ -1072,7 +1072,7 @@ def _():
     def my_max_merge(a, b):
         return max(a, b)
     
-    # Should work normally
+    # Normal operation
     assert my_max_merge(5, 10) == 10
 
 # ============================================================

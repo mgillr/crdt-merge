@@ -726,7 +726,7 @@ class TestEdgeCases:
         assert sr.per_layer == {}
 
     def test_crdt_continual_new_layer_on_absorb(self, base_model, model_a):
-        """Absorbing a model with an extra layer should work."""
+        """Absorbing a model with an extra layer succeeds."""
         extra_model = {**model_a, "layer_new": [1.0, 2.0]}
         cm = ContinualMerge(base_model, convergence="crdt")
         cm.absorb(extra_model, name="extra")

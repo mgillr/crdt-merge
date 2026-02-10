@@ -45,7 +45,7 @@ The AEAD backends (AES-256-GCM, AES-GCM-SIV, ChaCha20-Poly1305) would silently f
 
 ## Implementation
 
-### Dev 1 — Build Configuration (`pyproject.toml`)
+### Phase 1 — Build Configuration (`pyproject.toml`)
 
 **Owner:** `pyproject.toml`
 **Dependencies:** None
@@ -89,7 +89,7 @@ python -c "from crdt_merge.encryption import get_backend; print(get_backend('aut
 
 | Role | Owner | Work |
 |------|-------|------|
-| **Dev 1** | @Dev | Add `crypto` extra and update `all` group in `pyproject.toml` |
+| **Phase 1** | @Dev | Add `crypto` extra and update `all` group in `pyproject.toml` |
 | **QA** | @Dev | Verify `pip install crdt-merge[crypto]` resolves; existing 51 encryption tests still pass |
 
 ### Sprint Organization
@@ -101,7 +101,7 @@ Single-developer patch — no parallel work needed. Total effort: <15 minutes.
 ## Execution Order
 
 ```
-Dev 1 (pyproject.toml edit) ──► verify install ──► commit ──► push ──► PyPI publish
+Phase 1 (pyproject.toml edit) ──► verify install ──► commit ──► push ──► PyPI publish
 ```
 
 ---

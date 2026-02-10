@@ -59,7 +59,7 @@ crdt_merge/
 
 ## Dev Team Assignment
 
-### Dev 1 — Foundation Layer (~600 lines, ~120 tests)
+### Phase 1 — Foundation Layer (~600 lines, ~120 tests)
 **Owner:** `model/core.py`, `model/strategies/base.py`, `model/strategies/__init__.py`, `model/__init__.py`
 
 **Deliverables:**
@@ -78,7 +78,7 @@ crdt_merge/
 
 ---
 
-### Dev 2 — Basic Strategies (~400 lines, ~100 tests)
+### Phase 2 — Basic Strategies (~400 lines, ~100 tests)
 **Owner:** `model/strategies/basic.py`
 
 **Deliverables — 4 strategies:**
@@ -91,12 +91,12 @@ crdt_merge/
 | 4 | Linear Interpolation | `LinearInterpolation` | θ = (1-t)·θ₁ + t·θ₂ | ✅⚠️ |
 
 **Academic citations required for each strategy.**
-**Dependencies:** Dev 1 (base.py ABC)
+**Dependencies:** Phase 1 (base.py ABC)
 **Tests:** Commutativity/associativity verification, edge cases (zero weights, single model, empty tensors)
 
 ---
 
-### Dev 3 — Subspace / Sparsification Strategies (~800 lines, ~120 tests)
+### Phase 3 — Subspace / Sparsification Strategies (~800 lines, ~120 tests)
 **Owner:** `model/strategies/subspace.py`
 
 **Deliverables — 9 strategies:**
@@ -113,12 +113,12 @@ crdt_merge/
 | 12 | SVD Knot-Tying | `SVDKnotTying` | 2024 | ✅ |
 | 13 | AdaRank | `AdaptiveRankPruning` | ICLR 2026 | ✅✅ |
 
-**Dependencies:** Dev 1 (base.py ABC), numpy
+**Dependencies:** Phase 1 (base.py ABC), numpy
 **Tests:** Each strategy with varying tensor sizes, sparsity levels, reproducibility (seed-deterministic)
 
 ---
 
-### Dev 4 — Weighted, Evolutionary, Unlearning, Calibration, Safety Strategies (~700 lines, ~100 tests)
+### Phase 4 — Weighted, Evolutionary, Unlearning, Calibration, Safety Strategies (~700 lines, ~100 tests)
 **Owner:** `model/strategies/weighted.py`, `model/strategies/evolutionary.py`, `model/strategies/unlearning.py`, `model/strategies/calibration.py`, `model/strategies/safety.py`
 
 **Deliverables — 12 strategies:**
@@ -138,12 +138,12 @@ crdt_merge/
 | 24 | SafeMERGE | safety.py | 2025 | ✅ |
 | 25 | LED-Merging | safety.py | 2025 | ✅ |
 
-**Dependencies:** Dev 1 (base.py ABC), numpy
+**Dependencies:** Phase 1 (base.py ABC), numpy
 **Tests:** Strategy-specific verification, fitness function interface, unlearning correctness
 
 ---
 
-### Dev 5 — LoRA, Pipeline, Provenance, Heatmap (~800 lines, ~140 tests)
+### Phase 5 — LoRA, Pipeline, Provenance, Heatmap (~800 lines, ~140 tests)
 **Owner:** `model/lora.py`, `model/pipeline.py`, `model/provenance.py`, `model/heatmap.py`
 
 **Deliverables:**
@@ -173,7 +173,7 @@ crdt_merge/
 - Sign agreement maps, magnitude distribution
 - Export to JSON/CSV for D3/Plotly visualization
 
-**Dependencies:** Dev 1 (core.py), Dev 2-4 (strategies)
+**Dependencies:** Phase 1 (core.py), Phase 2-4 (strategies)
 **Tests:** LoRA rank harmonization, pipeline DAG execution, provenance accuracy, heatmap generation
 
 ---
@@ -204,32 +204,32 @@ crdt_merge/
 - CPU offloading, multi-GPU support
 - float16/bfloat16 precision
 
-**Dependencies:** Dev 1 (core.py), Dev 2-4 (strategies)
+**Dependencies:** Phase 1 (core.py), Phase 2-4 (strategies)
 **Tests:** Continual absorb/replace, federated aggregation, MergeKit YAML roundtrip, GPU fallback
 
 ---
 
 ## Phased Implementation Schedule
 
-### Phase 1: Foundation (Dev 1)
+### Phase 1: Foundation (Phase 1)
 ```
 Commit: "feat(model): foundation — ModelCRDT, ModelMergeSchema, strategy ABC"
 Push: After tests pass
 ```
 
-### Phase 2: Basic + Subspace Strategies (Dev 2 + Dev 3)
+### Phase 2: Basic + Subspace Strategies (Phase 2 + Phase 3)
 ```
 Commit: "feat(model): 13 merge strategies — basic (4) + subspace (9)"
 Push: After tests pass
 ```
 
-### Phase 3: Remaining Strategies (Dev 4)
+### Phase 3: Remaining Strategies (Phase 4)
 ```
 Commit: "feat(model): 12 merge strategies — weighted, evolutionary, unlearning, calibration, safety"
 Push: After tests pass
 ```
 
-### Phase 4: LoRA + Pipeline + Provenance + Heatmap (Dev 5)
+### Phase 4: LoRA + Pipeline + Provenance + Heatmap (Phase 5)
 ```
 Commit: "feat(model): LoRA merging, pipelines, per-parameter provenance, conflict heatmaps"
 Push: After tests pass

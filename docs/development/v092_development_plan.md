@@ -64,23 +64,23 @@ FederatedMerge (v0.8.2) ──────────────────�
 
 ```
 crdt_merge/
-├── compliance.py           ← Dev 5 (NEW — 932 LOC)
-├── observability.py        ← Dev 3 (EXTENDED — +571 LOC)
-├── flower_plugin.py        ← Dev 3 (NEW — 485 LOC)
-└── __init__.py             ← Dev 1 (UPDATED — 12 new re-exports)
+├── compliance.py           ← Phase 5 (NEW — 932 LOC)
+├── observability.py        ← Phase 3 (EXTENDED — +571 LOC)
+├── flower_plugin.py        ← Phase 3 (NEW — 485 LOC)
+└── __init__.py             ← Phase 1 (UPDATED — 12 new re-exports)
 
 tests/
-├── test_compliance.py      ← Dev 5 (NEW — 57 tests)
-├── test_observability_ext.py ← Dev 3 (NEW — 23 tests)
-├── test_flower_plugin.py   ← Dev 3 (NEW — 49 tests)
-└── test_v092_integration.py ← Dev 1 (NEW — 84 tests)
+├── test_compliance.py      ← Phase 5 (NEW — 57 tests)
+├── test_observability_ext.py ← Phase 3 (NEW — 23 tests)
+├── test_flower_plugin.py   ← Phase 3 (NEW — 49 tests)
+└── test_v092_integration.py ← Phase 1 (NEW — 84 tests)
 ```
 
 ---
 
 ## Dev Team Assignments
 
-### Dev 5 — Compliance Module (`crdt_merge/compliance.py`)
+### Phase 5 — Compliance Module (`crdt_merge/compliance.py`)
 
 **Owner:** `crdt_merge/compliance.py`, `tests/test_compliance.py`
 **Dependencies:** Reads from `audit.py` (AuditLog), `provenance.py` (ProvenanceLog, MergeRecord)
@@ -140,7 +140,7 @@ tests/
 
 ---
 
-### Dev 3 — Observability Extensions (`crdt_merge/observability.py`)
+### Phase 3 — Observability Extensions (`crdt_merge/observability.py`)
 
 **Owner:** `crdt_merge/observability.py` (extension), `tests/test_observability_ext.py`
 **Dependencies:** Extends existing `MetricsCollector`, `ObservedMerge`, `HealthCheck`
@@ -204,7 +204,7 @@ tests/
 
 ---
 
-### Dev 3 (continued) — Flower Plugin (`crdt_merge/flower_plugin.py`)
+### Phase 3 (continued) — Flower Plugin (`crdt_merge/flower_plugin.py`)
 
 **Owner:** `crdt_merge/flower_plugin.py`, `tests/test_flower_plugin.py`
 **Dependencies:** Reads from `federated.py` (FederatedMerge). Optional runtime: `flwr` (Flower)
@@ -258,10 +258,10 @@ tests/
 
 ---
 
-### Dev 1 — Integration & Exports (`crdt_merge/__init__.py`)
+### Phase 1 — Integration & Exports (`crdt_merge/__init__.py`)
 
 **Owner:** `crdt_merge/__init__.py`, `tests/test_v092_integration.py`, `pyproject.toml`
-**Dependencies:** All Dev 3 and Dev 5 outputs must be complete
+**Dependencies:** All Phase 3 and Phase 5 outputs must be complete
 **LOC:** ~200 (updates + integration tests) | **Tests:** 84
 
 #### Tasks
@@ -329,21 +329,21 @@ tests/
 ## Execution Order
 
 ```
-Dev 5 (Compliance)       ──► commit ──┐
-Dev 3 (Observability)    ──► commit ──┤ (parallel — no file conflicts)
+Phase 5 (Compliance)       ──► commit ──┐
+Phase 3 (Observability)    ──► commit ──┤ (parallel — no file conflicts)
                                       │
-Dev 3 (Flower Plugin)    ◄────────────┘ (depends on federated.py — already exists)
+Phase 3 (Flower Plugin)    ◄────────────┘ (depends on federated.py — already exists)
   └──► commit ──┐
                  │
-Dev 1 (Integration)      ◄┘ (depends on all modules)
+Phase 1 (Integration)      ◄┘ (depends on all modules)
   └──► commit ──► FULL TEST SWEEP ──► v0.9.2 TAG ──► PyPI PUBLISH
 ```
 
 **Sequential execution order (conservative):**
-1. Dev 5 — Compliance module (independent — uses existing audit.py + provenance.py)
-2. Dev 3 — Observability extensions (independent — extends existing observability.py)
-3. Dev 3 — Flower plugin (independent — uses existing federated.py)
-4. Dev 1 — Integration: `__init__.py` re-exports, version bump, 84 integration tests
+1. Phase 5 — Compliance module (independent — uses existing audit.py + provenance.py)
+2. Phase 3 — Observability extensions (independent — extends existing observability.py)
+3. Phase 3 — Flower plugin (independent — uses existing federated.py)
+4. Phase 1 — Integration: `__init__.py` re-exports, version bump, 84 integration tests
 5. Full test sweep + CRDT compliance verification
 6. Push to GitHub + publish to PyPI
 
@@ -394,10 +394,10 @@ Duration: ~52s
 | Suite | Tests | Status |
 |-------|-------|--------|
 | Existing regression suite | 1,858 | ✅ All pass |
-| New: Compliance (Dev 5) | 57 | ✅ All pass |
-| New: Observability extensions (Dev 3) | 23 | ✅ All pass |
-| New: Flower plugin (Dev 3) | 49 | ✅ All pass |
-| New: Cross-module integration (Dev 1) | 84 | ✅ All pass |
+| New: Compliance (Phase 5) | 57 | ✅ All pass |
+| New: Observability extensions (Phase 3) | 23 | ✅ All pass |
+| New: Flower plugin (Phase 3) | 49 | ✅ All pass |
+| New: Cross-module integration (Phase 1) | 84 | ✅ All pass |
 | **Total executed** | **1,942** | ✅ **0 failures** |
 
 *15 collection errors are expected — those test files require optional dependencies (numpy, hypothesis, torch, flwr) not installed in the test environment. They pass in CI where all optional deps are available.*

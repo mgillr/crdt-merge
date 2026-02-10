@@ -31,22 +31,22 @@ This release is **time-critical** — the EU AI Act enforcement deadline is Augu
 
 ```
 crdt_merge/
-├── unmerge.py              ← Dev 1 (NEW — ~1,000 LOC)
-├── encryption.py           ← Dev 3 (NEW — ~300 LOC)
-├── rbac.py                 ← Dev 4 (NEW — ~250 LOC)
-├── observability.py        ← Dev 4 (NEW — ~300 LOC)
-├── compliance/             ← Dev 2 (NEW package — ~700 LOC)
+├── unmerge.py              ← Phase 1 (NEW — ~1,000 LOC)
+├── encryption.py           ← Phase 3 (NEW — ~300 LOC)
+├── rbac.py                 ← Phase 4 (NEW — ~250 LOC)
+├── observability.py        ← Phase 4 (NEW — ~300 LOC)
+├── compliance/             ← Phase 2 (NEW package — ~700 LOC)
 │   ├── __init__.py
 │   ├── auditor.py
 │   └── eu_ai_act.py
-└── __init__.py             ← Dev 5 (UPDATE — re-exports)
+└── __init__.py             ← Phase 5 (UPDATE — re-exports)
 ```
 
 ---
 
 ## Dev Team Assignments
 
-### Dev 1 — UnmergeEngine (`crdt_merge/unmerge.py`)
+### Phase 1 — UnmergeEngine (`crdt_merge/unmerge.py`)
 
 **Owner:** `crdt_merge/unmerge.py`
 **Dependencies:** Reads from `provenance.py`, `model/provenance.py`, `model/crdt_state.py`
@@ -87,10 +87,10 @@ crdt_merge/
 
 ---
 
-### Dev 2 — Compliance Suite (`crdt_merge/compliance/`)
+### Phase 2 — Compliance Suite (`crdt_merge/compliance/`)
 
 **Owner:** `crdt_merge/compliance/__init__.py`, `crdt_merge/compliance/auditor.py`, `crdt_merge/compliance/eu_ai_act.py`
-**Dependencies:** Reads from `provenance.py`, `unmerge.py` (Dev 1), `context/manifest.py`
+**Dependencies:** Reads from `provenance.py`, `unmerge.py` (Phase 1), `context/manifest.py`
 **Est. LOC:** ~700 | **Est. Tests:** ~120
 
 #### Classes
@@ -125,7 +125,7 @@ crdt_merge/
 
 ---
 
-### Dev 3 — Encryption (`crdt_merge/encryption.py`)
+### Phase 3 — Encryption (`crdt_merge/encryption.py`)
 
 **Owner:** `crdt_merge/encryption.py`
 **Dependencies:** stdlib only (`hashlib`, `secrets`, `struct`). Reads from `strategies.py`
@@ -163,7 +163,7 @@ crdt_merge/
 
 ---
 
-### Dev 4 — RBAC + Observability
+### Phase 4 — RBAC + Observability
 
 **Owner:** `crdt_merge/rbac.py`, `crdt_merge/observability.py`
 **Dependencies:** stdlib only. Reads from `dataframe.py` for merge hooks
@@ -204,10 +204,10 @@ crdt_merge/
 
 ---
 
-### Dev 5 — Integration
+### Phase 5 — Integration
 
 **Owner:** `crdt_merge/__init__.py` (re-exports), README, CHANGELOG, version bump
-**Dependencies:** All Dev 1-4 outputs must be complete
+**Dependencies:** All Phase 1-4 outputs must be complete
 **Est. LOC:** ~500 (updates + integration tests) | **Est. Tests:** ~50
 
 #### Tasks
@@ -261,23 +261,23 @@ crdt_merge/
 ## Execution Order
 
 ```
-Dev 1 (UnmergeEngine)    ──► commit + push ──┐
-Dev 3 (Encryption)       ──► commit + push ──┤
-Dev 4 (RBAC+Observ.)     ──► commit + push ──┤ (parallel — no conflicts)
+Phase 1 (UnmergeEngine)    ──► commit + push ──┐
+Phase 3 (Encryption)       ──► commit + push ──┤
+Phase 4 (RBAC+Observ.)     ──► commit + push ──┤ (parallel — no conflicts)
                                               │
-Dev 2 (Compliance)       ◄────────────────────┘ (depends on Dev 1 for unmerge)
+Phase 2 (Compliance)       ◄────────────────────┘ (depends on Phase 1 for unmerge)
   └──► commit + push ──┐
                         │
-Dev 5 (Integration)     ◄┘ (depends on all)
+Phase 5 (Integration)     ◄┘ (depends on all)
   └──► commit + push ──► FINAL TEST SWEEP ──► v0.9.0 TAG
 ```
 
 **Sequential execution order (conservative):**
-1. Dev 1 — UnmergeEngine (foundation for Dev 2)
-2. Dev 3 — Encryption (independent)
-3. Dev 4 — RBAC + Observability (independent)
-4. Dev 2 — Compliance Suite (depends on Dev 1)
-5. Dev 5 — Integration (depends on all)
+1. Phase 1 — UnmergeEngine (foundation for Phase 2)
+2. Phase 3 — Encryption (independent)
+3. Phase 4 — RBAC + Observability (independent)
+4. Phase 2 — Compliance Suite (depends on Phase 1)
+5. Phase 5 — Integration (depends on all)
 6. Full test sweep + CRDT compliance verification
 7. Push to GitHub + publish to PyPI
 
