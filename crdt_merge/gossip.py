@@ -66,6 +66,12 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 
 from crdt_merge.clocks import Ordering, VectorClock
 
+__all__ = [
+    "GossipEntry",
+    "GossipState",
+    "anti_entropy",
+]
+
 # ═════════════════════════════════════════════════════════════════════════════
 # GossipEntry — a single key-value entry with causal metadata
 # ═════════════════════════════════════════════════════════════════════════════

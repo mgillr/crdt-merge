@@ -45,6 +45,12 @@ from typing import Any, AsyncIterator, Dict, List, Optional, Union
 from crdt_merge.dataframe import merge as sync_merge
 from crdt_merge.streaming import merge_stream, merge_sorted_stream
 
+__all__ = [
+    "amerge",
+    "amerge_stream",
+    "amerge_sorted_stream",
+]
+
 async def amerge(
     left: Any,
     right: Any,

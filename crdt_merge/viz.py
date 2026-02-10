@@ -48,6 +48,12 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
+__all__ = [
+    "ConflictRecord",
+    "ConflictCluster",
+    "ConflictTopology",
+]
+
 # ---------------------------------------------------------------------------
 # Data classes
 # ---------------------------------------------------------------------------

@@ -31,6 +31,12 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+__all__ = [
+    "CRDTTier",
+    "MergeResult",
+    "ModelMergeStrategy",
+]
+
 class CRDTTier(str, Enum):
     """Classification of a strategy's CRDT compliance.
 

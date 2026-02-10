@@ -39,6 +39,13 @@ from crdt_merge.model.strategies.base import (
     _to_array,
 )
 
+__all__ = [
+    "FisherMerge",
+    "RegressionMean",
+    "AdaptiveMerging",
+    "DifferentiableAdaptiveMerging",
+]
+
 # ---------------------------------------------------------------------------
 # Pure-Python vector helpers
 # ---------------------------------------------------------------------------

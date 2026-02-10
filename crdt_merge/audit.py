@@ -35,6 +35,12 @@ from typing import Any, Dict, Iterator, List, Optional, Tuple
 
 import crdt_merge
 
+__all__ = [
+    "AuditEntry",
+    "AuditLog",
+    "AuditedMerge",
+]
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------

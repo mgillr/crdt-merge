@@ -36,6 +36,16 @@ import time as _time
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
+__all__ = [
+    "UnmergeReport",
+    "ResidualReport",
+    "ForgetResult",
+    "GDPRComplianceReport",
+    "UnmergeEngine",
+    "ModelUnmerge",
+    "GDPRForget",
+]
+
 
 # ---------------------------------------------------------------------------
 # Lazy numpy import — numpy is optional for tabular operations
