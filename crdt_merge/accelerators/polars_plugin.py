@@ -69,9 +69,9 @@ def _safe_parse_ts(value):
 
 # Lazy-import polars
 try:
-    import polars as _pl  # type: ignore[import-untyped]
+    import polars as _pl  # type: ignore[import-untyped]  # optional dep: polars lacks py.typed
 except ImportError:
-    _pl = None  # type: ignore[assignment]
+    _pl = None  # type: ignore[assignment]  # fallback when polars not installed
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -291,7 +291,7 @@ class PolarsCRDTMerge:
                 merged_rows.append(dict(row_l))
                 rows_left_only += 1
             else:
-                merged_rows.append(dict(row_r))  # type: ignore[arg-type]
+                merged_rows.append(dict(row_r))  # type: ignore[arg-type]  # row_r is a Polars row tuple, dict() coercion is valid
                 rows_right_only += 1
 
         elapsed_ms = (time.time() - start) * 1000

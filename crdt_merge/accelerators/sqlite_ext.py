@@ -670,7 +670,7 @@ class SQLiteCRDTMerge:
     def is_available(self) -> bool:
         """Check whether sqlite3 is available."""
         try:
-            import sqlite3  # noqa: F401
+            import sqlite3  # noqa: F401 — import tests sqlite3 availability
             return True
         except ImportError:
             return False

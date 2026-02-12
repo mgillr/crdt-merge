@@ -468,20 +468,20 @@ class ObservedMerge:
 
 # Try importing OpenTelemetry; fall back to no-ops when unavailable.
 try:
-    from opentelemetry import trace as _otel_trace  # type: ignore[import-untyped]
+    from opentelemetry import trace as _otel_trace  # type: ignore[import-untyped]  # optional dep: opentelemetry
 
     _HAS_OTEL = True
 except ImportError:  # pragma: no cover – optional dependency
-    _otel_trace = None  # type: ignore[assignment]
+    _otel_trace = None  # type: ignore[assignment]  # fallback when opentelemetry not installed
     _HAS_OTEL = False
 
 # Try importing prometheus_client; fall back to None when unavailable.
 try:
-    import prometheus_client as _prom  # type: ignore[import-untyped]
+    import prometheus_client as _prom  # type: ignore[import-untyped]  # optional dep: prometheus_client
 
     _HAS_PROM = True
 except ImportError:  # pragma: no cover – optional dependency
-    _prom = None  # type: ignore[assignment]
+    _prom = None  # type: ignore[assignment]  # fallback when prometheus_client not installed
     _HAS_PROM = False
 
 import math
@@ -504,7 +504,7 @@ __all__ = [
 class _NoOpSpan:
     """Minimal stand-in for an OTel span when the SDK is absent."""
 
-    def set_attribute(self, key: str, value: Any) -> None:  # noqa: D401
+    def set_attribute(self, key: str, value: Any) -> None:  # noqa: D401 — imperative mood acceptable for setter methods
         pass
 
     def set_status(self, *args: Any, **kwargs: Any) -> None:
@@ -545,7 +545,7 @@ class MergeTracer:
         self._collector = collector
         self._tracer: Any = None
         if _HAS_OTEL:
-            self._tracer = _otel_trace.get_tracer(service_name)  # type: ignore[union-attr]
+            self._tracer = _otel_trace.get_tracer(service_name)  # type: ignore[union-attr]  # guarded by _otel_trace is not None check above
 
     # -- public properties ---------------------------------------------------
 

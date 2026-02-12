@@ -414,7 +414,7 @@ class MergeSchema:
                 fallback = LWW()
                 custom_name = info.get("_custom_strategy_name")
                 if custom_name:
-                    fallback._custom_strategy_name = custom_name  # type: ignore[attr-defined]
+                    fallback._custom_strategy_name = custom_name  # type: ignore[attr-defined]  # dynamic attr set on strategy for debugging/introspection
                 strategies[field] = fallback
             elif strat_cls == UnionSet:
                 strategies[field] = UnionSet(separator=info.get("separator", ","))

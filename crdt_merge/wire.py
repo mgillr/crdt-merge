@@ -60,6 +60,7 @@ New in v0.5.0.
 """
 
 import struct
+import types
 import zlib
 from typing import Any, Optional, Union
 
@@ -172,7 +173,9 @@ _TYPE_TO_TAG = {
     'conflict_topology': TAG_CONFLICT_TOPOLOGY,
 }
 
-_TAG_TO_TYPE = {v: k for k, v in _TYPE_TO_TAG.items()}
+# Issue #46: Immutable mapping — this dict is a constant lookup table and should
+# never be mutated at runtime. MappingProxyType enforces this at the type level.
+_TAG_TO_TYPE = types.MappingProxyType({v: k for k, v in _TYPE_TO_TAG.items()})
 
 # Header: MAGIC(4) + VERSION(2) + TYPE(1) + FLAGS(1) + LENGTH(4) = 12 bytes
 _HEADER_FMT = '>4sHBBI'

@@ -200,18 +200,6 @@ from .mergeql import (
     MergeQLError, MergeQLParser,
 )
 
-# v0.7.0: Accelerators (lazy)
-def _load_accelerators():
-    """Lazy loader for the accelerators sub-package."""
-    from crdt_merge import accelerators as _acc
-    return _acc
-
-# v0.8.0: Model Merge (lazy — avoids importing numpy at top level)
-def _load_model():
-    """Lazy loader for the model-merge sub-package."""
-    from crdt_merge import model as _model
-    return _model
-
 # v0.8.2: Context Memory System
 from .context import (
     MemorySidecar, ContextManifest, ContextBloom,

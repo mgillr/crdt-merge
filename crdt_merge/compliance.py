@@ -40,32 +40,41 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Optional integration imports — compliance.py works standalone
 # ---------------------------------------------------------------------------
+# Issue #83: These type: ignore[assignment,misc] comments are intentional.
+# Each try/except block imports an optional dependency module. When the import
+# fails (e.g., circular import during bootstrapping or missing optional dep),
+# the name is set to None so that downstream isinstance() / getattr() checks
+# degrade gracefully. Mypy flags the None assignment because it conflicts with
+# the class type from the successful import path — this is expected and
+# unavoidable without TYPE_CHECKING guards, which would break the runtime
+# fallback pattern used here.
+# ---------------------------------------------------------------------------
 
 try:
     from .audit import AuditLog, AuditEntry
 except Exception:  # pragma: no cover
-    AuditLog = None  # type: ignore[assignment,misc]
-    AuditEntry = None  # type: ignore[assignment,misc]
+    AuditLog = None  # type: ignore[assignment,misc]  # fallback: module unavailable
+    AuditEntry = None  # type: ignore[assignment,misc]  # fallback: module unavailable
 
 try:
     from .provenance import ProvenanceLog, MergeRecord, MergeDecision
 except Exception:  # pragma: no cover
-    ProvenanceLog = None  # type: ignore[assignment,misc]
-    MergeRecord = None  # type: ignore[assignment,misc]
-    MergeDecision = None  # type: ignore[assignment,misc]
+    ProvenanceLog = None  # type: ignore[assignment,misc]  # fallback: module unavailable
+    MergeRecord = None  # type: ignore[assignment,misc]  # fallback: module unavailable
+    MergeDecision = None  # type: ignore[assignment,misc]  # fallback: module unavailable
 
 try:
     from .unmerge import UnmergeEngine, GDPRForget
 except Exception:  # pragma: no cover
-    UnmergeEngine = None  # type: ignore[assignment,misc]
-    GDPRForget = None  # type: ignore[assignment,misc]
+    UnmergeEngine = None  # type: ignore[assignment,misc]  # fallback: module unavailable
+    GDPRForget = None  # type: ignore[assignment,misc]  # fallback: module unavailable
 
 try:
     from .rbac import RBACController, Permission, Role
 except Exception:  # pragma: no cover
-    RBACController = None  # type: ignore[assignment,misc]
-    Permission = None  # type: ignore[assignment,misc]
-    Role = None  # type: ignore[assignment,misc]
+    RBACController = None  # type: ignore[assignment,misc]  # fallback: module unavailable
+    Permission = None  # type: ignore[assignment,misc]  # fallback: module unavailable
+    Role = None  # type: ignore[assignment,misc]  # fallback: module unavailable
 
 
 __all__ = [

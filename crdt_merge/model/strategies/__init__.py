@@ -170,35 +170,35 @@ def _reset_registry() -> None:
 def _auto_register():
     """Import all strategy modules to trigger registration."""
     try:
-        from crdt_merge.model.strategies import basic       # noqa: F401
+        from crdt_merge.model.strategies import basic       # noqa: F401 — side-effect: registers strategy
     except ImportError:
         pass
     try:
-        from crdt_merge.model.strategies import subspace     # noqa: F401
+        from crdt_merge.model.strategies import subspace     # noqa: F401 — side-effect: registers strategy
     except ImportError:
         pass
     try:
-        from crdt_merge.model.strategies import weighted     # noqa: F401
+        from crdt_merge.model.strategies import weighted     # noqa: F401 — side-effect: registers strategy
     except ImportError:
         pass
     try:
-        from crdt_merge.model.strategies import evolutionary # noqa: F401
+        from crdt_merge.model.strategies import evolutionary # noqa: F401 — side-effect: registers strategy
     except ImportError:
         pass
     try:
-        from crdt_merge.model.strategies import unlearning   # noqa: F401
+        from crdt_merge.model.strategies import unlearning   # noqa: F401 — side-effect: registers strategy
     except ImportError:
         pass
     try:
-        from crdt_merge.model.strategies import calibration  # noqa: F401
+        from crdt_merge.model.strategies import calibration  # noqa: F401 — side-effect: registers strategy
     except ImportError:
         pass
     try:
-        from crdt_merge.model.strategies import safety       # noqa: F401
+        from crdt_merge.model.strategies import safety       # noqa: F401 — side-effect: registers strategy
     except ImportError:
         pass
     try:
-        from crdt_merge.model.strategies import continual    # noqa: F401
+        from crdt_merge.model.strategies import continual    # noqa: F401 — side-effect: registers strategy
     except ImportError:
         pass
 

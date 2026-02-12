@@ -357,7 +357,7 @@ class AuditLog:
         log = cls(node_id=payload.get("node_id", "default"))
         for entry_dict in payload.get("entries", []):
             entry = AuditEntry.from_dict(entry_dict)
-            log._entries.append(entry)  # noqa: SLF001 – internal rebuild
+            log._entries.append(entry)  # noqa: SLF001 — internal rebuild: direct _entries access needed for deserialization
         if not log.verify_chain():
             raise ValueError("Imported audit log failed chain verification")
         return log

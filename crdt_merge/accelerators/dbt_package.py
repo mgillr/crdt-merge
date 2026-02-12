@@ -43,6 +43,7 @@ All external dependencies are lazy-imported.
 from __future__ import annotations
 
 import textwrap
+import types
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
@@ -54,7 +55,9 @@ from crdt_merge.accelerators import register_accelerator
 
 _SUPPORTED_WAREHOUSES = ("snowflake", "bigquery", "postgres", "duckdb")
 
-_STRATEGY_MAP = {
+# Issue #20: Immutable mapping — strategy names are a fixed lookup table.
+# Using MappingProxyType prevents accidental mutation in multi-threaded contexts.
+_STRATEGY_MAP = types.MappingProxyType({
     "lww": "lww",
     "max": "max",
     "maxwins": "max",
@@ -66,7 +69,7 @@ _STRATEGY_MAP = {
     "priority": "priority",
     "longest": "longest",
     "longestwins": "longest",
-}
+})
 
 _VERSION = "0.7.0"
 

@@ -60,6 +60,10 @@ import warnings
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
+# Issue #25: These top-level imports create a potential circular dependency chain
+# (encryption -> crdt_merge -> encryption). Currently safe because __init__.py imports
+# encryption late in the module, but could break if import order changes.
+# TODO: Consider lazy-importing merge/MergeSchema inside methods that use them.
 from crdt_merge import merge
 from crdt_merge.strategies import MergeSchema
 
@@ -269,21 +273,21 @@ register_backend("xor-legacy", XORLegacyBackend)
 
 # AEAD backends — only if cryptography is installed
 try:
-    from cryptography.hazmat.primitives.ciphers.aead import AESGCM as _AESGCM  # noqa: F401
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM as _AESGCM  # noqa: F401 — import tests availability; class used via AES256GCMBackend
     register_backend("aes-256-gcm", AES256GCMBackend)
-except ImportError:
+except ImportError:  # cryptography package not installed — skip AEAD backend registration
     pass
 
 try:
-    from cryptography.hazmat.primitives.ciphers.aead import AESGCMSIV as _AESGCMSIV  # noqa: F401
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCMSIV as _AESGCMSIV  # noqa: F401 — import tests availability; class used via AESGCMSIVBackend
     register_backend("aes-256-gcm-siv", AESGCMSIVBackend)
-except ImportError:
+except ImportError:  # cryptography package not installed — skip GCM-SIV backend registration
     pass
 
 try:
-    from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305 as _ChaCha  # noqa: F401
+    from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305 as _ChaCha  # noqa: F401 — import tests availability; class used via ChaCha20Poly1305Backend
     register_backend("chacha20-poly1305", ChaCha20Poly1305Backend)
-except ImportError:
+except ImportError:  # cryptography package not installed — skip ChaCha backend registration
     pass
 
 
@@ -435,7 +439,7 @@ class EncryptedMerge:
             self._backend: CryptoBackend = XORLegacyBackend()
         elif backend == "auto":
             try:
-                from cryptography.hazmat.primitives.ciphers.aead import AESGCM  # noqa: F401
+                from cryptography.hazmat.primitives.ciphers.aead import AESGCM  # noqa: F401 — import tests availability for auto-detection
                 self._backend = AES256GCMBackend()
             except ImportError:
                 if not EncryptedMerge._warned:
