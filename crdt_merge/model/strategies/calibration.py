@@ -46,21 +46,27 @@ __all__ = [
 # ---------------------------------------------------------------------------
 
 def _py_add(a: list, b: list) -> list:
+    """Element-wise addition of two equal-length lists."""
     return [x + y for x, y in zip(a, b)]
 
 def _py_sub(a: list, b: list) -> list:
+    """Element-wise subtraction: ``a[i] - b[i]``."""
     return [x - y for x, y in zip(a, b)]
 
 def _py_scale(a: list, s: float) -> list:
+    """Scale every element of a list by scalar *s*."""
     return [x * s for x in a]
 
 def _py_zeros(n: int) -> list:
+    """Return a list of *n* zeros."""
     return [0.0] * n
 
 def _py_mean(a: list) -> float:
+    """Arithmetic mean of a list, returning 0.0 for empty lists."""
     return sum(a) / len(a) if a else 0.0
 
 def _py_std(a: list) -> float:
+    """Population standard deviation of a list."""
     if len(a) < 2:
         return 0.0
     m = _py_mean(a)
@@ -83,6 +89,15 @@ def _flatten(arr: Any):
     return arr, None
 
 def _unflatten(flat: Any, shape):
+    """Restore a flat array to its original *shape*.
+
+    Args:
+        flat: 1-D array or list produced by :func:`_flatten`.
+        shape: Original shape tuple, or ``None`` to return *flat* as-is.
+
+    Returns:
+        Reshaped array matching the original dimensionality.
+    """
     if shape is None:
         return flat
     np = _get_np()
@@ -120,6 +135,7 @@ class WeightScopeAlignment(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
+        """CRDT algebraic properties for weight-scope alignment."""
         return {"commutative": True, "associative": False, "idempotent": True}
 
     def merge(
@@ -129,6 +145,26 @@ class WeightScopeAlignment(ModelMergeStrategy):
         base: Any = None,
         **kwargs: Any,
     ) -> Any:
+        """Merge tensors by normalising weight distributions and aligning scopes.
+
+        Each model's parameters are normalised (z-score, min-max, or unit norm),
+        averaged in the normalised space, then rescaled to match a target
+        distribution derived from the inputs, base model, or first model.
+
+        Args:
+            tensors: Model parameter tensors to merge.
+            weights: Optional per-model weights for the normalised average.
+            base: Optional base model for target distribution statistics.
+            **kwargs: Additional keyword arguments:
+                scope_method (str): Normalisation method — ``"zscore"``,
+                    ``"minmax"``, or ``"unit"`` (default ``"zscore"``).
+                target_distribution (str): Source of target statistics —
+                    ``"mean"`` (average of all inputs), ``"first"``, or
+                    ``"base"`` (default ``"mean"``).
+
+        Returns:
+            Merged tensor rescaled to the target distribution.
+        """
         if not tensors:
             return []
         if len(tensors) == 1:
@@ -294,6 +330,7 @@ class RepresentationSurgery(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
+        """CRDT algebraic properties for representation surgery."""
         return {"commutative": True, "associative": False, "idempotent": True}
 
     def merge(
@@ -303,6 +340,28 @@ class RepresentationSurgery(ModelMergeStrategy):
         base: Any = None,
         **kwargs: Any,
     ) -> Any:
+        """Merge tensors then apply post-merge representation correction.
+
+        First performs a weighted average, then corrects distributional
+        drift between the merged result and the average-of-inputs statistics.
+
+        Correction methods:
+            * ``"center"``: subtract mean drift (merged_mean − avg_input_mean).
+            * ``"rescale"``: match variance to the average input variance.
+            * ``"whiten"``: decorrelate via eigendecomposition (2-D only;
+              falls back to rescale for 1-D tensors).
+
+        Args:
+            tensors: Model parameter tensors to merge.
+            weights: Optional per-model weights for the initial average.
+            base: Optional base model tensor (unused).
+            **kwargs: Additional keyword arguments:
+                correction_method (str): ``"center"``, ``"rescale"``, or
+                    ``"whiten"`` (default ``"center"``).
+
+        Returns:
+            Corrected merged tensor with distribution aligned to inputs.
+        """
         if not tensors:
             return []
         if len(tensors) == 1:

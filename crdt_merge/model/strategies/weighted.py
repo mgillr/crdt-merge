@@ -51,12 +51,15 @@ __all__ = [
 # ---------------------------------------------------------------------------
 
 def _py_add(a: list, b: list) -> list:
+    """Element-wise addition of two equal-length lists."""
     return [x + y for x, y in zip(a, b)]
 
 def _py_scale(a: list, s: float) -> list:
+    """Scale every element of a list by scalar *s*."""
     return [x * s for x in a]
 
 def _py_zeros(n: int) -> list:
+    """Return a list of *n* zeros."""
     return [0.0] * n
 
 def _py_mul(a: list, b: list) -> list:
@@ -80,6 +83,15 @@ def _flatten(arr: Any):
     return arr, None
 
 def _unflatten(flat: Any, shape):
+    """Restore a flat array to its original *shape*.
+
+    Args:
+        flat: 1-D array or list produced by :func:`_flatten`.
+        shape: Original shape tuple, or ``None`` to return *flat* as-is.
+
+    Returns:
+        Reshaped array matching the original dimensionality.
+    """
     if shape is None:
         return flat
     np = _get_np()
@@ -115,10 +127,12 @@ class FisherMerge(ModelMergeStrategy):
 
     @property
     def name(self) -> str:
+        """Canonical registry name for this strategy."""
         return "fisher_merge"
 
     @property
     def category(self) -> str:
+        """Strategy family: Weighted / Importance."""
         return "Weighted / Importance"
 
     @property
@@ -127,6 +141,7 @@ class FisherMerge(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
+        """CRDT algebraic properties for Fisher-weighted merging."""
         return {"commutative": True, "associative": False, "idempotent": True}
 
     def merge(
@@ -136,6 +151,24 @@ class FisherMerge(ModelMergeStrategy):
         base: Any = None,
         **kwargs: Any,
     ) -> Any:
+        """Merge tensors using Fisher-weighted averaging.
+
+        Computes θ = Σ(Fᵢ · θᵢ) / Σ(Fᵢ) where Fᵢ is the diagonal Fisher
+        information matrix for model *i*. Falls back to a magnitude-based
+        proxy Fᵢ ≈ |θᵢ|² when no Fisher matrices are supplied.
+
+        Args:
+            tensors: Model parameter tensors to merge.
+            weights: Unused — Fisher matrices determine effective weighting.
+            base: Optional base model tensor (unused).
+            **kwargs: Additional keyword arguments:
+                fisher_matrices: Optional precomputed diagonal Fisher
+                    information matrices (one per tensor).
+                compute_fisher: Reserved for future use.
+
+        Returns:
+            Merged tensor with the same type and shape as the first input.
+        """
         if not tensors:
             return []
         if len(tensors) == 1:
@@ -222,10 +255,12 @@ class RegressionMean(ModelMergeStrategy):
 
     @property
     def name(self) -> str:
+        """Canonical registry name for this strategy."""
         return "regression_mean"
 
     @property
     def category(self) -> str:
+        """Strategy family: Weighted / Importance."""
         return "Weighted / Importance"
 
     @property
@@ -234,6 +269,7 @@ class RegressionMean(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
+        """CRDT algebraic properties for RegMean merging."""
         return {"commutative": True, "associative": False, "idempotent": True}
 
     def merge(
@@ -243,6 +279,22 @@ class RegressionMean(ModelMergeStrategy):
         base: Any = None,
         **kwargs: Any,
     ) -> Any:
+        """Merge tensors via regularised regression mean (RegMean).
+
+        Applies the diagonal approximation: weight_i = θᵢ² + λ for each
+        parameter, then computes a weighted average where models with larger
+        parameter magnitudes receive higher weight, regularised by *λ*.
+
+        Args:
+            tensors: Model parameter tensors to merge.
+            weights: Unused — self-weighted regression determines coefficients.
+            base: Optional base model tensor (unused).
+            **kwargs: Additional keyword arguments:
+                regularization (float): Ridge penalty λ (default 0.01).
+
+        Returns:
+            Merged tensor with the same type and shape as the first input.
+        """
         if not tensors:
             return []
         if len(tensors) == 1:
@@ -301,10 +353,12 @@ class AdaptiveMerging(ModelMergeStrategy):
 
     @property
     def name(self) -> str:
+        """Canonical registry name for this strategy."""
         return "ada_merging"
 
     @property
     def category(self) -> str:
+        """Strategy family: Weighted / Importance."""
         return "Weighted / Importance"
 
     @property
@@ -313,6 +367,12 @@ class AdaptiveMerging(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
+        """CRDT algebraic properties for adaptive merging.
+
+        Commutativity and associativity are conditional on the iterative
+        refinement converging to the same fixed point regardless of input
+        ordering.
+        """
         return {"commutative": "conditional", "associative": "conditional", "idempotent": True}
 
     def merge(
@@ -322,6 +382,27 @@ class AdaptiveMerging(ModelMergeStrategy):
         base: Any = None,
         **kwargs: Any,
     ) -> Any:
+        """Merge tensors with entropy-based adaptive coefficients.
+
+        Computes Shannon entropy of each model's weight distribution to
+        derive importance scores (lower entropy → more peaked → higher
+        importance). Iteratively refines coefficients by adjusting toward
+        models with lower reconstruction variance.
+
+        Args:
+            tensors: Model parameter tensors to merge.
+            weights: Unused — entropy-based heuristic determines coefficients.
+            base: Optional base model tensor (unused).
+            **kwargs: Additional keyword arguments:
+                granularity (str): Merging granularity, ``"task"`` or
+                    ``"layer"`` (default ``"task"``).
+                learning_rate (float): Step size for iterative refinement
+                    (default 0.01).
+                steps (int): Number of refinement iterations (default 100).
+
+        Returns:
+            Merged tensor with the same type and shape as the first input.
+        """
         if not tensors:
             return []
         if len(tensors) == 1:
@@ -436,10 +517,12 @@ class DifferentiableAdaptiveMerging(ModelMergeStrategy):
 
     @property
     def name(self) -> str:
+        """Canonical registry name for this strategy."""
         return "dam"
 
     @property
     def category(self) -> str:
+        """Strategy family: Weighted / Importance."""
         return "Weighted / Importance"
 
     @property
@@ -448,6 +531,11 @@ class DifferentiableAdaptiveMerging(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
+        """CRDT algebraic properties for DAM.
+
+        Commutativity and associativity depend on the optimisation reaching
+        an identical fixed point regardless of tensor ordering.
+        """
         return {"commutative": "conditional", "associative": "conditional", "idempotent": True}
 
     def merge(
@@ -457,6 +545,23 @@ class DifferentiableAdaptiveMerging(ModelMergeStrategy):
         base: Any = None,
         **kwargs: Any,
     ) -> Any:
+        """Merge tensors via gradient-free coefficient optimisation (DAM).
+
+        Starts from uniform coefficients and iteratively moves weight toward
+        models that are closest to the current merge, minimising pairwise
+        L2 distance. Converges to coefficients that minimise output variance.
+
+        Args:
+            tensors: Model parameter tensors to merge.
+            weights: Unused — optimisation determines coefficients.
+            base: Optional base model tensor (unused).
+            **kwargs: Additional keyword arguments:
+                learning_rate (float): Step size per iteration (default 0.01).
+                steps (int): Number of optimisation iterations (default 50).
+
+        Returns:
+            Merged tensor with the same type and shape as the first input.
+        """
         if not tensors:
             return []
         if len(tensors) == 1:

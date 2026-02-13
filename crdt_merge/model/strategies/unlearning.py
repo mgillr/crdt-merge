@@ -42,15 +42,19 @@ from crdt_merge.model.strategies.base import (
 # ---------------------------------------------------------------------------
 
 def _py_add(a: list, b: list) -> list:
+    """Element-wise addition of two equal-length lists."""
     return [x + y for x, y in zip(a, b)]
 
 def _py_sub(a: list, b: list) -> list:
+    """Element-wise subtraction: ``a[i] - b[i]``."""
     return [x - y for x, y in zip(a, b)]
 
 def _py_scale(a: list, s: float) -> list:
+    """Scale every element of a list by scalar *s*."""
     return [x * s for x in a]
 
 def _py_zeros(n: int) -> list:
+    """Return a list of *n* zeros."""
     return [0.0] * n
 
 def _flatten(arr: Any):
@@ -70,6 +74,15 @@ def _flatten(arr: Any):
     return arr, None
 
 def _unflatten(flat: Any, shape):
+    """Restore a flat array to its original *shape*.
+
+    Args:
+        flat: 1-D array or list produced by :func:`_flatten`.
+        shape: Original shape tuple, or ``None`` to return *flat* as-is.
+
+    Returns:
+        Reshaped array matching the original dimensionality.
+    """
     if shape is None:
         return flat
     np = _get_np()
@@ -108,6 +121,7 @@ class NegativeMerge(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
+        """CRDT algebraic properties for negative merging."""
         return {"commutative": True, "associative": False, "idempotent": False}
 
     def merge(
@@ -117,6 +131,27 @@ class NegativeMerge(ModelMergeStrategy):
         base: Any = None,
         **kwargs: Any,
     ) -> Any:
+        """Merge tensors using weight negation for targeted unlearning.
+
+        Computes θ = θ_base − α · (θ_toxic − θ_base) to negate unwanted
+        task vectors. Models listed in ``models_to_negate`` have their task
+        vectors subtracted; all others are added normally.
+
+        Args:
+            tensors: Model parameter tensors to merge.
+            weights: Optional per-model scaling weights (normalised internally).
+            base: Base model tensor (required).
+            **kwargs: Additional keyword arguments:
+                scaling (float): Negation strength α (default 1.0).
+                models_to_negate (List[int] | None): Indices of models to
+                    negate. ``None`` negates all models.
+
+        Returns:
+            Merged tensor with negated task vectors applied to the base.
+
+        Raises:
+            ValueError: If *base* is ``None``.
+        """
         if base is None:
             raise ValueError("NegativeMerge requires a base model tensor (base=...)")
 
@@ -218,6 +253,7 @@ class SplitUnlearnMerge(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
+        """CRDT algebraic properties for split-unlearn merging."""
         return {"commutative": True, "associative": False, "idempotent": False}
 
     def merge(
@@ -227,6 +263,29 @@ class SplitUnlearnMerge(ModelMergeStrategy):
         base: Any = None,
         **kwargs: Any,
     ) -> Any:
+        """Merge tensors after splitting and unlearning targeted parameters.
+
+        Splits parameters into subspaces, zeroes out the targeted fraction
+        in each task vector (the least important by magnitude, or a random
+        subset), then merges the remaining "clean" task vectors onto the base.
+
+        Args:
+            tensors: Model parameter tensors to merge.
+            weights: Optional per-model scaling weights.
+            base: Base model tensor (required).
+            **kwargs: Additional keyword arguments:
+                target_fraction (float): Fraction of parameters to unlearn
+                    (default 0.1).
+                subspace_method (str): ``"magnitude"`` (drop lowest) or
+                    ``"random"`` (default ``"magnitude"``).
+                seed (int): RNG seed for the random method (default 42).
+
+        Returns:
+            Merged tensor with unlearned parameters zeroed out.
+
+        Raises:
+            ValueError: If *base* is ``None``.
+        """
         if base is None:
             raise ValueError("SplitUnlearnMerge requires a base model tensor (base=...)")
 

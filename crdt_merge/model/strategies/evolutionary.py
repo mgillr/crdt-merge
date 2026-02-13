@@ -42,12 +42,15 @@ from crdt_merge.model.strategies.base import (
 # ---------------------------------------------------------------------------
 
 def _py_add(a: list, b: list) -> list:
+    """Element-wise addition of two equal-length lists."""
     return [x + y for x, y in zip(a, b)]
 
 def _py_scale(a: list, s: float) -> list:
+    """Scale every element of a list by scalar *s*."""
     return [x * s for x in a]
 
 def _py_zeros(n: int) -> list:
+    """Return a list of *n* zeros."""
     return [0.0] * n
 
 def _flatten(arr: Any):
@@ -67,6 +70,15 @@ def _flatten(arr: Any):
     return arr, None
 
 def _unflatten(flat: Any, shape):
+    """Restore a flat array to its original *shape*.
+
+    Args:
+        flat: 1-D array or list produced by :func:`_flatten`.
+        shape: Original shape tuple, or ``None`` to return *flat* as-is.
+
+    Returns:
+        Reshaped array matching the original dimensionality.
+    """
     if shape is None:
         return flat
     np = _get_np()
@@ -131,6 +143,30 @@ class EvolutionaryMerge(ModelMergeStrategy):
         base: Any = None,
         **kwargs: Any,
     ) -> Any:
+        """Merge tensors using CMA-ES–style evolutionary optimisation.
+
+        Evolves a population of coefficient vectors over multiple
+        generations. Each generation evaluates fitness (default: negative
+        variance), selects the top half, and mutates to produce offspring.
+        The best coefficient vector across all generations is used for the
+        final weighted merge.
+
+        Args:
+            tensors: Model parameter tensors to merge.
+            weights: Unused — evolution determines optimal coefficients.
+            base: Optional base model tensor (unused).
+            **kwargs: Additional keyword arguments:
+                population_size (int): Number of candidate coefficient
+                    vectors per generation (default 20).
+                generations (int): Number of evolutionary generations
+                    (default 50).
+                fitness_fn (Callable | None): Custom fitness function
+                    ``f(merged_flat) -> float`` (higher is better).
+                seed (int): RNG seed for reproducibility (default 42).
+
+        Returns:
+            Merged tensor produced by the best-fitness coefficient vector.
+        """
         if not tensors:
             return []
         if len(tensors) == 1:
@@ -255,6 +291,29 @@ class GeneticMerge(ModelMergeStrategy):
         base: Any = None,
         **kwargs: Any,
     ) -> Any:
+        """Merge tensors using a genetic algorithm with crossover and mutation.
+
+        Chromosomes are weight vectors over the input models. Each
+        generation applies tournament selection, uniform crossover, and
+        Gaussian mutation. Elitism preserves the best individual found so
+        far. The final merge uses the highest-fitness weight vector.
+
+        Args:
+            tensors: Model parameter tensors to merge.
+            weights: Unused — genetic algorithm finds optimal coefficients.
+            base: Optional base model tensor (unused).
+            **kwargs: Additional keyword arguments:
+                population_size (int): Individuals per generation (default 20).
+                generations (int): Number of generations (default 50).
+                mutation_rate (float): Probability and std-dev of Gaussian
+                    mutation (default 0.1).
+                fitness_fn (Callable | None): Custom fitness function
+                    ``f(merged_flat) -> float`` (higher is better).
+                seed (int): RNG seed for reproducibility (default 42).
+
+        Returns:
+            Merged tensor produced by the best-fitness weight vector.
+        """
         if not tensors:
             return []
         if len(tensors) == 1:

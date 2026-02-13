@@ -41,12 +41,15 @@ from crdt_merge.model.strategies.base import (
 # ---------------------------------------------------------------------------
 
 def _py_add(a: list, b: list) -> list:
+    """Element-wise addition of two equal-length lists."""
     return [x + y for x, y in zip(a, b)]
 
 def _py_scale(a: list, s: float) -> list:
+    """Scale every element of a list by scalar *s*."""
     return [x * s for x in a]
 
 def _py_zeros(n: int) -> list:
+    """Return a list of *n* zeros."""
     return [0.0] * n
 
 def _flatten(arr: Any):
@@ -66,6 +69,15 @@ def _flatten(arr: Any):
     return arr, None
 
 def _unflatten(flat: Any, shape):
+    """Restore a flat array to its original *shape*.
+
+    Args:
+        flat: 1-D array or list produced by :func:`_flatten`.
+        shape: Original shape tuple, or ``None`` to return *flat* as-is.
+
+    Returns:
+        Reshaped array matching the original dimensionality.
+    """
     if shape is None:
         return flat
     np = _get_np()
@@ -105,6 +117,7 @@ class SafeMerge(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
+        """CRDT algebraic properties for safety-preserving merging."""
         return {"commutative": True, "associative": False, "idempotent": True}
 
     def merge(
@@ -114,6 +127,28 @@ class SafeMerge(ModelMergeStrategy):
         base: Any = None,
         **kwargs: Any,
     ) -> Any:
+        """Merge tensors while preserving safety-critical parameters.
+
+        Computes per-parameter variance across all input models and freezes
+        (uses the base model's value for) the top ``safety_threshold``
+        fraction of highest-variance parameters. The remaining parameters
+        are merged via weighted averaging.
+
+        Args:
+            tensors: Model parameter tensors to merge.
+            weights: Optional per-model weights for the non-frozen average.
+            base: Base model tensor whose values are used for frozen params.
+            **kwargs: Additional keyword arguments:
+                safety_threshold (float): Fraction of parameters to freeze
+                    (default 0.1, i.e. top 10 % highest-variance).
+                base_index (int): Index of the base model (default 0).
+
+        Returns:
+            Merged tensor preserving base values for safety-critical params.
+
+        Raises:
+            ValueError: If *base* is ``None``.
+        """
         if base is None:
             raise ValueError("SafeMerge requires a base model tensor (base=...)")
 
@@ -224,6 +259,7 @@ class LEDMerge(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
+        """CRDT algebraic properties for LED merging."""
         return {"commutative": True, "associative": False, "idempotent": True}
 
     def merge(
@@ -233,6 +269,24 @@ class LEDMerge(ModelMergeStrategy):
         base: Any = None,
         **kwargs: Any,
     ) -> Any:
+        """Merge tensors via layer-wise evaluation-driven best-source selection.
+
+        For each parameter position, selects the source model value that is
+        closest to the cross-model mean (lowest absolute distance). When an
+        ``eval_fn`` is provided, it is called per element and the source with
+        the highest evaluation score is chosen instead.
+
+        Args:
+            tensors: Model parameter tensors to merge.
+            weights: Unused — selection is per-element.
+            base: Optional base model tensor (unused).
+            **kwargs: Additional keyword arguments:
+                eval_fn (Callable): Optional per-element scoring function.
+                    Signature: ``eval_fn(value) -> float`` (higher is better).
+
+        Returns:
+            Merged tensor assembled from per-element best-source selections.
+        """
         if not tensors:
             return []
         if len(tensors) == 1:

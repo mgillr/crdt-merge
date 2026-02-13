@@ -62,18 +62,23 @@ __all__ = [
 # ---------------------------------------------------------------------------
 
 def _py_add(a: list, b: list) -> list:
+    """Element-wise addition of two equal-length lists."""
     return [x + y for x, y in zip(a, b)]
 
 def _py_sub(a: list, b: list) -> list:
+    """Element-wise subtraction: ``a[i] - b[i]``."""
     return [x - y for x, y in zip(a, b)]
 
 def _py_scale(a: list, s: float) -> list:
+    """Scale every element of a list by scalar *s*."""
     return [x * s for x in a]
 
 def _py_zeros(n: int) -> list:
+    """Return a list of *n* zeros."""
     return [0.0] * n
 
 def _py_abs(a: list) -> list:
+    """Element-wise absolute value."""
     return [abs(x) for x in a]
 
 def _py_percentile(values: list, pct: float) -> float:
@@ -105,6 +110,15 @@ def _flatten(arr: Any):
     return arr, None
 
 def _unflatten(flat: Any, shape):
+    """Restore a flat array to its original *shape*.
+
+    Args:
+        flat: 1-D array or list produced by :func:`_flatten`.
+        shape: Original shape tuple, or ``None`` to return *flat* as-is.
+
+    Returns:
+        Reshaped array matching the original dimensionality.
+    """
     if shape is None:
         return flat
     np = _get_np()
@@ -160,6 +174,7 @@ class TIESMerge(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
+        """CRDT algebraic properties for TIES merging."""
         return {"commutative": True, "associative": False, "idempotent": False}
 
     def merge(
@@ -169,6 +184,30 @@ class TIESMerge(ModelMergeStrategy):
         base: Any = None,
         **kwargs: Any,
     ) -> Any:
+        """Merge tensors via Trim, Elect Sign, Disjoint merge (TIES).
+
+        Three-step process: (1) *Trim* — zero out low-magnitude entries in
+        each task vector, keeping only the top ``density`` fraction.
+        (2) *Elect sign* — determine a consensus sign per parameter position
+        via majority vote or magnitude-weighted vote. (3) *Merge* — average
+        only the task-vector entries whose sign matches the elected sign.
+
+        Args:
+            tensors: Model parameter tensors to merge.
+            weights: Optional per-model importance weights.
+            base: Base model tensor (required).
+            **kwargs: Additional keyword arguments:
+                density (float): Fraction of entries to keep after trimming
+                    (default 0.2).
+                majority_sign_method (str): ``"count"`` or ``"magnitude"``
+                    (default ``"count"``).
+
+        Returns:
+            Merged tensor: base + averaged sign-consistent trimmed task vectors.
+
+        Raises:
+            ValueError: If *base* is ``None``.
+        """
         _require_base(base)
         if not tensors:
             return base
@@ -296,6 +335,7 @@ class DareDropAndRescale(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
+        """CRDT algebraic properties for DARE merging."""
         return {"commutative": False, "associative": False, "idempotent": False}
 
     def merge(
@@ -305,6 +345,28 @@ class DareDropAndRescale(ModelMergeStrategy):
         base: Any = None,
         **kwargs: Any,
     ) -> Any:
+        """Merge tensors using DARE: randomly drop task-vector entries and rescale.
+
+        For each task vector, independently drops each entry with probability
+        ``drop_rate``, then rescales surviving entries by ``1 / (1 − drop_rate)``
+        to preserve the expected magnitude. The rescaled task vectors are
+        weighted-summed and added to the base.
+
+        Args:
+            tensors: Model parameter tensors to merge.
+            weights: Optional per-model importance weights.
+            base: Base model tensor (required).
+            **kwargs: Additional keyword arguments:
+                drop_rate (float): Probability of dropping each entry
+                    (default 0.9).
+                seed (int): RNG seed for reproducibility (default 42).
+
+        Returns:
+            Merged tensor: base + rescaled sparse task vectors.
+
+        Raises:
+            ValueError: If *base* is ``None``.
+        """
         _require_base(base)
         if not tensors:
             return base
@@ -368,6 +430,7 @@ class DellaDropElectLowRank(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
+        """CRDT algebraic properties for DELLA merging."""
         return {"commutative": False, "associative": False, "idempotent": False}
 
     def merge(
@@ -377,6 +440,29 @@ class DellaDropElectLowRank(ModelMergeStrategy):
         base: Any = None,
         **kwargs: Any,
     ) -> Any:
+        """Merge tensors using DELLA: magnitude-aware DARE dropping.
+
+        Unlike vanilla DARE, DELLA assigns higher drop probability to
+        low-magnitude entries (less important) and lower drop probability to
+        high-magnitude entries, controlled by ``epsilon``. Surviving entries
+        are rescaled by ``1 / (1 − drop_rate)``.
+
+        Args:
+            tensors: Model parameter tensors to merge.
+            weights: Optional per-model importance weights.
+            base: Base model tensor (required).
+            **kwargs: Additional keyword arguments:
+                drop_rate (float): Base drop probability (default 0.9).
+                epsilon (float): Additive offset for drop probability to
+                    ensure minimum dropping (default 0.1).
+                seed (int): RNG seed for reproducibility (default 42).
+
+        Returns:
+            Merged tensor: base + magnitude-aware sparse task vectors.
+
+        Raises:
+            ValueError: If *base* is ``None``.
+        """
         _require_base(base)
         if not tensors:
             return base
@@ -458,6 +544,7 @@ class DareTiesHybrid(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
+        """CRDT algebraic properties for DARE-TIES merging."""
         return {"commutative": False, "associative": False, "idempotent": False}
 
     def merge(
@@ -467,6 +554,28 @@ class DareTiesHybrid(ModelMergeStrategy):
         base: Any = None,
         **kwargs: Any,
     ) -> Any:
+        """Merge tensors using DARE-TIES: DARE dropping followed by TIES sign election.
+
+        Combines DARE's random drop-and-rescale with TIES's trim-elect-merge
+        pipeline. First drops entries randomly with rescaling, then trims by
+        magnitude, elects a consensus sign, and averages only sign-agreeing
+        entries.
+
+        Args:
+            tensors: Model parameter tensors to merge.
+            weights: Optional per-model importance weights.
+            base: Base model tensor (required).
+            **kwargs: Additional keyword arguments:
+                drop_rate (float): DARE drop probability (default 0.9).
+                density (float): TIES trim density (default 0.2).
+                seed (int): RNG seed for reproducibility (default 42).
+
+        Returns:
+            Merged tensor combining DARE sparsification with TIES conflict resolution.
+
+        Raises:
+            ValueError: If *base* is ``None``.
+        """
         _require_base(base)
         if not tensors:
             return base
@@ -595,6 +704,7 @@ class ModelBreadcrumbs(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
+        """CRDT algebraic properties for Model Breadcrumbs merging."""
         return {"commutative": True, "associative": False, "idempotent": False}
 
     def merge(
@@ -604,6 +714,29 @@ class ModelBreadcrumbs(ModelMergeStrategy):
         base: Any = None,
         **kwargs: Any,
     ) -> Any:
+        """Merge tensors using sparse binary masks over task vectors.
+
+        Creates a binary mask per task vector (by magnitude threshold or
+        random selection), zeroes out masked entries, then computes a
+        weighted sum of the sparse task vectors on top of the base model.
+
+        Args:
+            tensors: Model parameter tensors to merge.
+            weights: Optional per-model importance weights.
+            base: Base model tensor (required).
+            **kwargs: Additional keyword arguments:
+                sparsity (float): Fraction of entries to zero out
+                    (default 0.9, keeping 10 %).
+                mask_method (str): ``"magnitude"`` or ``"random"``
+                    (default ``"magnitude"``).
+                seed (int): RNG seed for random masking (default 42).
+
+        Returns:
+            Merged tensor: base + weighted sparse task vectors.
+
+        Raises:
+            ValueError: If *base* is ``None``.
+        """
         _require_base(base)
         if not tensors:
             return base
@@ -692,6 +825,7 @@ class EMRMerge(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
+        """CRDT algebraic properties for EMR merging."""
         return {"commutative": True, "associative": False, "idempotent": False}
 
     def merge(
@@ -701,6 +835,30 @@ class EMRMerge(ModelMergeStrategy):
         base: Any = None,
         **kwargs: Any,
     ) -> Any:
+        """Merge tensors via Elect, Mask, Rescale (EMR).
+
+        Three phases: (1) *Elect* — keep the top ``elect_ratio`` fraction
+        of each task vector by magnitude. (2) *Mask* — combine elected
+        entries across models. (3) *Rescale* — multiply the merged result
+        by ``d / active_count`` (capped at ``1 / elect_ratio``) to
+        compensate for sparsity.
+
+        Args:
+            tensors: Model parameter tensors to merge.
+            weights: Optional per-model importance weights.
+            base: Base model tensor (required).
+            **kwargs: Additional keyword arguments:
+                importance_metric (str): Currently only ``"magnitude"``
+                    (default ``"magnitude"``).
+                elect_ratio (float): Fraction of entries to elect per model
+                    (default 0.3).
+
+        Returns:
+            Merged and rescaled tensor: base + rescaled elected task vectors.
+
+        Raises:
+            ValueError: If *base* is ``None``.
+        """
         _require_base(base)
         if not tensors:
             return base
@@ -800,6 +958,7 @@ class SpectralTruncationAdaptiveRescaling(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
+        """CRDT algebraic properties for STAR merging."""
         return {"commutative": True, "associative": False, "idempotent": False}
 
     def merge(
@@ -809,6 +968,30 @@ class SpectralTruncationAdaptiveRescaling(ModelMergeStrategy):
         base: Any = None,
         **kwargs: Any,
     ) -> Any:
+        """Merge tensors via spectral truncation with adaptive rescaling (STAR).
+
+        For 2-D+ tensors: decomposes each task vector with SVD, truncates
+        to the top ``rank_fraction`` singular values, optionally rescales to
+        preserve the original Frobenius energy, then weighted-averages the
+        truncated task vectors. For 1-D tensors: applies magnitude-based
+        truncation instead.
+
+        Args:
+            tensors: Model parameter tensors to merge.
+            weights: Optional per-model importance weights.
+            base: Base model tensor (required).
+            **kwargs: Additional keyword arguments:
+                rank_fraction (float): Fraction of singular values to retain
+                    (default 0.5).
+                rescale_method (str): ``"energy"`` to preserve Frobenius norm,
+                    or ``"none"`` (default ``"energy"``).
+
+        Returns:
+            Merged tensor: base + rescaled rank-truncated task vectors.
+
+        Raises:
+            ValueError: If *base* is ``None``.
+        """
         _require_base(base)
         if not tensors:
             return base
@@ -925,6 +1108,7 @@ class SVDKnotTying(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
+        """CRDT algebraic properties for SVD Knot Tying."""
         return {"commutative": True, "associative": False, "idempotent": True}
 
     def merge(
@@ -934,6 +1118,29 @@ class SVDKnotTying(ModelMergeStrategy):
         base: Any = None,
         **kwargs: Any,
     ) -> Any:
+        """Merge tensors by aligning SVD bases then averaging in aligned space.
+
+        Decomposes each task vector via SVD, aligns left singular vectors
+        to a reference decomposition using Procrustes rotation, reconstructs
+        in the aligned basis, and computes a weighted average. For 1-D
+        tensors, falls back to simple weighted averaging.
+
+        Args:
+            tensors: Model parameter tensors to merge.
+            weights: Optional per-model importance weights.
+            base: Base model tensor (required).
+            **kwargs: Additional keyword arguments:
+                alignment_method (str): ``"procrustes"`` (default) or
+                    ``"none"`` to skip alignment.
+                rank (int | None): Number of singular values to retain.
+                    ``None`` retains all (default ``None``).
+
+        Returns:
+            Merged tensor: base + aligned weighted task vectors.
+
+        Raises:
+            ValueError: If *base* is ``None``.
+        """
         _require_base(base)
         if not tensors:
             return base
@@ -1051,6 +1258,7 @@ class AdaptiveRankPruning(ModelMergeStrategy):
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
+        """CRDT algebraic properties for AdaRank merging."""
         return {"commutative": True, "associative": False, "idempotent": False}
 
     def merge(
@@ -1060,6 +1268,30 @@ class AdaptiveRankPruning(ModelMergeStrategy):
         base: Any = None,
         **kwargs: Any,
     ) -> Any:
+        """Merge tensors with per-layer adaptive rank selection and pruning.
+
+        For 2-D+ tensors: decomposes via SVD, automatically selects the
+        rank that captures 90 % of spectral energy (or uses ``target_rank``),
+        zeroes out lower singular values, then weighted-averages the pruned
+        task vectors. For 1-D tensors: applies magnitude-based pruning
+        retaining the top-energy entries.
+
+        Args:
+            tensors: Model parameter tensors to merge.
+            weights: Optional per-model importance weights.
+            base: Base model tensor (required).
+            **kwargs: Additional keyword arguments:
+                target_rank (int | "auto"): Rank to retain per task vector.
+                    ``"auto"`` selects rank capturing 90 % energy (default).
+                importance (str): Importance metric for auto rank — ``"energy"``
+                    or ``"variance"`` (default ``"energy"``).
+
+        Returns:
+            Merged tensor: base + rank-pruned weighted task vectors.
+
+        Raises:
+            ValueError: If *base* is ``None``.
+        """
         _require_base(base)
         if not tensors:
             return base
