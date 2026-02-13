@@ -118,6 +118,7 @@ class MergePlan:
     steps: List[str]
 
     def __str__(self) -> str:
+        """Return a human-readable summary of the execution plan."""
         lines = [
             "MergePlan",
             f"  Sources: {', '.join(self.sources)}",

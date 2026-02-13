@@ -162,14 +162,17 @@ class TIESMerge(ModelMergeStrategy):
 
     @property
     def name(self) -> str:
+        """Canonical registry name for this strategy."""
         return "ties"
 
     @property
     def category(self) -> str:
+        """Strategy family: Subspace / Sparsification."""
         return "Subspace / Sparsification"
 
     @property
     def paper_reference(self) -> str:
+        """Academic reference for this strategy."""
         return "Yadav et al., NeurIPS 2023 — Resolving Interference When Merging Models (TIES-Merging)"
 
     @property
@@ -323,14 +326,17 @@ class DareDropAndRescale(ModelMergeStrategy):
 
     @property
     def name(self) -> str:
+        """Canonical registry name for this strategy."""
         return "dare"
 
     @property
     def category(self) -> str:
+        """Strategy family: Subspace / Sparsification."""
         return "Subspace / Sparsification"
 
     @property
     def paper_reference(self) -> str:
+        """Academic reference for this strategy."""
         return "Yu et al., 2024 — Language Models are Super Mario"
 
     @property
@@ -418,14 +424,17 @@ class DellaDropElectLowRank(ModelMergeStrategy):
 
     @property
     def name(self) -> str:
+        """Canonical registry name for this strategy."""
         return "della"
 
     @property
     def category(self) -> str:
+        """Strategy family: Subspace / Sparsification."""
         return "Subspace / Sparsification"
 
     @property
     def paper_reference(self) -> str:
+        """Academic reference for this strategy."""
         return "Bansal, 2024 — DELLA-Merging"
 
     @property
@@ -532,14 +541,17 @@ class DareTiesHybrid(ModelMergeStrategy):
 
     @property
     def name(self) -> str:
+        """Canonical registry name for this strategy."""
         return "dare_ties"
 
     @property
     def category(self) -> str:
+        """Strategy family: Subspace / Sparsification."""
         return "Subspace / Sparsification"
 
     @property
     def paper_reference(self) -> str:
+        """Academic reference for this strategy."""
         return "Community hybrid, 2024 — DARE-TIES"
 
     @property
@@ -692,14 +704,17 @@ class ModelBreadcrumbs(ModelMergeStrategy):
 
     @property
     def name(self) -> str:
+        """Canonical registry name for this strategy."""
         return "model_breadcrumbs"
 
     @property
     def category(self) -> str:
+        """Strategy family: Subspace / Sparsification."""
         return "Subspace / Sparsification"
 
     @property
     def paper_reference(self) -> str:
+        """Academic reference for this strategy."""
         return "Davari & Belilovsky, 2023 — Model Breadcrumbs"
 
     @property
@@ -813,14 +828,17 @@ class EMRMerge(ModelMergeStrategy):
 
     @property
     def name(self) -> str:
+        """Canonical registry name for this strategy."""
         return "emr"
 
     @property
     def category(self) -> str:
+        """Strategy family: Subspace / Sparsification."""
         return "Subspace / Sparsification"
 
     @property
     def paper_reference(self) -> str:
+        """Academic reference for this strategy."""
         return "Huang et al., 2024 — EMR-Merging"
 
     @property
@@ -946,14 +964,17 @@ class SpectralTruncationAdaptiveRescaling(ModelMergeStrategy):
 
     @property
     def name(self) -> str:
+        """Canonical registry name for this strategy."""
         return "star"
 
     @property
     def category(self) -> str:
+        """Strategy family: Subspace / Sparsification."""
         return "Subspace / Sparsification"
 
     @property
     def paper_reference(self) -> str:
+        """Academic reference for this strategy."""
         return "2025 — Spectral Truncation Adaptive Rescaling (STAR)"
 
     @property
@@ -1096,14 +1117,17 @@ class SVDKnotTying(ModelMergeStrategy):
 
     @property
     def name(self) -> str:
+        """Canonical registry name for this strategy."""
         return "svd_knot_tying"
 
     @property
     def category(self) -> str:
+        """Strategy family: Subspace / Sparsification."""
         return "Subspace / Sparsification"
 
     @property
     def paper_reference(self) -> str:
+        """Academic reference for this strategy."""
         return "2024 — SVD Knot Tying: Aligning Merge Subspaces"
 
     @property
@@ -1246,14 +1270,17 @@ class AdaptiveRankPruning(ModelMergeStrategy):
 
     @property
     def name(self) -> str:
+        """Canonical registry name for this strategy."""
         return "adarank"
 
     @property
     def category(self) -> str:
+        """Strategy family: Subspace / Sparsification."""
         return "Subspace / Sparsification"
 
     @property
     def paper_reference(self) -> str:
+        """Academic reference for this strategy."""
         return "ICLR 2026 — AdaRank: Adaptive Rank Pruning for Model Merging"
 
     @property

@@ -109,14 +109,17 @@ class NegativeMerge(ModelMergeStrategy):
 
     @property
     def name(self) -> str:
+        """Canonical registry name for this strategy."""
         return "negative_merge"
 
     @property
     def category(self) -> str:
+        """Strategy family: Unlearning."""
         return "Unlearning"
 
     @property
     def paper_reference(self) -> str:
+        """Academic reference for this strategy."""
         return "ICML 2025 — NegMerge: Weight Negation for Unlearning"
 
     @property
@@ -241,14 +244,17 @@ class SplitUnlearnMerge(ModelMergeStrategy):
 
     @property
     def name(self) -> str:
+        """Canonical registry name for this strategy."""
         return "split_unlearn_merge"
 
     @property
     def category(self) -> str:
+        """Strategy family: Unlearning."""
         return "Unlearning"
 
     @property
     def paper_reference(self) -> str:
+        """Academic reference for this strategy."""
         return "2025 — Sequential Split-Unlearn-Merge"
 
     @property

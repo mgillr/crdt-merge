@@ -105,14 +105,17 @@ class SafeMerge(ModelMergeStrategy):
 
     @property
     def name(self) -> str:
+        """Canonical registry name for this strategy."""
         return "safe_merge"
 
     @property
     def category(self) -> str:
+        """Strategy family: Safety-Aware."""
         return "Safety-Aware"
 
     @property
     def paper_reference(self) -> str:
+        """Academic reference for this strategy."""
         return "2025 — Safety-Preserving Model Merging"
 
     @property
@@ -247,14 +250,17 @@ class LEDMerge(ModelMergeStrategy):
 
     @property
     def name(self) -> str:
+        """Canonical registry name for this strategy."""
         return "led_merge"
 
     @property
     def category(self) -> str:
+        """Strategy family: Safety-Aware."""
         return "Safety-Aware"
 
     @property
     def paper_reference(self) -> str:
+        """Academic reference for this strategy."""
         return "2025 — Layer-wise Evaluation-Driven Merging (LED)"
 
     @property
