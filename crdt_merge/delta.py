@@ -74,6 +74,17 @@ class Delta:
         timestamp: Optional[float] = None,
         source_node: str = "",
     ):
+        """Initialize a Delta with changeset components.
+
+        Args:
+            added: Records that are new in this delta. Defaults to empty list.
+            modified: Records that changed (with updated values). Defaults to empty list.
+            removed: Keys of records that were deleted. Defaults to empty list.
+            version: Monotonic version counter for ordering deltas.
+            timestamp: Unix timestamp when this delta was computed. Defaults to
+                current time.
+            source_node: Identifier of the node that produced this delta.
+        """
         self.added = added or []
         self.modified = modified or []
         self.removed = removed or []
@@ -83,13 +94,29 @@ class Delta:
 
     @property
     def size(self) -> int:
+        """Total number of changes in this delta.
+
+        Returns:
+            int: Sum of added, modified, and removed record counts.
+        """
         return len(self.added) + len(self.modified) + len(self.removed)
 
     @property
     def is_empty(self) -> bool:
+        """Whether this delta contains no changes.
+
+        Returns:
+            bool: True if the delta has zero added, modified, and removed records.
+        """
         return self.size == 0
 
     def to_dict(self) -> dict:
+        """Serialize the delta to a plain dictionary.
+
+        Returns:
+            dict: Dictionary containing all delta fields (added, modified,
+                removed, version, timestamp, source_node).
+        """
         return {
             "added": self.added,
             "modified": self.modified,
@@ -101,6 +128,14 @@ class Delta:
 
     @classmethod
     def from_dict(cls, d: dict) -> Delta:
+        """Reconstruct a Delta from a dictionary.
+
+        Args:
+            d: Dictionary with delta fields as produced by ``to_dict()``.
+
+        Returns:
+            Delta: A new Delta instance.
+        """
         return cls(
             added=d.get("added", []),
             modified=d.get("modified", []),
@@ -110,7 +145,8 @@ class Delta:
             source_node=d.get("source_node", ""),
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return a concise summary string showing change counts and version."""
         return f"Delta(+{len(self.added)} ~{len(self.modified)} -{len(self.removed)}, v{self.version})"
 
 def _record_hash(record: dict, key: str) -> str:
@@ -303,6 +339,12 @@ class DeltaStore:
     """
 
     def __init__(self, key: str, node_id: str = "default"):
+        """Initialize a DeltaStore.
+
+        Args:
+            key: The field name used as the primary key for record identity.
+            node_id: Identifier of this node, embedded in produced deltas.
+        """
         self.key = key
         self.node_id = node_id
         self._version = 0
@@ -353,15 +395,32 @@ class DeltaStore:
 
     @property
     def version(self) -> int:
+        """Current version counter of the store.
+
+        Returns:
+            int: Monotonically increasing version, incremented on each ingest
+                that produces a delta.
+        """
         return self._version
 
     @property
     def size(self) -> int:
+        """Number of records currently held in the store.
+
+        Returns:
+            int: Count of records in the current state snapshot.
+        """
         return len(self._current)
 
     @property
     def records(self) -> List[dict]:
+        """Current state as a list of records.
+
+        Returns:
+            List[dict]: All records in the store's latest snapshot.
+        """
         return list(self._current.values())
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return a summary string with key field, record count, and version."""
         return f"DeltaStore(key={self.key!r}, records={self.size}, v{self._version})"
