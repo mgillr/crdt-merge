@@ -157,6 +157,7 @@ class XORLegacyBackend(CryptoBackend):
     name = "xor-legacy"
 
     def encrypt(self, key: bytes, plaintext: bytes, associated_data: bytes | None = None) -> Tuple[bytes, bytes, bytes]:
+        """Encrypt *plaintext* using XOR with an HMAC-SHA256 keystream."""
         nonce = secrets.token_bytes(_NONCE_BYTES)
         stream = _keystream(key, nonce, len(plaintext))
         ciphertext = _xor_bytes(plaintext, stream)
@@ -165,6 +166,7 @@ class XORLegacyBackend(CryptoBackend):
         return ciphertext, nonce, tag
 
     def decrypt(self, key: bytes, ciphertext: bytes, nonce: bytes, tag: bytes, associated_data: bytes | None = None) -> bytes:
+        """Decrypt *ciphertext* and verify the HMAC auth tag."""
         tag_input = nonce + ciphertext
         expected_tag = hmac.new(key, tag_input, hashlib.sha256).digest()
         if not hmac.compare_digest(expected_tag, tag):
@@ -179,6 +181,7 @@ class AES256GCMBackend(CryptoBackend):
     name = "aes-256-gcm"
 
     def encrypt(self, key: bytes, plaintext: bytes, associated_data: bytes | None = None) -> Tuple[bytes, bytes, bytes]:
+        """Encrypt *plaintext* with AES-256-GCM, returning ``(ciphertext, nonce, tag)``."""
         from cryptography.hazmat.primitives.ciphers.aead import AESGCM
         aesgcm = AESGCM(key)
         nonce = secrets.token_bytes(12)
@@ -189,6 +192,7 @@ class AES256GCMBackend(CryptoBackend):
         return ciphertext, nonce, tag
 
     def decrypt(self, key: bytes, ciphertext: bytes, nonce: bytes, tag: bytes, associated_data: bytes | None = None) -> bytes:
+        """Decrypt *ciphertext* with AES-256-GCM; raises ``ValueError`` on auth failure."""
         from cryptography.hazmat.primitives.ciphers.aead import AESGCM
         aesgcm = AESGCM(key)
         ct_with_tag = ciphertext + tag
@@ -204,6 +208,7 @@ class AESGCMSIVBackend(CryptoBackend):
     name = "aes-256-gcm-siv"
 
     def encrypt(self, key: bytes, plaintext: bytes, associated_data: bytes | None = None) -> Tuple[bytes, bytes, bytes]:
+        """Encrypt *plaintext* with AES-256-GCM-SIV, returning ``(ciphertext, nonce, tag)``."""
         from cryptography.hazmat.primitives.ciphers.aead import AESGCMSIV
         cipher = AESGCMSIV(key)
         nonce = secrets.token_bytes(12)
@@ -213,6 +218,7 @@ class AESGCMSIVBackend(CryptoBackend):
         return ciphertext, nonce, tag
 
     def decrypt(self, key: bytes, ciphertext: bytes, nonce: bytes, tag: bytes, associated_data: bytes | None = None) -> bytes:
+        """Decrypt *ciphertext* with AES-256-GCM-SIV; raises ``ValueError`` on auth failure."""
         from cryptography.hazmat.primitives.ciphers.aead import AESGCMSIV
         cipher = AESGCMSIV(key)
         ct_with_tag = ciphertext + tag
@@ -228,6 +234,7 @@ class ChaCha20Poly1305Backend(CryptoBackend):
     name = "chacha20-poly1305"
 
     def encrypt(self, key: bytes, plaintext: bytes, associated_data: bytes | None = None) -> Tuple[bytes, bytes, bytes]:
+        """Encrypt *plaintext* with ChaCha20-Poly1305, returning ``(ciphertext, nonce, tag)``."""
         from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
         cipher = ChaCha20Poly1305(key)
         nonce = secrets.token_bytes(12)
@@ -237,6 +244,7 @@ class ChaCha20Poly1305Backend(CryptoBackend):
         return ciphertext, nonce, tag
 
     def decrypt(self, key: bytes, ciphertext: bytes, nonce: bytes, tag: bytes, associated_data: bytes | None = None) -> bytes:
+        """Decrypt *ciphertext* with ChaCha20-Poly1305; raises ``ValueError`` on auth failure."""
         from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
         cipher = ChaCha20Poly1305(key)
         ct_with_tag = ciphertext + tag
@@ -276,18 +284,24 @@ try:
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM as _AESGCM  # noqa: F401 — import tests availability; class used via AES256GCMBackend
     register_backend("aes-256-gcm", AES256GCMBackend)
 except ImportError:  # cryptography package not installed — skip AEAD backend registration
+    # Gracefully degrade: AES-256-GCM requires the 'cryptography' package;
+    # when absent the backend is simply not registered (XOR fallback remains).
     pass
 
 try:
     from cryptography.hazmat.primitives.ciphers.aead import AESGCMSIV as _AESGCMSIV  # noqa: F401 — import tests availability; class used via AESGCMSIVBackend
     register_backend("aes-256-gcm-siv", AESGCMSIVBackend)
 except ImportError:  # cryptography package not installed — skip GCM-SIV backend registration
+    # Gracefully degrade: AES-256-GCM-SIV requires the 'cryptography' package;
+    # when absent the backend is simply not registered.
     pass
 
 try:
     from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305 as _ChaCha  # noqa: F401 — import tests availability; class used via ChaCha20Poly1305Backend
     register_backend("chacha20-poly1305", ChaCha20Poly1305Backend)
 except ImportError:  # cryptography package not installed — skip ChaCha backend registration
+    # Gracefully degrade: ChaCha20-Poly1305 requires the 'cryptography' package;
+    # when absent the backend is simply not registered.
     pass
 
 
@@ -308,6 +322,21 @@ class EncryptedValue:
         field_name: str,
         order_tag: bytes = b"",
     ) -> None:
+        """Initialise an encrypted value container.
+
+        Parameters
+        ----------
+        ciphertext:
+            The encrypted payload bytes.
+        nonce:
+            Nonce / IV used during encryption.
+        tag:
+            Authentication tag produced by the cipher.
+        field_name:
+            Name of the source field (used for key derivation on decrypt).
+        order_tag:
+            HMAC-based tag enabling order comparisons on ciphertext.
+        """
         self.ciphertext = ciphertext
         self.nonce = nonce
         self.tag = tag
@@ -318,34 +347,41 @@ class EncryptedValue:
     # -- Comparison via order_tag (enables LWW / Max / Min on ciphertext) ---
 
     def __lt__(self, other: object) -> bool:
+        """Return ``True`` if this order tag is less than *other*'s."""
         if not isinstance(other, EncryptedValue):
             return NotImplemented
         return self.order_tag < other.order_tag
 
     def __gt__(self, other: object) -> bool:
+        """Return ``True`` if this order tag is greater than *other*'s."""
         if not isinstance(other, EncryptedValue):
             return NotImplemented
         return self.order_tag > other.order_tag
 
     def __eq__(self, other: object) -> bool:
+        """Return ``True`` if both order tags are equal."""
         if not isinstance(other, EncryptedValue):
             return NotImplemented
         return self.order_tag == other.order_tag
 
     def __le__(self, other: object) -> bool:
+        """Return ``True`` if this order tag is less than or equal to *other*'s."""
         if not isinstance(other, EncryptedValue):
             return NotImplemented
         return self.order_tag <= other.order_tag
 
     def __ge__(self, other: object) -> bool:
+        """Return ``True`` if this order tag is greater than or equal to *other*'s."""
         if not isinstance(other, EncryptedValue):
             return NotImplemented
         return self.order_tag >= other.order_tag
 
     def __hash__(self) -> int:
+        """Hash based on the order-preserving tag."""
         return hash(self.order_tag)
 
     def __repr__(self) -> str:
+        """Return a short representation showing field name and ciphertext prefix."""
         ct_hex = self.ciphertext[:8].hex()
         return f"EncryptedValue(field={self.field_name!r}, ct={ct_hex}...)"
 
@@ -398,6 +434,13 @@ class StaticKeyProvider(KeyProvider):
     """Single master key with per-field derivation via HMAC."""
 
     def __init__(self, key: bytes) -> None:
+        """Initialise with a master key (must be at least 32 bytes).
+
+        Parameters
+        ----------
+        key:
+            Raw master key bytes.  Only the first 32 bytes are used.
+        """
         if len(key) < _KEY_BYTES:
             raise ValueError(f"Key must be at least {_KEY_BYTES} bytes, got {len(key)}")
         self._key = key[:_KEY_BYTES]
@@ -422,6 +465,17 @@ class EncryptedMerge:
     _warned: bool = False
 
     def __init__(self, key_provider: KeyProvider, *, backend: str = _BACKEND_UNSET) -> None:
+        """Initialise the encrypted-merge layer.
+
+        Parameters
+        ----------
+        key_provider:
+            A :class:`KeyProvider` used to obtain per-field encryption keys.
+        backend:
+            Crypto backend name (e.g. ``"aes-256-gcm"``).  Use ``"auto"`` to
+            select the best available backend.  When omitted the XOR legacy
+            backend is used for backward compatibility.
+        """
         self._kp = key_provider
 
         if backend is _BACKEND_UNSET:

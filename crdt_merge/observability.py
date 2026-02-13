@@ -85,6 +85,16 @@ class MetricsCollector:
     """
 
     def __init__(self, node_id: str = "default", max_history: int = 10_000) -> None:
+        """Initialise a new metrics collector.
+
+        Parameters
+        ----------
+        node_id:
+            Identifier for the node that owns this collector.
+        max_history:
+            Maximum number of :class:`MergeMetric` entries to retain.
+            Oldest entries are evicted in FIFO order.
+        """
         self._node_id = node_id
         self._max_history = max_history
         self._metrics: Deque[MergeMetric] = deque(maxlen=max_history)
@@ -244,16 +254,19 @@ class MetricsCollector:
     # -- dunder protocols ----------------------------------------------------
 
     def __len__(self) -> int:
+        """Return the number of stored metrics."""
         with self._lock:
             return len(self._metrics)
 
     def __iter__(self) -> Iterator[MergeMetric]:
+        """Iterate over a snapshot of all stored metrics."""
         with self._lock:
             return iter(list(self._metrics))
 
     # -- internals -----------------------------------------------------------
 
     def _append(self, metric: MergeMetric, *, is_error: bool = False) -> None:
+        """Append *metric* to the deque, incrementing counters under lock."""
         with self._lock:
             self._metrics.append(metric)
             self._total_count += 1
@@ -289,6 +302,16 @@ class HealthCheck:
         collector: MetricsCollector,
         thresholds: Optional[Dict[str, float]] = None,
     ) -> None:
+        """Initialise a health-check evaluator.
+
+        Parameters
+        ----------
+        collector:
+            The :class:`MetricsCollector` whose summary is evaluated.
+        thresholds:
+            Optional overrides for the default thresholds
+            (``merge_time_ms``, ``error_rate``, ``conflict_rate``).
+        """
         self._collector = collector
         self._thresholds: Dict[str, float] = {**_DEFAULT_THRESHOLDS}
         if thresholds:
@@ -403,6 +426,17 @@ class ObservedMerge:
         collector: Optional[MetricsCollector] = None,
         node_id: str = "default",
     ) -> None:
+        """Initialise the instrumented merge wrapper.
+
+        Parameters
+        ----------
+        collector:
+            An existing :class:`MetricsCollector`.  When ``None`` a new
+            collector is created automatically.
+        node_id:
+            Identifier passed to the auto-created collector (ignored when
+            *collector* is supplied).
+        """
         if collector is not None:
             self._collector = collector
         else:
@@ -505,22 +539,23 @@ class _NoOpSpan:
     """Minimal stand-in for an OTel span when the SDK is absent."""
 
     def set_attribute(self, key: str, value: Any) -> None:  # noqa: D401 — imperative mood acceptable for setter methods
-        pass
+        """No-op: accept and discard a span attribute when OTel is absent."""
 
     def set_status(self, *args: Any, **kwargs: Any) -> None:
-        pass
+        """No-op: accept and discard span status when OTel is absent."""
 
     def record_exception(self, exc: BaseException) -> None:
-        pass
+        """No-op: accept and discard an exception record when OTel is absent."""
 
     def end(self) -> None:
-        pass
+        """No-op: end the span (nothing to finalize)."""
 
     def __enter__(self) -> "_NoOpSpan":
+        """Enter the no-op span context manager."""
         return self
 
     def __exit__(self, *exc_info: Any) -> None:
-        pass
+        """Exit the no-op span context manager."""
 
 
 class MergeTracer:
@@ -541,6 +576,16 @@ class MergeTracer:
         service_name: str = "crdt-merge",
         collector: Optional[MetricsCollector] = None,
     ) -> None:
+        """Initialise the merge tracer.
+
+        Parameters
+        ----------
+        service_name:
+            OpenTelemetry service name used when obtaining the tracer.
+        collector:
+            Optional :class:`MetricsCollector` to record metrics alongside
+            traces.
+        """
         self._service_name = service_name
         self._collector = collector
         self._tracer: Any = None
@@ -674,6 +719,14 @@ class DriftDetector:
     """
 
     def __init__(self, sensitivity: float = 2.0) -> None:
+        """Initialise the drift detector.
+
+        Parameters
+        ----------
+        sensitivity:
+            Number of standard deviations a column mean must shift
+            to be flagged as statistical drift (default ``2.0``).
+        """
         self._sensitivity = sensitivity
         self._baseline_columns: Optional[List[str]] = None
         self._baseline_types: Optional[Dict[str, str]] = None
@@ -811,6 +864,15 @@ class PrometheusExporter:
         metrics: List[MergeMetric],
         namespace: str = "crdt_merge",
     ) -> None:
+        """Initialise the exporter with a snapshot of metrics.
+
+        Parameters
+        ----------
+        metrics:
+            List of :class:`MergeMetric` instances to expose.
+        namespace:
+            Prometheus metric name prefix (default ``crdt_merge``).
+        """
         self._metrics = metrics
         self._namespace = namespace
 
@@ -921,6 +983,17 @@ class GrafanaDashboard:
         datasource: str = "Prometheus",
         refresh: str = "30s",
     ) -> None:
+        """Initialise a Grafana dashboard generator.
+
+        Parameters
+        ----------
+        title:
+            Dashboard title shown in the Grafana UI.
+        datasource:
+            UID (or name) of the Prometheus data source.
+        refresh:
+            Auto-refresh interval (e.g. ``"30s"``).
+        """
         self._title = title
         self._datasource = datasource
         self._refresh = refresh
@@ -928,9 +1001,11 @@ class GrafanaDashboard:
     # -- panel builders ------------------------------------------------------
 
     def _ds(self) -> Dict[str, str]:
+        """Return the datasource reference dict for panel targets."""
         return {"type": "prometheus", "uid": self._datasource}
 
     def _panel_throughput(self) -> Dict[str, Any]:
+        """Build the merge-throughput timeseries panel."""
         return {
             "title": "Merge Throughput",
             "type": "timeseries",
@@ -945,6 +1020,7 @@ class GrafanaDashboard:
         }
 
     def _panel_latency(self) -> Dict[str, Any]:
+        """Build the merge-latency histogram panel (p50/p95)."""
         return {
             "title": "Merge Latency",
             "type": "histogram",
@@ -963,6 +1039,7 @@ class GrafanaDashboard:
         }
 
     def _panel_conflict_rate(self) -> Dict[str, Any]:
+        """Build the conflict-rate gauge panel."""
         return {
             "title": "Conflict Rate",
             "type": "gauge",
@@ -977,6 +1054,7 @@ class GrafanaDashboard:
         }
 
     def _panel_error_rate(self) -> Dict[str, Any]:
+        """Build the error-rate stat panel."""
         return {
             "title": "Error Rate",
             "type": "stat",
@@ -991,6 +1069,7 @@ class GrafanaDashboard:
         }
 
     def _panel_health_status(self) -> Dict[str, Any]:
+        """Build the overall health-status stat panel."""
         return {
             "title": "Health Status",
             "type": "stat",
@@ -1005,6 +1084,7 @@ class GrafanaDashboard:
         }
 
     def _panel_drift_alerts(self) -> Dict[str, Any]:
+        """Build the drift-alerts table panel."""
         return {
             "title": "Drift Alerts",
             "type": "table",
