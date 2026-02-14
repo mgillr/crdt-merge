@@ -213,7 +213,10 @@ from .agentic import AgentState, SharedKnowledge, Fact
 # v0.9.0: Enterprise Modules — Unmerge, Audit, Encryption, RBAC, Observability
 from .unmerge import UnmergeEngine, ModelUnmerge, GDPRForget
 from .audit import AuditLog, AuditEntry, AuditedMerge
-from .encryption import EncryptedMerge, EncryptedValue, StaticKeyProvider, KeyProvider
+try:
+    from .encryption import EncryptedMerge, EncryptedValue, StaticKeyProvider, KeyProvider
+except BaseException:  # cryptography package may be broken (e.g. pyo3 PanicException inherits BaseException)
+    pass
 from .rbac import RBACController, SecureMerge, Permission, Role, Policy, AccessContext
 from .observability import MetricsCollector, ObservedMerge, MergeMetric, HealthCheck
 from .observability import MergeTracer, DriftDetector, DriftReport, PrometheusExporter, GrafanaDashboard
