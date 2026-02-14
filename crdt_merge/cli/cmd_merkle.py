@@ -104,21 +104,17 @@ def handle_diff(args: argparse.Namespace, formatter: OutputFormatter) -> None:
         formatter.error(f"Diff computation failed: {exc}")
         sys.exit(1)
 
-    if not diffs:
+    # MerkleDiff is a dataclass, not a list — check is_identical property
+    is_identical = getattr(diffs, "is_identical", None)
+    if is_identical is True or (hasattr(diffs, "num_differences") and diffs.num_differences == 0):
         formatter.success("Trees are identical -- no differences found.")
         return
 
-    rows = []
-    for d in diffs:
-        rows.append({
-            "path": getattr(d, "path", str(d)),
-            "type": getattr(d, "diff_type", "unknown"),
-            "hash_a": getattr(d, "hash_a", "")[:16] if getattr(d, "hash_a", None) else "",
-            "hash_b": getattr(d, "hash_b", "")[:16] if getattr(d, "hash_b", None) else "",
-        })
-
-    formatter.message(f"Found {len(diffs)} difference(s):")
-    formatter.auto(rows, title="Merkle Diff")
+    # Build rows from the MerkleDiff dataclass fields
+    if hasattr(diffs, "to_dict"):
+        formatter.json(diffs.to_dict())
+    else:
+        formatter.json({"result": str(diffs)})
 
 
 def handle_compare(args: argparse.Namespace, formatter: OutputFormatter) -> None:
@@ -146,22 +142,18 @@ def handle_compare(args: argparse.Namespace, formatter: OutputFormatter) -> None
         formatter.error(f"Comparison failed: {exc}")
         sys.exit(1)
 
-    if not diffs:
+    # MerkleDiff is a dataclass, not a list
+    is_identical = getattr(diffs, "is_identical", None)
+    if is_identical is True or (hasattr(diffs, "num_differences") and diffs.num_differences == 0):
         formatter.success("Datasets are identical.")
         return
 
-    rows = []
-    for d in diffs:
-        rows.append({
-            "key": getattr(d, "key", str(d)),
-            "type": getattr(d, "diff_type", "unknown"),
-            "detail": getattr(d, "detail", ""),
-        })
-
-    formatter.message(
-        f"Found {len(diffs)} difference(s) between {args.file_a} and {args.file_b}:"
-    )
-    formatter.auto(rows, title="Dataset Comparison")
+    n = getattr(diffs, "num_differences", "?")
+    formatter.message(f"Found {n} difference(s) between {args.file_a} and {args.file_b}:")
+    if hasattr(diffs, "to_dict"):
+        formatter.json(diffs.to_dict())
+    else:
+        formatter.json({"result": str(diffs)})
 
 
 # ---------------------------------------------------------------------------
@@ -223,7 +215,7 @@ def register(subparsers: argparse._SubParsersAction) -> None:
         default=None,
         help="Write the Merkle tree JSON to this file (default: stdout).",
     )
-    build_parser.set_defaults(merkle_handler="build")
+    build_parser.set_defaults(merkle_handler="build", handler=handle_build)
 
     # --- merkle diff ---
     diff_parser = sub.add_parser(
@@ -245,7 +237,7 @@ def register(subparsers: argparse._SubParsersAction) -> None:
         metavar="TREE_B",
         help="Path to the second Merkle tree JSON file.",
     )
-    diff_parser.set_defaults(merkle_handler="diff")
+    diff_parser.set_defaults(merkle_handler="diff", handler=handle_diff)
 
     # --- merkle compare ---
     compare_parser = sub.add_parser(
@@ -274,4 +266,4 @@ def register(subparsers: argparse._SubParsersAction) -> None:
         default=None,
         help="Column to use as the record key.",
     )
-    compare_parser.set_defaults(merkle_handler="compare")
+    compare_parser.set_defaults(merkle_handler="compare", handler=handle_compare)

@@ -234,11 +234,13 @@ def _do_migrate(
         args, "output", None
     )
 
-    result = cli_migrate(
-        config_path,
-        output=output_path,
-        dry_run=args.dry_run,
-    )
+    # cli_migrate() takes a raw argv list, not keyword arguments
+    cli_args = [config_path]
+    if output_path:
+        cli_args.extend(["--output", output_path])
+    if args.dry_run:
+        cli_args.append("--dry-run")
+    result = cli_migrate(cli_args)
 
     if result is None:
         # cli_migrate handled output internally (e.g. wrote files).

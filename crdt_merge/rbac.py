@@ -88,7 +88,7 @@ class Role:
 
     def has_permission(self, perm: Permission) -> bool:
         """Return *True* if this role includes *perm*."""
-        return any(perm in p for p in self.permissions)
+        return perm in self.permissions
 
 
 # Pre-defined roles --------------------------------------------------------
