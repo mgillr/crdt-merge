@@ -182,18 +182,23 @@ class AES256GCMBackend(CryptoBackend):
 
     def encrypt(self, key: bytes, plaintext: bytes, associated_data: bytes | None = None) -> Tuple[bytes, bytes, bytes]:
         """Encrypt *plaintext* with AES-256-GCM, returning ``(ciphertext, nonce, tag)``."""
-        from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+        try:
+            from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+        except BaseException as exc:
+            raise RuntimeError("AES-256-GCM unavailable: cryptography package broken") from exc
         aesgcm = AESGCM(key)
         nonce = secrets.token_bytes(12)
         ct_with_tag = aesgcm.encrypt(nonce, plaintext, associated_data)
-        # AESGCM appends a 16-byte tag
         tag = ct_with_tag[-16:]
         ciphertext = ct_with_tag[:-16]
         return ciphertext, nonce, tag
 
     def decrypt(self, key: bytes, ciphertext: bytes, nonce: bytes, tag: bytes, associated_data: bytes | None = None) -> bytes:
         """Decrypt *ciphertext* with AES-256-GCM; raises ``ValueError`` on auth failure."""
-        from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+        try:
+            from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+        except BaseException as exc:
+            raise RuntimeError("AES-256-GCM unavailable: cryptography package broken") from exc
         aesgcm = AESGCM(key)
         ct_with_tag = ciphertext + tag
         try:
@@ -209,7 +214,10 @@ class AESGCMSIVBackend(CryptoBackend):
 
     def encrypt(self, key: bytes, plaintext: bytes, associated_data: bytes | None = None) -> Tuple[bytes, bytes, bytes]:
         """Encrypt *plaintext* with AES-256-GCM-SIV, returning ``(ciphertext, nonce, tag)``."""
-        from cryptography.hazmat.primitives.ciphers.aead import AESGCMSIV
+        try:
+            from cryptography.hazmat.primitives.ciphers.aead import AESGCMSIV
+        except BaseException as exc:
+            raise RuntimeError("AES-256-GCM-SIV unavailable: cryptography package broken") from exc
         cipher = AESGCMSIV(key)
         nonce = secrets.token_bytes(12)
         ct_with_tag = cipher.encrypt(nonce, plaintext, associated_data)
@@ -219,7 +227,10 @@ class AESGCMSIVBackend(CryptoBackend):
 
     def decrypt(self, key: bytes, ciphertext: bytes, nonce: bytes, tag: bytes, associated_data: bytes | None = None) -> bytes:
         """Decrypt *ciphertext* with AES-256-GCM-SIV; raises ``ValueError`` on auth failure."""
-        from cryptography.hazmat.primitives.ciphers.aead import AESGCMSIV
+        try:
+            from cryptography.hazmat.primitives.ciphers.aead import AESGCMSIV
+        except BaseException as exc:
+            raise RuntimeError("AES-256-GCM-SIV unavailable: cryptography package broken") from exc
         cipher = AESGCMSIV(key)
         ct_with_tag = ciphertext + tag
         try:
@@ -235,7 +246,10 @@ class ChaCha20Poly1305Backend(CryptoBackend):
 
     def encrypt(self, key: bytes, plaintext: bytes, associated_data: bytes | None = None) -> Tuple[bytes, bytes, bytes]:
         """Encrypt *plaintext* with ChaCha20-Poly1305, returning ``(ciphertext, nonce, tag)``."""
-        from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
+        try:
+            from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
+        except BaseException as exc:
+            raise RuntimeError("ChaCha20-Poly1305 unavailable: cryptography package broken") from exc
         cipher = ChaCha20Poly1305(key)
         nonce = secrets.token_bytes(12)
         ct_with_tag = cipher.encrypt(nonce, plaintext, associated_data)
@@ -245,7 +259,10 @@ class ChaCha20Poly1305Backend(CryptoBackend):
 
     def decrypt(self, key: bytes, ciphertext: bytes, nonce: bytes, tag: bytes, associated_data: bytes | None = None) -> bytes:
         """Decrypt *ciphertext* with ChaCha20-Poly1305; raises ``ValueError`` on auth failure."""
-        from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
+        try:
+            from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
+        except BaseException as exc:
+            raise RuntimeError("ChaCha20-Poly1305 unavailable: cryptography package broken") from exc
         cipher = ChaCha20Poly1305(key)
         ct_with_tag = ciphertext + tag
         try:
