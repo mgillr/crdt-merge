@@ -94,33 +94,77 @@ def _format_result(result, formatter: OutputFormatter) -> None:
 
 def handle_verify_crdt(args: argparse.Namespace, formatter: OutputFormatter) -> None:
     """Verify a built-in CRDT type satisfies all CRDT properties."""
+    import random
     from crdt_merge.verify import verify_crdt  # lazy
 
     crdt_type = args.crdt_type
     trials = args.trials
-    verbose = args.verbose
 
-    # Map CLI name to the CRDT class.
-    type_map = {
-        "gcounter": "GCounter",
-        "pncounter": "PNCounter",
-        "lww": "LWWRegister",
-        "orset": "ORSet",
-        "lwwmap": "LWWMap",
-    }
-    class_name = type_map[crdt_type]
-
+    # Build merge_fn and gen_fn for the requested CRDT type
     try:
-        crdt_mod = importlib.import_module("crdt_merge.crdts")
-        crdt_cls = getattr(crdt_mod, class_name)
+        from crdt_merge.core import GCounter, PNCounter, LWWRegister, ORSet, LWWMap
+
+        if crdt_type == "gcounter":
+            def gen_fn():
+                gc = GCounter()
+                for _ in range(random.randint(1, 5)):
+                    gc.increment("node-" + str(random.randint(1, 3)))
+                return gc
+            merge_fn = lambda a, b: a.merge(b)
+            class_name = "GCounter"
+
+        elif crdt_type == "pncounter":
+            def gen_fn():
+                pc = PNCounter()
+                for _ in range(random.randint(1, 5)):
+                    if random.random() > 0.3:
+                        pc.increment("node-" + str(random.randint(1, 3)))
+                    else:
+                        pc.decrement("node-" + str(random.randint(1, 3)))
+                return pc
+            merge_fn = lambda a, b: a.merge(b)
+            class_name = "PNCounter"
+
+        elif crdt_type == "lww":
+            def gen_fn():
+                return LWWRegister(
+                    value=random.choice(["a", "b", "c", 1, 2, 3]),
+                    timestamp=random.random() * 1000,
+                    node_id="node-" + str(random.randint(1, 3)),
+                )
+            merge_fn = lambda a, b: a.merge(b)
+            class_name = "LWWRegister"
+
+        elif crdt_type == "orset":
+            def gen_fn():
+                s = ORSet()
+                for i in range(random.randint(1, 5)):
+                    s.add(f"item-{i}")
+                return s
+            merge_fn = lambda a, b: a.merge(b)
+            class_name = "ORSet"
+
+        elif crdt_type == "lwwmap":
+            def gen_fn():
+                m = LWWMap()
+                for i in range(random.randint(1, 3)):
+                    m.set(f"key{i}", random.randint(1, 100))
+                return m
+            merge_fn = lambda a, b: a.merge(b)
+            class_name = "LWWMap"
+
+        else:
+            formatter.error(f"Unknown CRDT type: {crdt_type!r}")
+            sys.exit(1)
+
     except (ImportError, AttributeError) as exc:
-        formatter.error(f"Cannot load CRDT type {class_name!r}: {exc}")
+        formatter.error(f"Cannot load CRDT type {crdt_type!r}: {exc}")
         sys.exit(1)
 
     formatter.message(f"Verifying {class_name} ({trials} trials) ...")
 
     try:
-        result = verify_crdt(crdt_cls, trials=trials, verbose=verbose)
+        result = verify_crdt(merge_fn, gen_fn, trials=trials)
     except Exception as exc:
         formatter.error(f"Verification failed with error: {exc}")
         sys.exit(1)
@@ -279,7 +323,7 @@ def _add_property_parser(
         metavar="INT",
         help="Number of randomised trials to run (default: 1000).",
     )
-    parser.set_defaults(verify_handler=name)
+    parser.set_defaults(verify_handler=name, handler=_HANDLER_MAP[name])
     return parser
 
 
@@ -329,7 +373,7 @@ def register(subparsers: argparse._SubParsersAction) -> None:
         default=False,
         help="Print detailed per-trial output.",
     )
-    crdt_parser.set_defaults(verify_handler="crdt")
+    crdt_parser.set_defaults(verify_handler="crdt", handler=handle_verify_crdt)
 
     # --- verify commutative ---
     _add_property_parser(
