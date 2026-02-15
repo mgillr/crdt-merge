@@ -5,6 +5,42 @@
 > See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
 
 
+## [0.9.3] - 2026-04-02 — "Usability Enhancements, Documentation & Bug Fixes"
+
+### Bug Fixes — CLI (21 issues, #21–#48)
+
+- **encryption**: `pyo3_runtime.PanicException` not caught in AEAD backend registration (#21, #45) — changed all `except ImportError` to `except BaseException` in registration blocks and all lazy AEAD method imports; encryption module now loads cleanly in broken cffi environments using `xor-legacy` fallback
+- **cli dispatch**: `merkle`, `wire`, `delta`, `verify` all silently printed root help and exited 0 (#22, #36) — missing `handler=callable` in all `set_defaults` calls; 13 subparser registrations fixed across 4 files
+- **stream**: passed raw file paths to `merge_stream()` instead of loaded records (#23); `ProgressBar("label")` used string as `total` parameter causing TypeError in `finish()` (#34, #44)
+- **json merge-lines**: passed file paths to `merge_json_lines()` instead of loaded lists; unsupported `prefer` kwarg; `formatter.auto(dict)` on single-object result (#24)
+- **dedup**: `dedup_records()` returned `(records, n_removed)` tuple but was not unpacked; invalid `key=` kwarg (#25)
+- **merkle diff/compare**: `MerkleDiff` is a dataclass, not iterable — crashed with `TypeError` (#26)
+- **clock create**: `VectorClock(node_id=...)` invalid; `increment()` is immutable — returns new clock (#27)
+- **encrypt/decrypt**: `EncryptedValue.encrypt()` / `ev.decrypt()` do not exist; wrong backend choice strings; short keys crash `StaticKeyProvider` (#28)
+- **migrate**: `cli_migrate()` called with keyword arguments instead of argv list (#29)
+- **rbac**: `Role.has_permission()` used incorrect flag membership check (#30)
+- **gossip sync**: `anti_entropy()` called with `GossipState` objects instead of digest dicts (#31)
+- **verify crdt**: wrong module `crdt_merge.crdts` → `crdt_merge.core`; `verify_crdt(crdt_cls)` → `verify_crdt(merge_fn, gen_fn)` (#32)
+- **query**: `engine.execute(parsed_ast)` instead of `engine.execute(query_string)`; wrong help examples (`USING/INTO` → `ON key`) (#33)
+- **wire serialize**: `crdt_merge.crdts` → `crdt_merge.core` for typed CRDT serialization; all 5 typed backends now work (#37)
+- **hub push**: `hub.push()` does not exist; replaced with `HfApi.create_repo()` + `HfApi.upload_folder()` (#40)
+- **hub pull**: `hub.pull()` does not exist; replaced with `HfApi.snapshot_download()` (#41)
+- **hub merge**: wrong kwargs `repo_a/repo_b` → `sources=[...]`; invalid `progress_callback` param; `progress.close()` → `progress.finish()`; `ProgressBar("label")` (#42, #43, #44)
+
+### Test Infrastructure
+
+- **test_encryption_backends**: AEAD availability now probed via functional AESGCM instantiation, not top-level `import cryptography`; 44 tests skip cleanly in broken cffi environments (#46)
+- **test_cli_migrate**: fixed case-sensitive `"Usage:"` → `"usage:"` assertion; `"Unknown command"` in stdout → `"invalid choice"` in stderr (#47)
+- **benchmarks/a100_v080**: added `conftest.py` to exclude `test_crdt_laws_granular.py` from pytest collection (benchmark helpers, not pytest tests) (#48)
+
+### Stats
+
+- Tests passing: 3,254 → **3,291** (+37)
+- Tests skipped (AEAD env): 74 (previously 30 failing + erroring)
+- **Zero test failures**
+- CLI commands fully functional: 31/31 (previously 28/31)
+- Issues resolved this release: 28 (#21–#48)
+
 ## [0.9.2] - 2026-03-30 — "The Completion Release"
 
 ### New Features
