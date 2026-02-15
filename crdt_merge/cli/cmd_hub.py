@@ -111,6 +111,7 @@ def _resolve_token(args: argparse.Namespace) -> str | None:
 
 def handle_push(args: argparse.Namespace, formatter: OutputFormatter) -> None:
     """Push a local model directory to the HuggingFace Hub."""
+    # HFMergeHub is imported for token resolution; actual upload uses HfApi directly.
     HFMergeHub = _lazy_import_hub()
 
     local_path = Path(args.local_model)
@@ -127,48 +128,48 @@ def handle_push(args: argparse.Namespace, formatter: OutputFormatter) -> None:
         )
 
     hub = HFMergeHub(token=token)
-
-    push_kwargs = {
-        "local_path": str(local_path),
-        "repo_id": args.repo_id,
-        "private": args.private,
-    }
-    if args.commit_message:
-        push_kwargs["commit_message"] = args.commit_message
+    # Use HfApi.upload_folder — HFMergeHub has no push() method.
+    api = hub._hub_api()
 
     try:
-        result = hub.push(**push_kwargs)
+        api.create_repo(repo_id=args.repo_id, private=args.private, exist_ok=True)
+        commit_msg = args.commit_message or f"Upload via crdt-merge hub push"
+        api.upload_folder(
+            folder_path=str(local_path),
+            repo_id=args.repo_id,
+            commit_message=commit_msg,
+        )
     except Exception as exc:
         print(f"Error: push failed: {exc}", file=sys.stderr)
         raise SystemExit(1) from exc
 
-    url = getattr(result, "url", None) or f"https://huggingface.co/{args.repo_id}"
-    formatter.success(f"Model pushed to {url}")
+    formatter.success(f"Model pushed to https://huggingface.co/{args.repo_id}")
 
 
 def handle_pull(args: argparse.Namespace, formatter: OutputFormatter) -> None:
     """Pull a model from the HuggingFace Hub to a local directory."""
+    # HFMergeHub has no pull() method — use HfApi.snapshot_download() directly.
     HFMergeHub = _lazy_import_hub()
 
     token = _resolve_token(args)
     hub = HFMergeHub(token=token)
+    api = hub._hub_api()
 
     output = args.output or args.repo_id.replace("/", "--")
 
-    pull_kwargs = {
+    download_kwargs: dict = {
         "repo_id": args.repo_id,
-        "local_path": output,
+        "local_dir": output,
     }
     if args.revision:
-        pull_kwargs["revision"] = args.revision
+        download_kwargs["revision"] = args.revision
 
     try:
-        result = hub.pull(**pull_kwargs)
+        local_dir = api.snapshot_download(**download_kwargs)
     except Exception as exc:
         print(f"Error: pull failed: {exc}", file=sys.stderr)
         raise SystemExit(1) from exc
 
-    local_dir = getattr(result, "local_path", output)
     formatter.success(f"Model pulled to {local_dir}")
 
 
@@ -179,62 +180,50 @@ def handle_merge(args: argparse.Namespace, formatter: OutputFormatter) -> None:
     token = _resolve_token(args)
     hub = HFMergeHub(token=token)
 
-    merge_kwargs = {
-        "repo_a": args.repo_a,
-        "repo_b": args.repo_b,
+    # HFMergeHub.merge() takes sources: List[str], not repo_a/repo_b kwargs.
+    # It also has no progress_callback parameter.
+    merge_kwargs: dict = {
+        "sources": [args.repo_a, args.repo_b],
     }
     if args.strategy:
         merge_kwargs["strategy"] = args.strategy
-
-    try:
-        from crdt_merge.cli._progress import ProgressBar
-    except ImportError:
-        ProgressBar = None  # type: ignore[assignment,misc]
-
-    progress = None
-    if ProgressBar is not None:
-        progress = ProgressBar("Merging repositories")
-
-    try:
-        result = hub.merge(
-            **merge_kwargs,
-            progress_callback=progress.update if progress else None,
-        )
-    except Exception as exc:
-        print(f"Error: hub merge failed: {exc}", file=sys.stderr)
-        raise SystemExit(1) from exc
-    finally:
-        if progress is not None:
-            progress.close()
-
-    # Optionally push the merged result
     if args.push_to:
-        push_token = token
-        if push_token is None:
+        if token is None:
             print(
                 "Error: --push-to requires a HuggingFace token.\n"
                 "  Set a token via --token, HF_TOKEN env var, or config hub.token.",
                 file=sys.stderr,
             )
             raise SystemExit(1)
+        merge_kwargs["destination"] = args.push_to
 
-        try:
-            push_result = hub.push(
-                local_path=result.local_path if hasattr(result, "local_path") else str(result),
-                repo_id=args.push_to,
-            )
-        except Exception as exc:
-            print(f"Error: failed to push merged model: {exc}", file=sys.stderr)
-            raise SystemExit(1) from exc
+    try:
+        from crdt_merge.cli._progress import ProgressBar
+    except ImportError:
+        ProgressBar = None  # type: ignore[assignment,misc]
 
-        url = (
-            getattr(push_result, "url", None)
-            or f"https://huggingface.co/{args.push_to}"
-        )
+    progress = ProgressBar(desc="Merging repositories") if ProgressBar is not None else None
+
+    try:
+        result = hub.merge(**merge_kwargs)
+    except Exception as exc:
+        print(f"Error: hub merge failed: {exc}", file=sys.stderr)
+        raise SystemExit(1) from exc
+    finally:
+        if progress is not None:
+            progress.finish()
+
+    if args.push_to:
+        url = result.repo_url or f"https://huggingface.co/{args.push_to}"
         formatter.success(f"Merged model pushed to {url}")
     else:
-        local_dir = getattr(result, "local_path", str(result))
-        formatter.success(f"Merged model saved locally at {local_dir}")
+        n_layers = len(result.state_dict) if result.state_dict else 0
+        formatter.success(
+            f"Merged {n_layers} weight tensor(s) from "
+            f"{args.repo_a} + {args.repo_b}"
+        )
+        if result.model_card:
+            formatter.message("\n--- Model Card ---\n" + result.model_card[:500] + "...")
 
 
 # ---------------------------------------------------------------------------
