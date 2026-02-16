@@ -1,0 +1,814 @@
+{
+  "audit_date": "2026-03-31",
+  "repo_version": "crdt-merge v0.9.2",
+  "summary": {
+    "total_files_audited": 34,
+    "average_completeness_score": 4.24,
+    "score_distribution": {
+      "4": 17,
+      "5": 13,
+      "2": 1,
+      "3": 3
+    },
+    "total_issues_found": 52,
+    "critical_gap": "model-merge-strategies.md covers only ~19 of 26 strategies, missing actual registry names for 21 of 26"
+  },
+  "registered_strategies": [
+    "ada_merging",
+    "adarank",
+    "dam",
+    "dare",
+    "dare_ties",
+    "della",
+    "dual_projection",
+    "emr",
+    "evolutionary_merge",
+    "fisher_merge",
+    "genetic_merge",
+    "led_merge",
+    "linear",
+    "model_breadcrumbs",
+    "negative_merge",
+    "regression_mean",
+    "representation_surgery",
+    "safe_merge",
+    "slerp",
+    "split_unlearn_merge",
+    "star",
+    "svd_knot_tying",
+    "task_arithmetic",
+    "ties",
+    "weight_average",
+    "weight_scope_alignment"
+  ],
+  "strategies_missing_from_guide": [
+    "ada_merging",
+    "adarank",
+    "dam",
+    "dare_ties",
+    "della",
+    "dual_projection",
+    "emr",
+    "genetic_merge",
+    "led_merge",
+    "linear",
+    "model_breadcrumbs",
+    "negative_merge",
+    "regression_mean",
+    "representation_surgery",
+    "safe_merge",
+    "slerp",
+    "split_unlearn_merge",
+    "star",
+    "svd_knot_tying",
+    "weight_average",
+    "weight_scope_alignment"
+  ],
+  "files": [
+    {
+      "path": "docs/getting-started/INSTALLATION.md",
+      "completeness_score": 4,
+      "client_ready": true,
+      "issues": [
+        "No system requirements listed (Python version, OS)",
+        "No pip version requirement",
+        "No troubleshooting for common install issues"
+      ],
+      "strengths": [
+        "Clear, concise",
+        "Good extras table",
+        "Verify installation snippet"
+      ],
+      "recommendations": [
+        "Add Python version requirement (3.8+)",
+        "Add common install troubleshooting"
+      ]
+    },
+    {
+      "path": "docs/getting-started/QUICKSTART.md",
+      "completeness_score": 5,
+      "client_ready": true,
+      "issues": [
+        "Minor: no link to model merging quickstart"
+      ],
+      "strengths": [
+        "Excellent 5-minute format",
+        "Complete working example",
+        "Good cross-references to next steps"
+      ],
+      "recommendations": [
+        "Add a link to model merge quickstart for ML users"
+      ]
+    },
+    {
+      "path": "docs/getting-started/CONCEPTS.md",
+      "completeness_score": 4,
+      "client_ready": true,
+      "issues": [
+        "No link to model merge strategies from Architecture Layers section",
+        "No mention of Layer 4's 26 strategies"
+      ],
+      "strengths": [
+        "Clear CRDT explanation",
+        "Good primitive table",
+        "Links to primitives reference",
+        "Architecture layer summary"
+      ],
+      "recommendations": [
+        "Add brief mention of model merge strategies in Layer 4 description"
+      ]
+    },
+    {
+      "path": "docs/getting-started/FIRST_MERGE.md",
+      "completeness_score": 5,
+      "client_ready": true,
+      "issues": [],
+      "strengths": [
+        "Excellent step-by-step walkthrough",
+        "Realistic scenario",
+        "Shows CRDT verification",
+        "Good explanation of results"
+      ],
+      "recommendations": []
+    },
+    {
+      "path": "docs/guides/README.md",
+      "completeness_score": 4,
+      "client_ready": true,
+      "issues": [
+        "Lists 'Wire Protocol' guide but no wire-protocol.md existed initially"
+      ],
+      "strengths": [
+        "Clean index table",
+        "Good organization"
+      ],
+      "recommendations": [
+        "Verify all links are valid"
+      ]
+    },
+    {
+      "path": "docs/guides/model-merge-strategies.md",
+      "completeness_score": 2,
+      "client_ready": false,
+      "issues": [
+        "CRITICAL: Only lists ~19 strategies with generic names, missing 21 of 26 registered strategies by their actual registry names",
+        "Missing: ada_merging, adarank, dam, dare_ties, della, dual_projection, emr, genetic_merge, led_merge, linear, model_breadcrumbs, negative_merge, regression_mean, representation_surgery, safe_merge, slerp, split_unlearn_merge, star, svd_knot_tying, weight_average, weight_scope_alignment",
+        "No code examples for ANY strategy",
+        "No API usage shown (how to instantiate, configure, or call strategies)",
+        "No parameter documentation for any strategy",
+        "Categories don't match the 8+ registered categories",
+        "Title says '26+ strategies' but only ~19 are listed",
+        "No cross-references to API reference or cookbook"
+      ],
+      "strengths": [
+        "Covers some strategies at a high level",
+        "Mentions academic papers for some"
+      ],
+      "recommendations": [
+        "REWRITE: List all 26 strategies by their actual registry names",
+        "Add code examples for each strategy",
+        "Add parameter tables",
+        "Map to correct category taxonomy",
+        "Add cross-references to cookbook/model-merging.md and API reference"
+      ]
+    },
+    {
+      "path": "docs/guides/merge-strategies.md",
+      "completeness_score": 5,
+      "client_ready": true,
+      "issues": [
+        "Only covers Layer 1 data merge strategies (LWW, MaxWins, etc.), not model strategies - but this is appropriate"
+      ],
+      "strengths": [
+        "Excellent coverage of all 8 data strategies",
+        "Good gotcha warnings",
+        "Code examples for Custom strategy",
+        "Serialization warning"
+      ],
+      "recommendations": []
+    },
+    {
+      "path": "docs/guides/crdt-fundamentals.md",
+      "completeness_score": 4,
+      "client_ready": true,
+      "issues": [
+        "No code examples (theory only)",
+        "No link to verification guide"
+      ],
+      "strengths": [
+        "Strong mathematical foundation",
+        "Clear examples for each primitive",
+        "Convergence theorem with proof sketch"
+      ],
+      "recommendations": [
+        "Add link to verify_crdt() for testing CRDT properties"
+      ]
+    },
+    {
+      "path": "docs/guides/crdt-primitives-reference.md",
+      "completeness_score": 5,
+      "client_ready": true,
+      "issues": [],
+      "strengths": [
+        "Complete working examples for ALL primitives",
+        "Covers probabilistic structures",
+        "Includes dedup and verification",
+        "Excellent code quality"
+      ],
+      "recommendations": []
+    },
+    {
+      "path": "docs/guides/schema-evolution.md",
+      "completeness_score": 3,
+      "client_ready": true,
+      "issues": [
+        "Very brief - only covers evolve_schema() and check_compatibility()",
+        "No discussion of backward/forward compatibility",
+        "No migration examples",
+        "No error handling examples"
+      ],
+      "strengths": [
+        "Shows the core API",
+        "Good best practices section"
+      ],
+      "recommendations": [
+        "Add migration examples",
+        "Add backward/forward compatibility discussion",
+        "Add error handling"
+      ]
+    },
+    {
+      "path": "docs/guides/security-guide.md",
+      "completeness_score": 3,
+      "client_ready": true,
+      "issues": [
+        "No complete code examples for encryption setup",
+        "RBAC section shows add_role but not full workflow",
+        "No import paths for some classes",
+        "Audit trails section is very brief"
+      ],
+      "strengths": [
+        "Covers all 4 encryption backends",
+        "Mentions key rotation",
+        "Good best practices"
+      ],
+      "recommendations": [
+        "Add complete working examples",
+        "Show full RBAC setup",
+        "Add audit trail export examples"
+      ]
+    },
+    {
+      "path": "docs/guides/compliance-guide.md",
+      "completeness_score": 3,
+      "client_ready": true,
+      "issues": [
+        "HIPAA and SOX sections are very brief with no code examples",
+        "No complete workflow examples",
+        "Missing import for GDPRForget"
+      ],
+      "strengths": [
+        "Covers all 4 compliance frameworks",
+        "Code examples for GDPR and EU AI Act",
+        "Risk level table"
+      ],
+      "recommendations": [
+        "Add complete code examples for HIPAA/SOX",
+        "Add end-to-end compliance workflow"
+      ]
+    },
+    {
+      "path": "docs/guides/performance-tuning.md",
+      "completeness_score": 4,
+      "client_ready": true,
+      "issues": [
+        "No benchmark numbers",
+        "No profiling guide"
+      ],
+      "strengths": [
+        "Clear engine selection table",
+        "Good code examples",
+        "Covers GPU acceleration",
+        "Memory estimation"
+      ],
+      "recommendations": [
+        "Add benchmark numbers",
+        "Add profiling/debugging guide"
+      ]
+    },
+    {
+      "path": "docs/guides/troubleshooting.md",
+      "completeness_score": 5,
+      "client_ready": true,
+      "issues": [],
+      "strengths": [
+        "Covers known bugs (references LAY1-xxx IDs)",
+        "Practical Q&A format",
+        "Links to performance guide",
+        "Import error troubleshooting"
+      ],
+      "recommendations": []
+    },
+    {
+      "path": "docs/guides/wire-protocol.md",
+      "completeness_score": 4,
+      "client_ready": true,
+      "issues": [
+        "No complete round-trip example",
+        "No error handling for corrupt data"
+      ],
+      "strengths": [
+        "Clear binary format diagrams",
+        "Batch protocol documented",
+        "Code example for serialize/deserialize"
+      ],
+      "recommendations": [
+        "Add round-trip example",
+        "Add error handling for corrupt data"
+      ]
+    },
+    {
+      "path": "docs/cookbook/README.md",
+      "completeness_score": 4,
+      "client_ready": true,
+      "issues": [],
+      "strengths": [
+        "Clean index with descriptions"
+      ],
+      "recommendations": []
+    },
+    {
+      "path": "docs/cookbook/basic-merging.md",
+      "completeness_score": 5,
+      "client_ready": true,
+      "issues": [],
+      "strengths": [
+        "5 complete recipes",
+        "Covers provenance, JSON, multi-DF merge",
+        "Working code examples"
+      ],
+      "recommendations": []
+    },
+    {
+      "path": "docs/cookbook/model-merging.md",
+      "completeness_score": 4,
+      "client_ready": true,
+      "issues": [
+        "Only covers 5 of 26 strategies (linear, weight_average, task_arithmetic, ties + LoRA/pipeline)",
+        "Missing recipes for: slerp, dare, dare_ties, fisher_merge, evolutionary_merge, and 16 others"
+      ],
+      "strengths": [
+        "Good working examples for the strategies covered",
+        "LoRA merge recipe",
+        "Safety pipeline recipe"
+      ],
+      "recommendations": [
+        "Add recipes for at least top-10 most common strategies",
+        "Add DARE, SLERP, evolutionary recipes"
+      ]
+    },
+    {
+      "path": "docs/cookbook/streaming-merges.md",
+      "completeness_score": 5,
+      "client_ready": true,
+      "issues": [],
+      "strengths": [
+        "6 complete recipes",
+        "Important batch-yielding note",
+        "Full API reference table",
+        "StreamStats documentation"
+      ],
+      "recommendations": []
+    },
+    {
+      "path": "docs/cookbook/distributed-sync.md",
+      "completeness_score": 5,
+      "client_ready": true,
+      "issues": [],
+      "strengths": [
+        "3 complete recipes covering gossip, Merkle, delta",
+        "Clear code with comments",
+        "Realistic scenarios"
+      ],
+      "recommendations": []
+    },
+    {
+      "path": "docs/cookbook/enterprise-patterns.md",
+      "completeness_score": 5,
+      "client_ready": true,
+      "issues": [],
+      "strengths": [
+        "5 complete recipes",
+        "Covers audit, encryption, RBAC, full stack, GDPR",
+        "Working code examples",
+        "Correct import paths"
+      ],
+      "recommendations": []
+    },
+    {
+      "path": "docs/cookbook/agent-state.md",
+      "completeness_score": 5,
+      "client_ready": true,
+      "issues": [],
+      "strengths": [
+        "3 complete recipes",
+        "Covers AgentState, SharedKnowledge, ContextMerge",
+        "Realistic multi-agent scenarios",
+        "MemorySidecar usage"
+      ],
+      "recommendations": []
+    },
+    {
+      "path": "docs/cookbook/accelerators.md",
+      "completeness_score": 4,
+      "client_ready": true,
+      "issues": [
+        "Only covers 4 of 8 accelerators (DuckDB, Polars, Flight, Streamlit)",
+        "Missing: dbt, Airbyte, DuckLake, SQLite"
+      ],
+      "strengths": [
+        "Good working examples for covered accelerators"
+      ],
+      "recommendations": [
+        "Add recipes for remaining 4 accelerators"
+      ]
+    },
+    {
+      "path": "docs/cookbook/strategy-selection.md",
+      "completeness_score": 5,
+      "client_ready": true,
+      "issues": [],
+      "strengths": [
+        "Excellent decision tree",
+        "Comparison table",
+        "Practical e-commerce example"
+      ],
+      "recommendations": []
+    },
+    {
+      "path": "docs/explanations/README.md",
+      "completeness_score": 4,
+      "client_ready": true,
+      "issues": [],
+      "strengths": [
+        "Clean index"
+      ],
+      "recommendations": []
+    },
+    {
+      "path": "docs/explanations/why-crdts.md",
+      "completeness_score": 5,
+      "client_ready": true,
+      "issues": [],
+      "strengths": [
+        "Clear problem/solution framing",
+        "Comparison table with alternatives",
+        "Use case list"
+      ],
+      "recommendations": []
+    },
+    {
+      "path": "docs/explanations/convergence-guarantees.md",
+      "completeness_score": 4,
+      "client_ready": true,
+      "issues": [
+        "Only proves convergence for GCounter, LWW, ORSet",
+        "Missing proofs for PNCounter, LWWMap, probabilistic types"
+      ],
+      "strengths": [
+        "Formal proof sketch",
+        "Strong Eventual Consistency definition",
+        "Per-strategy proofs"
+      ],
+      "recommendations": [
+        "Add proofs for remaining types"
+      ]
+    },
+    {
+      "path": "docs/explanations/conflict-resolution.md",
+      "completeness_score": 4,
+      "client_ready": true,
+      "issues": [
+        "No mention of model merge conflict resolution",
+        "No cross-reference to model strategies"
+      ],
+      "strengths": [
+        "Clear process explanation",
+        "Edge cases covered",
+        "Good example"
+      ],
+      "recommendations": [
+        "Add note about model merge conflicts"
+      ]
+    },
+    {
+      "path": "docs/explanations/timestamp-handling.md",
+      "completeness_score": 5,
+      "client_ready": true,
+      "issues": [],
+      "strengths": [
+        "Documents the silent fallback behavior",
+        "Clear format table",
+        "Tie-breaking gotcha documented"
+      ],
+      "recommendations": []
+    },
+    {
+      "path": "docs/explanations/architecture-layers.md",
+      "completeness_score": 4,
+      "client_ready": true,
+      "issues": [
+        "No dependency diagram",
+        "Doesn't mention accelerators"
+      ],
+      "strengths": [
+        "Clear rationale for each layer",
+        "Good design goals"
+      ],
+      "recommendations": [
+        "Add dependency diagram",
+        "Mention accelerators and CLI"
+      ]
+    },
+    {
+      "path": "docs/development/CHANGELOG.md",
+      "completeness_score": 4,
+      "client_ready": false,
+      "issues": [
+        "Sparse entries for older versions",
+        "No dates for v0.9.1 and earlier"
+      ],
+      "strengths": [
+        "Current version well documented",
+        "Good categorization (Added/Changed/Fixed)"
+      ],
+      "recommendations": [
+        "Add dates to all versions",
+        "Expand older entries"
+      ]
+    },
+    {
+      "path": "docs/development/CONTRIBUTING.md",
+      "completeness_score": 4,
+      "client_ready": true,
+      "issues": [
+        "No PR template",
+        "No issue template",
+        "No code of conduct reference"
+      ],
+      "strengths": [
+        "Clear setup instructions",
+        "Architecture guidelines",
+        "Test commands"
+      ],
+      "recommendations": [
+        "Add PR/issue templates",
+        "Add code of conduct"
+      ]
+    },
+    {
+      "path": "docs/development/ROADMAP.md",
+      "completeness_score": 4,
+      "client_ready": true,
+      "issues": [
+        "Roadmap items may be outdated for March 2026",
+        "No timeline for v1.0 features"
+      ],
+      "strengths": [
+        "Clear feature lists",
+        "Separates planned vs. under consideration"
+      ],
+      "recommendations": [
+        "Add timeline estimates"
+      ]
+    },
+    {
+      "path": "docs/development/TESTING.md",
+      "completeness_score": 4,
+      "client_ready": true,
+      "issues": [
+        "No instructions for running individual test types",
+        "No CI/CD information"
+      ],
+      "strengths": [
+        "Good test organization tree",
+        "Shows property-based testing",
+        "Coverage target stated"
+      ],
+      "recommendations": [
+        "Add CI/CD setup info",
+        "Add instructions for each test type"
+      ]
+    }
+  ],
+  "all_issues": [
+    {
+      "file": "docs/getting-started/INSTALLATION.md",
+      "issue": "No system requirements listed (Python version, OS)"
+    },
+    {
+      "file": "docs/getting-started/INSTALLATION.md",
+      "issue": "No pip version requirement"
+    },
+    {
+      "file": "docs/getting-started/INSTALLATION.md",
+      "issue": "No troubleshooting for common install issues"
+    },
+    {
+      "file": "docs/getting-started/QUICKSTART.md",
+      "issue": "Minor: no link to model merging quickstart"
+    },
+    {
+      "file": "docs/getting-started/CONCEPTS.md",
+      "issue": "No link to model merge strategies from Architecture Layers section"
+    },
+    {
+      "file": "docs/getting-started/CONCEPTS.md",
+      "issue": "No mention of Layer 4's 26 strategies"
+    },
+    {
+      "file": "docs/guides/README.md",
+      "issue": "Lists 'Wire Protocol' guide but no wire-protocol.md existed initially"
+    },
+    {
+      "file": "docs/guides/model-merge-strategies.md",
+      "issue": "CRITICAL: Only lists ~19 strategies with generic names, missing 21 of 26 registered strategies by their actual registry names"
+    },
+    {
+      "file": "docs/guides/model-merge-strategies.md",
+      "issue": "Missing: ada_merging, adarank, dam, dare_ties, della, dual_projection, emr, genetic_merge, led_merge, linear, model_breadcrumbs, negative_merge, regression_mean, representation_surgery, safe_merge, slerp, split_unlearn_merge, star, svd_knot_tying, weight_average, weight_scope_alignment"
+    },
+    {
+      "file": "docs/guides/model-merge-strategies.md",
+      "issue": "No code examples for ANY strategy"
+    },
+    {
+      "file": "docs/guides/model-merge-strategies.md",
+      "issue": "No API usage shown (how to instantiate, configure, or call strategies)"
+    },
+    {
+      "file": "docs/guides/model-merge-strategies.md",
+      "issue": "No parameter documentation for any strategy"
+    },
+    {
+      "file": "docs/guides/model-merge-strategies.md",
+      "issue": "Categories don't match the 8+ registered categories"
+    },
+    {
+      "file": "docs/guides/model-merge-strategies.md",
+      "issue": "Title says '26+ strategies' but only ~19 are listed"
+    },
+    {
+      "file": "docs/guides/model-merge-strategies.md",
+      "issue": "No cross-references to API reference or cookbook"
+    },
+    {
+      "file": "docs/guides/merge-strategies.md",
+      "issue": "Only covers Layer 1 data merge strategies (LWW, MaxWins, etc.), not model strategies - but this is appropriate"
+    },
+    {
+      "file": "docs/guides/crdt-fundamentals.md",
+      "issue": "No code examples (theory only)"
+    },
+    {
+      "file": "docs/guides/crdt-fundamentals.md",
+      "issue": "No link to verification guide"
+    },
+    {
+      "file": "docs/guides/schema-evolution.md",
+      "issue": "Very brief - only covers evolve_schema() and check_compatibility()"
+    },
+    {
+      "file": "docs/guides/schema-evolution.md",
+      "issue": "No discussion of backward/forward compatibility"
+    },
+    {
+      "file": "docs/guides/schema-evolution.md",
+      "issue": "No migration examples"
+    },
+    {
+      "file": "docs/guides/schema-evolution.md",
+      "issue": "No error handling examples"
+    },
+    {
+      "file": "docs/guides/security-guide.md",
+      "issue": "No complete code examples for encryption setup"
+    },
+    {
+      "file": "docs/guides/security-guide.md",
+      "issue": "RBAC section shows add_role but not full workflow"
+    },
+    {
+      "file": "docs/guides/security-guide.md",
+      "issue": "No import paths for some classes"
+    },
+    {
+      "file": "docs/guides/security-guide.md",
+      "issue": "Audit trails section is very brief"
+    },
+    {
+      "file": "docs/guides/compliance-guide.md",
+      "issue": "HIPAA and SOX sections are very brief with no code examples"
+    },
+    {
+      "file": "docs/guides/compliance-guide.md",
+      "issue": "No complete workflow examples"
+    },
+    {
+      "file": "docs/guides/compliance-guide.md",
+      "issue": "Missing import for GDPRForget"
+    },
+    {
+      "file": "docs/guides/performance-tuning.md",
+      "issue": "No benchmark numbers"
+    },
+    {
+      "file": "docs/guides/performance-tuning.md",
+      "issue": "No profiling guide"
+    },
+    {
+      "file": "docs/guides/wire-protocol.md",
+      "issue": "No complete round-trip example"
+    },
+    {
+      "file": "docs/guides/wire-protocol.md",
+      "issue": "No error handling for corrupt data"
+    },
+    {
+      "file": "docs/cookbook/model-merging.md",
+      "issue": "Only covers 5 of 26 strategies (linear, weight_average, task_arithmetic, ties + LoRA/pipeline)"
+    },
+    {
+      "file": "docs/cookbook/model-merging.md",
+      "issue": "Missing recipes for: slerp, dare, dare_ties, fisher_merge, evolutionary_merge, and 16 others"
+    },
+    {
+      "file": "docs/cookbook/accelerators.md",
+      "issue": "Only covers 4 of 8 accelerators (DuckDB, Polars, Flight, Streamlit)"
+    },
+    {
+      "file": "docs/cookbook/accelerators.md",
+      "issue": "Missing: dbt, Airbyte, DuckLake, SQLite"
+    },
+    {
+      "file": "docs/explanations/convergence-guarantees.md",
+      "issue": "Only proves convergence for GCounter, LWW, ORSet"
+    },
+    {
+      "file": "docs/explanations/convergence-guarantees.md",
+      "issue": "Missing proofs for PNCounter, LWWMap, probabilistic types"
+    },
+    {
+      "file": "docs/explanations/conflict-resolution.md",
+      "issue": "No mention of model merge conflict resolution"
+    },
+    {
+      "file": "docs/explanations/conflict-resolution.md",
+      "issue": "No cross-reference to model strategies"
+    },
+    {
+      "file": "docs/explanations/architecture-layers.md",
+      "issue": "No dependency diagram"
+    },
+    {
+      "file": "docs/explanations/architecture-layers.md",
+      "issue": "Doesn't mention accelerators"
+    },
+    {
+      "file": "docs/development/CHANGELOG.md",
+      "issue": "Sparse entries for older versions"
+    },
+    {
+      "file": "docs/development/CHANGELOG.md",
+      "issue": "No dates for v0.9.1 and earlier"
+    },
+    {
+      "file": "docs/development/CONTRIBUTING.md",
+      "issue": "No PR template"
+    },
+    {
+      "file": "docs/development/CONTRIBUTING.md",
+      "issue": "No issue template"
+    },
+    {
+      "file": "docs/development/CONTRIBUTING.md",
+      "issue": "No code of conduct reference"
+    },
+    {
+      "file": "docs/development/ROADMAP.md",
+      "issue": "Roadmap items may be outdated for March 2026"
+    },
+    {
+      "file": "docs/development/ROADMAP.md",
+      "issue": "No timeline for v1.0 features"
+    },
+    {
+      "file": "docs/development/TESTING.md",
+      "issue": "No instructions for running individual test types"
+    },
+    {
+      "file": "docs/development/TESTING.md",
+      "issue": "No CI/CD information"
+    }
+  ]
+}
