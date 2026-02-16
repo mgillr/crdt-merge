@@ -34,3 +34,4 @@ Thumbs.db
 *.secrets
 secrets/
 .secrets
+dist_*/

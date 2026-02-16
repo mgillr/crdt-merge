@@ -1,0 +1,218 @@
+# crdt_merge.schema_evolution — Schema Versioning
+
+**Module**: `crdt_merge/schema_evolution.py`
+**Layer**: 3 — Sync & Transport
+**LOC**: 419
+**Dependencies**: `crdt_merge.strategies`, `crdt_merge.core`
+
+---
+
+## Functions
+
+### evolve_schema()
+```python
+def evolve_schema(
+    old_schema: MergeSchema,
+    new_fields: Dict[str, MergeStrategy],
+    removed_fields: Optional[List[str]] = None,
+    version: Optional[int] = None
+) -> MergeSchema
+```
+Evolve a MergeSchema by adding/removing fields while maintaining backward compatibility.
+
+### check_compatibility()
+```python
+def check_compatibility(
+    schema_v1: MergeSchema,
+    schema_v2: MergeSchema
+) -> CompatibilityResult
+```
+Check if two schema versions are compatible.
+
+**Returns**: `CompatibilityResult` with `.compatible` (bool), `.breaking_changes` (list), `.warnings` (list).
+
+
+---
+
+## Additional API (Pass 2 — Auditor Review)
+
+*The following symbols were identified as missing during the second-pass review.*
+
+### `class SchemaPolicy(Enum)`
+
+Policy for resolving schema drift between two schemas.
+
+**Attributes:**
+- `UNION`
+- `INTERSECTION`
+- `LEFT_PRIORITY`
+- `RIGHT_PRIORITY`
+
+
+
+### `class SchemaChange`
+
+Describes a single schema change for one column.
+
+**Attributes:**
+- `column`: `str`
+- `change_type`: `str`
+- `old_type`: `Optional[str]`
+- `new_type`: `Optional[str]`
+- `resolved_type`: `Optional[str]`
+- `default_value`: `Any`
+
+
+
+### `SchemaChange.to_dict(self) → dict`
+
+Return a plain-dict representation.
+
+**Returns:** `dict`
+
+
+
+### `SchemaChange.from_dict(cls, d: dict) → 'SchemaChange'`
+
+Reconstruct from a plain dict.
+
+**Parameters:**
+- `d` (`dict`)
+
+**Returns:** `'SchemaChange'`
+
+
+
+### `class SchemaEvolutionResult`
+
+Full result of a schema evolution operation.
+
+**Attributes:**
+- `resolved_schema`: `Dict[str, str]`
+- `changes`: `List[SchemaChange]`
+- `defaults`: `Dict[str, Any]`
+- `policy_used`: `SchemaPolicy`
+- `is_compatible`: `bool`
+- `warnings`: `List[str]`
+
+
+
+### `SchemaEvolutionResult.to_dict(self) → dict`
+
+Return a plain-dict representation suitable for JSON.
+
+**Returns:** `dict`
+
+
+
+### `SchemaEvolutionResult.from_dict(cls, d: dict) → 'SchemaEvolutionResult'`
+
+Reconstruct a *SchemaEvolutionResult* from its dict form.
+
+**Parameters:**
+- `d` (`dict`)
+
+**Returns:** `'SchemaEvolutionResult'`
+
+
+
+### `widen_type(type_a: str, type_b: str) → Optional[str]`
+
+Return the widened type that covers both *type_a* and *type_b*.
+
+    Returns *None* when no safe widening is known (incompatible or opaque
+    type strings).
+    
+
+**Parameters:**
+- `type_a` (`str`)
+- `type_b` (`str`)
+
+**Returns:** `Optional[str]`
+
+---
+
+## Inherited Methods — 19 Inherited Methods
+
+*Catalogued 2026-04-01 — resolves issue #45.*
+
+### Class Hierarchy
+
+The `schema_evolution` module defines three classes, all using Python standard base classes:
+
+```
+object
+├── Enum
+│   └── SchemaPolicy          (4 enum members)
+├── dataclass
+│   ├── SchemaChange          (6 fields)
+│   └── SchemaEvolutionResult (6 fields)
+```
+
+`SchemaPolicy` inherits from `enum.Enum`. `SchemaChange` and `SchemaEvolutionResult` are `@dataclass` classes inheriting from `object`.
+
+### Inherited Methods by Class
+
+#### `SchemaPolicy(Enum)` — 10 inherited methods
+
+`SchemaPolicy` inherits the full `Enum` machinery:
+
+| Method | Source | Role on Critical Path |
+|--------|--------|----------------------|
+| `__eq__(self, other)` | `Enum` | Used by `evolve_schema()` to compare policies (`if policy == SchemaPolicy.UNION`) |
+| `__hash__(self)` | `Enum` | Enables use as dict keys and in sets |
+| `__repr__(self)` | `Enum` | `SchemaPolicy.UNION` → `<SchemaPolicy.UNION: 'union'>` |
+| `__str__(self)` | `Enum` | `SchemaPolicy.UNION` → `SchemaPolicy.UNION` |
+| `__new__(cls, value)` | `Enum` | Enum member construction |
+| `__init_subclass__(**kw)` | `Enum` | Enum metaclass hook |
+| `_generate_next_value_()` | `Enum` | Auto-value generation |
+| `__format__(self, spec)` | `Enum` | String formatting |
+| `__reduce_ex__(self, proto)` | `Enum` | Pickling support |
+| `__contains__(cls, member)` | `EnumType` | `SchemaPolicy.UNION in SchemaPolicy` |
+
+> **Critical path:** `__eq__` is called directly by `evolve_schema()` in every policy branch (`if policy == SchemaPolicy.UNION`, etc.). This is the most frequently invoked inherited method in the module.
+
+#### `SchemaChange(dataclass)` — 5 inherited methods
+
+`@dataclass` auto-generates several methods:
+
+| Method | Source | Role |
+|--------|--------|------|
+| `__init__(self, ...)` | `@dataclass` | Auto-generated from 6 field definitions |
+| `__repr__(self)` | `@dataclass` | Field-level representation for debugging |
+| `__eq__(self, other)` | `@dataclass` | Field-by-field equality comparison |
+| `__hash__` | `object` (unhashable) | Not generated (`eq=True` makes dataclass unhashable by default) |
+| `__post_init__(self)` | `object` | Not overridden — no post-init validation |
+
+> **Note:** `SchemaChange` instances are created inside `evolve_schema()` for every column in the input schemas. The `__init__` generated by `@dataclass` is the most frequently called inherited method here.
+
+#### `SchemaEvolutionResult(dataclass)` — 4 inherited methods
+
+| Method | Source | Role |
+|--------|--------|------|
+| `__init__(self, ...)` | `@dataclass` | Auto-generated from 6 fields (including `warnings` with `field(default_factory=list)`) |
+| `__repr__(self)` | `@dataclass` | Full result representation |
+| `__eq__(self, other)` | `@dataclass` | Result comparison (useful in tests) |
+| `__hash__` | `object` (unhashable) | Not generated |
+
+### Migration-Critical Inherited Methods
+
+The following inherited methods are on the **critical path** for schema evolution operations and should be understood by callers:
+
+| Method | Class | Why it matters |
+|--------|-------|---------------|
+| `SchemaPolicy.__eq__` | `SchemaPolicy` | Every `evolve_schema()` call branches on policy equality checks |
+| `SchemaChange.__init__` | `SchemaChange` | Created N times per `evolve_schema()` call (once per column) |
+| `SchemaEvolutionResult.__init__` | `SchemaEvolutionResult` | Final assembly of evolution result |
+| `SchemaChange.to_dict` / `from_dict` | `SchemaChange` | Serialization round-trip (explicitly defined, not inherited) |
+| `SchemaEvolutionResult.to_dict` / `from_dict` | `SchemaEvolutionResult` | Serialization round-trip (explicitly defined, not inherited) |
+
+### Total: 19 Inherited Methods
+
+| Class | Inherited count | Source |
+|-------|----------------|--------|
+| `SchemaPolicy` | 10 | `Enum` base class |
+| `SchemaChange` | 5 | `@dataclass` + `object` |
+| `SchemaEvolutionResult` | 4 | `@dataclass` + `object` |
+| **Total** | **19** | |
+

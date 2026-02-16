@@ -4,6 +4,41 @@ import secrets
 
 import pytest
 
+# ---------------------------------------------------------------------------
+# Detect whether the cryptography Rust bindings are actually functional.
+# The top-level `import cryptography` may succeed while the Rust-backed AEAD
+# primitives (AESGCM, ChaCha20Poly1305, etc.) throw pyo3 PanicException
+# (a BaseException subclass) on first use.  All tests that require AEAD must
+# skip rather than error when this environment is detected.
+# ---------------------------------------------------------------------------
+def _aead_available() -> bool:
+    try:
+        from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+        AESGCM(secrets.token_bytes(32))
+        return True
+    except BaseException:
+        return False
+
+def _aesgcmsiv_available() -> bool:
+    """AES-GCM-SIV requires cryptography >= 42.0.0."""
+    try:
+        from cryptography.hazmat.primitives.ciphers.aead import AESGCMSIV
+        AESGCMSIV(secrets.token_bytes(32))
+        return True
+    except BaseException:
+        return False
+
+AEAD_AVAILABLE = _aead_available()
+AESGCMSIV_AVAILABLE = _aesgcmsiv_available()
+requires_aead = pytest.mark.skipif(
+    not AEAD_AVAILABLE,
+    reason="cryptography AEAD Rust bindings unavailable in this environment",
+)
+requires_siv = pytest.mark.skipif(
+    not AESGCMSIV_AVAILABLE,
+    reason="AES-GCM-SIV requires cryptography>=42.0.0",
+)
+
 from crdt_merge.encryption import (
     CryptoBackend,
     EncryptedMerge,
@@ -47,10 +82,12 @@ class TestCryptoBackendRegistry:
         assert "xor-legacy" in _BACKEND_REGISTRY
 
     def test_aead_backends_registered_when_cryptography_available(self):
-        cryptography = pytest.importorskip("cryptography")
+        if not AEAD_AVAILABLE:
+            pytest.skip("cryptography AEAD unavailable")
         assert "aes-256-gcm" in _BACKEND_REGISTRY
-        assert "aes-256-gcm-siv" in _BACKEND_REGISTRY
         assert "chacha20-poly1305" in _BACKEND_REGISTRY
+        if AESGCMSIV_AVAILABLE:
+            assert "aes-256-gcm-siv" in _BACKEND_REGISTRY
 
     def test_unknown_backend_raises(self):
         with pytest.raises(ValueError, match="Unknown crypto backend"):
@@ -87,7 +124,8 @@ class TestAES256GCMBackend:
 
     @pytest.fixture(autouse=True)
     def _require_cryptography(self):
-        pytest.importorskip("cryptography")
+        if not AEAD_AVAILABLE:
+            pytest.skip("cryptography AEAD unavailable")
         from crdt_merge.encryption import AES256GCMBackend
         self.backend = AES256GCMBackend()
         self.key = secrets.token_bytes(32)
@@ -162,7 +200,8 @@ class TestAESGCMSIVBackend:
 
     @pytest.fixture(autouse=True)
     def _require_cryptography(self):
-        pytest.importorskip("cryptography")
+        if not AESGCMSIV_AVAILABLE:
+            pytest.skip("AES-GCM-SIV requires cryptography>=42.0.0")
         from crdt_merge.encryption import AESGCMSIVBackend
         self.backend = AESGCMSIVBackend()
         self.key = secrets.token_bytes(32)
@@ -220,7 +259,8 @@ class TestChaCha20Poly1305Backend:
 
     @pytest.fixture(autouse=True)
     def _require_cryptography(self):
-        pytest.importorskip("cryptography")
+        if not AEAD_AVAILABLE:
+            pytest.skip("cryptography AEAD unavailable")
         from crdt_merge.encryption import ChaCha20Poly1305Backend
         self.backend = ChaCha20Poly1305Backend()
         self.key = secrets.token_bytes(32)
@@ -277,7 +317,8 @@ class TestBackwardCompatibility:
 
     def test_xor_encrypted_decrypts_with_aead_em(self):
         """XOR-encrypted data decrypts via auto-routing even when EM uses AES-GCM."""
-        pytest.importorskip("cryptography")
+        if not AEAD_AVAILABLE:
+            pytest.skip("cryptography AEAD unavailable")
         key = secrets.token_bytes(32)
         prov = StaticKeyProvider(key)
 
@@ -291,7 +332,8 @@ class TestBackwardCompatibility:
         assert em_gcm.decrypt_field(restored) == "secret"
 
     def test_aes_gcm_serialize_deserialize_decrypt(self):
-        pytest.importorskip("cryptography")
+        if not AEAD_AVAILABLE:
+            pytest.skip("cryptography AEAD unavailable")
         key = secrets.token_bytes(32)
         prov = StaticKeyProvider(key)
         em = EncryptedMerge(prov, backend="aes-256-gcm")
@@ -319,7 +361,8 @@ class TestBackwardCompatibility:
         assert em.decrypt_field(restored) == 42
 
     def test_v2_wire_format_has_cipher_field(self):
-        pytest.importorskip("cryptography")
+        if not AEAD_AVAILABLE:
+            pytest.skip("cryptography AEAD unavailable")
         key = secrets.token_bytes(32)
         prov = StaticKeyProvider(key)
         em = EncryptedMerge(prov, backend="chacha20-poly1305")
@@ -334,7 +377,8 @@ class TestBackwardCompatibility:
 
     def test_mixed_v1_v2_decrypt_records(self):
         """decrypt_records handles a mix of v1 and v2 encrypted fields."""
-        pytest.importorskip("cryptography")
+        if not AEAD_AVAILABLE:
+            pytest.skip("cryptography AEAD unavailable")
         key = secrets.token_bytes(32)
         prov = StaticKeyProvider(key)
 
@@ -352,7 +396,8 @@ class TestBackwardCompatibility:
         assert decrypted[0]["modern_field"] == "new"
 
     def test_rotate_key_xor_to_aes_gcm(self):
-        pytest.importorskip("cryptography")
+        if not AEAD_AVAILABLE:
+            pytest.skip("cryptography AEAD unavailable")
         old_key = secrets.token_bytes(32)
         new_key = secrets.token_bytes(32)
         old_prov = StaticKeyProvider(old_key)
@@ -372,7 +417,8 @@ class TestBackwardCompatibility:
         assert dec[0]["val"] == "classified"
 
     def test_rotate_key_aes_gcm_to_chacha(self):
-        pytest.importorskip("cryptography")
+        if not AEAD_AVAILABLE:
+            pytest.skip("cryptography AEAD unavailable")
         old_key = secrets.token_bytes(32)
         new_key = secrets.token_bytes(32)
         old_prov = StaticKeyProvider(old_key)
@@ -391,7 +437,8 @@ class TestBackwardCompatibility:
         assert dec[0]["s"] == "data"
 
     def test_old_key_cannot_decrypt_after_rotation(self):
-        pytest.importorskip("cryptography")
+        if not AEAD_AVAILABLE:
+            pytest.skip("cryptography AEAD unavailable")
         old_key = secrets.token_bytes(32)
         new_key = secrets.token_bytes(32)
         old_prov = StaticKeyProvider(old_key)
@@ -416,7 +463,8 @@ class TestEncryptedMergeWithBackends:
 
     @pytest.fixture(autouse=True)
     def _require_cryptography(self):
-        pytest.importorskip("cryptography")
+        if not AEAD_AVAILABLE:
+            pytest.skip("cryptography AEAD unavailable")
 
     def test_merge_with_aes_gcm(self):
         key = secrets.token_bytes(32)
@@ -450,17 +498,22 @@ class TestEncryptedMergeWithBackends:
 
         em_xor = EncryptedMerge(prov, backend="xor-legacy")
         em_gcm = EncryptedMerge(prov, backend="aes-256-gcm")
-        em_siv = EncryptedMerge(prov, backend="aes-256-gcm-siv")
         em_cc = EncryptedMerge(prov, backend="chacha20-poly1305")
 
         tag_xor = em_xor.encrypt_field(42, "f").order_tag
         tag_gcm = em_gcm.encrypt_field(42, "f").order_tag
-        tag_siv = em_siv.encrypt_field(42, "f").order_tag
         tag_cc = em_cc.encrypt_field(42, "f").order_tag
 
-        assert tag_xor == tag_gcm == tag_siv == tag_cc
+        assert tag_xor == tag_gcm == tag_cc
+
+        if AESGCMSIV_AVAILABLE:
+            em_siv = EncryptedMerge(prov, backend="aes-256-gcm-siv")
+            tag_siv = em_siv.encrypt_field(42, "f").order_tag
+            assert tag_xor == tag_siv
 
     def test_encrypt_records_explicit_siv(self):
+        if not AESGCMSIV_AVAILABLE:
+            pytest.skip("AES-GCM-SIV requires cryptography>=42.0.0")
         key = secrets.token_bytes(32)
         prov = StaticKeyProvider(key)
         em = EncryptedMerge(prov, backend="aes-256-gcm-siv")
@@ -492,6 +545,8 @@ class TestEncryptedMergeWithBackends:
         assert {r["id"] for r in dec} == {"A", "B"}
 
     def test_full_pipeline_gcm_siv(self):
+        if not AESGCMSIV_AVAILABLE:
+            pytest.skip("AES-GCM-SIV requires cryptography>=42.0.0")
         key = secrets.token_bytes(32)
         prov = StaticKeyProvider(key)
         em = EncryptedMerge(prov, backend="aes-256-gcm-siv")
@@ -522,7 +577,8 @@ class TestAutoDetection:
 
     def test_auto_uses_best_available(self):
         """With cryptography installed, auto picks AES-256-GCM."""
-        pytest.importorskip("cryptography")
+        if not AEAD_AVAILABLE:
+            pytest.skip("cryptography AEAD unavailable")
         em = _make_em(backend="auto")
         assert em._backend.name == "aes-256-gcm"
 
@@ -535,6 +591,7 @@ class TestAutoDetection:
             _make_em(backend="nonexistent-cipher")
 
     def test_backend_name_accessible(self):
-        pytest.importorskip("cryptography")
+        if not AEAD_AVAILABLE:
+            pytest.skip("cryptography AEAD unavailable")
         em = _make_em(backend="chacha20-poly1305")
         assert em._backend.name == "chacha20-poly1305"
