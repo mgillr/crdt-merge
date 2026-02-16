@@ -58,6 +58,10 @@ Issues = "https://github.com/mgillr/crdt-merge/issues"
 Documentation = "https://github.com/mgillr/crdt-merge#readme"
 Changelog = "https://github.com/mgillr/crdt-merge/blob/main/CHANGELOG.md"
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "strict"
+
 [tool.setuptools]
 license-files = ["LICENSE", "NOTICE"]
 
