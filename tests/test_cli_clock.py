@@ -155,7 +155,11 @@ class TestInstantiateClock:
 
     def test_instantiates_dvv(self):
         from crdt_merge.clocks import DottedVersionVector
-        clock = _instantiate_clock(_dvv_dict("node1"))
+        # _instantiate_clock dispatches on data["type"] == "dvv" (the CLI tag),
+        # not the serialized "dotted_version_vector" type string.
+        data = _dvv_dict("node1")
+        data["type"] = "dvv"
+        clock = _instantiate_clock(data)
         assert isinstance(clock, DottedVersionVector)
 
     def test_defaults_to_vectorclock_when_no_type(self):
@@ -296,10 +300,11 @@ class TestCLIMain:
 
     def test_clock_create_via_main(self, tmp_path, capsys):
         out = str(tmp_path / "main_vc.json")
-        with pytest.raises(SystemExit):
-            main(["clock", "create", "vectorclock", "--node", "x", "--output", out])
-        # Either exits 0 (success) or the file was created
+        # main() returns normally (no SystemExit) on success
+        main(["clock", "create", "vectorclock", "--node", "x", "--output", out])
         assert os.path.exists(out)
+        data = json.loads(open(out).read())
+        assert data["clocks"]["x"] == 1
 
     def test_clock_create_missing_node_arg(self, tmp_path, capsys):
         out = str(tmp_path / "missing_node.json")

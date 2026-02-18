@@ -279,7 +279,9 @@ class TestHandleMerge:
         mock_result.model_card = None
         mock_hub_class = self._mock_hub_class(mock_result)
 
-        with patch("crdt_merge.cli.cmd_hub._lazy_import_hub", return_value=mock_hub_class):
+        with patch("crdt_merge.cli.cmd_hub._lazy_import_hub", return_value=mock_hub_class), \
+             patch("crdt_merge.cli._progress.ProgressBar") as mock_pb:
+            mock_pb.return_value.finish = MagicMock()
             handle_merge(args, fmt)
 
         call_kwargs = mock_hub_class.return_value.merge.call_args[1]
@@ -317,7 +319,9 @@ class TestHandleMerge:
         mock_hub_instance.merge.side_effect = RuntimeError("merge failed")
         mock_hub_class = MagicMock(return_value=mock_hub_instance)
 
-        with patch("crdt_merge.cli.cmd_hub._lazy_import_hub", return_value=mock_hub_class):
+        with patch("crdt_merge.cli.cmd_hub._lazy_import_hub", return_value=mock_hub_class), \
+             patch("crdt_merge.cli._progress.ProgressBar") as mock_pb:
+            mock_pb.return_value.finish = MagicMock()
             with pytest.raises(SystemExit) as exc_info:
                 handle_merge(args, fmt)
         assert exc_info.value.code == 1
