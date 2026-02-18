@@ -190,34 +190,31 @@ class TestHandleObserveExport:
         mock_exporter.export_metrics.return_value = (
             "crdt_merge_merge_time_ms 120\ncrdt_merge_conflicts 2"
         )
+        mock_exporter_class = MagicMock(return_value=mock_exporter)
 
-        with patch(
-            "crdt_merge.cli.cmd_observe.PrometheusExporter",
-            return_value=mock_exporter,
-            create=True,
-        ):
+        # Patch the name as it appears inside the handler's import statement
+        with patch("crdt_merge.observability.PrometheusExporter", mock_exporter_class):
             handle_observe_export(args, fmt)
 
         captured = capsys.readouterr()
         # output goes via formatter.message -> stderr
         assert "crdt_merge" in captured.err or "merge_time_ms" in captured.err
 
-    def test_export_prometheus_fallback_without_exporter(self, tmp_path, capsys):
-        """When PrometheusExporter is unavailable, falls back to manual emit."""
+    def test_export_prometheus_fallback_line_format(self, tmp_path, capsys):
+        """When PrometheusExporter.export_metrics is absent, manual emit runs."""
         p = _write_json(tmp_path, "metrics.json", _SAMPLE_METRICS)
         fmt = _make_formatter()
         args = argparse.Namespace(file=p, export_format="prometheus")
 
-        with patch(
-            "crdt_merge.cli.cmd_observe.PrometheusExporter",
-            side_effect=ImportError("no module"),
-            create=True,
-        ):
-            # Should not raise — handler catches ImportError
-            try:
-                handle_observe_export(args, fmt)
-            except ImportError:
-                pass  # acceptable if the mock causes import failure path
+        mock_exporter = MagicMock(spec=[])  # no export_metrics attribute
+        mock_exporter_class = MagicMock(return_value=mock_exporter)
+
+        with patch("crdt_merge.observability.PrometheusExporter", mock_exporter_class):
+            handle_observe_export(args, fmt)
+
+        captured = capsys.readouterr()
+        # The fallback emits lines like "crdt_merge_merge_time_ms 120"
+        assert "crdt_merge_merge_time_ms" in captured.err or "120" in captured.err
 
 
 # ---------------------------------------------------------------------------
@@ -225,7 +222,17 @@ class TestHandleObserveExport:
 # ---------------------------------------------------------------------------
 
 class TestHandleObserveDrift:
-    def test_drift_calls_detector(self, tmp_path, capsys):
+    def test_drift_emits_warning_when_detect_unavailable(self, tmp_path, capsys):
+        """DriftDetector has no detect() method; the handler emits a warning."""
+        p = _write_json(tmp_path, "metrics.json", _SAMPLE_METRICS)
+        fmt = _make_formatter()
+        args = argparse.Namespace(file=p)
+        handle_observe_drift(args, fmt)
+        captured = capsys.readouterr()
+        assert "DriftDetector" in captured.err or "not available" in captured.err
+
+    def test_drift_calls_detect_when_available(self, tmp_path, capsys):
+        """When a DriftDetector with detect() is provided, it is called."""
         p = _write_json(tmp_path, "metrics.json", _SAMPLE_METRICS)
         fmt = _make_formatter()
         args = argparse.Namespace(file=p)
@@ -233,7 +240,7 @@ class TestHandleObserveDrift:
         mock_detector = MagicMock()
         mock_detector.detect.return_value = {"drift_score": 0.05, "anomalies": []}
 
-        with patch("crdt_merge.cli.cmd_observe.DriftDetector", return_value=mock_detector, create=True):
+        with patch("crdt_merge.observability.DriftDetector", return_value=mock_detector):
             handle_observe_drift(args, fmt)
 
         mock_detector.detect.assert_called_once()
