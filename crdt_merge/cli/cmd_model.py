@@ -401,7 +401,7 @@ def handle_pipeline_run(args: argparse.Namespace, formatter: OutputFormatter) ->
 
     config = _load_config(args.config_file)
 
-    pipeline = MergePipeline.from_config(config)
+    pipeline = MergePipeline.from_dict(config)
 
     if args.dry_run:
         plan = pipeline.plan()
@@ -453,7 +453,7 @@ def handle_pipeline_validate(args: argparse.Namespace, formatter: OutputFormatte
     config = _load_config(args.config_file)
 
     try:
-        pipeline = MergePipeline.from_config(config)
+        pipeline = MergePipeline.from_dict(config)
         errors = pipeline.validate()
     except Exception as exc:
         print(f"Error: pipeline validation failed: {exc}", file=sys.stderr)

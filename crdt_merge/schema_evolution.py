@@ -34,7 +34,9 @@ __all__ = [
     "TYPE_WIDENING",
     "SchemaPolicy",
     "SchemaChange",
+    "ColumnRename",
     "SchemaEvolutionResult",
+    "register_widening",
     "widen_type",
     "check_compatibility",
     "evolve_schema",
@@ -65,7 +67,38 @@ TYPE_WIDENING: Dict[Tuple[str, str], str] = {
     # int ↔ float (generic Python types)
     ("int", "float"): "float",
     ("float", "int"): "float",
+    # list/array element-type widening
+    ("list[int32]", "list[int64]"): "list[int64]",
+    ("list[int64]", "list[int32]"): "list[int64]",
+    ("list[float32]", "list[float64]"): "list[float64]",
+    ("list[float64]", "list[float32]"): "list[float64]",
+    ("list[int32]", "list[float32]"): "list[float32]",
+    ("list[float32]", "list[int32]"): "list[float32]",
+    ("list[int32]", "list[float64]"): "list[float64]",
+    ("list[float64]", "list[int32]"): "list[float64]",
+    ("list[int64]", "list[float64]"): "list[float64]",
+    ("list[float64]", "list[int64]"): "list[float64]",
+    # struct field-type widening (opaque — both sides must be identical struct types)
+    # Specific struct widening must be registered at runtime via register_widening().
 }
+
+# ---------------------------------------------------------------------------
+# Enum
+# ---------------------------------------------------------------------------
+
+def register_widening(type_a: str, type_b: str, result: str) -> None:
+    """Register a custom type-widening rule at runtime.
+
+    Parameters
+    ----------
+    type_a, type_b:
+        The two type strings to widen (both orderings are registered).
+    result:
+        The widened type string.
+    """
+    TYPE_WIDENING[(type_a, type_b)] = result
+    TYPE_WIDENING[(type_b, type_a)] = result
+
 
 # ---------------------------------------------------------------------------
 # Enum
@@ -82,6 +115,32 @@ class SchemaPolicy(Enum):
 # ---------------------------------------------------------------------------
 # Data classes
 # ---------------------------------------------------------------------------
+
+@dataclass
+class ColumnRename:
+    """Describes a column rename event for schema lineage tracking.
+
+    Parameters
+    ----------
+    old_name : str
+        The previous column name.
+    new_name : str
+        The new column name after renaming.
+    version : str
+        Schema version string at which the rename occurred (e.g. ``"v2"``).
+    """
+
+    old_name: str
+    new_name: str
+    version: str = ""
+
+    def to_dict(self) -> dict:
+        return {"old_name": self.old_name, "new_name": self.new_name, "version": self.version}
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "ColumnRename":
+        return cls(old_name=d["old_name"], new_name=d["new_name"], version=d.get("version", ""))
+
 
 @dataclass
 class SchemaChange:
@@ -129,6 +188,43 @@ class SchemaEvolutionResult:
     policy_used: SchemaPolicy
     is_compatible: bool                   # True when no lossy changes
     warnings: List[str] = field(default_factory=list)
+    renames: List[ColumnRename] = field(default_factory=list)
+
+    # -- rename tracking -----------------------------------------------------
+
+    def rename_column(self, old_name: str, new_name: str, version: str = "") -> None:
+        """Record a column rename and update ``resolved_schema`` in-place.
+
+        Parameters
+        ----------
+        old_name : str
+            Existing column name in *resolved_schema*.
+        new_name : str
+            New column name.
+        version : str
+            Optional schema version at which the rename occurs.
+
+        Raises
+        ------
+        KeyError
+            If *old_name* is not present in *resolved_schema*.
+        ValueError
+            If *new_name* already exists in *resolved_schema*.
+        """
+        if old_name not in self.resolved_schema:
+            raise KeyError(f"Column '{old_name}' not found in resolved schema")
+        if new_name in self.resolved_schema:
+            raise ValueError(f"Column '{new_name}' already exists in resolved schema")
+        col_type = self.resolved_schema.pop(old_name)
+        self.resolved_schema[new_name] = col_type
+        self.renames.append(ColumnRename(old_name=old_name, new_name=new_name, version=version))
+        self.changes.append(SchemaChange(
+            column=old_name,
+            change_type="rename",
+            old_type=col_type,
+            new_type=col_type,
+            resolved_type=col_type,
+        ))
 
     # -- serialisation -------------------------------------------------------
 
@@ -141,6 +237,7 @@ class SchemaEvolutionResult:
             "policy_used": self.policy_used.value,
             "is_compatible": self.is_compatible,
             "warnings": list(self.warnings),
+            "renames": [r.to_dict() for r in self.renames],
         }
 
     @classmethod
@@ -153,6 +250,7 @@ class SchemaEvolutionResult:
             policy_used=SchemaPolicy(d["policy_used"]),
             is_compatible=d["is_compatible"],
             warnings=d.get("warnings", []),
+            renames=[ColumnRename.from_dict(r) for r in d.get("renames", [])],
         )
 
 # ---------------------------------------------------------------------------

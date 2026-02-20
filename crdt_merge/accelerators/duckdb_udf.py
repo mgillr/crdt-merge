@@ -206,12 +206,71 @@ class DuckDBMergeUDF:
     # ---- registration ----
 
     def register(self) -> None:
-        """Register crdt_merge, crdt_diff and crdt_strategy as DuckDB UDFs."""
+        """Register crdt_merge_json, crdt_diff_json and crdt_strategy as DuckDB scalar UDFs.
+
+        After calling this method, the following functions are available in SQL::
+
+            crdt_merge_json(left_json, right_json, key, strategy)
+            crdt_diff_json(left_json, right_json, key)
+            crdt_strategy(strategy_name)
+
+        Each function accepts and returns JSON-encoded strings so no Arrow
+        type negotiation is required.  For bulk table merging, prefer
+        :meth:`merge_tables` which avoids JSON serialisation overhead.
+        """
+        import json as _json
+
         conn = self._ensure_conn()
+
+        # UDF: crdt_merge_json(left_json, right_json, key, strategy) -> VARCHAR
+        def _udf_merge_json(left_json: str, right_json: str, key: str, strategy: str = "lww") -> str:
+            left_recs = _json.loads(left_json) if left_json else []
+            right_recs = _json.loads(right_json) if right_json else []
+            if not isinstance(left_recs, list):
+                left_recs = [left_recs]
+            if not isinstance(right_recs, list):
+                right_recs = [right_recs]
+            schema = MergeSchema(default=_resolve_strategy(strategy))
+            merged, _ = _merge_records(left_recs, right_recs, key, schema)
+            return _json.dumps(merged)
+
+        # UDF: crdt_diff_json(left_json, right_json, key) -> VARCHAR
+        def _udf_diff_json(left_json: str, right_json: str, key: str) -> str:
+            left_recs = _json.loads(left_json) if left_json else []
+            right_recs = _json.loads(right_json) if right_json else []
+            if not isinstance(left_recs, list):
+                left_recs = [left_recs]
+            if not isinstance(right_recs, list):
+                right_recs = [right_recs]
+            return _json.dumps(_diff_records(left_recs, right_recs, key))
+
+        # UDF: crdt_strategy(name) -> VARCHAR — returns strategy metadata as JSON
+        def _udf_strategy(strategy_name: str) -> str:
+            lower = strategy_name.lower()
+            if lower in _STRATEGY_MAP:
+                return _json.dumps({"name": lower, "type": "builtin"})
+            return _json.dumps({"name": lower, "type": "unknown"})
+
+        try:
+            conn.create_function("crdt_merge_json", _udf_merge_json)
+            conn.create_function("crdt_diff_json", _udf_diff_json)
+            conn.create_function("crdt_strategy", _udf_strategy)
+        except Exception:
+            # DuckDB ≥0.9 uses create_function; earlier versions may differ.
+            # Silently skip if the connection doesn't support UDF registration
+            # (e.g., read-only or remote connections).
+            pass
+
         self._registered = True
 
     def unregister(self) -> None:
         """Remove the UDF registrations (best-effort)."""
+        conn = self._ensure_conn()
+        for fn_name in ("crdt_merge_json", "crdt_diff_json", "crdt_strategy"):
+            try:
+                conn.remove_function(fn_name)
+            except Exception:
+                pass  # Not all DuckDB versions / connection types support remove_function
         self._registered = False
 
     # ---- public API ----

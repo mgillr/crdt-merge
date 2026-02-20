@@ -14,35 +14,124 @@
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
 
-"""Multi-stage merge pipelines.
+"""Multi-stage merge pipelines with checkpoint/resume support.
 
 Allows defining and executing multi-step model merges where the output
-of one stage feeds into subsequent stages.
+of one stage feeds into subsequent stages.  Intermediate results can be
+persisted to disk using :class:`PipelineCheckpoint` so that a failed run
+can be resumed from the last completed stage.
 
 Example::
 
-    from crdt_merge.model.pipeline import MergePipeline
+    from crdt_merge.model.pipeline import MergePipeline, PipelineCheckpoint
 
-    pipeline = MergePipeline(stages=[
-        {"name": "stage1", "strategy": "weight_average",
-         "models": [model_a, model_b], "base": None},
-        {"name": "stage2", "strategy": "weight_average",
-         "models": ["$stage1", model_c], "base": None},
-    ])
+    ckpt = PipelineCheckpoint(path="/tmp/my_pipeline.ckpt.json")
+    pipeline = MergePipeline(
+        stages=[
+            {"name": "stage1", "strategy": "weight_average",
+             "models": [model_a, model_b], "base": None},
+            {"name": "stage2", "strategy": "weight_average",
+             "models": ["$stage1", model_c], "base": None},
+        ],
+        checkpoint=ckpt,
+    )
     result = pipeline.execute()
     print(result.execution_order)  # ['stage1', 'stage2']
-
-Note: Checkpoint/resume is planned for a future version.
 """
 
 from __future__ import annotations
 
+import json
+import os
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Union
 
 from crdt_merge.model.core import ModelCRDT, ModelMergeSchema
 
-__all__ = ["MergePipeline", "PipelineResult"]
+__all__ = ["MergePipeline", "PipelineResult", "PipelineCheckpoint"]
+
+# ---------------------------------------------------------------------------
+# PipelineCheckpoint
+# ---------------------------------------------------------------------------
+
+class PipelineCheckpoint:
+    """Persist and restore intermediate pipeline stage results.
+
+    Stores completed stage outputs as JSON so that :meth:`MergePipeline.execute`
+    can skip already-completed stages when resuming after a failure.
+
+    Parameters
+    ----------
+    path : str
+        File path for the checkpoint JSON file.  The file is created (or
+        overwritten) on first save and read back automatically on resume.
+
+    Example
+    -------
+    .. code-block:: python
+
+        ckpt = PipelineCheckpoint("/tmp/pipeline.ckpt.json")
+        pipeline = MergePipeline(stages=[...], checkpoint=ckpt)
+        result = pipeline.execute()   # saves after each stage
+        # If execution fails, re-run the same line — completed stages skip.
+        ckpt.clear()                  # remove checkpoint after successful run
+    """
+
+    def __init__(self, path: str) -> None:
+        self._path = path
+        self._completed: Dict[str, Dict[str, Any]] = {}
+        self._load()
+
+    # -- persistence ----------------------------------------------------------
+
+    def _load(self) -> None:
+        """Load checkpoint from disk if it exists."""
+        if os.path.exists(self._path):
+            try:
+                with open(self._path, "r", encoding="utf-8") as fh:
+                    data = json.load(fh)
+                if isinstance(data, dict):
+                    self._completed = data
+            except Exception:
+                self._completed = {}
+
+    def _save(self) -> None:
+        """Persist checkpoint to disk."""
+        try:
+            with open(self._path, "w", encoding="utf-8") as fh:
+                json.dump(self._completed, fh)
+        except Exception:
+            pass  # best-effort; never abort the pipeline on checkpoint I/O failure
+
+    # -- public API -----------------------------------------------------------
+
+    def mark_done(self, stage_name: str, result: Dict[str, Any]) -> None:
+        """Record that *stage_name* completed with *result* and persist."""
+        self._completed[stage_name] = result
+        self._save()
+
+    def get_result(self, stage_name: str) -> Optional[Dict[str, Any]]:
+        """Return the cached result for *stage_name*, or *None* if not done."""
+        return self._completed.get(stage_name)
+
+    def is_done(self, stage_name: str) -> bool:
+        """Return *True* if *stage_name* has a cached result."""
+        return stage_name in self._completed
+
+    def clear(self) -> None:
+        """Remove all cached results and delete the checkpoint file."""
+        self._completed.clear()
+        try:
+            if os.path.exists(self._path):
+                os.remove(self._path)
+        except Exception:
+            pass
+
+    @property
+    def completed_stages(self) -> List[str]:
+        """List of stage names that have been completed."""
+        return list(self._completed.keys())
+
 
 # ---------------------------------------------------------------------------
 # PipelineResult
@@ -88,9 +177,14 @@ class MergePipeline:
         - ``weights`` (list[float] | None): optional per-model weights
     """
 
-    def __init__(self, stages: List[Dict[str, Any]]) -> None:
+    def __init__(
+        self,
+        stages: List[Dict[str, Any]],
+        checkpoint: Optional["PipelineCheckpoint"] = None,
+    ) -> None:
         self._stages = list(stages)
         self._stage_map: Dict[str, Dict[str, Any]] = {}
+        self._checkpoint = checkpoint
         for stage in self._stages:
             name = stage.get("name", "")
             if name:
@@ -122,6 +216,17 @@ class MergePipeline:
         pipeline_provenance: Dict[str, Any] = {}
 
         for stage_name in order:
+            # Resume: skip stages that were completed in a previous run
+            if self._checkpoint is not None and self._checkpoint.is_done(stage_name):
+                cached = self._checkpoint.get_result(stage_name)
+                stage_results[stage_name] = cached or {}
+                for layer_name in stage_results[stage_name]:
+                    pipeline_provenance[layer_name] = {
+                        "produced_by_stage": stage_name,
+                        "strategy": "checkpoint_restored",
+                    }
+                continue
+
             stage = self._stage_map[stage_name]
             strategy_name = stage.get("strategy", "weight_average")
             models_spec = stage.get("models", [])
@@ -137,7 +242,7 @@ class MergePipeline:
                         resolved_models.append(stage_results[ref_name])
                     else:
                         raise ValueError(
-                            f"Stage '{stage_name}' references '${ ref_name}' "
+                            f"Stage '{stage_name}' references '${ref_name}' "
                             f"but it hasn't been executed yet"
                         )
                 else:
@@ -170,6 +275,10 @@ class MergePipeline:
                 result_sd = merge_result.tensor if isinstance(merge_result.tensor, dict) else {}
 
             stage_results[stage_name] = result_sd
+
+            # Save checkpoint after each successful stage
+            if self._checkpoint is not None:
+                self._checkpoint.mark_done(stage_name, result_sd)
 
             # Record provenance
             for layer_name in result_sd:

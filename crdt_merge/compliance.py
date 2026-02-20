@@ -83,6 +83,7 @@ __all__ = [
     "ComplianceReport",
     "ComplianceAuditor",
     "EUAIActReport",
+    "register_compliance_rule",
 ]
 
 
@@ -107,6 +108,53 @@ class CheckResult(NamedTuple):
 _VALID_FRAMEWORKS = frozenset({"eu_ai_act", "gdpr", "hipaa", "sox"})
 _VALID_SEVERITIES = frozenset({"critical", "warning", "info"})
 _VALID_STATUSES = frozenset({"pass", "fail", "not_applicable"})
+
+# ---------------------------------------------------------------------------
+# Custom compliance rule registry
+# ---------------------------------------------------------------------------
+
+from typing import Callable  # noqa: E402 — after type defs
+
+_CUSTOM_RULES: Dict[str, List[Callable[..., "ComplianceFinding"]]] = {}
+
+
+def register_compliance_rule(
+    framework: str,
+    rule_fn: Callable[..., "ComplianceFinding"],
+) -> None:
+    """Register a custom compliance rule for *framework*.
+
+    The callable receives the :class:`ComplianceAuditor` instance as its only
+    positional argument and must return a :class:`ComplianceFinding`.
+
+    Parameters
+    ----------
+    framework : str
+        One of ``"eu_ai_act"``, ``"gdpr"``, ``"hipaa"``, ``"sox"``, or any
+        custom string for bespoke frameworks.
+    rule_fn : callable
+        ``(auditor: ComplianceAuditor) -> ComplianceFinding``
+
+    Example
+    -------
+    .. code-block:: python
+
+        from crdt_merge.compliance import register_compliance_rule, ComplianceFinding
+
+        def my_rule(auditor):
+            ok = len(auditor._merge_events) < 1000
+            return ComplianceFinding(
+                rule_id="CUSTOM_MERGE_LIMIT",
+                severity="warning",
+                status="pass" if ok else "fail",
+                description="Merge event count must be under 1000",
+            )
+
+        register_compliance_rule("gdpr", my_rule)
+    """
+    if not callable(rule_fn):
+        raise TypeError("rule_fn must be callable")
+    _CUSTOM_RULES.setdefault(framework, []).append(rule_fn)
 
 
 # ---------------------------------------------------------------------------
@@ -471,6 +519,15 @@ class ComplianceAuditor:
                 recommendation=recommendation,
                 evidence=evidence,
             ))
+
+        # Run custom rules registered for this framework
+        for custom_fn in _CUSTOM_RULES.get(self.framework, []):
+            try:
+                finding = custom_fn(self)
+                if isinstance(finding, ComplianceFinding):
+                    findings.append(finding)
+            except Exception as exc:  # pragma: no cover
+                logger.warning("Custom compliance rule raised an error: %s", exc)
 
         # Derive overall status
         has_critical_fail = any(
