@@ -161,18 +161,21 @@ def handle_query(args: argparse.Namespace, formatter: OutputFormatter) -> None:
         print(f"Error: failed to parse MergeQL query: {exc}", file=sys.stderr)
         raise SystemExit(1) from exc
 
-    # -- explain mode: show query plan without executing ----------------------
-    if args.explain:
-        plan = parsed.explain()
-        plan_data = plan if isinstance(plan, dict) else {"plan": str(plan)}
-        formatter.json(plan_data)
-        return
-
     # -- build the execution engine and register data sources -----------------
     engine = MergeQL()
     for name, path in registers.items():
         data = _load_data(path)
         engine.register(name, data)
+
+    # -- explain mode: show query plan without executing ----------------------
+    if args.explain:
+        try:
+            plan = engine.explain(query_string)
+            plan_data = plan if isinstance(plan, dict) else {"plan": str(plan)}
+        except Exception as exc:
+            plan_data = {"plan": str(exc)}
+        formatter.json(plan_data)
+        return
 
     # -- execute the query ----------------------------------------------------
     try:
