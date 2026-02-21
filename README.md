@@ -20,6 +20,92 @@ pip install crdt-merge
 
 ---
 
+## Disruptive Applications — The Two-Layer CRDT Architecture
+
+> *Patent Pending — UK Application No. 2607132.4*
+
+The core innovation in crdt-merge is a **two-layer architecture** that makes any algorithm — regardless of whether it satisfies CRDT laws on its own — convergent, partition-tolerant, and coordinator-free.
+
+**Layer 1** is an OR-Set that tracks contributions by unique tag. Its merge operation is set union — commutative, associative, idempotent by definition. **Layer 2** is a deterministic pure function applied once over the full converged set. The strategy never needs to be a CRDT — convergence is guaranteed by Layer 1 and determinism of Layer 2.
+
+This pattern appears in five places in crdt-merge, each solving a problem that previously had no principled solution:
+
+---
+
+### I. Federated Model Merging Without a Parameter Server
+
+> **Every federated learning system today has a single point of failure: the parameter server.** FedAvg, TIES, DARE, and all other merge strategies are order-dependent — the same three models merged in different orders produce different results. This is not a bug. It is a fundamental property of these algorithms.
+
+crdt-merge wraps SLERP, TIES, DARE, Fisher, LoRA, and 21 more strategies in the OR-Set layer. The strategy is called once over the full converged set — never pairwise. The same models, in any order, on any node, produce **bit-identical output**.
+
+**Real-world consequence:** 100 hospitals can collaborate on a shared diagnostic model without a central aggregator. Any hospital can produce the final model. Late-arriving updates are included automatically. A hospital can retract its contribution at any time — the removal propagates via CRDT merge.
+
+**[Full guide with code examples →](docs/guides/federated-model-merging.md)**
+
+---
+
+### II. Convergent Multi-Agent AI — No Coordinator Required
+
+> **Every AI agent framework today — LangChain, AutoGen, CrewAI, LangGraph — assumes a coordinator exists.** When two agents update the same belief simultaneously, whichever runs last wins. When the network partitions, there is no merge — the coordinator picks one and discards the other.
+
+crdt-merge's `AgentState` is an `LWWMap + ORSet + PNCounter` — proven CRDT by the composition theorem. Facts carry confidence levels. Higher confidence wins on merge. The merged context is **provably identical on all nodes** regardless of sync order, network partition, or which agent acts as aggregator.
+
+**Real-world consequence:** 1,000 autonomous vehicles can share hazard observations via gossip, without a server, during network partitions. A multi-device AI assistant converges to the same user model across phone, laptop, and home device — offline-capable, no sync server required.
+
+**[Full guide with code examples →](docs/guides/convergent-multi-agent-ai.md)**
+
+---
+
+### III. Privacy-Preserving Merge — Merge Without Seeing the Data
+
+> **Homomorphic encryption is too slow. Secure MPC has round-trip overhead per operation. Differential privacy adds noise. None of these let you run a full CRDT merge — with conflict resolution and convergence guarantees — on data that remains encrypted throughout.**
+
+`EncryptedMerge` uses a deterministic `order_tag` (HMAC of plaintext, never transmitted) to resolve conflicts without decryption. Four AEAD backends. Per-field key isolation via HKDF. The merge operates entirely on ciphertext — the plaintext is never exposed to the merging party.
+
+**Real-world consequence:** Two pharmaceutical companies can merge patient trial data for research without either company seeing the other's raw records. A salary benchmarking service can produce accurate percentiles across 50 companies without any company's actual salaries being visible to the others.
+
+**[Full guide with code examples →](docs/guides/privacy-preserving-merge.md)**
+
+---
+
+### IV. The Right to Forget in Trained AI Models
+
+> **GDPR Article 17 requires erasure. EU AI Act Article 12 requires traceability. No production AI system today satisfies both simultaneously for trained models — because training "bakes in" data influence with no way to remove it except retraining from scratch.**
+
+Because crdt-merge's OR-Set tracks every contribution by unique tag, any contribution can be removed via tombstoning. The re-resolved model no longer contains that contribution. `GDPRForget` wraps the full workflow: tabular record removal + model influence measurement + compliance report generation.
+
+**Real-world consequence:** A federated learning system with 100 clients can process a right-to-erasure request in milliseconds — not weeks of retraining. A deployed model found to have learned from harmful content can have that contribution surgically removed. The `GDPRComplianceReport` provides legally defensible evidence of erasure.
+
+**[Full guide with code examples →](docs/guides/right-to-forget-in-ai.md)**
+
+---
+
+### V. MergeQL — A Query Language for Distributed Knowledge
+
+> **SQL assumes one source of truth. ETL centralises distributed data into a warehouse — adding latency, cost, and compliance risk. Neither approach preserves CRDT correctness or conflict provenance.**
+
+`MergeQL` provides SQL-like syntax for expressing CRDT-correct multi-source merges. `MERGE source_a, source_b ON id STRATEGY salary='max', tags='union'` — parsed to an AST, planned with an Arrow-aware execution engine, executed with full provenance tracking.
+
+**Real-world consequence:** A SaaS product running databases in US-EAST, EU-WEST, and APAC can express its sync logic as a single MergeQL statement — no custom ETL, no coordinator, no data warehouse required. Five research teams can merge their knowledge graphs without a central database.
+
+**[Full guide with code examples →](docs/guides/mergeql-distributed-knowledge.md)**
+
+---
+
+### VI. Provenance-Complete AI — Full Lineage from Data to Decision
+
+> **When an AI system makes a decision, no existing framework can tell you which specific data point caused it, what the alternative values were, and whether the conflict resolution was deterministic. EU AI Act Article 13 requires this. No one provides it.**
+
+Every merge in crdt-merge produces a `ProvenanceLog` — per-row, per-field records of what was chosen, what was rejected, and which strategy made the decision. The `AuditLog` is a SHA-256 hash chain: append-only, tamper-evident, verifiable in O(n). `ContextManifest` provides self-describing attestation for every context merge operation.
+
+**Real-world consequence:** A medical AI system can produce a legally defensible explanation of every diagnostic recommendation — tracing it to the specific agent, confidence level, and data source. An algorithmic trading system can prove to regulators which market data feed influenced which trade.
+
+**[Full guide with code examples →](docs/guides/provenance-complete-ai.md)**
+
+---
+
+---
+
 ## The Problem Every Data Engineer and ML Researcher Has
 
 You're merging data or models from multiple sources — pipelines, replicas, collaborators, distributed nodes. You apply your merge. It looks right. But:
