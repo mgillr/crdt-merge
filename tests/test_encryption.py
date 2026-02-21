@@ -419,6 +419,7 @@ class TestEncryptedValueSerialization:
     def test_to_dict_keys(self, em):
         ev = em.encrypt_field("val", "f")
         d = ev.to_dict()
-        assert set(d.keys()) == {
-            "__encrypted__", "ciphertext", "nonce", "tag", "order_tag", "field_name"
-        }
+        required = {"__encrypted__", "ciphertext", "nonce", "tag", "order_tag", "field_name"}
+        # v2 wire format (AEAD backends) adds 'cipher' and 'version'; v1 (xor-legacy) omits them
+        assert required.issubset(d.keys())
+        assert d.keys() <= required | {"cipher", "version"}

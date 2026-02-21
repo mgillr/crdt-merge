@@ -95,7 +95,11 @@ class ProgressBar:
         self._last_pipe_time = self._start_time
         self._finished = False
 
-        self._is_tty = hasattr(stream, "isatty") and stream.isatty()
+        try:
+            self._is_tty = hasattr(stream, "isatty") and stream.isatty()
+        except (ValueError, OSError):
+            # Stream is closed (e.g. pytest capture redirect) — treat as non-TTY
+            self._is_tty = False
         self._use_rich = False
         self._rich_ctx: Any = None
         self._rich_task: Any = None
@@ -239,7 +243,11 @@ class Spinner:
         self._frame = 0
         self._start_time = time.monotonic()
 
-        self._is_tty = hasattr(stream, "isatty") and stream.isatty()
+        try:
+            self._is_tty = hasattr(stream, "isatty") and stream.isatty()
+        except (ValueError, OSError):
+            # Stream is closed (e.g. pytest capture redirect) — treat as non-TTY
+            self._is_tty = False
         self._use_rich = False
         self._rich_ctx: Any = None
         self._rich_task: Any = None
@@ -292,17 +300,23 @@ class Spinner:
             except Exception:
                 pass
             # Print final message below the spinner.
-            self.stream.write(f"{message} ({_format_time(elapsed)})\n")
-            self.stream.flush()
+            try:
+                self.stream.write(f"{message} ({_format_time(elapsed)})\n")
+                self.stream.flush()
+            except (ValueError, OSError):
+                pass
             return
 
-        if self._is_tty:
-            text = f" {self.desc}" if self.desc else ""
-            self.stream.write(f"\r\u2714{text} {message} ({_format_time(elapsed)})\n")
-            self.stream.flush()
-        else:
-            self.stream.write(f"[spinner] {message} ({_format_time(elapsed)})\n")
-            self.stream.flush()
+        try:
+            if self._is_tty:
+                text = f" {self.desc}" if self.desc else ""
+                self.stream.write(f"\r\u2714{text} {message} ({_format_time(elapsed)})\n")
+                self.stream.flush()
+            else:
+                self.stream.write(f"[spinner] {message} ({_format_time(elapsed)})\n")
+                self.stream.flush()
+        except (ValueError, OSError):
+            pass
 
     # -- Context manager ----------------------------------------------------
 

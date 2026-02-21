@@ -88,9 +88,6 @@ _NONCE_BYTES = 16
 _KEY_BYTES = 32
 _BLOCK_BYTES = 32  # HMAC-SHA256 output size
 
-# Sentinel for "no backend argument was passed"
-_BACKEND_UNSET = object()
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -474,7 +471,7 @@ class EncryptedMerge:
 
     _warned: bool = False
 
-    def __init__(self, key_provider: KeyProvider, *, backend: str = _BACKEND_UNSET) -> None:
+    def __init__(self, key_provider: KeyProvider, *, backend: str = "auto") -> None:
         """Initialise the encrypted-merge layer.
 
         Parameters
@@ -482,26 +479,15 @@ class EncryptedMerge:
         key_provider:
             A :class:`KeyProvider` used to obtain per-field encryption keys.
         backend:
-            Crypto backend name (e.g. ``"aes-256-gcm"``).  Use ``"auto"`` to
-            select the best available backend.  When omitted the XOR legacy
-            backend is used for backward compatibility.
+            Crypto backend name.  Defaults to ``"auto"``, which selects
+            AES-256-GCM when the ``cryptography`` package is available, or
+            falls back to the XOR-legacy keystream with a warning.  Pass
+            ``"xor-legacy"`` explicitly to force the stdlib-only backend
+            (e.g. for zero-dependency environments or to read v1 wire data).
         """
         self._kp = key_provider
 
-        if backend is _BACKEND_UNSET:
-            # Legacy default: XOR keystream with one-time warning.
-            # Preserves backward compatibility for callers that do not
-            # pass an explicit *backend* argument.
-            if not EncryptedMerge._warned:
-                warnings.warn(
-                    "crdt_merge.encryption uses a HMAC-SHA256 derived XOR keystream, not a standard AEAD cipher. "
-                    "For production use with sensitive data, use an external encryption layer (e.g., AES-GCM via the cryptography package).",
-                    UserWarning,
-                    stacklevel=2,
-                )
-                EncryptedMerge._warned = True
-            self._backend: CryptoBackend = XORLegacyBackend()
-        elif backend == "auto":
+        if backend == "auto":
             try:
                 from cryptography.hazmat.primitives.ciphers.aead import AESGCM  # noqa: F401 — import tests availability for auto-detection
                 self._backend = AES256GCMBackend()
