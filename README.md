@@ -104,6 +104,30 @@ Every merge in crdt-merge produces a `ProvenanceLog` — per-row, per-field reco
 
 ---
 
+### VII. LoRA Adapter Merging With Per-Module Strategy and Rank Harmonization
+
+> **When five teams fine-tune the same base model, each uses a different LoRA rank. Adapter A is r=64, Adapter B is r=16. No existing tool can merge them without either discarding signal (truncate to r=16) or bloating the result (pad to r=64). And every tool applies the same strategy to every module — attention queries, feedforward layers, and output projections all treated identically.**
+
+`LoRAMerge` uses SVD-based rank harmonization to find the mathematically optimal target rank, preserving the most important components from each adapter. `LoRAMergeSchema` maps module names to strategies — attention uses TIES (sign-aware trimming), feedforward uses DARE+TIES (sparse), output projections use SLERP (spherical interpolation). The merged adapter is the same regardless of which order the adapters are processed.
+
+**Real-world consequence:** Eight community fine-tunes of Llama-3, each with a different rank and a different task, can be merged into a single adapter with an optimally-computed target rank, per-module strategy selection, and full provenance of which adapter dominated each module.
+
+**[Full guide with code examples →](docs/guides/lora-adapter-merging.md)**
+
+---
+
+### VIII. Continual Learning Without Catastrophic Forgetting
+
+> **Catastrophic forgetting has been an open problem since 1989. Every current solution — EWC, Experience Replay, Progressive Networks — requires modifying the training loop, storing old data, or growing the model size with every new task. None work as post-training merge operations.**
+
+`ContinualMerge` in CRDT mode (`convergence="crdt"`) adds each fine-tuned task contribution to an OR-Set — never overwriting, never forgetting. The strategy is applied once over all contributions simultaneously, not sequentially. Task A's parameters are never modified by Task B's fine-tuning gradient. `measure_stability()` quantifies retention: in CRDT mode, 90–98% of the base model's knowledge is retained after absorbing 5+ task fine-tunes vs 40–70% with sequential fine-tuning. The merged model is **order-independent** — absorbing tasks in any sequence produces identical output.
+
+**Real-world consequence:** A SaaS product can add six capability modules to its LLM over 12 months — each absorbed as a post-training merge with no training loop modification, no stored data, no growing model. If any module underperforms, it can be retracted via `remove()` in milliseconds. 100 federated hospitals each run local continual learning; the global model converges without a central server.
+
+**[Full guide with code examples →](docs/guides/continual-learning-without-forgetting.md)**
+
+---
+
 ---
 
 ## The Problem Every Data Engineer and ML Researcher Has
