@@ -159,6 +159,7 @@ print(csv_report)
 ```python
 from crdt_merge.audit import AuditLog, AuditedMerge
 import crdt_merge
+import hashlib, json
 
 audit = AuditLog(node_id="hospital-node-1")
 
@@ -168,12 +169,16 @@ records_b = [{"id": "1", "value": 200}]
 
 merged = crdt_merge.merge(records_a, records_b, key="id")
 
-# Manually log the operation
-audit._append(
+# Manually log the operation using the public API
+def hash_object(obj):
+    return hashlib.sha256(json.dumps(obj, sort_keys=True).encode()).hexdigest()
+
+audit.log_operation(
     operation="merge",
-    input_hash=audit._hash_object({"a": records_a, "b": records_b}),
-    output_hash=audit._hash_object(merged),
-    metadata={"strategy": "lww", "source_count": 2},
+    input_data={"a": records_a, "b": records_b},
+    output_data=merged,
+    strategy="lww",
+    source_count=2,
 )
 
 # Verify chain integrity — O(n) walk of hash chain
@@ -204,7 +209,7 @@ records_a = [{"id": "U1", "score": 80, "name": "Alice"}]
 records_b = [{"id": "U1", "score": 95, "name": "Alice"}]
 
 # Merge is automatically logged to the audit chain
-merged = am.merge(records_a, records_b, key="id", schema=schema)
+merged, audit_entry = am.merge(records_a, records_b, key="id", schema=schema)
 assert merged[0]["score"] == 95  # MaxWins
 
 # All operations are in the audit log
@@ -281,16 +286,11 @@ print(f"Source: {condition.source_agent}")
 # EU AI Act Article 13: export explanation for the patient
 audit = AuditLog(node_id="hospital-ai-system")
 # Log the multi-agent merge decision
-audit._append(
+audit.log_operation(
     operation="merge",
-    input_hash="agent_state_hash",
-    output_hash="shared_knowledge_hash",
-    metadata={
-        "agents": shared.contributing_agents,
-        "patient_id": "P001",
-        "decision": condition.value,
-        "confidence": condition.confidence,
-    },
+    input_data={"agents": [str(a) for a in shared.contributing_agents]},
+    output_data={"patient_id": "P001", "decision": condition.value, "confidence": condition.confidence},
+    agents=shared.contributing_agents,
 )
 assert audit.verify_chain()
 ```
@@ -353,7 +353,7 @@ import numpy as np
 audit = AuditLog(node_id="model-training")
 
 # Three datasets contribute to a model
-state = CRDTMergeState(node_id="training", strategy="ties")
+state = CRDTMergeState("ties")
 
 datasets = {
     "dataset_eu_customers":    np.random.randn(64, 64).astype(np.float32),
@@ -362,23 +362,25 @@ datasets = {
 }
 
 for dataset_id, weights in datasets.items():
-    state.add(dataset_id, {"layer": weights}, weight=1/3)
-    audit._append(
+    state.add(weights, model_id=dataset_id, weight=1/3)
+    audit.log_operation(
         operation="merge",
-        input_hash=state._merkle_root() if hasattr(state, "_merkle_root") else "n/a",
-        output_hash=state.state_hash,
-        metadata={"dataset": dataset_id, "operation": "add_contribution"},
+        input_data={"dataset": dataset_id},
+        output_data={"state_hash": state.state_hash},
+        dataset=dataset_id,
+        operation_type="add_contribution",
     )
 
 initial_model = state.resolve()
 
 # GDPR request: remove EU customer data from the model
 state.remove("dataset_eu_customers")
-audit._append(
+audit.log_operation(
     operation="unmerge",
-    input_hash=state.state_hash,
-    output_hash="pending",
-    metadata={"dataset": "dataset_eu_customers", "reason": "GDPR_Article17"},
+    input_data={"state_hash": state.state_hash},
+    output_data={"pending": True},
+    dataset="dataset_eu_customers",
+    reason="GDPR_Article17",
 )
 
 updated_model = state.resolve()
