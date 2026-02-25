@@ -653,6 +653,10 @@ class CRDTMergeState:
         that produces the same output from the same set of contributions,
         regardless of the order they were added or merged.
 
+        Strategies receive all visible contributions sorted by canonical_key
+        (content hash). This is called once over the full visible set — never
+        pairwise. This is the architectural guarantee of the two-layer design.
+
         Returns
         -------
         merged_tensor : numpy.ndarray or list
@@ -669,6 +673,9 @@ class CRDTMergeState:
             if self.base is not None:
                 return self.base
             raise ValueError("Cannot resolve empty CRDT state with no base model")
+
+        # Validate tensor shapes and dtypes are compatible across contributions
+        self._validate_contributions_compatible(active)
 
         # Import strategy
         from crdt_merge.model.strategies import get_strategy
@@ -689,8 +696,12 @@ class CRDTMergeState:
                 raise ValueError(
                     f"Strategy '{self.strategy_name}' requires base= but none provided"
                 )
+            # ARCHITECTURAL INVARIANT: strategy is called once over the full sorted visible set.
+            # Never call strategies pairwise — doing so would break commutativity for non-associative strategies.
             return strategy.merge(tensors, weights=weights, base=self.base, **kwargs)
 
+        # ARCHITECTURAL INVARIANT: strategy is called once over the full sorted visible set.
+        # Never call strategies pairwise — doing so would break commutativity for non-associative strategies.
         return strategy.merge(tensors, weights=weights, **kwargs)
 
     # ------------------------------------------------------------------
@@ -915,6 +926,103 @@ class CRDTMergeState:
                         f"Tensor length mismatch: new tensor has length "
                         f"{len(tensor)} but existing contributions have "
                         f"length {len(first.tensor)}"
+                    )
+
+    def _validate_contributions_compatible(self, contributions: Dict[str, "MergeContribution"]) -> None:
+        """Validate all contributions have identical shapes per parameter key.
+
+        For flat tensor contributions, checks that all tensors have the same
+        shape and dtype. For dict-of-tensors contributions (multi-layer models),
+        checks that for each layer key all contributions have the same shape.
+
+        Parameters
+        ----------
+        contributions : dict
+            Active contributions mapping model_id -> MergeContribution.
+
+        Raises
+        ------
+        ValueError
+            If any shape or dtype mismatch is detected across contributions.
+        """
+        if len(contributions) < 2:
+            return
+
+        try:
+            import numpy as np
+            _has_numpy = True
+        except ImportError:
+            _has_numpy = False
+
+        # Check if contributions are dict-of-tensors (multi-layer) or flat tensors
+        first_contrib = next(iter(contributions.values()))
+        first_tensor = first_contrib.tensor
+
+        if isinstance(first_tensor, dict):
+            # Multi-layer: validate each layer key independently
+            # First pass: collect all layer keys
+            all_keys: set = set(first_tensor.keys())
+            for model_id, contrib in contributions.items():
+                tensor = contrib.tensor if hasattr(contrib, 'tensor') else contrib
+                if not isinstance(tensor, dict):
+                    raise ValueError(
+                        f"Contribution '{model_id}' is not a dict-of-tensors "
+                        f"but the first contribution is. All contributions must "
+                        f"have the same structure."
+                    )
+                all_keys |= set(tensor.keys())
+
+            # Second pass: for each key, validate shapes match
+            for layer_key in all_keys:
+                first_shape = None
+                first_dtype = None
+                first_id = None
+                for model_id, contrib in contributions.items():
+                    tensor = contrib.tensor if hasattr(contrib, 'tensor') else contrib
+                    if layer_key not in tensor:
+                        continue
+                    layer_tensor = tensor[layer_key]
+                    if _has_numpy:
+                        arr = np.asarray(layer_tensor)
+                        shape = arr.shape
+                        dtype = arr.dtype
+                    else:
+                        shape = (len(layer_tensor),) if hasattr(layer_tensor, '__len__') else None
+                        dtype = None
+                    if first_shape is None:
+                        first_shape = shape
+                        first_dtype = dtype
+                        first_id = model_id
+                    elif shape != first_shape:
+                        raise ValueError(
+                            f"Shape mismatch for layer '{layer_key}': "
+                            f"model '{model_id}' has shape {shape} but "
+                            f"model '{first_id}' has shape {first_shape}"
+                        )
+        else:
+            # Flat tensors: validate all have the same shape and dtype
+            first_shape = None
+            first_dtype = None
+            first_id = None
+            for model_id, contrib in contributions.items():
+                tensor = contrib.tensor if hasattr(contrib, 'tensor') else contrib
+                if _has_numpy:
+                    arr = np.asarray(tensor)
+                    shape = arr.shape
+                    dtype = arr.dtype
+                else:
+                    shape = (len(tensor),) if hasattr(tensor, '__len__') else None
+                    dtype = None
+                if first_shape is None:
+                    first_shape = shape
+                    first_dtype = dtype
+                    first_id = model_id
+                elif shape != first_shape:
+                    raise ValueError(
+                        f"Tensor shape mismatch across contributions: "
+                        f"model '{model_id}' has shape {shape} but "
+                        f"model '{first_id}' has shape {first_shape}. "
+                        f"All contributions must have identical tensor shapes."
                     )
 
     @staticmethod
