@@ -41,6 +41,15 @@ All external dependencies use lazy imports.
 
 from __future__ import annotations
 
+__status__ = 'stub'
+
+import warnings
+warnings.warn(
+    "crdt_merge.accelerators.airbyte is not yet implemented (stub)",
+    UserWarning,
+    stacklevel=2,
+)
+
 import copy
 import types
 import json

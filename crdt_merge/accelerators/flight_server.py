@@ -36,6 +36,15 @@ Example::
 
 from __future__ import annotations
 
+__status__ = 'stub'
+
+import warnings
+warnings.warn(
+    "crdt_merge.accelerators.flight_server is not yet implemented (stub)",
+    UserWarning,
+    stacklevel=2,
+)
+
 import json
 import threading
 import time
