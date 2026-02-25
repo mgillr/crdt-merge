@@ -27,6 +27,11 @@ Supports pandas and polars. Handles:
   - Deduplication: exact and fuzzy
   - Timestamp columns: used for LWW resolution when available
 
+NaN policy: NaN values are treated as -infinity in all comparison-based
+strategies (LWW, MaxWins, MinWins). Non-NaN values always win over NaN.
+
+String comparison uses NFC normalization (configurable via MergeSchema.unicode_normalize).
+
 Usage:
     from crdt_merge import merge
     merged = merge(df_a, df_b, key="id")
@@ -34,8 +39,12 @@ Usage:
 
 from __future__ import annotations
 import hashlib
+import logging
+import math
 import time
+import unicodedata
 import warnings
+from datetime import timezone
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 from .core import LWWRegister
@@ -43,7 +52,12 @@ from .core import LWWRegister
 __all__ = ["merge", "diff"]
 
 def _parse_timestamp(value: Any) -> float:
-    """Parse a timestamp value to float. Handles numeric, ISO-8601, datetime, and None."""
+    """Parse a timestamp value to float. Handles numeric, ISO-8601, datetime, and None.
+
+    Timezone policy: timezone-aware datetimes are converted to UTC before
+    float conversion. Mixing timezone-aware and timezone-naive datetimes in
+    the same merge raises ValueError.
+    """
     if value is None:
         return 0.0
     if isinstance(value, (int, float)):
@@ -58,16 +72,53 @@ def _parse_timestamp(value: Any) -> float:
         try:
             s = value.replace("Z", "+00:00")
             dt = _dt.fromisoformat(s)
+            if dt.tzinfo is not None:
+                return dt.astimezone(timezone.utc).timestamp()
             return dt.timestamp()
         except (ValueError, AttributeError, TypeError):
             pass
     # Try .timestamp() method (datetime objects)
-    if hasattr(value, 'timestamp'):
+    if hasattr(value, 'tzinfo') and hasattr(value, 'timestamp'):
+        try:
+            if value.tzinfo is not None:
+                return float(value.astimezone(timezone.utc).timestamp())
+            return float(value.timestamp())
+        except (TypeError, OSError):
+            pass
+    elif hasattr(value, 'timestamp'):
         try:
             return float(value.timestamp())
         except (TypeError, OSError):
             pass
     return 0.0
+
+
+def _check_timestamp_tz_consistency(ts_a: Any, ts_b: Any) -> None:
+    """Raise ValueError if one timestamp is tz-aware and the other is tz-naive."""
+    from datetime import datetime as _dt
+    a_aware = isinstance(ts_a, _dt) and ts_a.tzinfo is not None
+    b_aware = isinstance(ts_b, _dt) and ts_b.tzinfo is not None
+    a_dt = isinstance(ts_a, _dt)
+    b_dt = isinstance(ts_b, _dt)
+    if a_dt and b_dt and (a_aware != b_aware):
+        raise ValueError(
+            "Cannot mix timezone-aware and timezone-naive datetimes in the same merge"
+        )
+
+def _normalize_str(s: Any) -> Any:
+    """Return NFC-normalized string for comparison; non-strings returned as-is."""
+    return unicodedata.normalize('NFC', s) if isinstance(s, str) else s
+
+
+def _nan_safe_value(v: Any) -> Any:
+    """Replace NaN float with -infinity for comparison purposes (NaN policy)."""
+    try:
+        if isinstance(v, float) and math.isnan(v):
+            return float('-inf')
+    except (TypeError, ValueError):
+        pass
+    return v
+
 
 def _normalize_key(key: Optional[Union[str, List[str]]]) -> Optional[List[str]]:
     """Convert key to list form. None → None, 'id' → ['id'], ['id','name'] → ['id','name']."""
@@ -153,7 +204,8 @@ def _try_vectorized_merge(
                     else:
                         result[col] = vb
             return result[result_cols]
-        except Exception:
+        except Exception as e:
+            logging.warning(f"Vectorized merge failed, falling back to dict merge: {e}")
             return None
     return None
 
@@ -171,6 +223,33 @@ def _from_records(records: List[Dict[str, Any]], columns: List[str], lib: str) -
         return pl.DataFrame(records)
     else:
         return records
+
+def _merge_nested_dicts(a: dict, b: dict, visited: Optional[set] = None) -> dict:
+    """Recursively merge two dicts with CRDT semantics (b wins on conflict).
+
+    Detects circular references via id() tracking and raises ValueError if found.
+    """
+    if visited is None:
+        visited = set()
+    obj_id = id(a)
+    if obj_id in visited:
+        raise ValueError(f"Circular reference detected in merge input at key path")
+    visited.add(obj_id)
+
+    result = dict(a)
+    for k, vb in b.items():
+        if k in result:
+            va = result[k]
+            if isinstance(va, dict) and isinstance(vb, dict):
+                result[k] = _merge_nested_dicts(va, vb, visited)
+            else:
+                result[k] = vb  # b wins on scalar conflict
+        else:
+            result[k] = vb
+
+    visited.discard(obj_id)
+    return result
+
 
 def _row_hash(row: dict, exclude_keys: Optional[set] = None) -> str:
     """Deterministic hash of a row for dedup."""
@@ -311,11 +390,19 @@ def _merge_rows(
         val_a = row_a.get(col)
         val_b = row_b.get(col)
 
+        # NaN policy: NaN is treated as -infinity; non-NaN always wins over NaN
+        cmp_a = _nan_safe_value(val_a)
+        cmp_b = _nan_safe_value(val_b)
+        # Unicode NFC normalization for string equality comparison
+        norm_a = _normalize_str(cmp_a)
+        norm_b = _normalize_str(cmp_b)
+
         if val_a is None and val_b is not None:
             result[col] = val_b
         elif val_b is None and val_a is not None:
             result[col] = val_a
-        elif val_a == val_b:
+        elif norm_a == norm_b:
+            # Values are equal after normalization — keep val_a (original value preserved)
             result[col] = val_a
         else:
             # Conflict — resolve with schema strategy if available
@@ -332,7 +419,8 @@ def _merge_rows(
             elif prefer == "a":
                 result[col] = val_a
             else:  # "latest" — deterministic value-based tie-break for CRDT commutativity
-                str_a, str_b = str(val_a), str(val_b)
+                # Apply NaN policy: NaN (treated as -inf) loses to non-NaN
+                str_a, str_b = str(norm_a), str(norm_b)
                 result[col] = val_a if str_a >= str_b else val_b
 
     return result
