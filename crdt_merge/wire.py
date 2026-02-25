@@ -56,6 +56,12 @@ The payload uses a compact binary encoding for primitives:
     0x09: small int (int8, for values -128..127)
     0x0A: set (uint32 count + encoded elements)
 
+Wire format uses a uint32 length field — maximum payload is 4 GB (4,294,967,295 bytes).
+Use wire_size() to pre-check before serialising large objects.
+
+Version negotiation: Use out-of-band handshake before sending payloads. Call
+`supported_versions()` to get the set of supported version integers.
+
 New in v0.5.0.
 """
 
@@ -64,18 +70,12 @@ import types
 import zlib
 from typing import Any, Optional, Union
 
-# DEF-023: Optional msgpack support — falls back to JSON if not installed
-try:
-    import msgpack as _msgpack
-    _HAS_MSGPACK = True
-except ImportError:
-    _msgpack = None
-    _HAS_MSGPACK = False
+# msgpack codec: not implemented. Use the default binary protocol.
 
 from .core import GCounter, PNCounter, LWWRegister, ORSet, LWWMap
 from .probabilistic import MergeableHLL, MergeableBloom, MergeableCMS
 
-__all__ = ["serialize", "deserialize", "peek_type", "wire_size", "serialize_batch", "deserialize_batch", "WireError"]
+__all__ = ["serialize", "deserialize", "peek_type", "wire_size", "serialize_batch", "deserialize_batch", "WireError", "supported_versions"]
 
 # Lazy import to avoid circular
 _delta_module = None
@@ -97,6 +97,11 @@ def _is_delta(obj):
 
 MAGIC = b'CRDT'
 PROTOCOL_VERSION = 1
+
+INT64_MAX = (1 << 63) - 1
+INT64_MIN = -(1 << 63)
+
+MAX_PAYLOAD_BYTES = 4 * 1024**3
 
 # Type tags
 TAG_GCOUNTER    = 0x01
@@ -196,6 +201,11 @@ def _encode_value(val: Any) -> bytes:
     elif val is False:
         return struct.pack('B', _FALSE)
     elif isinstance(val, int) and not isinstance(val, bool):
+        if val > INT64_MAX or val < INT64_MIN:
+            raise OverflowError(
+                f"Integer {val} exceeds int64 range [-2^63, 2^63-1]. "
+                "Use bigint type tag (not yet supported)."
+            )
         if -128 <= val <= 127:
             return struct.pack('Bb', _SMALLINT, val)
         return struct.pack('>Bq', _INT64, val)
@@ -287,28 +297,12 @@ def _decode_value(data: bytes, offset: int) -> tuple:
 # ── v0.6.0 JSON-based wire frame builder ──────────────────────────────────
 
 def _encode_json_payload(data: dict) -> bytes:
-    """DEF-023: Encode payload using msgpack if available, else JSON.
-
-    msgpack produces smaller payloads and is faster to encode/decode.
-    Falls back to JSON transparently for backwards compatibility.
-    """
-    if _HAS_MSGPACK:
-        return _msgpack.packb(data, use_bin_type=True)
+    """Encode payload using the default JSON binary protocol."""
     import json as _json
     return _json.dumps(data).encode()
 
 def _decode_json_payload(payload: bytes) -> dict:
-    """DEF-023: Decode payload — tries msgpack first, falls back to JSON.
-
-    This ensures backward compatibility: payloads encoded with JSON
-    can still be read even when msgpack is available, and vice versa.
-    """
-    if _HAS_MSGPACK:
-        try:
-            return _msgpack.unpackb(payload, raw=False)
-        except Exception:
-            pass
-    # Fall back to JSON
+    """Decode payload using the default JSON binary protocol."""
     import json as _json
     return _json.loads(payload)
 
@@ -473,6 +467,12 @@ def serialize(obj: Any, *, compress: bool = False) -> bytes:
 
     # Encode payload
     payload = _encode_value(d)
+
+    if len(payload) > MAX_PAYLOAD_BYTES:
+        raise OverflowError(
+            f"Payload {len(payload)} bytes exceeds wire format maximum of "
+            f"{MAX_PAYLOAD_BYTES} bytes (4 GB uint32 limit)."
+        )
 
     # Optional compression
     flags = 0
@@ -693,6 +693,17 @@ def wire_size(data: bytes) -> dict:
         'protocol_version': version,
         'type_name': _TAG_TO_TYPE.get(type_tag, 'generic'),
     }
+
+def supported_versions() -> frozenset:
+    """Return the set of wire protocol version integers supported by this implementation.
+
+    Use out-of-band handshake before sending payloads to negotiate a mutually
+    supported version. Currently only version 1 is supported.
+
+    Returns:
+        frozenset of supported version integers (currently ``frozenset({1})``).
+    """
+    return frozenset({1})
 
 def serialize_batch(objects: list, *, compress: bool = False) -> bytes:
     """
