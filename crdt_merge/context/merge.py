@@ -395,6 +395,34 @@ class ContextMerge:
 
         return result
 
+    def evict_expired(
+        self, memories: List[dict], now: float = None
+    ) -> tuple:
+        """Remove expired chunks. Returns (remaining, evicted_count).
+
+        Note: Merge is CRDT-pure. Call evict_expired() separately for TTL
+        enforcement. Eviction is NOT automatic in merge() to preserve CRDT
+        purity.
+
+        Args:
+            memories: List of memory dicts (same format as merge() inputs).
+            now: Current unix timestamp. Defaults to time.time().
+
+        Returns:
+            Tuple of (remaining_memories, evicted_count) where remaining_memories
+            is a list of dicts that have not yet expired.
+        """
+        now = now or time.time()
+        remaining = []
+        evicted = 0
+        for m in memories:
+            chunk = self._dict_to_chunk(m) if isinstance(m, dict) else m
+            if not chunk.sidecar.is_expired(now):
+                remaining.append(m)
+            else:
+                evicted += 1
+        return remaining, evicted
+
     def __repr__(self) -> str:
         return (
             f"ContextMerge(strategy={self.strategy!r}, "
