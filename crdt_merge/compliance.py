@@ -28,7 +28,11 @@ Classes:
 from __future__ import annotations
 
 import copy
+import hashlib
+import hmac
+import json
 import logging
+import re
 import time
 import types
 import warnings
@@ -158,6 +162,21 @@ def register_compliance_rule(
 
 
 # ---------------------------------------------------------------------------
+# PHI patterns for HIPAA Safe Harbor detection (issue #86)
+# ---------------------------------------------------------------------------
+
+_PHI_PATTERNS: Dict[str, re.Pattern] = {
+    "name": re.compile(r'\b[A-Z][a-z]+ [A-Z][a-z]+\b'),
+    "ssn": re.compile(r'\b\d{3}-\d{2}-\d{4}\b'),
+    "phone": re.compile(r'\b\d{3}[-.\s]\d{3}[-.\s]\d{4}\b'),
+    "email": re.compile(r'\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b'),
+    "date": re.compile(r'\b\d{1,2}/\d{1,2}/\d{2,4}\b'),
+    "zip": re.compile(r'\b\d{5}(-\d{4})?\b'),
+    "mrn": re.compile(r'\bMRN[-:\s]?\d{4,10}\b', re.IGNORECASE),
+    "ip": re.compile(r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b'),
+}
+
+# ---------------------------------------------------------------------------
 # ComplianceFinding
 # ---------------------------------------------------------------------------
 
@@ -213,17 +232,21 @@ class ComplianceReport:
     status: str
     findings: List[ComplianceFinding]
     metadata: Dict[str, Any] = field(default_factory=dict)
+    _signature: Optional[str] = field(default=None, init=False, repr=False, compare=False)
 
     # -- serialisation -------------------------------------------------------
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
+        d: Dict[str, Any] = {
             "framework": self.framework,
             "generated_at": self.generated_at,
             "status": self.status,
             "findings": [f.to_dict() for f in self.findings],
             "metadata": self.metadata,
         }
+        if self._signature is not None:
+            d["signature"] = self._signature
+        return d
 
     def to_text(self) -> str:
         """Human-readable summary report."""
@@ -275,6 +298,58 @@ class ComplianceReport:
             "not_applicable": na_count,
             "critical_failures": critical_fails,
         }
+
+    # -- signing -------------------------------------------------------------
+
+    def sign(self, key: bytes) -> str:
+        """Compute an HMAC-SHA256 signature over the report content.
+
+        The signature is computed over ``json.dumps(self.to_dict(),
+        sort_keys=True)`` *before* the signature field is included, providing
+        a stable payload regardless of serialisation order.
+
+        Parameters
+        ----------
+        key : bytes
+            Secret key for the HMAC computation.
+
+        Returns
+        -------
+        str
+            Hexadecimal HMAC-SHA256 digest.  The digest is also stored on
+            ``self._signature`` so that subsequent calls to :meth:`to_dict`
+            include it.
+        """
+        # Temporarily clear any existing signature to get a canonical payload
+        saved = self._signature
+        object.__setattr__(self, "_signature", None)
+        try:
+            payload = json.dumps(self.to_dict(), sort_keys=True).encode()
+        finally:
+            object.__setattr__(self, "_signature", saved)
+        sig = hmac.new(key, payload, hashlib.sha256).hexdigest()
+        object.__setattr__(self, "_signature", sig)
+        return sig
+
+    def verify(self, key: bytes, signature: str) -> bool:
+        """Verify a previously computed HMAC-SHA256 signature.
+
+        Uses :func:`hmac.compare_digest` to prevent timing attacks.
+
+        Parameters
+        ----------
+        key : bytes
+            Secret key used when the signature was created.
+        signature : str
+            Hexadecimal digest to verify.
+
+        Returns
+        -------
+        bool
+            ``True`` if *signature* matches the recomputed digest.
+        """
+        expected = self.sign(key)
+        return hmac.compare_digest(expected, signature)
 
 
 # ---------------------------------------------------------------------------
@@ -413,6 +488,382 @@ _FRAMEWORK_RULES: types.MappingProxyType = types.MappingProxyType({
 
 
 # ---------------------------------------------------------------------------
+# Built-in compliance rules — GDPR Art. 5, HIPAA PHI, SOX controls
+# ---------------------------------------------------------------------------
+# These rules are registered at module import time via register_compliance_rule().
+# They supplement the structural checks in _FRAMEWORK_RULES with data-level
+# and control-flow checks.  They are intentionally not exhaustive — see the
+# individual rule docstrings for the specific clause addressed.
+# ---------------------------------------------------------------------------
+
+
+def _gdpr_data_minimisation_rule(auditor: "ComplianceAuditor") -> "ComplianceFinding":
+    """GDPR Art. 5(1)(c) — Data minimisation built-in check.
+
+    Addresses: GDPR Article 5(1)(c) — personal data shall be adequate, relevant
+    and limited to what is necessary in relation to the purposes for which they
+    are processed.
+
+    Note: This check is not exhaustive.  It flags fields present in the merge
+    output that were absent from all input schemas, which may indicate that
+    extra data was introduced during the merge.  A full data-minimisation
+    assessment requires legal and contextual review beyond automated checks.
+    """
+    output = auditor._merge_output_data
+    schemas = auditor._input_schemas
+
+    if output is None:
+        return ComplianceFinding(
+            rule_id="GDPR_ART_5_1_C_DATA_MINIMISATION",
+            severity="warning",
+            status="not_applicable",
+            description=(
+                "GDPR Art. 5(1)(c) — Data minimisation: no merge output data "
+                "registered for inspection. Call record_merge_data() before validate()."
+            ),
+        )
+
+    # Build union of all field names present in any input schema
+    input_fields: set = set()
+    for schema in schemas:
+        if isinstance(schema, dict):
+            input_fields.update(schema.keys())
+
+    extra_fields = [f for f in output.keys() if f not in input_fields] if input_fields else []
+
+    findings_list: List[str] = []
+    for field_name in extra_fields:
+        findings_list.append(field_name)
+
+    if findings_list:
+        # Return one finding per extra field — represented as a single finding
+        # with evidence listing all offending fields, to keep the API simple.
+        return ComplianceFinding(
+            rule_id="GDPR_ART_5_1_C_DATA_MINIMISATION",
+            severity="warning",
+            status="fail",
+            description=(
+                "GDPR Art. 5(1)(c) — Data minimisation: one or more fields in the "
+                "merge output were not present in any input schema. "
+                "May indicate data minimisation violation (GDPR Art. 5(1)(c)). "
+                "Fields: " + ", ".join(
+                    f"'{f}'" for f in findings_list
+                )
+            ),
+            recommendation=(
+                "Review extra fields and remove any that are not necessary for "
+                "the stated processing purpose."
+            ),
+            evidence={"extra_fields": findings_list},
+        )
+
+    return ComplianceFinding(
+        rule_id="GDPR_ART_5_1_C_DATA_MINIMISATION",
+        severity="warning",
+        status="pass",
+        description=(
+            "GDPR Art. 5(1)(c) — Data minimisation: all output fields were "
+            "present in at least one input schema."
+        ),
+        evidence={"output_field_count": len(output)},
+    )
+
+
+def _gdpr_storage_limitation_rule(auditor: "ComplianceAuditor") -> "ComplianceFinding":
+    """GDPR Art. 5(1)(e) — Storage limitation built-in check.
+
+    Addresses: GDPR Article 5(1)(e) — personal data shall be kept in a form
+    which permits identification of data subjects for no longer than is necessary
+    for the purposes for which the personal data are processed.
+
+    Note: This check is not exhaustive.  The presence of a TTL/expiry field is
+    a necessary but not sufficient condition for compliance.  Legal review of
+    retention periods is required.
+    """
+    output = auditor._merge_output_data
+
+    if output is None:
+        return ComplianceFinding(
+            rule_id="GDPR_ART_5_1_E_STORAGE_LIMITATION",
+            severity="warning",
+            status="not_applicable",
+            description=(
+                "GDPR Art. 5(1)(e) — Storage limitation: no merge output data "
+                "registered for inspection. Call record_merge_data() before validate()."
+            ),
+        )
+
+    _TTL_FIELD_NAMES = frozenset({
+        "ttl", "expiry", "expires_at", "expire_at", "expiration",
+        "expiration_date", "expires", "valid_until", "delete_after",
+        "retention_days", "retention_until",
+    })
+
+    has_ttl = any(k.lower() in _TTL_FIELD_NAMES for k in output.keys())
+
+    if not has_ttl:
+        return ComplianceFinding(
+            rule_id="GDPR_ART_5_1_E_STORAGE_LIMITATION",
+            severity="warning",
+            status="fail",
+            description=(
+                "No expiry/TTL field found in merged records. "
+                "May indicate storage limitation concern (GDPR Art. 5(1)(e))."
+            ),
+            recommendation=(
+                "Add a TTL or expiry field to merged records and enforce "
+                "automated deletion when the retention period elapses."
+            ),
+            evidence={"output_fields": list(output.keys())},
+        )
+
+    return ComplianceFinding(
+        rule_id="GDPR_ART_5_1_E_STORAGE_LIMITATION",
+        severity="warning",
+        status="pass",
+        description=(
+            "GDPR Art. 5(1)(e) — Storage limitation: merged record contains "
+            "a TTL/expiry field."
+        ),
+        evidence={
+            "ttl_fields": [k for k in output.keys() if k.lower() in _TTL_FIELD_NAMES]
+        },
+    )
+
+
+def _hipaa_phi_detection_rule(auditor: "ComplianceAuditor") -> "ComplianceFinding":
+    """HIPAA Safe Harbor PHI detection built-in check.
+
+    Addresses: HIPAA Privacy Rule Safe Harbor method (45 CFR §164.514(b)) —
+    detection of the 18 categories of identifiers that must be removed for
+    de-identification.
+
+    Note: This check is not exhaustive.  It samples up to 100 values per field
+    and applies regex heuristics.  It may produce false positives (e.g., zip
+    codes matching non-PHI numeric strings).  A full HIPAA de-identification
+    assessment requires expert review under the Expert Determination or Safe
+    Harbor method.
+
+    PHI values are NEVER logged — only field names and identifier types are
+    included in findings.
+    """
+    output = auditor._merge_output_data
+
+    if output is None:
+        return ComplianceFinding(
+            rule_id="HIPAA_PHI_DETECTION",
+            severity="critical",
+            status="not_applicable",
+            description=(
+                "HIPAA PHI detection: no merge output data registered for "
+                "inspection. Call record_merge_data() before validate()."
+            ),
+        )
+
+    detected: Dict[str, List[str]] = {}  # field_name -> [phi_type, ...]
+
+    for field_name, value in output.items():
+        field_lower = field_name.lower()
+        # Collect up to 100 string values to sample
+        if isinstance(value, list):
+            samples = [str(v) for v in value[:100] if v is not None]
+        else:
+            samples = [str(value)] if value is not None else []
+
+        phi_types_found: List[str] = []
+
+        # Check field name against PHI pattern keys
+        for phi_type in _PHI_PATTERNS:
+            if phi_type in field_lower:
+                phi_types_found.append(phi_type)
+
+        # Check sampled values against all patterns
+        for sample in samples:
+            for phi_type, pattern in _PHI_PATTERNS.items():
+                if phi_type not in phi_types_found and pattern.search(sample):
+                    phi_types_found.append(phi_type)
+
+        if phi_types_found:
+            detected[field_name] = phi_types_found
+
+    if detected:
+        return ComplianceFinding(
+            rule_id="HIPAA_PHI_DETECTION",
+            severity="critical",
+            status="fail",
+            description=(
+                "Potential PHI detected in merged output. "
+                "Sampled detection (up to 100 values per field) — not exhaustive. "
+                "Fields with potential PHI: "
+                + ", ".join(
+                    f"'{f}' ({', '.join(types)})"
+                    for f, types in detected.items()
+                )
+            ),
+            recommendation=(
+                "Review flagged fields and apply HIPAA Safe Harbor de-identification "
+                "before storing or transmitting this data."
+            ),
+            # Only field names and PHI types — no actual values are included
+            evidence={
+                "phi_fields": {f: types for f, types in detected.items()},
+                "note": "Sampled detection (up to 100 values per field) — not exhaustive.",
+            },
+        )
+
+    return ComplianceFinding(
+        rule_id="HIPAA_PHI_DETECTION",
+        severity="critical",
+        status="pass",
+        description=(
+            "HIPAA PHI detection: no obvious PHI identifiers detected in sampled "
+            "merge output fields. "
+            "Sampled detection (up to 100 values per field) — not exhaustive."
+        ),
+        evidence={"fields_scanned": list(output.keys())},
+    )
+
+
+def _sox_audit_trail_integrity_rule(auditor: "ComplianceAuditor") -> "ComplianceFinding":
+    """SOX IT General Control — Change Management: audit trail integrity check.
+
+    Addresses: SOX Section 404 IT General Control — Change Management.
+    Calls AuditLog.verify_chain() to confirm the immutable hash-chain has not
+    been tampered with.  Flags if the chain is broken or if no AuditLog is
+    provided.
+
+    Note: This check is not exhaustive.  Audit trail integrity is one component
+    of SOX IT General Controls; a full assessment requires additional review.
+    """
+    audit_log = auditor._audit_log
+
+    if audit_log is None:
+        return ComplianceFinding(
+            rule_id="SOX_AUDIT_TRAIL_INTEGRITY",
+            severity="critical",
+            status="fail",
+            description=(
+                "No AuditLog provided. SOX IT General Control — Change Management "
+                "requires audit log for all merge operations."
+            ),
+            recommendation=(
+                "Pass an AuditLog instance to ComplianceAuditor(audit_log=...) "
+                "or ComplianceAuditor.from_audit_log()."
+            ),
+            evidence={"audit_log_present": False},
+        )
+
+    chain_ok: bool
+    try:
+        chain_ok = bool(audit_log.verify_chain())
+    except Exception as exc:
+        chain_ok = False
+        logger.warning("AuditLog.verify_chain() raised an exception: %s", exc)
+
+    if not chain_ok:
+        return ComplianceFinding(
+            rule_id="SOX_AUDIT_TRAIL_INTEGRITY",
+            severity="critical",
+            status="fail",
+            description=(
+                "AuditLog chain integrity failure. SOX IT General Control — "
+                "Change Management requires complete audit trail."
+            ),
+            recommendation=(
+                "Investigate and repair the audit log hash chain. "
+                "Do not rely on this log for compliance evidence until repaired."
+            ),
+            evidence={"chain_valid": False},
+        )
+
+    return ComplianceFinding(
+        rule_id="SOX_AUDIT_TRAIL_INTEGRITY",
+        severity="critical",
+        status="pass",
+        description=(
+            "SOX IT General Control — Change Management: AuditLog chain "
+            "integrity verified."
+        ),
+        evidence={"chain_valid": True},
+    )
+
+
+def _sox_merge_authorization_rule(auditor: "ComplianceAuditor") -> "ComplianceFinding":
+    """SOX IT General Control — Separation of Duties: merge authorisation check.
+
+    Addresses: SOX Section 404 IT General Control — Separation of Duties.
+    Checks that an RBAC policy exists for the merging node, ensuring that merge
+    operations are performed only by authorised principals.
+
+    Note: This check is not exhaustive.  The existence of an RBAC policy entry
+    is a necessary but not sufficient condition for separation of duties.
+    """
+    rbac = auditor._rbac
+    node = auditor.node_id
+
+    if rbac is None:
+        return ComplianceFinding(
+            rule_id="SOX_MERGE_AUTHORIZATION",
+            severity="critical",
+            status="fail",
+            description=(
+                f"No RBAC policy found for node '{node}'. "
+                "SOX IT General Control — Separation of Duties requires "
+                "documented authorization."
+            ),
+            recommendation=(
+                "Pass an RBACController instance to ComplianceAuditor(rbac=...) "
+                "and define a policy for this node."
+            ),
+            evidence={"rbac_present": False, "node": node},
+        )
+
+    policy = None
+    try:
+        policy = rbac.get_policy(node)
+    except Exception as exc:
+        logger.warning("RBACController.get_policy() raised an exception: %s", exc)
+
+    if policy is None:
+        return ComplianceFinding(
+            rule_id="SOX_MERGE_AUTHORIZATION",
+            severity="critical",
+            status="fail",
+            description=(
+                f"No RBAC policy found for node '{node}'. "
+                "SOX IT General Control — Separation of Duties requires "
+                "documented authorization."
+            ),
+            recommendation=(
+                f"Define an RBAC policy for node '{node}' in the RBACController."
+            ),
+            evidence={"rbac_present": True, "node": node, "policy_found": False},
+        )
+
+    return ComplianceFinding(
+        rule_id="SOX_MERGE_AUTHORIZATION",
+        severity="critical",
+        status="pass",
+        description=(
+            f"SOX IT General Control — Separation of Duties: RBAC policy "
+            f"found for node '{node}'."
+        ),
+        evidence={"node": node, "policy_found": True},
+    )
+
+
+# Register built-in rules at module import time.
+# GDPR Art. 5 — data minimisation and storage limitation
+register_compliance_rule("gdpr", _gdpr_data_minimisation_rule)
+register_compliance_rule("gdpr", _gdpr_storage_limitation_rule)
+# HIPAA PHI detection (Safe Harbor identifiers)
+register_compliance_rule("hipaa", _hipaa_phi_detection_rule)
+# SOX IT General Controls — Change Management and Separation of Duties
+register_compliance_rule("sox", _sox_audit_trail_integrity_rule)
+register_compliance_rule("sox", _sox_merge_authorization_rule)
+
+
+# ---------------------------------------------------------------------------
 # ComplianceAuditor
 # ---------------------------------------------------------------------------
 
@@ -420,11 +871,22 @@ class ComplianceAuditor:
     """Main compliance auditor — records events and validates against frameworks.
 
     Parameters:
-        framework: Target compliance framework (default ``'eu_ai_act'``).
-        node_id:   Identifier of the node being audited.
+        framework:  Target compliance framework (default ``'eu_ai_act'``).
+        node_id:    Identifier of the node being audited.
+        audit_log:  Optional :class:`AuditLog` instance for SOX chain-integrity
+                    checks and subject lineage queries.  Not stored as PII —
+                    only used for structural integrity checks.
+        rbac:       Optional :class:`RBACController` for SOX separation-of-duties
+                    checks.
     """
 
-    def __init__(self, framework: str = "eu_ai_act", node_id: str = "default") -> None:
+    def __init__(
+        self,
+        framework: str = "eu_ai_act",
+        node_id: str = "default",
+        audit_log: Any = None,
+        rbac: Any = None,
+    ) -> None:
         if framework not in _VALID_FRAMEWORKS:
             raise ValueError(
                 f"Unknown framework '{framework}'. "
@@ -433,10 +895,19 @@ class ComplianceAuditor:
         self.framework = framework
         self.node_id = node_id
 
+        # Optional integrations for SOX checks (no logic duplicated)
+        self._audit_log: Any = audit_log
+        self._rbac: Any = rbac
+
         # Event stores
         self._merge_events: List[Dict[str, Any]] = []
         self._unmerge_events: List[Dict[str, Any]] = []
         self._access_events: List[Dict[str, Any]] = []
+
+        # Optional merge-output data for GDPR/HIPAA data-level checks.
+        # Set via record_merge_data(); never persisted beyond the auditor lifetime.
+        self._merge_output_data: Optional[Dict[str, Any]] = None
+        self._input_schemas: List[Dict[str, Any]] = []
 
     # -- recording -----------------------------------------------------------
 
@@ -469,6 +940,28 @@ class ComplianceAuditor:
             "metadata": metadata or {},
             "timestamp": time.time(),
         })
+
+    def record_merge_data(
+        self,
+        output: Dict[str, Any],
+        input_schemas: Optional[List[Dict[str, Any]]] = None,
+    ) -> None:
+        """Record the raw output and input schemas for data-level compliance checks.
+
+        Used by GDPR data-minimisation (Art. 5(1)(c)) and HIPAA PHI-detection
+        rules.  The data is held only in memory for the lifetime of this auditor
+        instance and is never written to disk or any external log.
+
+        Parameters
+        ----------
+        output : dict
+            The merged output record to inspect.
+        input_schemas : list of dict, optional
+            Field-name sets (or full schema dicts) from each input record.
+            Used to detect fields in the output that were absent from all inputs.
+        """
+        self._merge_output_data = output
+        self._input_schemas = list(input_schemas or [])
 
     def record_access(
         self,
@@ -658,6 +1151,53 @@ class ComplianceAuditor:
         self._merge_events.clear()
         self._unmerge_events.clear()
         self._access_events.clear()
+
+    # -- data lineage --------------------------------------------------------
+
+    def trace_subject(self, subject_id: str, audit_log: Any) -> List[Any]:
+        """Query the AuditLog for all merge operations referencing *subject_id*.
+
+        Searches :attr:`AuditLog.entries` for entries whose ``metadata``
+        contains a reference to a hash of *subject_id*.  Only hash-based
+        references are inspected — raw PII values are never stored or compared.
+
+        Pre-condition: Callers must use ``AuditLog.log_merge()`` with
+        subject-tagged input hashes so that the hash of *subject_id* appears in
+        ``entry.metadata``.  Without subject-tagged hashes in the log this
+        method will return an empty list.
+
+        Parameters
+        ----------
+        subject_id : str
+            Data-subject identifier to trace.  Only its SHA-256 hash is used
+            during comparison — the value itself is never logged or stored.
+        audit_log : AuditLog
+            The audit log to search.
+
+        Returns
+        -------
+        List[AuditEntry]
+            Audit entries whose metadata references the subject's hash.
+        """
+        subject_hash = hashlib.sha256(subject_id.encode()).hexdigest()
+        results: List[Any] = []
+
+        entries: List[Any] = []
+        if hasattr(audit_log, "entries"):
+            entries = audit_log.entries
+        elif hasattr(audit_log, "__iter__"):
+            entries = list(audit_log)
+
+        for entry in entries:
+            meta = getattr(entry, "metadata", {}) or {}
+            # Search all metadata values for the subject hash
+            if any(
+                subject_hash in str(v)
+                for v in meta.values()
+            ):
+                results.append(entry)
+
+        return results
 
     # -- internal checks -----------------------------------------------------
 
