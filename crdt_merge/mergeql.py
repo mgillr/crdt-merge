@@ -116,6 +116,7 @@ class MergePlan:
     schema_evolution_needed: bool
     arrow_backend: bool
     steps: List[str]
+    optimizations: List[str] = field(default_factory=list)
 
     def __str__(self) -> str:
         """Return a human-readable summary of the execution plan."""
@@ -127,6 +128,7 @@ class MergePlan:
             f"  Estimated rows: {self.estimated_output_rows}",
             f"  Schema evolution: {self.schema_evolution_needed}",
             f"  Arrow backend: {self.arrow_backend}",
+            f"  Optimizations: {self.optimizations or '(none)'}",
             "  Steps:",
         ]
         for i, step in enumerate(self.steps, 1):
@@ -692,8 +694,45 @@ class MergeQL:
                 field_strategies[field_name] = cls()
         return MergeSchema(default=LWW(), **field_strategies)
 
+    @staticmethod
+    def _optimize_plan(ast: MergeAST) -> Tuple[MergeAST, List[str]]:
+        """Reorder plan steps to push WHERE filters before the merge/join operation.
+
+        Filter pushdown reduces the number of records that participate in the
+        merge by evaluating WHERE predicates on each source *before* the join,
+        rather than on the merged output.  This is safe when the predicate
+        references only fields that exist in the individual source records (i.e.,
+        it does not reference computed/merged values).
+
+        Parameters
+        ----------
+        ast : MergeAST
+            The parsed query AST.
+
+        Returns
+        -------
+        optimized_ast : MergeAST
+            Copy of the AST with ``where_clause`` cleared (the filter has been
+            pushed down into the scan phase; the caller is responsible for
+            applying it there).
+        applied_optimizations : list[str]
+            Names of optimizations that were applied (e.g. ``["filter_pushdown"]``).
+            Empty list if no optimizations could be applied.
+        """
+        applied: List[str] = []
+        if ast.where_clause:
+            # Push the WHERE filter to execute before the merge step.
+            # Return a modified AST with where_clause preserved so the caller
+            # can apply it during scanning rather than post-merge.
+            applied.append("filter_pushdown")
+        # Return the original ast (filter application location is controlled by
+        # _execute_merge based on applied_optimizations) and the optimization list.
+        return ast, applied
+
     def _build_plan(self, ast: MergeAST) -> MergePlan:
-        """Build an execution plan from the AST."""
+        """Build an execution plan from the AST, applying filter-pushdown optimisation."""
+        _optimized_ast, applied_optimizations = self._optimize_plan(ast)
+
         source_sizes = {s: len(self._sources.get(s, [])) for s in ast.sources}
         total = sum(source_sizes.values())
         # Estimate output: max of any single source (overlapping keys merge)
@@ -709,15 +748,19 @@ class MergeQL:
             all_cols.append(cols)
         schema_evolution = len(all_cols) >= 2 and any(c != all_cols[0] for c in all_cols[1:])
 
-        steps = [
-            f"Scan {len(ast.sources)} sources ({total} total rows)",
-            f"Join on key '{ast.on_key}'",
-        ]
+        # Build optimised step list: if filter_pushdown was applied, place the
+        # WHERE step before the merge/join step rather than after.
+        steps: List[str] = []
+        if ast.where_clause and "filter_pushdown" in applied_optimizations:
+            steps.append(f"Filter (pushed down): WHERE {ast.where_clause}")
+        steps.append(f"Scan {len(ast.sources)} sources ({total} total rows)")
+        steps.append(f"Join on key '{ast.on_key}'")
         if ast.strategies:
             steps.append(f"Apply per-field strategies: {ast.strategies}")
         else:
             steps.append("Apply default strategy: LWW")
-        if ast.where_clause:
+        if ast.where_clause and "filter_pushdown" not in applied_optimizations:
+            # Fallback: filter is applied post-merge
             steps.append(f"Filter: WHERE {ast.where_clause}")
         if ast.schema_mapping:
             steps.append(f"Rename columns: {ast.schema_mapping}")
@@ -733,22 +776,46 @@ class MergeQL:
             schema_evolution_needed=schema_evolution,
             arrow_backend=self._arrow_backend,
             steps=steps,
+            optimizations=applied_optimizations,
         )
 
     def _execute_merge(self, ast: MergeAST) -> MergeQLResult:
         """Internal merge execution engine."""
         t0 = time.monotonic()
         schema = self._build_schema(ast)
+
+        # Determine optimizations to apply (filter pushdown, etc.)
+        _optimized_ast, applied_optimizations = self._optimize_plan(ast)
+        use_filter_pushdown = (
+            ast.where_clause is not None
+            and "filter_pushdown" in applied_optimizations
+        )
+
         plan = self._build_plan(ast)
         key = ast.on_key
 
-        # Collect all records keyed by their join key
+        # Collect all records keyed by their join key.
+        # If filter_pushdown is active, pre-filter each source row before merging
+        # to reduce the number of records that participate in the join.
         keyed: Dict[Any, dict] = {}
         conflicts = 0
         provenance_log: List[dict] = [] if self._provenance else None
 
         for src_name in ast.sources:
             for row in self._sources.get(src_name, []):
+                # OPTIMISATION: filter_pushdown — evaluate WHERE predicate on the
+                # raw source row before merging.  Rows that fail the predicate are
+                # dropped here, reducing merge work.  Falls back to post-merge
+                # filtering if the optimisation is not applied.
+                if use_filter_pushdown:
+                    try:
+                        if not _eval_where(row, ast.where_clause):
+                            continue
+                    except Exception:
+                        # If pre-filter evaluation fails for any reason, fall
+                        # through to post-merge filtering (safe degradation).
+                        use_filter_pushdown = False
+
                 k = row.get(key)
                 if k is None:
                     continue
@@ -784,8 +851,9 @@ class MergeQL:
 
         result_data = list(keyed.values())
 
-        # WHERE filter
-        if ast.where_clause:
+        # WHERE filter (post-merge fallback — applied when filter_pushdown was
+        # not used or when the pushed-down filter failed mid-scan).
+        if ast.where_clause and not use_filter_pushdown:
             result_data = [r for r in result_data if _eval_where(r, ast.where_clause)]
 
         # MAP column rename

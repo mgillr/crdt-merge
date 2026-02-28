@@ -121,6 +121,15 @@ class MerkleTree:
     """
 
     def __init__(self, branching_factor: int = 16) -> None:
+        """Initialise a MerkleTree.
+
+        Args:
+            branching_factor (int): Number of children per internal node (default 16).
+                Affects tree depth as log(n)/log(factor). Higher values = shallower
+                tree, larger proofs. Lower values = deeper tree, smaller proofs.
+                Default 16 balances proof size and tree depth for datasets of
+                1K–10M leaves.
+        """
         if branching_factor < 2:
             branching_factor = 2
         self._branching_factor: int = branching_factor
@@ -236,6 +245,33 @@ class MerkleTree:
         """Lazily rebuild if dirty."""
         if self._dirty:
             self._rebuild()
+
+    # ── Public rebuild API ──────────────────────────────────────────────
+
+    @property
+    def is_dirty(self) -> bool:
+        """Return ``True`` if the tree needs to be rebuilt before querying.
+
+        The tree becomes dirty after any ``insert()`` or ``delete()`` call.
+        It is automatically rebuilt on the next property access (lazy build),
+        but callers can check this flag to decide whether to call
+        ``rebuild()`` explicitly (e.g. to amortise cost at a convenient time).
+        """
+        return self._dirty
+
+    def rebuild(self) -> "MerkleTree":
+        """Explicitly rebuild the tree from the current record set.
+
+        Normally the tree is rebuilt lazily on first access after a mutation.
+        Use this method to trigger the rebuild eagerly — for example, to
+        amortise the cost at a predictable point in time rather than on the
+        first subsequent read.
+
+        Returns:
+            ``self``, so that calls can be chained: ``tree.insert(k, r).rebuild()``.
+        """
+        self._rebuild()
+        return self
 
     # ── Properties ──────────────────────────────────────────────────────
 

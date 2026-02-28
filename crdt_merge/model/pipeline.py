@@ -42,6 +42,7 @@ Example::
 from __future__ import annotations
 
 import json
+import logging
 import os
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Union
@@ -80,6 +81,7 @@ class PipelineCheckpoint:
     def __init__(self, path: str) -> None:
         self._path = path
         self._completed: Dict[str, Dict[str, Any]] = {}
+        self._last_error: Optional[Exception] = None
         self._load()
 
     # -- persistence ----------------------------------------------------------
@@ -92,7 +94,9 @@ class PipelineCheckpoint:
                     data = json.load(fh)
                 if isinstance(data, dict):
                     self._completed = data
-            except Exception:
+            except Exception as e:
+                self._last_error = e
+                logging.warning(f"Checkpoint load failed (continuing without checkpoint): {e}")
                 self._completed = {}
 
     def _save(self) -> None:
@@ -100,15 +104,56 @@ class PipelineCheckpoint:
         try:
             with open(self._path, "w", encoding="utf-8") as fh:
                 json.dump(self._completed, fh)
-        except Exception:
-            pass  # best-effort; never abort the pipeline on checkpoint I/O failure
+        except Exception as e:
+            self._last_error = e
+            logging.warning(f"Checkpoint save failed (progress may be lost): {e}")
 
     # -- public API -----------------------------------------------------------
+
+    @property
+    def checkpoint_error(self) -> Optional[Exception]:
+        """Return the last checkpoint I/O error, or None if no error occurred."""
+        return self._last_error
+
+    @property
+    def is_consistent(self) -> bool:
+        """Return False if the checkpoint contains a failed_at entry (incomplete run)."""
+        return "failed_at" not in self._completed
 
     def mark_done(self, stage_name: str, result: Dict[str, Any]) -> None:
         """Record that *stage_name* completed with *result* and persist."""
         self._completed[stage_name] = result
         self._save()
+
+    def mark_failed(self, stage_name: str, error: str) -> None:
+        """Record that the pipeline failed at *stage_name* and persist.
+
+        Sets ``failed_at`` in the checkpoint state so that :attr:`is_consistent`
+        returns *False* until the checkpoint is cleared or rolled back.
+
+        Parameters
+        ----------
+        stage_name : str
+            Name of the stage that failed.
+        error : str
+            String representation of the error.
+        """
+        self._completed["failed_at"] = {"stage": stage_name, "error": error}
+        self._save()
+
+    def rollback(self) -> None:
+        """Clear all completed stages atomically (resets checkpoint to empty).
+
+        After rollback, :attr:`is_consistent` returns *True* and all stage
+        results are discarded.  The checkpoint file on disk is also removed.
+        """
+        self._completed = {}
+        try:
+            if os.path.exists(self._path):
+                os.remove(self._path)
+        except Exception as e:
+            self._last_error = e
+            logging.warning(f"Checkpoint rollback (file removal) failed: {e}")
 
     def get_result(self, stage_name: str) -> Optional[Dict[str, Any]]:
         """Return the cached result for *stage_name*, or *None* if not done."""
@@ -262,17 +307,24 @@ class MergePipeline:
             crdt = ModelCRDT(schema)
 
             # Execute merge
-            if len(resolved_models) == 0:
-                result_sd = {}
-            elif len(resolved_models) == 1:
-                result_sd = dict(resolved_models[0]) if isinstance(resolved_models[0], dict) else {}
-            else:
-                merge_result = crdt.merge(
-                    resolved_models,
-                    base_model=resolved_base,
-                    weights=weights,
-                )
-                result_sd = merge_result.tensor if isinstance(merge_result.tensor, dict) else {}
+            try:
+                if len(resolved_models) == 0:
+                    result_sd = {}
+                elif len(resolved_models) == 1:
+                    result_sd = dict(resolved_models[0]) if isinstance(resolved_models[0], dict) else {}
+                else:
+                    merge_result = crdt.merge(
+                        resolved_models,
+                        base_model=resolved_base,
+                        weights=weights,
+                    )
+                    result_sd = merge_result.tensor if isinstance(merge_result.tensor, dict) else {}
+            except Exception as exc:
+                # Record the failure in the checkpoint before re-raising so that
+                # is_consistent returns False and callers can detect the broken state.
+                if self._checkpoint is not None:
+                    self._checkpoint.mark_failed(stage_name, str(exc))
+                raise
 
             stage_results[stage_name] = result_sd
 

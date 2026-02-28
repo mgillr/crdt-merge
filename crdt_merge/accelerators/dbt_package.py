@@ -42,6 +42,15 @@ All external dependencies are lazy-imported.
 
 from __future__ import annotations
 
+__status__ = 'stub'
+
+import warnings
+warnings.warn(
+    "crdt_merge.accelerators.dbt_package is not yet implemented (stub)",
+    UserWarning,
+    stacklevel=2,
+)
+
 import textwrap
 import types
 from dataclasses import dataclass, field

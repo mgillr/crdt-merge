@@ -66,18 +66,18 @@ import numpy as np
 from crdt_merge.model import CRDTMergeState
 
 # Three research teams fine-tuning the same base model
-team_a = CRDTMergeState(node_id="team-a", strategy="ties", density=0.5)
-team_b = CRDTMergeState(node_id="team-b", strategy="ties", density=0.5)
-team_c = CRDTMergeState(node_id="team-c", strategy="ties", density=0.5)
+team_a = CRDTMergeState("ties")
+team_b = CRDTMergeState("ties")
+team_c = CRDTMergeState("ties")
 
 # Each team adds their fine-tuned weights
-team_a.add("llama-math-v2", math_tensors, weight=0.4)
-team_b.add("llama-code-v3", code_tensors, weight=0.35)
-team_c.add("llama-reason-v1", reasoning_tensors, weight=0.25)
+team_a.add(math_tensors, model_id="llama-math-v2", weight=0.4)
+team_b.add(code_tensors, model_id="llama-code-v3", weight=0.35)
+team_c.add(reasoning_tensors, model_id="llama-reason-v1", weight=0.25)
 
 # Team B discovers a bug — remove and replace without coordinator
 team_b.remove("llama-code-v3")
-team_b.add("llama-code-v4", fixed_code_tensors, weight=0.35)
+team_b.add(fixed_code_tensors, model_id="llama-code-v4", weight=0.35)
 
 # Sync in any order — CRDT guarantees identical result
 team_a.merge(team_b)
@@ -114,16 +114,16 @@ from crdt_merge.model import CRDTMergeState
 from crdt_merge.wire import serialize, deserialize
 
 # Each company runs locally, never shares training data
-pharma_a = CRDTMergeState(node_id="pharma-a", strategy="dare_ties")
-pharma_a.add("pf-model-v4", pharma_a_weights, weight=0.4,
+pharma_a = CRDTMergeState("dare_ties")
+pharma_a.add(pharma_a_weights, model_id="pf-model-v4", weight=0.4,
              metadata={"training_samples": 50000, "domain": "oncology"})
 
-pharma_b = CRDTMergeState(node_id="pharma-b", strategy="dare_ties")
-pharma_b.add("pf-model-v7", pharma_b_weights, weight=0.35,
+pharma_b = CRDTMergeState("dare_ties")
+pharma_b.add(pharma_b_weights, model_id="pf-model-v7", weight=0.35,
              metadata={"training_samples": 38000, "domain": "cardiology"})
 
-pharma_c = CRDTMergeState(node_id="pharma-c", strategy="dare_ties")
-pharma_c.add("pf-model-v2", pharma_c_weights, weight=0.25,
+pharma_c = CRDTMergeState("dare_ties")
+pharma_c.add(pharma_c_weights, model_id="pf-model-v2", weight=0.25,
              metadata={"training_samples": 29000, "domain": "neurology"})
 
 # Each company serialises their CRDT state (not raw training data)
@@ -186,27 +186,21 @@ from crdt_merge.model.continual import ContinualMerge
 # Each server sees different data distribution
 # Periodic re-training produces local model updates
 continual = ContinualMerge(
-    base_model_id="llama-3-base",
+    base_model=base_model,
     strategy="ties",
-    forgetting_threshold=0.1  # elastic weight consolidation
 )
 
 # Regional server updates are merged as they arrive
 # No coordination required between regional servers
 for server_id, local_update in regional_updates.items():
-    continual.add_update(
-        model_id=f"update-{server_id}-{epoch}",
-        tensors=local_update,
+    continual.absorb(
+        local_update,
+        name=f"update-{server_id}-{epoch}",
         weight=compute_weight(server_id),
-        metadata={"region": server_id, "epoch": epoch}
     )
 
-# Resolve at any time — always produces best current merged model
-current_global = continual.resolve()
-
-# Delta-sync: send only new contributions since last sync
-# Using version vectors to know what each server already has
-delta = continual.delta_since(server.version_vector)
+# Export at any time — always produces best current merged model
+current_global = continual.export()
 ```
 
 ---
@@ -245,8 +239,8 @@ from crdt_merge.model import CRDTMergeState
 import numpy as np
 
 def gen_state():
-    state = CRDTMergeState(node_id="test", strategy="ties")
-    state.add("model", {"layer": np.random.randn(10, 10).astype(np.float32)})
+    state = CRDTMergeState("ties")
+    state.add(np.random.randn(10, 10).astype(np.float32), model_id="model")
     return state
 
 result = verify_crdt(
@@ -255,7 +249,7 @@ result = verify_crdt(
     trials=1000
 )
 assert result.passed  # Commutativity, associativity, idempotency — all verified
-print(f"CRDT compliance: {result.commutativity_pass}/{result.trials} commutative")
+print(f"CRDT compliance: {result.commutativity.passed}/{result.total_trials} commutative")
 ```
 
 ---

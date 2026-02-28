@@ -121,14 +121,20 @@ def parallel_merge(
                     prefer=prefer,
                 )
             )
+        errors = []
         for future in concurrent.futures.as_completed(futures):
-            result = future.result()  # propagates exceptions
-            if isinstance(result, list):
-                merged_records.extend(result)
-            else:
-                # DataFrame result — convert to records
-                recs, _, _ = _to_records(result)
-                merged_records.extend(recs)
+            try:
+                result = future.result()
+                if isinstance(result, list):
+                    merged_records.extend(result)
+                else:
+                    # DataFrame result — convert to records
+                    recs, _, _ = _to_records(result)
+                    merged_records.extend(recs)
+            except Exception as e:
+                errors.append(e)
+        if errors:
+            raise RuntimeError(f"parallel_merge: {len(errors)} worker(s) failed: {errors}")
 
     all_columns = list(dict.fromkeys(cols_a + [c for c in cols_b if c not in cols_a]))
     return _from_records(merged_records, all_columns, lib_a)
