@@ -108,6 +108,11 @@ class ContextManifest:
         )
         self.provenance_chain = unique_prov
 
+    @property
+    def strategy(self) -> str:
+        """Alias for :attr:`strategy_used` — name of the merge strategy applied."""
+        return self.strategy_used
+
     # ── Display ────────────────────────────────────────────────────────────
 
     def summary(self) -> str:

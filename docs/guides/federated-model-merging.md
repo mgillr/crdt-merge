@@ -66,9 +66,10 @@ import numpy as np
 from crdt_merge.model import CRDTMergeState
 
 # Three research teams fine-tuning the same base model
-team_a = CRDTMergeState("ties")
-team_b = CRDTMergeState("ties")
-team_c = CRDTMergeState("ties")
+# weight_average requires no base model; use ties/dare_ties for task-vector strategies
+team_a = CRDTMergeState("weight_average")
+team_b = CRDTMergeState("weight_average")
+team_c = CRDTMergeState("weight_average")
 
 # Each team adds their fine-tuned weights
 team_a.add(math_tensors, model_id="llama-math-v2", weight=0.4)
@@ -113,16 +114,20 @@ Three pharmaceutical companies independently fine-tune a protein-folding model o
 from crdt_merge.model import CRDTMergeState
 from crdt_merge.wire import serialize, deserialize
 
+# All companies share the same pre-trained base model (publicly available checkpoint)
+# dare_ties and ties strategies require a base= to compute task vectors
+base_protein_model = load_base_model()  # shared pre-trained weights dict
+
 # Each company runs locally, never shares training data
-pharma_a = CRDTMergeState("dare_ties")
+pharma_a = CRDTMergeState("dare_ties", base=base_protein_model)
 pharma_a.add(pharma_a_weights, model_id="pf-model-v4", weight=0.4,
              metadata={"training_samples": 50000, "domain": "oncology"})
 
-pharma_b = CRDTMergeState("dare_ties")
+pharma_b = CRDTMergeState("dare_ties", base=base_protein_model)
 pharma_b.add(pharma_b_weights, model_id="pf-model-v7", weight=0.35,
              metadata={"training_samples": 38000, "domain": "cardiology"})
 
-pharma_c = CRDTMergeState("dare_ties")
+pharma_c = CRDTMergeState("dare_ties", base=base_protein_model)
 pharma_c.add(pharma_c_weights, model_id="pf-model-v2", weight=0.25,
              metadata={"training_samples": 29000, "domain": "neurology"})
 
@@ -220,9 +225,9 @@ All 25 strategies satisfy CRDT laws when used through `CRDTMergeState`. The non-
 | `fisher` | Fisher-weighted | Information-weighted averaging |
 | `regmean` | RegMean | Regression mean aggregation |
 | `ada_merging` | AdaMerging | Adaptive coefficient merging |
-| `lora_merge` | LoRA | LoRA delta merging |
-| `evolutionary` | Search-based | Evolutionary parameter search |
-| `genetic` | Search-based | Genetic algorithm merge |
+| `LoRAMerge` | LoRA | LoRA delta merging (use `crdt_merge.model.lora`) |
+| `evolutionary_merge` | Search-based | Evolutionary parameter search |
+| `genetic_merge` | Search-based | Genetic algorithm merge |
 | `neg_merge` | Unlearning | Negative contribution merge |
 | `safe_merge` | Safety | Safety-constrained merge |
 | ... and 11 more | | |

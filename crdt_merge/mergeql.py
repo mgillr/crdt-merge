@@ -688,7 +688,11 @@ class MergeQL:
             if resolved.startswith("custom:"):
                 custom_name = strat_name[7:]
                 fn = self._custom_strategies[custom_name]
-                field_strategies[field_name] = Custom(fn)
+                # Accept either a raw callable or an already-constructed MergeStrategy
+                if isinstance(fn, MergeStrategy):
+                    field_strategies[field_name] = fn
+                else:
+                    field_strategies[field_name] = Custom(fn)
             else:
                 cls = _BUILTIN_STRATEGIES.get(resolved, LWW)
                 field_strategies[field_name] = cls()

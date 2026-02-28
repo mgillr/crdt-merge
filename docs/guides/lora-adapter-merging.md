@@ -285,7 +285,7 @@ from crdt_merge.model import CRDTMergeState
 import numpy as np
 
 # Monthly merge using CRDTMergeState for convergence guarantees
-state = CRDTMergeState("lora_merge")
+state = CRDTMergeState("weight_average")
 
 # Each team registers their adapter
 state.add(

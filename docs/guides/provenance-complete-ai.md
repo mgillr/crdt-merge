@@ -217,7 +217,7 @@ assert audit.verify_chain()
 print(f"Operations logged: {len(audit)}")
 
 # Filter by operation type
-merge_entries = list(audit.filter_by_operation("merge"))
+merge_entries = audit.get_entries(operation="merge")
 print(f"Merge operations: {len(merge_entries)}")
 ```
 

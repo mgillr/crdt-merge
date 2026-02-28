@@ -50,7 +50,8 @@ import numpy as np
 
 def gen_state():
     """Generate a random CRDTMergeState for testing."""
-    state = CRDTMergeState("ties")
+    # weight_average needs no base model; use ties/dare_ties with base= for task-vector strategies
+    state = CRDTMergeState("weight_average")
     n_contributions = np.random.randint(1, 5)
     for i in range(n_contributions):
         tensors = np.random.randn(10, 10).astype(np.float32)
@@ -99,13 +100,13 @@ print(f"All laws satisfied: {result.passed}")
 
 # Individual law verification
 comm_result = verify_commutative(my_merge, gen_state, trials=5000)
-print(f"Commutative: {comm_result.passed} ({comm_result.commutativity.trials - comm_result.commutativity.failures}/{comm_result.total_trials})")
+print(f"Commutative: {comm_result.passed} ({comm_result.trials - comm_result.failures}/{comm_result.trials})")
 
 assoc_result = verify_associative(my_merge, gen_state, trials=5000)
-print(f"Associative: {assoc_result.passed} ({assoc_result.associativity.trials - assoc_result.associativity.failures}/{assoc_result.total_trials})")
+print(f"Associative: {assoc_result.passed} ({assoc_result.trials - assoc_result.failures}/{assoc_result.trials})")
 
 idem_result = verify_idempotent(my_merge, gen_state, trials=5000)
-print(f"Idempotent: {idem_result.passed} ({idem_result.idempotency.trials - idem_result.idempotency.failures}/{idem_result.total_trials})")
+print(f"Idempotent: {idem_result.passed} ({idem_result.trials - idem_result.failures}/{idem_result.trials})")
 ```
 
 ---
@@ -181,7 +182,10 @@ for name, strategy in strategies.items():
     gen = make_gen()
 
     def merge_fn(a, b, s=strategy):
-        return {"value": s.resolve(a["value"], b["value"], a["ts"], b["ts"])}
+        # Must propagate all keys — returning only "value" drops "ts" and breaks idempotency
+        winning_value = s.resolve(a["value"], b["value"], a["ts"], b["ts"])
+        winner = a if a["ts"] >= b["ts"] else b
+        return {"value": winning_value, "ts": winner["ts"]}
 
     def gen_simple():
         return {"value": random.randint(0, 100), "ts": random.uniform(0, 1000)}
@@ -310,10 +314,18 @@ def gen_agent_state():
         state.add_tag(tag)
     return state
 
+# AgentState has no __eq__, so we supply a normalised equality function
+# that compares logical values (facts + tags as sets), ignoring UUID ordering.
+def agent_eq(a, b):
+    a_facts = {k: (v.value, round(v.confidence, 6)) for k, v in a.list_facts().items()}
+    b_facts = {k: (v.value, round(v.confidence, 6)) for k, v in b.list_facts().items()}
+    return a_facts == b_facts and a.tags == b.tags
+
 result = verify_crdt(
     merge_fn=lambda a, b: a.merge(b),
     gen_fn=gen_agent_state,
     trials=5000,
+    eq_fn=agent_eq,
 )
 
 print(f"AgentState CRDT compliance: {result.passed}")

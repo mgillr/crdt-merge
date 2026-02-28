@@ -209,6 +209,10 @@ class ContextBloom:
         rates = [s.estimated_fp_rate() for s in self._shards]
         return sum(rates) / max(len(rates), 1)
 
+    def estimated_fp_rate(self) -> float:
+        """Alias for :attr:`false_positive_rate` — estimated false-positive rate."""
+        return self.false_positive_rate
+
     # ── Dunder ─────────────────────────────────────────────────────────────
 
     def __eq__(self, other: object) -> bool:

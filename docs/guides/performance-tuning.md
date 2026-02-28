@@ -30,7 +30,7 @@ result = arrow_merge(table_a, table_b, key="id", schema=schema)
 ### 3. Parallel Merge
 ```python
 from crdt_merge.parallel import parallel_merge
-result = parallel_merge(df_a, df_b, key="id", schema=schema, num_workers=8)
+result = parallel_merge(df_a, df_b, key="id", schema=schema, max_workers=8)
 ```
 
 ### 4. Self-Merging Parquet
