@@ -573,3 +573,175 @@ dashboard = GrafanaDashboard(title="My CRDT Monitoring")
 json_model = dashboard.to_json()
 # Import into Grafana via API or JSON import
 ```
+
+---
+
+## MergeTracer — OpenTelemetry Integration
+
+`MergeTracer` wraps merge operations in OpenTelemetry spans. When the `opentelemetry-api` package is not installed it falls back to a silent no-op span, so the same code works in all environments.
+
+### Constructor
+
+```python
+MergeTracer(service_name: str = "crdt-merge", collector: Optional[MetricsCollector] = None)
+```
+
+| Parameter | Description |
+|---|---|
+| `service_name` | OTel service name used when obtaining the tracer |
+| `collector` | Optional `MetricsCollector` — metrics are recorded alongside spans |
+
+### Properties
+
+| Property | Type | Description |
+|---|---|---|
+| `is_enabled` | `bool` | `True` when `opentelemetry-api` is installed and a tracer is active |
+
+### Methods
+
+#### `trace_merge(operation_name="merge", attributes=None) → contextmanager`
+
+Context manager that creates an OTel span (or no-op) for a single merge.
+Records `merge.duration_ms` and `merge.status` as span attributes.
+
+```python
+from crdt_merge.observability import MergeTracer
+from crdt_merge import merge
+
+tracer = MergeTracer(service_name="data-pipeline")
+
+with tracer.trace_merge("user-profile-merge", attributes={"env": "prod"}) as span:
+    result = merge(df_a, df_b, key="id")
+    span.set_attribute("output.row_count", len(result))
+```
+
+#### `trace_batch(operation_name="batch_merge", batch_size=0) → contextmanager`
+
+Context manager for a batch of merges. Records `batch.size` as a span attribute.
+
+```python
+with tracer.trace_batch("nightly-batch", batch_size=len(partitions)) as span:
+    for part_a, part_b in partitions:
+        merge(part_a, part_b, key="id")
+```
+
+### With OpenTelemetry Installed
+
+```python
+# pip install opentelemetry-api opentelemetry-sdk opentelemetry-exporter-otlp
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from crdt_merge.observability import MergeTracer, MetricsCollector
+from crdt_merge import merge
+
+# Configure OTel SDK
+provider = TracerProvider()
+provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(endpoint="http://otel-collector:4317")))
+trace.set_tracer_provider(provider)
+
+collector = MetricsCollector()
+tracer    = MergeTracer(service_name="my-service", collector=collector)
+
+print(f"OTel enabled: {tracer.is_enabled}")  # True
+
+with tracer.trace_merge("customer-merge") as span:
+    result = merge(df_a, df_b, key="customer_id")
+    span.set_attribute("customers.merged", len(result))
+
+print(collector.get_summary())
+```
+
+---
+
+## DriftDetector
+
+Detects schema and statistical drift between merge batches. Useful for catching upstream data quality issues before they propagate into merged outputs.
+
+### Constructor
+
+```python
+DriftDetector(sensitivity: float = 2.0)
+```
+
+`sensitivity` is the z-score threshold for statistical drift. Default `2.0` means a column mean shifted by more than 2 standard deviations triggers a drift alert.
+
+### Methods
+
+#### `record_baseline(records: List[Dict]) → None`
+
+Compute baseline column types and statistics from a representative sample.
+Must be called before `check()`.
+
+```python
+from crdt_merge.observability import DriftDetector
+
+detector = DriftDetector(sensitivity=2.5)
+baseline_records = [
+    {"user_id": "U1", "score": 0.82, "region": "EU"},
+    {"user_id": "U2", "score": 0.74, "region": "US"},
+    # ... representative sample
+]
+detector.record_baseline(baseline_records)
+```
+
+#### `check(records: List[Dict]) → DriftReport`
+
+Compare a new batch against the baseline. Returns a `DriftReport`.
+
+```python
+new_batch = [
+    {"user_id": "U3", "score": 9.9, "region": "EU"},   # score anomaly
+]
+report = detector.check(new_batch)
+
+if report.has_drift:
+    print("Drift detected!")
+    if report.schema_changes:
+        print(f"  Schema changes: {report.schema_changes}")
+    if report.statistical_drift:
+        for col, details in report.statistical_drift.items():
+            print(f"  {col}: baseline_mean={details['baseline_mean']:.2f}, "
+                  f"current_mean={details['current_mean']:.2f}, "
+                  f"drift_score={details['drift_score']:.2f}")
+```
+
+#### `reset() → None`
+
+Clear the baseline so `record_baseline()` can be called again.
+
+### DriftReport Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `has_drift` | `bool` | `True` if any drift was detected |
+| `schema_changes` | `dict` | `added`, `removed`, `type_changed` columns |
+| `statistical_drift` | `dict` | Per-column drift details with `baseline_mean`, `current_mean`, `drift_score` |
+| `checked_at` | `float` | Unix timestamp of the check |
+
+### Production Pattern
+
+```python
+from crdt_merge.observability import DriftDetector, MetricsCollector, ObservedMerge
+
+detector  = DriftDetector(sensitivity=3.0)
+collector = MetricsCollector()
+om        = ObservedMerge(collector=collector)
+
+# During initial warm-up: build baseline from first N batches
+for batch_a, batch_b in warm_up_batches:
+    result = om.merge(batch_a, batch_b, key="id")
+
+detector.record_baseline(result)  # use merged output as baseline
+
+# Ongoing: check each new batch
+for batch_a, batch_b in production_batches:
+    result = om.merge(batch_a, batch_b, key="id")
+    report = detector.check(result)
+    if report.has_drift:
+        import logging
+        logging.warning("Merge output drift: %s", report.to_dict())
+        # alert / quarantine / rollback
+```
+```
