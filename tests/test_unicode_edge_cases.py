@@ -19,9 +19,11 @@ def test_visually_identical_strings_deduplicated(a_name, b_name):
 
     try:
         from crdt_merge.dataframe import merge as df_merge
+        from crdt_merge.strategies import MergeSchema, LWW
         a = [{"id": "1", "name": a_name, "_ts": 1.0}]
         b = [{"id": "1", "name": b_name, "_ts": 2.0}]
-        result = df_merge(a, b, key="id", strategy="lww")
+        result = df_merge(a, b, key="id", schema=MergeSchema(default=LWW()),
+                          timestamp_col="_ts")
         # Should produce one record, not two
         assert len(result) == 1, f"Should deduplicate visually identical keys"
     except ImportError:
@@ -34,9 +36,10 @@ def test_zero_width_joiner():
     without_zwj = "testvalue"
     try:
         from crdt_merge.dataframe import merge as df_merge
+        from crdt_merge.strategies import MergeSchema, LWW
         a = [{"id": "1", "name": with_zwj}]
         b = [{"id": "1", "name": without_zwj}]
-        result = df_merge(a, b, key="id", strategy="lww")
+        result = df_merge(a, b, key="id", schema=MergeSchema(default=LWW()))
         assert result is not None
     except ImportError:
         pytest.skip("crdt_merge.dataframe not available")

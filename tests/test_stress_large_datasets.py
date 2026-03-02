@@ -6,13 +6,15 @@ def test_large_dataset_lww_commutativity():
     """LWW merge is commutative for 100K+ rows."""
     pytest.importorskip("crdt_merge.dataframe")
     from crdt_merge.dataframe import merge as df_merge
+    from crdt_merge.strategies import MergeSchema, LWW
 
     N = 100_000
     a = [{"id": str(i), "value": i, "_ts": float(i % 2)} for i in range(N)]
     b = [{"id": str(i), "value": i * 2, "_ts": float(1 - i % 2)} for i in range(N)]
 
-    result_ab = df_merge(a, b, key="id", strategy="lww")
-    result_ba = df_merge(b, a, key="id", strategy="lww")
+    schema = MergeSchema(default=LWW())
+    result_ab = df_merge(a, b, key="id", schema=schema, timestamp_col="_ts")
+    result_ba = df_merge(b, a, key="id", schema=schema, timestamp_col="_ts")
 
     # Sort both by id for comparison
     result_ab_sorted = sorted(result_ab, key=lambda x: int(x["id"]))
@@ -28,13 +30,13 @@ def test_large_dataset_lww_commutativity():
 def test_large_dataset_does_not_oom():
     """Merge of 100K rows stays within reasonable memory."""
     pytest.importorskip("crdt_merge.dataframe")
-    import resource
     from crdt_merge.dataframe import merge as df_merge
+    from crdt_merge.strategies import MergeSchema, LWW
 
     N = 100_000
     a = [{"id": str(i), "val": i} for i in range(N)]
     b = [{"id": str(i + N // 2), "val": i} for i in range(N)]
 
-    result = df_merge(a, b, key="id", strategy="lww")
+    result = df_merge(a, b, key="id", schema=MergeSchema(default=LWW()))
     assert result is not None
     assert len(result) > 0
