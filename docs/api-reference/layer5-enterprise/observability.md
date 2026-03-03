@@ -1,6 +1,6 @@
 # crdt_merge.observability — Metrics, Tracing & Monitoring
 
-> **Module**: `crdt_merge/observability.py` | **Layer**: 5 — Enterprise | **Version**: 0.9.3
+> **Module**: `crdt_merge/observability.py` | **Layer**: 5 — Enterprise | **Version**: 0.9.4
 
 ---
 

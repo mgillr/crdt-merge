@@ -10,6 +10,7 @@
 | v0.9.1 | Iron Dome: Pluggable crypto backends, 186 new tests | 2025 |
 | v0.9.2 | Completion: Compliance, Observability Extensions, Flower FL Plugin | 2025 |
 | v0.9.3 | Usability Enhancements: CLI hardening, docs refresh, packaging fix | 2026-04 |
+| v0.9.4 | Documentation complete (20 guides), 4,498 tests passing, RBAC field-strip fix | 2026-04 |
 
 ---
 

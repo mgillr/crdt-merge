@@ -5,10 +5,10 @@
 <p><strong>The first merge library where every operation is mathematically guaranteed to converge.</strong><br/>
 Tabular data. Neural network weights. Distributed agents. One unified CRDT layer.</p>
 
-[![PyPI version](https://img.shields.io/badge/pypi-v0.9.3-orange)](https://pypi.org/project/crdt-merge/)
+[![PyPI version](https://img.shields.io/badge/pypi-v0.9.4-orange)](https://pypi.org/project/crdt-merge/)
 [![Downloads](https://img.shields.io/pypi/dm/crdt-merge?label=downloads&color=brightgreen)](https://pypi.org/project/crdt-merge/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Tests](https://img.shields.io/badge/tests-3%2C291%20passing-brightgreen)](TEST_RESULTS.md)
+[![Tests](https://img.shields.io/badge/tests-4%2C498%20passing-brightgreen)](TEST_RESULTS.md)
 [![CRDT Compliance](https://img.shields.io/badge/CRDT%20compliance-26%2F26%20strategies-blue)](docs/CRDT_ARCHITECTURE.md)
 [![License: BSL 1.1](https://img.shields.io/badge/license-BSL%201.1%20%E2%86%92%20Apache%202.0-orange)](LICENSE)
 
@@ -137,7 +137,7 @@ Zero required dependencies. Python 3.9–3.12. Linux, macOS, Windows.
 
 | Language | Package | Status |
 |----------|---------|--------|
-| **Python** (reference) | [crdt-merge](https://pypi.org/project/crdt-merge/) v0.9.3 | Full feature set |
+| **Python** (reference) | [crdt-merge](https://pypi.org/project/crdt-merge/) v0.9.4 | Full feature set |
 | Rust | [crdt-merge](https://crates.io/crates/crdt-merge) v0.2.0 | Core CRDTs + merge |
 | TypeScript | [crdt-merge](https://www.npmjs.com/package/crdt-merge) v0.2.0 | Core CRDTs + merge |
 | Java | [crdt-merge](https://github.com/mgillr/crdt-merge-java) v0.2.0 | Source complete |

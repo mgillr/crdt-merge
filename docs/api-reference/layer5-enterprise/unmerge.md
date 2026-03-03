@@ -1,6 +1,6 @@
 # crdt_merge.unmerge — Reversible Merge Engine
 
-> **Module**: `crdt_merge/unmerge.py` | **Layer**: 5 — Enterprise | **Version**: 0.9.3
+> **Module**: `crdt_merge/unmerge.py` | **Layer**: 5 — Enterprise | **Version**: 0.9.4
 
 ---
 

@@ -1,6 +1,6 @@
 # crdt_merge.rbac — Role-Based Access Control
 
-> **Module**: `crdt_merge/rbac.py` | **Layer**: 5 — Enterprise | **Version**: 0.9.3
+> **Module**: `crdt_merge/rbac.py` | **Layer**: 5 — Enterprise | **Version**: 0.9.4
 
 ---
 

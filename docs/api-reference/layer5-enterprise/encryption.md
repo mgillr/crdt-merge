@@ -1,6 +1,6 @@
 # crdt_merge.encryption — Field-Level Encryption with Pluggable Backends
 
-> **Module**: `crdt_merge/encryption.py` | **Layer**: 5 — Enterprise | **Version**: 0.9.3
+> **Module**: `crdt_merge/encryption.py` | **Layer**: 5 — Enterprise | **Version**: 0.9.4
 
 ---
 
