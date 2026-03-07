@@ -42,8 +42,9 @@ polars = ["polars>=0.19"]
 datasets = ["datasets>=2.0"]
 model = ["numpy>=1.21"]
 gpu = ["torch>=2.0"]
-all = ["pandas>=1.5", "polars>=0.19", "datasets>=2.0", "orjson>=3.9", "xxhash>=3.0", "numpy>=1.21"]
+all = ["pandas>=1.5", "polars>=0.19", "datasets>=2.0", "orjson>=3.9", "xxhash>=3.0", "numpy>=1.21", "cryptography>=41"]
 dev = ["pytest>=7", "hypothesis>=6.80"]
+crypto = ["cryptography>=41"]
 
 [project.scripts]
 crdt-merge = "crdt_merge.cli:main"
