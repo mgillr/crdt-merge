@@ -25,7 +25,14 @@ import asyncio
 from typing import AsyncIterator, List
 
 import pytest
-import pytest_asyncio  # noqa: F401  — ensures plugin is loaded
+
+try:
+    import pytest_asyncio  # noqa: F401
+    HAS_ASYNCIO = True
+except ImportError:
+    HAS_ASYNCIO = False
+
+pytestmark = pytest.mark.skipif(not HAS_ASYNCIO, reason="pytest-asyncio not installed")
 
 from crdt_merge.async_merge import amerge, amerge_stream, amerge_sorted_stream, _collect
 from crdt_merge.strategies import MergeSchema, LWW, MaxWins
