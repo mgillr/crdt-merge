@@ -5,6 +5,38 @@
 > See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
 
 
+## [0.9.2] - 2026-03-30 — "The Completion Release"
+
+### New Features
+- **ComplianceAuditor**: Regulatory compliance validation against EU AI Act, GDPR, HIPAA, and SOX frameworks
+- **ComplianceReport**: Structured compliance reports with per-rule findings and severity levels
+- **EUAIActReport**: Specialised EU AI Act report generator covering Articles 9, 10, 12, 13, 14
+- **FlowerCRDTClient**: Flower federated learning client wrapper with CRDT-safe weight aggregation
+- **CRDTStrategy**: Flower strategy plugin — drop-in replacement for FedAvg with CRDT guarantees
+- **FlowerAggregator**: Server-side aggregator with merge verification and provenance
+
+### Extended Modules
+- **MergeTracer**: OpenTelemetry-compatible distributed tracing for merge operations
+- **DriftDetector**: Statistical drift detection across merge generations
+- **DriftReport**: Structured drift analysis with per-field breakdown
+- **PrometheusExporter**: Export merge metrics in Prometheus exposition format
+- **GrafanaDashboard**: Auto-generated Grafana dashboard JSON for merge monitoring
+
+### Stats
+- Source lines: ~39,000 → **~41,000** (+~2,000)
+- Tests passing: 3,041 → **3,254** (+213: 57 compliance + 23 observability + 49 Flower + 84 integration)
+- New modules: `compliance.py`, `flower_plugin.py`
+- Extended: `observability.py` (added MergeTracer, DriftDetector, PrometheusExporter, GrafanaDashboard)
+- Zero breaking changes, zero regressions
+
+---
+
+## [0.9.1.1] - 2026-03-30 — Backfill Patch
+
+### Fixed
+- **`[crypto]` optional dependency** — `pip install crdt-merge[crypto]` now correctly installs `cryptography>=41` (was missing from `pyproject.toml` despite being documented)
+- Added `cryptography>=41` to `[all]` extras group
+
 ## [0.9.1] - 2026-03-30 — "The Iron Dome Release"
 
 ### Security Hardening
