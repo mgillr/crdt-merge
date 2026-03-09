@@ -56,7 +56,74 @@ Usage:
     merged = merge_datasets("user/dataset-a", "user/dataset-b", key="id")
 """
 
-__version__ = "0.9.1"
+__version__ = "0.9.2"
+
+__all__ = [
+    # Core CRDT types
+    "GCounter", "PNCounter", "LWWRegister", "ORSet", "LWWMap",
+    # DataFrame merge
+    "merge", "diff",
+    # Deduplication
+    "dedup", "dedup_records", "DedupIndex", "MinHashDedup",
+    # JSON merge
+    "merge_dicts", "merge_json_lines",
+    # Composable Merge Strategies
+    "MergeStrategy", "LWW", "MaxWins", "MinWins", "UnionSet", "Priority",
+    "Concat", "Custom", "LongestWins", "MergeSchema",
+    # Streaming Merge Pipeline
+    "merge_stream", "merge_sorted_stream", "StreamStats",
+    # HuggingFace Datasets (lazy)
+    "merge_datasets", "dedup_dataset",
+    # Provenance & Lineage
+    "merge_with_provenance", "MergeDecision", "MergeRecord",
+    "ProvenanceLog", "export_provenance",
+    # Verification
+    "verified_merge", "CRDTVerificationError",
+    # Wire format
+    "serialize", "deserialize", "peek_type", "wire_size",
+    "serialize_batch", "deserialize_batch", "WireError",
+    # Probabilistic
+    "MergeableHLL", "MergeableBloom", "MergeableCMS",
+    # Vector Clocks & Causality
+    "VectorClock", "DottedVersionVector", "Ordering",
+    # Schema Evolution
+    "evolve_schema", "check_compatibility", "widen_type",
+    "SchemaPolicy", "SchemaChange", "SchemaEvolutionResult",
+    # Merkle Trees
+    "MerkleTree", "MerkleNode", "MerkleDiff", "merkle_diff",
+    # Gossip Protocol
+    "GossipState", "GossipEntry", "anti_entropy",
+    # Arrow Merge Engine
+    "ArrowMerge", "arrow_merge",
+    # Async Merge
+    "amerge", "amerge_stream", "amerge_sorted_stream",
+    # Parallel Merge
+    "parallel_merge", "parallel_merge_arrow",
+    # MergeQL
+    "MergeQL", "MergeAST", "MergePlan", "MergeQLResult",
+    "MergeQLSyntaxError", "MergeQLValidationError",
+    "MergeQLError", "MergeQLParser",
+    # Context Memory System
+    "MemorySidecar", "ContextManifest", "ContextBloom",
+    "ContextConsolidator", "ConsolidatedBlock", "MemoryChunk",
+    "ContextMerge", "MergeResult",
+    # Agentic AI State Merge
+    "AgentState", "SharedKnowledge", "Fact",
+    # Enterprise: Unmerge, Audit, Encryption, RBAC
+    "UnmergeEngine", "ModelUnmerge", "GDPRForget",
+    "AuditLog", "AuditEntry", "AuditedMerge",
+    "EncryptedMerge", "EncryptedValue", "StaticKeyProvider", "KeyProvider",
+    "RBACController", "SecureMerge", "Permission", "Role", "Policy", "AccessContext",
+    # Observability
+    "MetricsCollector", "ObservedMerge", "MergeMetric", "HealthCheck",
+    "MergeTracer", "DriftDetector", "DriftReport", "PrometheusExporter", "GrafanaDashboard",
+    # Compliance (v0.9.2)
+    "ComplianceAuditor", "ComplianceReport", "ComplianceFinding", "EUAIActReport",
+    # Flower Plugin (v0.9.2)
+    "CRDTStrategy", "FlowerCRDTClient", "FlowerAggregator",
+    # Polars
+    "HAS_POLARS",
+]
 
 # Core CRDT types
 from .core import GCounter, PNCounter, LWWRegister, ORSet, LWWMap
@@ -161,6 +228,16 @@ from .audit import AuditLog, AuditEntry, AuditedMerge
 from .encryption import EncryptedMerge, EncryptedValue, StaticKeyProvider, KeyProvider
 from .rbac import RBACController, SecureMerge, Permission, Role, Policy, AccessContext
 from .observability import MetricsCollector, ObservedMerge, MergeMetric, HealthCheck
+from .observability import MergeTracer, DriftDetector, DriftReport, PrometheusExporter, GrafanaDashboard
+
+# v0.9.2: Compliance Auditing
+from .compliance import ComplianceAuditor, ComplianceReport, ComplianceFinding, EUAIActReport
+
+# v0.9.2: Flower Federated Learning Plugin
+try:
+    from .flower_plugin import CRDTStrategy, FlowerCRDTClient, FlowerAggregator
+except ImportError:  # pragma: no cover
+    pass
 
 # Optional fast engine
 try:
