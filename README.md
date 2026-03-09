@@ -5,9 +5,9 @@
 <p><strong>The first merge library where every operation is mathematically guaranteed to converge.</strong><br/>
 Tabular data. Neural network weights. Distributed agents. One unified CRDT layer.</p>
 
-[![PyPI version](https://img.shields.io/badge/pypi-v0.9.1-orange)](https://pypi.org/project/crdt-merge/)
+[![PyPI version](https://img.shields.io/badge/pypi-v0.9.2-orange)](https://pypi.org/project/crdt-merge/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Tests](https://img.shields.io/badge/tests-3%2C041%20passing-brightgreen)](TEST_RESULTS.md)
+[![Tests](https://img.shields.io/badge/tests-3%2C254%20passing-brightgreen)](TEST_RESULTS.md)
 [![CRDT Compliance](https://img.shields.io/badge/CRDT%20compliance-26%2F26%20strategies-blue)](docs/CRDT_ARCHITECTURE.md)
 [![License: BSL 1.1](https://img.shields.io/badge/license-BSL%201.1%20%E2%86%92%20Apache%202.0-orange)](LICENSE)
 
@@ -273,6 +273,92 @@ status = health.check_health()  # {"status": "healthy", ...}
 ---
 
 ## What's New in v0.9.1 — "The Iron Dome Release"
+## What's New in v0.9.2 — "The Completion Release"
+
+Delivers the compliance, observability extensions, and federated learning modules that complete the enterprise layer.
+
+### Compliance Suite
+
+Full regulatory compliance engine with pluggable rule sets and automated report generation:
+
+```python
+from crdt_merge.compliance import ComplianceAuditor, EUAIActReport
+
+auditor = ComplianceAuditor()
+report = auditor.audit(merge_result, policy="strict")
+print(report.summary())  # {"passed": 12, "warnings": 2, "failures": 0}
+
+# EU AI Act report with full provenance chain
+eu_report = EUAIActReport.generate(merge_result, model_card=card)
+eu_report.export("compliance_report.json")
+```
+
+| Class | Purpose |
+|-------|---------|
+| **ComplianceAuditor** | Pluggable rule engine — SOC 2, HIPAA, EU AI Act checks |
+| **ComplianceFinding** | Structured finding with severity, category, remediation |
+| **ComplianceReport** | Aggregate report with pass/warn/fail summary |
+| **EUAIActReport** | EU AI Act Article 11 transparency report generator |
+
+### Extended Observability
+
+OpenTelemetry-compatible distributed tracing, Prometheus metrics export, Grafana dashboard generation, and merge drift detection:
+
+```python
+from crdt_merge.observability import MergeTracer, PrometheusExporter, DriftDetector
+
+tracer = MergeTracer(service_name="ml-pipeline")
+with tracer.trace_merge("model-combine") as span:
+    result = merger.merge(a, b)
+    span.set_attribute("conflicts", result.conflicts)
+
+# Export Prometheus metrics
+exporter = PrometheusExporter(prefix="crdt_merge")
+print(exporter.render())  # Prometheus text format
+
+# Detect merge drift over time
+detector = DriftDetector(window_size=100)
+detector.record(result)
+drift_report = detector.analyze()
+```
+
+| Class | Purpose |
+|-------|---------|
+| **MergeTracer** | OTel-compatible span generation for merge operations |
+| **DriftDetector** | Statistical drift detection across merge windows |
+| **DriftReport** | Structured drift analysis with severity scoring |
+| **PrometheusExporter** | `/metrics` endpoint in Prometheus text format |
+| **GrafanaDashboard** | Auto-generated Grafana JSON dashboard |
+
+### Flower Federated Learning Plugin
+
+Native integration with the Flower federated learning framework — CRDT-guaranteed aggregation across distributed clients:
+
+```python
+from crdt_merge.flower_plugin import CRDTStrategy, FlowerCRDTClient
+
+# Server-side: CRDT-backed aggregation strategy
+strategy = CRDTStrategy(merge_strategy="dare_ties", min_clients=3)
+
+# Client-side: automatic CRDT wrapping
+client = FlowerCRDTClient(model=my_model, strategy="ties")
+```
+
+| Class | Purpose |
+|-------|---------|
+| **CRDTStrategy** | Flower Strategy with CRDT merge aggregation |
+| **FlowerCRDTClient** | Flower NumPyClient with CRDT parameter wrapping |
+| **FlowerAggregator** | Standalone CRDT aggregator for custom FL pipelines |
+
+### v0.9.2 Numbers
+
+- **3 new modules**: `compliance.py` (932 LOC), `observability.py` extensions (+571 LOC), `flower_plugin.py` (485 LOC)
+- **12 new public classes** added to `__all__`
+- **213 new tests**, bringing the total to **3,254 passing**
+- **Zero new required dependencies** — `flower` and `cryptography` are optional extras
+
+---
+
 
 Production-grade encryption and comprehensive property-based testing — closing every developer-addressable finding from the independent due-diligence audit.
 
@@ -612,6 +698,16 @@ provenance = model.provenance()
 | MetricsCollector — operation timing and conflict tracking | ✅ v0.9.0 |
 | ObservedMerge — auto-instrumented merge wrapper | ✅ v0.9.0 |
 | HealthCheck — configurable degradation thresholds | ✅ v0.9.0 |
+| ComplianceAuditor — pluggable regulatory rule engine | ✅ v0.9.2 |
+| ComplianceReport — aggregate pass/warn/fail reporting | ✅ v0.9.2 |
+| EUAIActReport — Article 11 transparency report generator | ✅ v0.9.2 |
+| MergeTracer — OTel-compatible distributed tracing | ✅ v0.9.2 |
+| DriftDetector — statistical merge drift analysis | ✅ v0.9.2 |
+| PrometheusExporter — /metrics endpoint generation | ✅ v0.9.2 |
+| GrafanaDashboard — auto-generated dashboard JSON | ✅ v0.9.2 |
+| CRDTStrategy — Flower federated learning aggregation | ✅ v0.9.2 |
+| FlowerCRDTClient — Flower client with CRDT wrapping | ✅ v0.9.2 |
+| FlowerAggregator — standalone FL aggregator | ✅ v0.9.2 |
 
 ### Ecosystem Accelerators
 
@@ -1057,7 +1153,7 @@ crdt-merge follows a **reference + protocol** architecture:
 
 | Language | Package | Version | Status |
 |----------|---------|---------|--------|
-| **Python** (reference) | [crdt-merge](https://pypi.org/project/crdt-merge/) | v0.9.1 | ✅ Full feature set + 26 model merge strategies + CRDT architecture + 8 accelerators + Context Memory + Agentic AI + Continual Merge + HF Hub + Enterprise (Unmerge, Audit, Encryption w/ 4 AEAD backends, RBAC, Observability) |
+| **Python** (reference) | [crdt-merge](https://pypi.org/project/crdt-merge/) | v0.9.2 | ✅ Full feature set + 26 model merge strategies + CRDT architecture + 8 accelerators + Context Memory + Agentic AI + Continual Merge + HF Hub + Enterprise (Unmerge, Audit, Encryption w/ 4 AEAD backends, RBAC, Observability, Compliance, Flower FL) |
 | Rust | [crdt-merge](https://crates.io/crates/crdt-merge) | v0.2.0 | Core CRDTs + merge |
 | TypeScript | [crdt-merge](https://www.npmjs.com/package/crdt-merge) | v0.2.0 | Core CRDTs + merge |
 | Java | [crdt-merge](https://github.com/mgillr/crdt-merge-java) | v0.2.0 | Source complete |
@@ -1121,6 +1217,8 @@ See [CHANGELOG.md](CHANGELOG.md) for the full project history.
 | v0.8.1 | Two-layer CRDT architecture, 25/25 compliance | ✅ Released |
 | v0.9.0 | Enterprise: UnmergeEngine, Audit, Encryption, RBAC, Observability | ✅ Released |
 | v0.9.1 | Iron Dome: Pluggable crypto backends, 186 new tests, audit remediation | ✅ Released |
+| v0.9.1.1 | Backfill: [crypto] optional dependency group | ✅ Released |
+| v0.9.2 | Completion: Compliance, Observability Extensions, Flower FL Plugin | ✅ Released |
 | v1.0 | Stable API, formal spec, security audit, cross-language parity | Planned |
 
 **Full roadmap:** [`docs/roadmap/roadmap_v2_0.md`](docs/roadmap/roadmap_v2_0.md)
