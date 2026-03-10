@@ -73,6 +73,16 @@ def _safe_parse_ts(value: Any) -> float:
             return float(value.timestamp())
         except (TypeError, OSError):
             pass
+    # Parsing failed — fall back to epoch 0.0 for backward compatibility,
+    # but emit a warning so the caller knows something unexpected happened.
+    import warnings
+    warnings.warn(
+        f"_safe_parse_ts: could not parse timestamp value {value!r} "
+        f"(type={type(value).__name__}); falling back to 0.0. "
+        f"This may hide bugs — consider passing numeric or ISO-8601 timestamps.",
+        UserWarning,
+        stacklevel=2,
+    )
     return 0.0
 
 class MergeStrategy:
@@ -300,6 +310,11 @@ class MergeSchema:
         Merge two rows using per-field strategies.
 
         Returns a new dict with each field resolved according to its strategy.
+
+        Nested structures are handled recursively:
+          - If both values for a field are dicts, resolve_row is applied recursively.
+          - If both values for a field are lists, elements are merged element-wise
+            (extra elements from the longer list are appended).
         """
         ts_a = _safe_parse_ts(row_a.get(timestamp_col)) if timestamp_col else 0.0
         ts_b = _safe_parse_ts(row_b.get(timestamp_col)) if timestamp_col else 0.0
@@ -314,6 +329,32 @@ class MergeSchema:
                 result[k] = va
             elif va == vb:
                 result[k] = va
+            elif isinstance(va, dict) and isinstance(vb, dict):
+                # Recursively merge nested dicts
+                result[k] = self.resolve_row(va, vb, timestamp_col=timestamp_col,
+                                             node_a=node_a, node_b=node_b)
+            elif isinstance(va, list) and isinstance(vb, list):
+                # Element-wise merge for lists; extra elements from the longer
+                # list are appended as-is.
+                merged_list = []
+                for i in range(max(len(va), len(vb))):
+                    ea = va[i] if i < len(va) else None
+                    eb = vb[i] if i < len(vb) else None
+                    if ea is None:
+                        merged_list.append(eb)
+                    elif eb is None:
+                        merged_list.append(ea)
+                    elif ea == eb:
+                        merged_list.append(ea)
+                    elif isinstance(ea, dict) and isinstance(eb, dict):
+                        merged_list.append(
+                            self.resolve_row(ea, eb, timestamp_col=timestamp_col,
+                                             node_a=node_a, node_b=node_b)
+                        )
+                    else:
+                        strat = self.strategy_for(k)
+                        merged_list.append(strat.resolve(ea, eb, ts_a, ts_b, node_a, node_b))
+                result[k] = merged_list
             else:
                 strat = self.strategy_for(k)
                 result[k] = strat.resolve(va, vb, ts_a, ts_b, node_a, node_b)
@@ -331,6 +372,18 @@ class MergeSchema:
                     UserWarning, stacklevel=2,
                 )
             entry = {"strategy": strat.__class__.__name__}
+            # Preserve custom strategy name through round-trips
+            if isinstance(strat, Custom):
+                custom_name = getattr(strat, '_custom_strategy_name', None)
+                if custom_name:
+                    entry["_custom_strategy_name"] = custom_name
+                elif hasattr(strat, '_fn') and hasattr(strat._fn, '__name__'):
+                    entry["_custom_strategy_name"] = strat._fn.__name__
+            # Also preserve the name for deserialized custom strategies stored
+            # as LWW placeholders (from a previous round-trip)
+            stored_name = getattr(strat, '_custom_strategy_name', None)
+            if stored_name and not isinstance(strat, Custom):
+                entry["_custom_strategy_name"] = stored_name
             if isinstance(strat, UnionSet):
                 entry["separator"] = strat.separator
             elif isinstance(strat, Concat):
@@ -354,14 +407,15 @@ class MergeSchema:
         for field, info in d.items():
             strat_cls = _STRATEGY_REGISTRY.get(info["strategy"], LWW)
             if strat_cls == Custom:
-                # DEF-011: Custom strategies can't be deserialized — explicit LWW fallback
-                import warnings
-                warnings.warn(
-                    f"Custom strategy for field '{field}' cannot be deserialized. "
-                    f"Using LWW as fallback. Register a named strategy subclass instead.",
-                    UserWarning, stacklevel=2,
-                )
-                strategies[field] = LWW()
+                # DEF-011: Custom strategies can't be deserialized — use LWW
+                # fallback but preserve the original strategy name so it
+                # survives further round-trips.  Warning is deferred until the
+                # strategy is actually invoked (not on deserialization).
+                fallback = LWW()
+                custom_name = info.get("_custom_strategy_name")
+                if custom_name:
+                    fallback._custom_strategy_name = custom_name  # type: ignore[attr-defined]
+                strategies[field] = fallback
             elif strat_cls == UnionSet:
                 strategies[field] = UnionSet(separator=info.get("separator", ","))
             elif strat_cls == Concat:

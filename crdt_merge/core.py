@@ -125,6 +125,15 @@ class LWWRegister:
     """Last-Writer-Wins Register — stores a single value, latest timestamp wins.
     
     Perfect for: single-cell updates (name, email, status), any scalar field.
+
+    Tie-breaking behavior:
+        When two updates have identical timestamps, the node_id is used as a
+        deterministic tie-breaker via **lexicographic** (Python string ``>``)
+        comparison.  This means ``"node9" > "node10"`` is True — lexicographic
+        ordering does NOT match numeric ordering.  This is intentional: any
+        total order that is deterministic across all replicas satisfies the
+        CRDT convergence requirement; lexicographic comparison is the simplest
+        such order for arbitrary string identifiers.
     """
     __slots__ = ('_value', '_timestamp', '_node_id')
 
@@ -151,7 +160,10 @@ class LWWRegister:
         if other._timestamp > self._timestamp:
             return LWWRegister(other._value, other._timestamp, other._node_id)
         elif other._timestamp == self._timestamp:
-            # Tie-break on node_id for determinism
+            # Tie-break on node_id using lexicographic (string) comparison.
+            # Lexicographic order is deterministic across all replicas, which
+            # is the only requirement for CRDT convergence.  Note that
+            # "node9" > "node10" is True under this ordering.
             if other._node_id > self._node_id:
                 return LWWRegister(other._value, other._timestamp, other._node_id)
         return LWWRegister(self._value, self._timestamp, self._node_id)
@@ -195,6 +207,24 @@ class ORSet:
     def remove(self, element: Hashable) -> None:
         if element in self._elements:
             self._elements[element] = set()
+
+    def remove_tag(self, element: Hashable, tag: str) -> None:
+        """Remove a specific tag for *element*, keeping other tags intact.
+
+        Unlike :meth:`remove` (which clears ALL tags for the element), this
+        method allows selective tag removal.  The element remains in the set
+        as long as it still has at least one tag.
+
+        Args:
+            element: The element whose tag should be removed.
+            tag: The specific unique tag to discard.
+
+        Raises:
+            KeyError: If *element* is not present in the internal map.
+        """
+        if element not in self._elements:
+            raise KeyError(f"{element!r} not found in ORSet")
+        self._elements[element].discard(tag)
 
     def contains(self, element: Hashable) -> bool:
         return bool(self._elements.get(element))

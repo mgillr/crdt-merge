@@ -70,8 +70,17 @@ class VectorClock:
     def __init__(self, clocks: Optional[Dict[str, int]] = None) -> None:
         """Create a vector clock from an optional {node_id: counter} dict.
 
+        Zero-counter normalization:
+            Entries with a counter value of **0 are automatically stripped**
+            during construction.  This means
+            ``VectorClock({"a": 0}) == VectorClock({})`` is always True.
+            The rationale is that a counter of zero is semantically equivalent
+            to "node never seen", so stripping zeros keeps the internal
+            representation canonical and makes equality checks trivial.
+
         Args:
             clocks: Initial counter values. None or empty → no events seen.
+                    Entries with value 0 are silently removed (see above).
 
         Raises:
             ValueError: If any counter is negative.
