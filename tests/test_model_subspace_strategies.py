@@ -784,7 +784,7 @@ class TestSubspaceIntegration:
                                for warning in w)
 
     def test_numpy_unavailable_fallback_non_svd(self):
-        """Non-SVD strategies should work fine without numpy."""
+        """Non-SVD strategies operate correctly without numpy installed."""
         import crdt_merge.model.strategies.subspace as submod
         import crdt_merge.model.strategies.base as basemod
 

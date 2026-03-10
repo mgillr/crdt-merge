@@ -1050,7 +1050,7 @@ which would be stored regardless of the CRDT wrapper.
 
 ### 8.1 Direct CRDTMergeState Usage
 
-#### Basic Example: Two-Node Merge
+#### Two-Node Merge Example
 
 ```python
 import numpy as np

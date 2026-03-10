@@ -243,7 +243,7 @@ class MergePipeline:
         """Serialize the pipeline to a plain dict.
 
         Model values that are dicts are replaced with ``"<state_dict>"``
-        placeholder for serialization.
+        reserved for future serialization extensions.
         """
         stages_out = []
         for stage in self._stages:
