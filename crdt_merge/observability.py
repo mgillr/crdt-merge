@@ -487,6 +487,19 @@ except ImportError:  # pragma: no cover – optional dependency
 import math
 from contextlib import contextmanager
 
+__all__ = [
+    "logger",
+    "MergeMetric",
+    "MetricsCollector",
+    "HealthCheck",
+    "ObservedMerge",
+    "MergeTracer",
+    "DriftReport",
+    "DriftDetector",
+    "PrometheusExporter",
+    "GrafanaDashboard",
+]
+
 
 class _NoOpSpan:
     """Minimal stand-in for an OTel span when the SDK is absent."""

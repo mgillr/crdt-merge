@@ -34,6 +34,13 @@ from crdt_merge.model.strategies.base import (
     _to_array,
 )
 
+__all__ = [
+    "WeightAverage",
+    "SphericalLinearInterpolation",
+    "TaskArithmetic",
+    "LinearInterpolation",
+]
+
 # ---------------------------------------------------------------------------
 # Pure-Python vector helpers (used when numpy is unavailable)
 # ---------------------------------------------------------------------------

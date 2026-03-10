@@ -63,6 +63,20 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 from crdt_merge import merge
 from crdt_merge.strategies import MergeSchema
 
+__all__ = [
+    "CryptoBackend",
+    "XORLegacyBackend",
+    "AES256GCMBackend",
+    "AESGCMSIVBackend",
+    "ChaCha20Poly1305Backend",
+    "register_backend",
+    "get_backend",
+    "EncryptedValue",
+    "KeyProvider",
+    "StaticKeyProvider",
+    "EncryptedMerge",
+]
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------

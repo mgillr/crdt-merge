@@ -49,6 +49,14 @@ import math
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Set, Tuple
 
+__all__ = [
+    "MerkleNode",
+    "MerkleTree",
+    "MerkleDiff",
+    "merkle_diff",
+    "compare_datasets",
+]
+
 # ─── Sentinel hash for empty trees ──────────────────────────────────────────
 
 _EMPTY_HASH: str = hashlib.sha256(b"empty").hexdigest()

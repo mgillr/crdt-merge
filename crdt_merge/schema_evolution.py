@@ -30,6 +30,16 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
+__all__ = [
+    "TYPE_WIDENING",
+    "SchemaPolicy",
+    "SchemaChange",
+    "SchemaEvolutionResult",
+    "widen_type",
+    "check_compatibility",
+    "evolve_schema",
+]
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------

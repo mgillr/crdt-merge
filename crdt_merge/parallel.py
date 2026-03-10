@@ -41,6 +41,11 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from crdt_merge.dataframe import merge as sync_merge, _to_records, _from_records
 
+__all__ = [
+    "parallel_merge",
+    "parallel_merge_arrow",
+]
+
 # ---------------------------------------------------------------------------
 # Threshold below which parallelism adds more overhead than benefit.
 # ---------------------------------------------------------------------------

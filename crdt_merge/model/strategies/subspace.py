@@ -45,6 +45,18 @@ from crdt_merge.model.strategies.base import (
     _to_array,
 )
 
+__all__ = [
+    "TIESMerge",
+    "DareDropAndRescale",
+    "DellaDropElectLowRank",
+    "DareTiesHybrid",
+    "ModelBreadcrumbs",
+    "EMRMerge",
+    "SpectralTruncationAdaptiveRescaling",
+    "SVDKnotTying",
+    "AdaptiveRankPruning",
+]
+
 # ---------------------------------------------------------------------------
 # Pure-Python vector helpers
 # ---------------------------------------------------------------------------
