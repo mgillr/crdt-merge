@@ -283,25 +283,19 @@ register_backend("xor-legacy", XORLegacyBackend)
 try:
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM as _AESGCM  # noqa: F401 — import tests availability; class used via AES256GCMBackend
     register_backend("aes-256-gcm", AES256GCMBackend)
-except ImportError:  # cryptography package not installed — skip AEAD backend registration
-    # Gracefully degrade: AES-256-GCM requires the 'cryptography' package;
-    # when absent the backend is simply not registered (XOR fallback remains).
+except BaseException:  # cryptography missing, broken Rust bindings (PanicException inherits BaseException), or other failure
     pass
 
 try:
     from cryptography.hazmat.primitives.ciphers.aead import AESGCMSIV as _AESGCMSIV  # noqa: F401 — import tests availability; class used via AESGCMSIVBackend
     register_backend("aes-256-gcm-siv", AESGCMSIVBackend)
-except ImportError:  # cryptography package not installed — skip GCM-SIV backend registration
-    # Gracefully degrade: AES-256-GCM-SIV requires the 'cryptography' package;
-    # when absent the backend is simply not registered.
+except BaseException:  # cryptography missing, broken Rust bindings (PanicException inherits BaseException), or other failure
     pass
 
 try:
     from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305 as _ChaCha  # noqa: F401 — import tests availability; class used via ChaCha20Poly1305Backend
     register_backend("chacha20-poly1305", ChaCha20Poly1305Backend)
-except ImportError:  # cryptography package not installed — skip ChaCha backend registration
-    # Gracefully degrade: ChaCha20-Poly1305 requires the 'cryptography' package;
-    # when absent the backend is simply not registered.
+except BaseException:  # cryptography missing, broken Rust bindings (PanicException inherits BaseException), or other failure
     pass
 
 
@@ -495,7 +489,7 @@ class EncryptedMerge:
             try:
                 from cryptography.hazmat.primitives.ciphers.aead import AESGCM  # noqa: F401 — import tests availability for auto-detection
                 self._backend = AES256GCMBackend()
-            except ImportError:
+            except BaseException:  # ImportError or broken cryptography (e.g. PanicException inherits BaseException)
                 if not EncryptedMerge._warned:
                     warnings.warn(
                         "crdt_merge.encryption: 'cryptography' package not installed. "
