@@ -137,6 +137,7 @@ class FisherMerge(ModelMergeStrategy):
 
     @property
     def paper_reference(self) -> str:
+        """Academic reference for this strategy."""
         return "Matena & Raffel, 2022 — Merging Models with Fisher-Weighted Averaging"
 
     @property
@@ -265,6 +266,7 @@ class RegressionMean(ModelMergeStrategy):
 
     @property
     def paper_reference(self) -> str:
+        """Academic reference for this strategy."""
         return "Jin et al., 2023 — Dataless Knowledge Fusion by Merging Weights"
 
     @property
@@ -363,6 +365,7 @@ class AdaptiveMerging(ModelMergeStrategy):
 
     @property
     def paper_reference(self) -> str:
+        """Academic reference for this strategy."""
         return "Yang et al., 2024 — AdaMerging: Adaptive Model Merging"
 
     @property
@@ -527,6 +530,7 @@ class DifferentiableAdaptiveMerging(ModelMergeStrategy):
 
     @property
     def paper_reference(self) -> str:
+        """Academic reference for this strategy."""
         return "2024 — Differentiable Adaptive Merging (DAM)"
 
     @property

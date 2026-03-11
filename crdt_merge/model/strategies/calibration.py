@@ -123,14 +123,17 @@ class WeightScopeAlignment(ModelMergeStrategy):
 
     @property
     def name(self) -> str:
+        """Canonical registry name for this strategy."""
         return "weight_scope_alignment"
 
     @property
     def category(self) -> str:
+        """Strategy family: Post-Calibration."""
         return "Post-Calibration"
 
     @property
     def paper_reference(self) -> str:
+        """Academic reference for this strategy."""
         return "2024 — Weight Distribution Scope Alignment"
 
     @property
@@ -318,14 +321,17 @@ class RepresentationSurgery(ModelMergeStrategy):
 
     @property
     def name(self) -> str:
+        """Canonical registry name for this strategy."""
         return "representation_surgery"
 
     @property
     def category(self) -> str:
+        """Strategy family: Post-Calibration."""
         return "Post-Calibration"
 
     @property
     def paper_reference(self) -> str:
+        """Academic reference for this strategy."""
         return "2024 — Post-Merge Representation Surgery"
 
     @property

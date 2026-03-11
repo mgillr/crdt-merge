@@ -122,18 +122,22 @@ class EvolutionaryMerge(ModelMergeStrategy):
 
     @property
     def name(self) -> str:
+        """Canonical registry name for this strategy."""
         return "evolutionary_merge"
 
     @property
     def category(self) -> str:
+        """Strategy family: Evolutionary."""
         return "Evolutionary"
 
     @property
     def paper_reference(self) -> str:
+        """Academic reference for this strategy."""
         return "Sakana AI, 2024; M2N2 (GECCO 2025)"
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
+        """CRDT algebraic properties for evolutionary merging."""
         return {"commutative": False, "associative": False, "idempotent": False}
 
     def merge(
@@ -270,18 +274,22 @@ class GeneticMerge(ModelMergeStrategy):
 
     @property
     def name(self) -> str:
+        """Canonical registry name for this strategy."""
         return "genetic_merge"
 
     @property
     def category(self) -> str:
+        """Strategy family: Evolutionary."""
         return "Evolutionary"
 
     @property
     def paper_reference(self) -> str:
+        """Academic reference for this strategy."""
         return "Mergenetic library, 2025"
 
     @property
     def crdt_properties(self) -> Dict[str, Any]:
+        """CRDT algebraic properties for genetic merging."""
         return {"commutative": False, "associative": False, "idempotent": True}
 
     def merge(
