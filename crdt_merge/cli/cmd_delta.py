@@ -253,7 +253,7 @@ def register(subparsers: argparse._SubParsersAction) -> None:
         default=None,
         help="Write the computed delta to this file (default: stdout).",
     )
-    compute_parser.set_defaults(delta_handler="compute")
+    compute_parser.set_defaults(delta_handler="compute", handler=handle_compute)
 
     # --- delta apply ---
     apply_parser = sub.add_parser(
@@ -288,7 +288,7 @@ def register(subparsers: argparse._SubParsersAction) -> None:
         default=None,
         help="Write the resulting dataset to this file (default: stdout).",
     )
-    apply_parser.set_defaults(delta_handler="apply")
+    apply_parser.set_defaults(delta_handler="apply", handler=handle_apply)
 
     # --- delta compose ---
     compose_parser = sub.add_parser(
@@ -313,4 +313,4 @@ def register(subparsers: argparse._SubParsersAction) -> None:
         default=None,
         help="Write the composed delta to this file (default: stdout).",
     )
-    compose_parser.set_defaults(delta_handler="compose")
+    compose_parser.set_defaults(delta_handler="compose", handler=handle_compose)

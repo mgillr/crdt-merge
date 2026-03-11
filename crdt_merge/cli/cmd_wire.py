@@ -302,7 +302,7 @@ def register(subparsers: argparse._SubParsersAction) -> None:
         default=False,
         help="Enable compression on the wire payload.",
     )
-    ser_parser.set_defaults(wire_handler="serialize")
+    ser_parser.set_defaults(wire_handler="serialize", handler=handle_serialize)
 
     # --- wire deserialize ---
     deser_parser = sub.add_parser(
@@ -326,7 +326,7 @@ def register(subparsers: argparse._SubParsersAction) -> None:
         default=None,
         help="Write JSON output to this file (default: stdout).",
     )
-    deser_parser.set_defaults(wire_handler="deserialize")
+    deser_parser.set_defaults(wire_handler="deserialize", handler=handle_deserialize)
 
     # --- wire inspect ---
     inspect_parser = sub.add_parser(
@@ -344,7 +344,7 @@ def register(subparsers: argparse._SubParsersAction) -> None:
         metavar="FILE",
         help="Binary wire format file to inspect.",
     )
-    inspect_parser.set_defaults(wire_handler="inspect")
+    inspect_parser.set_defaults(wire_handler="inspect", handler=handle_inspect)
 
     # --- wire size ---
     size_parser = sub.add_parser(
@@ -362,4 +362,4 @@ def register(subparsers: argparse._SubParsersAction) -> None:
         metavar="FILE",
         help="Binary wire format file to analyse.",
     )
-    size_parser.set_defaults(wire_handler="size")
+    size_parser.set_defaults(wire_handler="size", handler=handle_size)

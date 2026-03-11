@@ -138,13 +138,18 @@ def handle_sync(args: argparse.Namespace, formatter: OutputFormatter) -> None:
     local_state = _load_state_file(args.local_state)
     remote_state = _load_state_file(args.remote_state)
 
-    reconciled = anti_entropy(local_state, remote_state)
+    local_digest = local_state.digest()
+    remote_digest = remote_state.digest()
+    diff = anti_entropy(local_digest, remote_digest)
 
     if args.output:
-        _save_state_file(reconciled, args.output)
-        formatter.success(f"Reconciled state written to {args.output}")
+        import json as _json
+        with open(args.output, "w", encoding="utf-8") as fh:
+            _json.dump(diff, fh, indent=2)
+            fh.write("\n")
+        formatter.success(f"Anti-entropy diff written to {args.output}")
     else:
-        formatter.json(reconciled.to_dict())
+        formatter.json(diff)
 
 
 # ---------------------------------------------------------------------------
