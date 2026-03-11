@@ -27,9 +27,15 @@ Classes:
 
 from __future__ import annotations
 
+import copy
+import logging
 import time
+import types
+import warnings
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, NamedTuple, Optional
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Optional integration imports — compliance.py works standalone
@@ -63,11 +69,27 @@ except Exception:  # pragma: no cover
 
 
 __all__ = [
+    "CheckResult",
     "ComplianceFinding",
     "ComplianceReport",
     "ComplianceAuditor",
     "EUAIActReport",
 ]
+
+
+# ---------------------------------------------------------------------------
+# CheckResult — typed return structure for _check_* methods
+# ---------------------------------------------------------------------------
+
+class CheckResult(NamedTuple):
+    """Typed result from internal compliance check methods.
+
+    Backward-compatible with the previous bare ``(status, evidence)`` tuples.
+    """
+
+    passed: str  # "pass", "fail", or "not_applicable"
+    message: str
+    details: Dict[str, Any]
 
 # ---------------------------------------------------------------------------
 # Valid frameworks and severities
@@ -202,7 +224,7 @@ class ComplianceReport:
 # Framework validation rules (internal)
 # ---------------------------------------------------------------------------
 
-_FRAMEWORK_RULES: Dict[str, List[Dict[str, Any]]] = {
+_FRAMEWORK_RULES: types.MappingProxyType = types.MappingProxyType({
     "eu_ai_act": [
         {
             "rule_id": "EU_AI_ACT_ART_10",
@@ -330,7 +352,7 @@ _FRAMEWORK_RULES: Dict[str, List[Dict[str, Any]]] = {
             "recommendation": "Define and enforce audit log retention policies.",
         },
     ],
-}
+})
 
 
 # ---------------------------------------------------------------------------
@@ -423,7 +445,9 @@ class ComplianceAuditor:
             check_name = rule["check"]
             checker = getattr(self, f"_check_{check_name}", None)
             if checker is not None:
-                status, evidence = checker()
+                result = checker()
+                status = result.passed
+                evidence = result.details
             else:
                 status = "not_applicable"
                 evidence = {"reason": f"No checker implemented for '{check_name}'"}
@@ -488,15 +512,39 @@ class ComplianceAuditor:
         elif hasattr(audit_log, "__iter__"):
             entries = list(audit_log)
 
+        _expected_fields = {
+            "operation": "unknown",
+            "input_hash": "",
+            "output_hash": "",
+            "metadata": {},
+        }
+
         for entry in entries:
-            operation = getattr(entry, "operation", "unknown")
-            input_hash = getattr(entry, "input_hash", "")
-            output_hash = getattr(entry, "output_hash", "")
-            metadata = getattr(entry, "metadata", {})
+            missing_fields: List[str] = []
+            values: Dict[str, Any] = {}
+            for field_name, default in _expected_fields.items():
+                value = getattr(entry, field_name, None)
+                if value is None:
+                    missing_fields.append(field_name)
+                    value = default
+                values[field_name] = value
+
+            if missing_fields:
+                warnings.warn(
+                    f"Audit log entry missing fields: {missing_fields!r}; "
+                    f"defaults applied.",
+                    stacklevel=2,
+                )
+                logger.warning(
+                    "Audit log entry missing fields: %r — defaults applied",
+                    missing_fields,
+                )
+
+            metadata = values["metadata"]
             auditor.record_merge(
-                operation=operation,
-                input_hash=input_hash,
-                output_hash=output_hash,
+                operation=values["operation"],
+                input_hash=values["input_hash"],
+                output_hash=values["output_hash"],
                 metadata=metadata if isinstance(metadata, dict) else {},
             )
 
@@ -547,10 +595,10 @@ class ComplianceAuditor:
 
     # -- internal checks -----------------------------------------------------
 
-    def _check_has_merge_provenance(self) -> tuple:
+    def _check_has_merge_provenance(self) -> CheckResult:
         """Check if merge events contain provenance metadata."""
         if not self._merge_events:
-            return "fail", {"reason": "No merge events recorded."}
+            return CheckResult(passed="fail", message="No merge events recorded.", details={"reason": "No merge events recorded."})
 
         with_provenance = sum(
             1
@@ -562,20 +610,20 @@ class ComplianceAuditor:
         total = len(self._merge_events)
 
         if with_provenance == total:
-            return "pass", {"events_with_provenance": with_provenance, "total": total}
+            return CheckResult(passed="pass", message="Check passed", details={"events_with_provenance": with_provenance, "total": total})
         elif with_provenance > 0:
-            return "fail", {
+            return CheckResult(passed="fail", message="Not all merge events have provenance.", details={
                 "events_with_provenance": with_provenance,
                 "total": total,
                 "reason": "Not all merge events have provenance.",
-            }
+            })
         else:
-            return "fail", {"reason": "No merge events have provenance data."}
+            return CheckResult(passed="fail", message="No merge events have provenance data.", details={"reason": "No merge events have provenance data."})
 
-    def _check_has_audit_trail(self) -> tuple:
+    def _check_has_audit_trail(self) -> CheckResult:
         """Check if there is an audit trail (merge events with hashes)."""
         if not self._merge_events:
-            return "fail", {"reason": "No merge events recorded."}
+            return CheckResult(passed="fail", message="No merge events recorded.", details={"reason": "No merge events recorded."})
 
         with_hashes = sum(
             1
@@ -585,24 +633,24 @@ class ComplianceAuditor:
         total = len(self._merge_events)
 
         if with_hashes == total:
-            return "pass", {"events_with_hashes": with_hashes, "total": total}
+            return CheckResult(passed="pass", message="Check passed", details={"events_with_hashes": with_hashes, "total": total})
         elif with_hashes > 0:
-            return "fail", {
+            return CheckResult(passed="fail", message="Not all events have audit hashes.", details={
                 "events_with_hashes": with_hashes,
                 "total": total,
                 "reason": "Not all events have audit hashes.",
-            }
+            })
         else:
             # Even without hashes, having events logged counts as partial
-            return "fail", {
+            return CheckResult(passed="fail", message="Merge events recorded but lack cryptographic hashes.", details={
                 "total": total,
                 "reason": "Merge events recorded but lack cryptographic hashes.",
-            }
+            })
 
-    def _check_has_transparency_metadata(self) -> tuple:
+    def _check_has_transparency_metadata(self) -> CheckResult:
         """Check if merge events contain descriptive metadata."""
         if not self._merge_events:
-            return "fail", {"reason": "No merge events recorded."}
+            return CheckResult(passed="fail", message="No merge events recorded.", details={"reason": "No merge events recorded."})
 
         with_metadata = sum(
             1
@@ -612,14 +660,14 @@ class ComplianceAuditor:
         total = len(self._merge_events)
 
         if with_metadata >= total * 0.5:
-            return "pass", {"events_with_metadata": with_metadata, "total": total}
-        return "fail", {
+            return CheckResult(passed="pass", message="Check passed", details={"events_with_metadata": with_metadata, "total": total})
+        return CheckResult(passed="fail", message="Insufficient metadata for transparency requirements.", details={
             "events_with_metadata": with_metadata,
             "total": total,
             "reason": "Insufficient metadata for transparency requirements.",
-        }
+        })
 
-    def _check_has_human_oversight(self) -> tuple:
+    def _check_has_human_oversight(self) -> CheckResult:
         """Check for evidence of human oversight in metadata."""
         oversight_keywords = {"reviewed", "approved", "human_oversight", "reviewer"}
         found = 0
@@ -629,46 +677,46 @@ class ComplianceAuditor:
                 found += 1
 
         if found > 0:
-            return "pass", {"events_with_oversight": found}
+            return CheckResult(passed="pass", message="Check passed", details={"events_with_oversight": found})
         if not self._merge_events:
-            return "not_applicable", {"reason": "No merge events to check."}
-        return "fail", {"reason": "No evidence of human oversight in merge metadata."}
+            return CheckResult(passed="not_applicable", message="No merge events to check.", details={"reason": "No merge events to check."})
+        return CheckResult(passed="fail", message="No evidence of human oversight in merge metadata.", details={"reason": "No evidence of human oversight in merge metadata."})
 
-    def _check_has_risk_classification(self) -> tuple:
+    def _check_has_risk_classification(self) -> CheckResult:
         """Check for risk classification metadata."""
         for event in self._merge_events:
             meta = event.get("metadata", {})
             if "risk_level" in meta or "risk_classification" in meta:
-                return "pass", {"risk_documented": True}
+                return CheckResult(passed="pass", message="Check passed", details={"risk_documented": True})
         if not self._merge_events:
-            return "not_applicable", {"reason": "No merge events to check."}
-        return "fail", {"reason": "No risk classification documented."}
+            return CheckResult(passed="not_applicable", message="No merge events to check.", details={"reason": "No merge events to check."})
+        return CheckResult(passed="fail", message="No risk classification documented.", details={"reason": "No risk classification documented."})
 
-    def _check_has_unmerge_capability(self) -> tuple:
+    def _check_has_unmerge_capability(self) -> CheckResult:
         """Check if unmerge / erasure capability has been exercised or recorded."""
         if self._unmerge_events:
-            return "pass", {
+            return CheckResult(passed="pass", message="Check passed", details={
                 "unmerge_events": len(self._unmerge_events),
                 "subjects": [e["subject_id"] for e in self._unmerge_events],
-            }
+            })
         # Even without exercised events, check if merge events reference provenance
         has_provenance = any(
             e.get("metadata", {}).get("has_provenance")
             for e in self._merge_events
         )
         if has_provenance:
-            return "pass", {
+            return CheckResult(passed="pass", message="Provenance-tracked merges enable unmerge capability.", details={
                 "reason": "Provenance-tracked merges enable unmerge capability."
-            }
-        return "fail", {"reason": "No unmerge events recorded and no provenance tracking."}
+            })
+        return CheckResult(passed="fail", message="No unmerge events recorded and no provenance tracking.", details={"reason": "No unmerge events recorded and no provenance tracking."})
 
-    def _check_has_processing_records(self) -> tuple:
+    def _check_has_processing_records(self) -> CheckResult:
         """Check if data processing (merge) activities are recorded."""
         if self._merge_events:
-            return "pass", {"merge_events": len(self._merge_events)}
-        return "fail", {"reason": "No data processing records found."}
+            return CheckResult(passed="pass", message="Check passed", details={"merge_events": len(self._merge_events)})
+        return CheckResult(passed="fail", message="No data processing records found.", details={"reason": "No data processing records found."})
 
-    def _check_has_consent_tracking(self) -> tuple:
+    def _check_has_consent_tracking(self) -> CheckResult:
         """Check for consent / lawful basis metadata."""
         consent_keywords = {"consent", "lawful_basis", "legal_basis", "consent_id"}
         found = 0
@@ -678,16 +726,16 @@ class ComplianceAuditor:
                 found += 1
 
         if found > 0:
-            return "pass", {"events_with_consent": found}
+            return CheckResult(passed="pass", message="Check passed", details={"events_with_consent": found})
         if not self._merge_events:
-            return "not_applicable", {"reason": "No merge events to check."}
-        return "fail", {"reason": "No consent or lawful basis recorded."}
+            return CheckResult(passed="not_applicable", message="No merge events to check.", details={"reason": "No merge events to check."})
+        return CheckResult(passed="fail", message="No consent or lawful basis recorded.", details={"reason": "No consent or lawful basis recorded."})
 
-    def _check_has_data_protection_design(self) -> tuple:
+    def _check_has_data_protection_design(self) -> CheckResult:
         """Check for data protection by design evidence."""
         # Pass if encryption events or access controls exist
         if self._access_events:
-            return "pass", {"access_controls_present": True}
+            return CheckResult(passed="pass", message="Check passed", details={"access_controls_present": True})
         encryption_events = sum(
             1
             for e in self._merge_events
@@ -695,24 +743,24 @@ class ComplianceAuditor:
             or e.get("metadata", {}).get("encrypted")
         )
         if encryption_events > 0:
-            return "pass", {"encryption_events": encryption_events}
+            return CheckResult(passed="pass", message="Check passed", details={"encryption_events": encryption_events})
         if not self._merge_events:
-            return "not_applicable", {"reason": "No events to check."}
-        return "fail", {"reason": "No data protection measures documented."}
+            return CheckResult(passed="not_applicable", message="No events to check.", details={"reason": "No events to check."})
+        return CheckResult(passed="fail", message="No data protection measures documented.", details={"reason": "No data protection measures documented."})
 
-    def _check_has_access_controls(self) -> tuple:
+    def _check_has_access_controls(self) -> CheckResult:
         """Check if access control events have been recorded."""
         if self._access_events:
             granted = sum(1 for e in self._access_events if e["granted"])
             denied = sum(1 for e in self._access_events if not e["granted"])
-            return "pass", {
+            return CheckResult(passed="pass", message="Check passed", details={
                 "total_access_events": len(self._access_events),
                 "granted": granted,
                 "denied": denied,
-            }
-        return "fail", {"reason": "No access control events recorded."}
+            })
+        return CheckResult(passed="fail", message="No access control events recorded.", details={"reason": "No access control events recorded."})
 
-    def _check_has_encryption(self) -> tuple:
+    def _check_has_encryption(self) -> CheckResult:
         """Check for encryption usage evidence."""
         encryption_events = sum(
             1
@@ -721,12 +769,12 @@ class ComplianceAuditor:
             or e.get("metadata", {}).get("encrypted")
         )
         if encryption_events > 0:
-            return "pass", {"encryption_events": encryption_events}
+            return CheckResult(passed="pass", message="Check passed", details={"encryption_events": encryption_events})
         if not self._merge_events:
-            return "not_applicable", {"reason": "No events to check."}
-        return "fail", {"reason": "No encryption usage evidence found."}
+            return CheckResult(passed="not_applicable", message="No events to check.", details={"reason": "No events to check."})
+        return CheckResult(passed="fail", message="No encryption usage evidence found.", details={"reason": "No encryption usage evidence found."})
 
-    def _check_has_data_integrity(self) -> tuple:
+    def _check_has_data_integrity(self) -> CheckResult:
         """Check for cryptographic integrity verification."""
         with_hashes = sum(
             1
@@ -734,15 +782,15 @@ class ComplianceAuditor:
             if e.get("input_hash") and e.get("output_hash")
         )
         if with_hashes > 0:
-            return "pass", {"events_with_integrity_hashes": with_hashes}
+            return CheckResult(passed="pass", message="Check passed", details={"events_with_integrity_hashes": with_hashes})
         if self._merge_events:
-            return "fail", {"reason": "Merge events lack integrity hashes."}
-        return "fail", {"reason": "No merge events recorded."}
+            return CheckResult(passed="fail", message="Merge events lack integrity hashes.", details={"reason": "Merge events lack integrity hashes."})
+        return CheckResult(passed="fail", message="No merge events recorded.", details={"reason": "No merge events recorded."})
 
-    def _check_has_change_management(self) -> tuple:
+    def _check_has_change_management(self) -> CheckResult:
         """Check for change management audit trail."""
         if not self._merge_events:
-            return "fail", {"reason": "No change events recorded."}
+            return CheckResult(passed="fail", message="No change events recorded.", details={"reason": "No change events recorded."})
 
         with_attribution = sum(
             1
@@ -754,21 +802,21 @@ class ComplianceAuditor:
         total = len(self._merge_events)
 
         if with_attribution > 0:
-            return "pass", {
+            return CheckResult(passed="pass", message="Check passed", details={
                 "events_with_attribution": with_attribution,
                 "total": total,
-            }
-        return "fail", {"reason": "Change events lack user/node attribution."}
+            })
+        return CheckResult(passed="fail", message="Change events lack user/node attribution.", details={"reason": "Change events lack user/node attribution."})
 
-    def _check_has_retention_policy(self) -> tuple:
+    def _check_has_retention_policy(self) -> CheckResult:
         """Check for retention policy metadata."""
         for event in self._merge_events:
             meta = event.get("metadata", {})
             if "retention_days" in meta or "retention_policy" in meta:
-                return "pass", {"retention_documented": True}
+                return CheckResult(passed="pass", message="Check passed", details={"retention_documented": True})
         if not self._merge_events:
-            return "not_applicable", {"reason": "No events to check."}
-        return "fail", {"reason": "No retention policy documented."}
+            return CheckResult(passed="not_applicable", message="No events to check.", details={"reason": "No events to check."})
+        return CheckResult(passed="fail", message="No retention policy documented.", details={"reason": "No retention policy documented."})
 
 
 # ---------------------------------------------------------------------------
@@ -918,11 +966,11 @@ class EUAIActReport:
         Combines risk classification, transparency, and data governance
         checks into a single :class:`ComplianceReport`.
         """
-        # Use the auditor's validate but force eu_ai_act rules
-        original_framework = self._auditor.framework
-        self._auditor.framework = "eu_ai_act"
-        report = self._auditor.validate()
-        self._auditor.framework = original_framework
+        # Use a shallow copy of the auditor to avoid mutating the original's
+        # framework attribute — the original approach was NOT thread-safe.
+        temp_auditor = copy.copy(self._auditor)
+        temp_auditor.framework = "eu_ai_act"
+        report = temp_auditor.validate()
 
         # Enrich metadata
         report.metadata["risk_classification"] = self.risk_classification()
