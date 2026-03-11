@@ -29,3 +29,8 @@ htmlcov/
 .DS_Store
 Thumbs.db
 .hypothesis/
+.env
+.env.*
+*.secrets
+secrets/
+.secrets
