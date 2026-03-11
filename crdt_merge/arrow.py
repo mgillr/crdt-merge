@@ -76,7 +76,7 @@ def _import_pyarrow():
 def _has_pyarrow() -> bool:
     """Return True if pyarrow is importable."""
     try:
-        import pyarrow  # noqa: F401
+        import pyarrow  # noqa: F401 — import tests pyarrow availability
         return True
     except ImportError:
         return False
@@ -948,7 +948,7 @@ try:
     )
 except ImportError:
     HAS_POLARS = False
-    polars_merge_arrow = None  # type: ignore[assignment]
+    polars_merge_arrow = None  # type: ignore[assignment]  # fallback when polars not installed
 
 # ---------------------------------------------------------------------------
 # Module-level __all__

@@ -45,9 +45,9 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 # Lazy import: duckdb
 try:
-    import duckdb as _duckdb  # type: ignore[import-untyped]
+    import duckdb as _duckdb  # type: ignore[import-untyped]  # optional dep: duckdb lacks py.typed
 except ImportError:
-    _duckdb = None  # type: ignore[assignment]
+    _duckdb = None  # type: ignore[assignment]  # fallback when duckdb not installed
 
 from crdt_merge.strategies import (
     MergeSchema,

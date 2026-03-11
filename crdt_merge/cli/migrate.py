@@ -245,10 +245,10 @@ def load_yaml_config(path: str) -> dict:
     that handles the subset of YAML found in MergeKit configs.
     """
     try:
-        import yaml  # type: ignore[import-untyped]
+        import yaml  # type: ignore[import-untyped]  # optional dep: PyYAML lacks py.typed
 
         with open(path) as f:
-            return yaml.safe_load(f)  # type: ignore[no-any-return]
+            return yaml.safe_load(f)  # type: ignore[no-any-return]  # yaml.safe_load returns Any
     except ImportError:
         return _parse_basic_yaml(path)
 
@@ -259,11 +259,11 @@ def load_yaml_string(text: str) -> dict:
     Uses PyYAML when available; falls back to basic parser.
     """
     try:
-        import yaml  # type: ignore[import-untyped]
+        import yaml  # type: ignore[import-untyped]  # optional dep: PyYAML lacks py.typed
 
-        return yaml.safe_load(text)  # type: ignore[no-any-return]
+        return yaml.safe_load(text)  # type: ignore[no-any-return]  # yaml.safe_load returns Any
     except ImportError:
-        return parse_basic_yaml_string(text)  # type: ignore[return-value]
+        return parse_basic_yaml_string(text)  # type: ignore[return-value]  # fallback parser returns compatible dict type
 
 
 # ---------------------------------------------------------------------------

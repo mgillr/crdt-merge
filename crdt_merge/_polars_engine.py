@@ -32,6 +32,25 @@ Install the fast extra to enable::
 
 When polars is not installed every caller falls back to the pure-Python path
 automatically.  Zero breaking changes.
+
+.. note:: Dead code analysis (Issue #42)
+
+   Static analysis may flag ~41 apparent dead-code candidates in this module.
+   These are **false positives** — the functions/methods are part of the Polars
+   expression-builder API pattern:
+
+   - ``strategy_to_expr()`` builds Polars expressions dynamically; each branch
+     (MaxWins, MinWins, LWW, Concat, LongestWins, fallback) is dispatched at
+     runtime via ``_is_strategy()`` and called by ``polars_merge_arrow()`` /
+     ``polars_merge_dicts()``.
+   - ``_wrap_null()``, ``_resolve_row()`` are closures returned inside
+     ``strategy_to_expr()`` — they execute inside the Polars engine.
+   - ``_get_field_strategy()`` is called from both merge kernels.
+   - ``polars_merge_dicts()`` is the primary entry point for accelerators.
+
+   All exported symbols (``HAS_POLARS``, ``polars_merge_arrow``,
+   ``polars_merge_dicts``, ``strategy_to_expr``) are used by ``arrow.py``
+   and accelerator modules.
 """
 
 from __future__ import annotations
@@ -57,7 +76,7 @@ try:
 
     HAS_POLARS = True
 except ImportError:  # pragma: no cover
-    pl = None  # type: ignore[assignment]
+    pl = None  # type: ignore[assignment]  # fallback when polars not installed
     HAS_POLARS = False
 
 try:
@@ -65,7 +84,7 @@ try:
 
     HAS_ARROW = True
 except ImportError:  # pragma: no cover
-    pa = None  # type: ignore[assignment]
+    pa = None  # type: ignore[assignment]  # fallback when pyarrow not installed
     HAS_ARROW = False
 
 # ---------------------------------------------------------------------------

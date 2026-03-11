@@ -104,7 +104,7 @@ class MerkleNode:
         return cls(
             hash=d["hash"],
             children=children,
-            key_range=kr,  # type: ignore[arg-type]
+            key_range=kr,  # type: ignore[arg-type]  # kr is Tuple[Any, ...] from tuple(), but field expects Optional[Tuple[str, str]]
             count=d.get("count", 0),
         )
 

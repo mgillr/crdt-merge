@@ -51,9 +51,9 @@ from crdt_merge.strategies import LWW, MergeSchema, MergeStrategy
 
 # Lazy-import duckdb
 try:
-    import duckdb as _duckdb  # type: ignore[import-untyped]
+    import duckdb as _duckdb  # type: ignore[import-untyped]  # optional dep: duckdb lacks py.typed
 except ImportError:
-    _duckdb = None  # type: ignore[assignment]
+    _duckdb = None  # type: ignore[assignment]  # fallback when duckdb not installed
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -335,7 +335,7 @@ class DuckLakeConflictResolver:
                 merged_rows.append(dict(row_l))
                 rows_left_only += 1
             else:
-                merged_rows.append(dict(row_r))  # type: ignore[arg-type]
+                merged_rows.append(dict(row_r))  # type: ignore[arg-type]  # row_r coercion to dict is valid
                 rows_right_only += 1
 
         elapsed_ms = (time.time() - start) * 1000

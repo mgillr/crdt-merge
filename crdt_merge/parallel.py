@@ -172,7 +172,7 @@ def parallel_merge_arrow(
         pass
 
     try:
-        from crdt_merge.arrow import ArrowMerge  # type: ignore[import-untyped]
+        from crdt_merge.arrow import ArrowMerge  # type: ignore[import-untyped]  # lazy import avoids circular dep; module lacks py.typed
 
         engine = ArrowMerge(schema=schema)
         return engine.merge(left, right, key=key)

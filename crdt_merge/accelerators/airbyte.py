@@ -42,6 +42,7 @@ All external dependencies use lazy imports.
 from __future__ import annotations
 
 import copy
+import types
 import json
 import time
 from dataclasses import dataclass, field
@@ -77,7 +78,9 @@ _VERSION = "0.7.0"
 _CONNECTOR_NAME = "destination-crdt-merge"
 _DEFAULT_STRATEGY = "lww"
 
-_STRATEGY_MAP = {
+# Issue #20: Immutable mapping — strategy names are a fixed lookup table.
+# Using MappingProxyType prevents accidental mutation in multi-threaded contexts.
+_STRATEGY_MAP = types.MappingProxyType({
     "lww": "LWW",
     "max": "MaxWins",
     "maxwins": "MaxWins",
@@ -89,7 +92,7 @@ _STRATEGY_MAP = {
     "priority": "Priority",
     "longest": "LongestWins",
     "longestwins": "LongestWins",
-}
+})
 
 # ---------------------------------------------------------------------------
 # Airbyte protocol message types (simplified)

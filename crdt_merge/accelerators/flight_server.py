@@ -43,14 +43,14 @@ from typing import Any, Dict, Iterator, List, Optional, Tuple
 
 # Lazy imports
 try:
-    import pyarrow as _pa  # type: ignore[import-untyped]
+    import pyarrow as _pa  # type: ignore[import-untyped]  # optional dep: pyarrow lacks py.typed
 except ImportError:
-    _pa = None  # type: ignore[assignment]
+    _pa = None  # type: ignore[assignment]  # fallback when pyarrow not installed
 
 try:
-    import pyarrow.flight as _flight  # type: ignore[import-untyped]
+    import pyarrow.flight as _flight  # type: ignore[import-untyped]  # optional dep: pyarrow.flight lacks py.typed
 except ImportError:
-    _flight = None  # type: ignore[assignment]
+    _flight = None  # type: ignore[assignment]  # fallback when pyarrow.flight not installed
 
 from crdt_merge.strategies import (
     MergeSchema,
@@ -402,7 +402,7 @@ class _FlightServerImpl:
             # Dynamically create subclass
             parent_cls = _flight.FlightServerBase
 
-            class _Impl(parent_cls):  # type: ignore[misc]
+            class _Impl(parent_cls):  # type: ignore[misc]  # dynamic base class from variable; safe — parent_cls is always FlightServerBase
                 def __init__(inst, loc: Any, ms: MergeSchema, c: dict) -> None:
                     super().__init__(loc)
                     inst._ms = ms

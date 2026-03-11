@@ -78,7 +78,7 @@ def _to_records(data: Any) -> List[Dict[str, Any]]:
     # pandas / polars DataFrames
     if hasattr(data, "to_dict"):
         try:
-            return data.to_dict(orient="records")  # type: ignore[union-attr]
+            return data.to_dict(orient="records")  # type: ignore[union-attr]  # data is pandas DataFrame at this point (checked above)
         except TypeError:
             return data.to_dicts()  # polars
     if hasattr(data, "to_dicts"):
@@ -194,7 +194,7 @@ class StreamlitMergeUI:
         if self._st is not None:
             return self._st
         try:
-            import streamlit as st  # type: ignore[import-untyped]
+            import streamlit as st  # type: ignore[import-untyped]  # optional dep: streamlit lacks py.typed
             self._st = st
             return st
         except ImportError:
@@ -336,7 +336,7 @@ class StreamlitMergeUI:
         """
         st = self._get_streamlit()
         try:
-            import pyarrow as pa  # type: ignore[import-untyped]
+            import pyarrow as pa  # type: ignore[import-untyped]  # optional dep: pyarrow lacks py.typed
             import pyarrow.parquet as pq
 
             table = pa.Table.from_pylist(data)
@@ -373,7 +373,7 @@ class StreamlitMergeUI:
             Dict with ``status``, ``streamlit_available``, and version info.
         """
         try:
-            import streamlit  # type: ignore[import-untyped]
+            import streamlit  # type: ignore[import-untyped]  # optional dep: streamlit lacks py.typed
             st_version = getattr(streamlit, "__version__", "unknown")
             available = True
         except ImportError:
@@ -391,7 +391,7 @@ class StreamlitMergeUI:
     def is_available(self) -> bool:
         """Check whether streamlit is available."""
         try:
-            import streamlit  # type: ignore[import-untyped]  # noqa: F401
+            import streamlit  # type: ignore[import-untyped]  # noqa: F401 — import tests availability; streamlit lacks py.typed
             return True
         except ImportError:
             return False

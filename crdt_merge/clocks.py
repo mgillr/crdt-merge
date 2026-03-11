@@ -317,7 +317,7 @@ class DottedVersionVector:
         base_data = d.get("base", {})
         base = VectorClock.from_dict(base_data) if base_data else VectorClock()
         dot_data = d.get("dot")
-        dot: Optional[Tuple[str, int]] = tuple(dot_data) if dot_data is not None else None  # type: ignore[arg-type]
+        dot: Optional[Tuple[str, int]] = tuple(dot_data) if dot_data is not None else None  # type: ignore[arg-type]  # tuple() returns Tuple[Any,...], narrowing to Tuple[str,int] is safe here
         return cls(base=base, dot=dot)
 
     # ── Dunder methods ───────────────────────────────────────────────────
