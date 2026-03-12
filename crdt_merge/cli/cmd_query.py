@@ -23,10 +23,11 @@ if TYPE_CHECKING:
 
 EPILOG = """\
 examples:
-  %(prog)s "MERGE a, b USING lww INTO result"
+  %(prog)s "MERGE a, b ON id"
+  %(prog)s "MERGE a, b ON id STRATEGY name='lww', score='max'"
   %(prog)s --file query.mql --register a=data_a.json --register b=data_b.json
-  %(prog)s "MERGE a, b USING lww INTO result" --explain
-  %(prog)s --file complex_merge.mql --register src=model.safetensors
+  %(prog)s "MERGE a, b ON id" --explain
+  %(prog)s "MERGE a, b ON id WHERE score > 80 LIMIT 100"
 """
 
 # ---------------------------------------------------------------------------
@@ -175,18 +176,27 @@ def handle_query(args: argparse.Namespace, formatter: OutputFormatter) -> None:
 
     # -- execute the query ----------------------------------------------------
     try:
-        result = engine.execute(parsed)
+        result = engine.execute(query_string)
     except Exception as exc:
         print(f"Error: query execution failed: {exc}", file=sys.stderr)
         raise SystemExit(1) from exc
 
     # -- output results -------------------------------------------------------
-    if hasattr(result, "to_dict"):
+    if hasattr(result, "data") and isinstance(result.data, list):
+        # MergeQLResult dataclass — show merged rows as a table
+        formatter.auto(result.data)
+        formatter.message(
+            f"Merged {result.sources_merged} sources, "
+            f"{len(result.data)} rows, "
+            f"{result.conflicts} conflict(s) resolved in "
+            f"{result.merge_time_ms:.1f}ms"
+        )
+    elif hasattr(result, "to_dict"):
         formatter.json(result.to_dict())
     elif hasattr(result, "value"):
         formatter.json(result.value)
     else:
-        formatter.json(result)
+        formatter.json({"result": str(result)})
 
 
 # ---------------------------------------------------------------------------

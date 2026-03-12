@@ -234,7 +234,7 @@ def _register_encrypt(subparsers: argparse._SubParsersAction) -> None:
     p.add_argument("file", help="Input data file")
     p.add_argument("--key", required=True, help="Master encryption key")
     p.add_argument("--backend", default="auto",
-                    choices=["aes-gcm", "aes-gcm-siv", "chacha20", "xor", "auto"],
+                    choices=["aes-256-gcm", "aes-256-gcm-siv", "chacha20-poly1305", "xor-legacy", "auto"],
                     help="Encryption backend (default: auto)")
     p.add_argument("--fields", help="Comma-separated fields to encrypt")
     p.set_defaults(handler=handle_encrypt)
@@ -252,27 +252,19 @@ def _register_decrypt(subparsers: argparse._SubParsersAction) -> None:
 
 
 def handle_encrypt(args: argparse.Namespace, formatter: Any) -> None:
+    import hashlib
     from crdt_merge.cli._util import load_data, write_data
     from crdt_merge.encryption import EncryptedMerge, StaticKeyProvider
 
     data = load_data(args.file)
-    key_bytes = args.key.encode("utf-8")
+    # Derive a 32-byte key from the user-supplied string via SHA-256
+    key_bytes = hashlib.sha256(args.key.encode("utf-8")).digest()
     provider = StaticKeyProvider(key_bytes)
     fields = [f.strip() for f in args.fields.split(",")] if args.fields else None
+    backend = args.backend  # already validated: full registry name or "auto"
 
-    encrypted = []
-    for row in data:
-        enc_row = dict(row)
-        target_fields = fields or list(row.keys())
-        for field in target_fields:
-            if field in enc_row and enc_row[field] is not None:
-                from crdt_merge.encryption import EncryptedValue
-                ev = EncryptedValue.encrypt(
-                    str(enc_row[field]), field, provider,
-                    backend=args.backend if args.backend != "auto" else None,
-                )
-                enc_row[field] = ev.to_dict() if hasattr(ev, "to_dict") else str(ev)
-        encrypted.append(enc_row)
+    em = EncryptedMerge(provider, backend=backend)
+    encrypted = em.encrypt_records(data, fields=fields)
 
     output = getattr(args, "output", None)
     if output:
@@ -283,22 +275,19 @@ def handle_encrypt(args: argparse.Namespace, formatter: Any) -> None:
 
 
 def handle_decrypt(args: argparse.Namespace, formatter: Any) -> None:
+    import hashlib
     from crdt_merge.cli._util import load_data
-    from crdt_merge.encryption import EncryptedValue, StaticKeyProvider
+    from crdt_merge.encryption import EncryptedMerge, StaticKeyProvider
 
     data = load_data(args.file)
-    key_bytes = args.key.encode("utf-8")
+    # Derive the same 32-byte key used during encryption
+    key_bytes = hashlib.sha256(args.key.encode("utf-8")).digest()
     provider = StaticKeyProvider(key_bytes)
 
-    decrypted = []
-    for row in data:
-        dec_row = dict(row)
-        for field, value in row.items():
-            if isinstance(value, dict) and "ciphertext" in value:
-                ev = EncryptedValue.from_dict(value) if hasattr(EncryptedValue, "from_dict") else None
-                if ev:
-                    dec_row[field] = ev.decrypt(field, provider)
-        decrypted.append(dec_row)
+    # EncryptedMerge.decrypt_records auto-routes to the correct backend via
+    # cipher metadata embedded in each EncryptedValue dict.
+    em = EncryptedMerge(provider, backend="xor-legacy")
+    decrypted = em.decrypt_records(data)
 
     formatter.auto(decrypted, title="Decrypted Data")
 

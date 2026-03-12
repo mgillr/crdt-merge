@@ -114,11 +114,11 @@ def handle_create(args: argparse.Namespace, formatter: OutputFormatter) -> None:
         raise SystemExit(1)
 
     if clock_type == "vectorclock":
-        clock = VectorClock(node_id=args.node)
+        # increment() returns a new immutable VectorClock with the counter set
+        clock = VectorClock().increment(args.node)
     else:
-        clock = DottedVersionVector(node_id=args.node)
-
-    clock.increment(args.node)
+        base = VectorClock().increment(args.node)
+        clock = DottedVersionVector(base=base, dot=(args.node, 1))
     serialized = clock.to_dict()
 
     output_path = Path(args.output)

@@ -161,13 +161,7 @@ def handle_json_merge(
         )
         raise SystemExit(1)
 
-    merge_kwargs: dict[str, Any] = {}
-    if args.prefer is not None:
-        merge_kwargs["prefer"] = args.prefer
-    if args.array_strategy is not None:
-        merge_kwargs["array_strategy"] = args.array_strategy
-
-    result = merge_dicts(doc_a, doc_b, **merge_kwargs)
+    result = merge_dicts(doc_a, doc_b)
 
     output_path: Optional[str] = getattr(args, "output", None)
     if output_path:
@@ -175,7 +169,7 @@ def handle_json_merge(
             json.dump(result, fh, indent=2, ensure_ascii=False)
             fh.write("\n")
     else:
-        formatter.auto(result)
+        formatter.json(result)
 
 
 def handle_json_merge_lines(
@@ -200,14 +194,30 @@ def handle_json_merge_lines(
         )
         raise SystemExit(1) from exc
 
-    merge_kwargs: dict[str, Any] = {"key": args.key}
-    if args.prefer is not None:
-        merge_kwargs["prefer"] = args.prefer
+    # Load JSONL files into lists of dicts
+    def _load_jsonl(path: str) -> list:
+        records = []
+        try:
+            with open(path, "r", encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if line:
+                        records.append(json.loads(line))
+        except FileNotFoundError:
+            print(f"error: file not found: {path}", file=sys.stderr)
+            raise SystemExit(1)
+        except json.JSONDecodeError as exc:
+            print(f"error: invalid JSON in {path}: {exc}", file=sys.stderr)
+            raise SystemExit(1)
+        return records
+
+    lines_a = _load_jsonl(args.file_a)
+    lines_b = _load_jsonl(args.file_b)
 
     try:
-        result = merge_json_lines(args.file_a, args.file_b, **merge_kwargs)
-    except FileNotFoundError as exc:
-        print(f"error: file not found: {exc.filename}", file=sys.stderr)
+        result = merge_json_lines(lines_a, lines_b, key=args.key)
+    except Exception as exc:
+        print(f"error: merge failed: {exc}", file=sys.stderr)
         raise SystemExit(1) from exc
 
     output_path: Optional[str] = getattr(args, "output", None)

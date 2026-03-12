@@ -352,7 +352,7 @@ def handle_merge(args: argparse.Namespace, formatter: "OutputFormatter") -> None
         try:
             from crdt_merge.dedup import dedup_records  # type: ignore[import-untyped]
 
-            result = dedup_records(result, key=args.key)
+            result, _ = dedup_records(result)
         except ImportError as exc:
             print(
                 f"error: --dedup requires crdt_merge.dedup: {exc}",
@@ -461,13 +461,17 @@ def handle_dedup(args: argparse.Namespace, formatter: "OutputFormatter") -> None
     if args.method == "minhash":
         dedup_kwargs["num_perm"] = args.num_perm
 
-    result = dedup_records(data, **dedup_kwargs)
+    # dedup_records returns (deduplicated_list, n_removed)
+    dedup_kwargs.pop("key", None)  # dedup_records has no key param
+    result, n_removed = dedup_records(data, **dedup_kwargs)
 
     output_path: Optional[str] = getattr(args, "output", None)
     if output_path:
         write_data(result, output_path)
+        formatter.success(f"Deduplicated {len(data)} → {len(result)} rows ({n_removed} removed) → {output_path}")
     else:
         formatter.auto(result)
+        formatter.message(f"Removed {n_removed} duplicate(s). {len(result)} unique rows.")
 
 
 def handle_stream(args: argparse.Namespace, formatter: "OutputFormatter") -> None:
@@ -495,21 +499,28 @@ def handle_stream(args: argparse.Namespace, formatter: "OutputFormatter") -> Non
         ProgressBar = None  # type: ignore[assignment,misc]
 
     try:
-        from crdt_merge.cli._util import write_data
+        from crdt_merge.cli._util import write_data, load_data
     except ImportError as exc:
         print(f"error: missing required module: {exc}", file=sys.stderr)
         raise SystemExit(1) from exc
 
+    try:
+        source_a = load_data(args.source_a)
+        source_b = load_data(args.source_b)
+    except Exception as exc:
+        print(f"error: failed to load source data: {exc}", file=sys.stderr)
+        raise SystemExit(1) from exc
+
     stats = StreamStats()
-    progress = ProgressBar("Streaming merge") if ProgressBar is not None else None
+    progress = ProgressBar(desc="Streaming merge") if ProgressBar is not None else None
 
     output_path: Optional[str] = getattr(args, "output", None)
     batches_written = 0
 
     try:
         for batch in merge_stream(
-            args.source_a,
-            args.source_b,
+            source_a,
+            source_b,
             key=args.key,
             batch_size=args.batch_size,
             stats=stats,
@@ -525,7 +536,7 @@ def handle_stream(args: argparse.Namespace, formatter: "OutputFormatter") -> Non
                 formatter.auto(batch)
     finally:
         if progress is not None:
-            progress.close()
+            progress.finish()
 
     if args.stats:
         formatter.auto(stats.to_dict())
