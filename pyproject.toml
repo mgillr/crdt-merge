@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=68,<77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -57,6 +57,9 @@ Repository = "https://github.com/mgillr/crdt-merge"
 Issues = "https://github.com/mgillr/crdt-merge/issues"
 Documentation = "https://github.com/mgillr/crdt-merge#readme"
 Changelog = "https://github.com/mgillr/crdt-merge/blob/main/CHANGELOG.md"
+
+[tool.setuptools]
+license-files = ["LICENSE", "NOTICE"]
 
 [tool.setuptools.packages.find]
 include = ["crdt_merge*"]
