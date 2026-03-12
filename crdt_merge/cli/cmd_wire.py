@@ -75,7 +75,7 @@ def handle_serialize(args: argparse.Namespace, formatter: OutputFormatter) -> No
             sys.exit(1)
 
         try:
-            crdt_mod = importlib.import_module("crdt_merge.crdts")
+            crdt_mod = importlib.import_module("crdt_merge.core")
             crdt_cls = getattr(crdt_mod, class_name)
         except (ImportError, AttributeError) as exc:
             formatter.error(f"Cannot load CRDT class {class_name!r}: {exc}")
