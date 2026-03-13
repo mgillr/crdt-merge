@@ -19,10 +19,24 @@ def _aead_available() -> bool:
     except BaseException:
         return False
 
+def _aesgcmsiv_available() -> bool:
+    """AES-GCM-SIV requires cryptography >= 42.0.0."""
+    try:
+        from cryptography.hazmat.primitives.ciphers.aead import AESGCMSIV
+        AESGCMSIV(secrets.token_bytes(32))
+        return True
+    except BaseException:
+        return False
+
 AEAD_AVAILABLE = _aead_available()
+AESGCMSIV_AVAILABLE = _aesgcmsiv_available()
 requires_aead = pytest.mark.skipif(
     not AEAD_AVAILABLE,
     reason="cryptography AEAD Rust bindings unavailable in this environment",
+)
+requires_siv = pytest.mark.skipif(
+    not AESGCMSIV_AVAILABLE,
+    reason="AES-GCM-SIV requires cryptography>=42.0.0",
 )
 
 from crdt_merge.encryption import (
@@ -71,8 +85,9 @@ class TestCryptoBackendRegistry:
         if not AEAD_AVAILABLE:
             pytest.skip("cryptography AEAD unavailable")
         assert "aes-256-gcm" in _BACKEND_REGISTRY
-        assert "aes-256-gcm-siv" in _BACKEND_REGISTRY
         assert "chacha20-poly1305" in _BACKEND_REGISTRY
+        if AESGCMSIV_AVAILABLE:
+            assert "aes-256-gcm-siv" in _BACKEND_REGISTRY
 
     def test_unknown_backend_raises(self):
         with pytest.raises(ValueError, match="Unknown crypto backend"):
@@ -185,8 +200,8 @@ class TestAESGCMSIVBackend:
 
     @pytest.fixture(autouse=True)
     def _require_cryptography(self):
-        if not AEAD_AVAILABLE:
-            pytest.skip("cryptography AEAD unavailable")
+        if not AESGCMSIV_AVAILABLE:
+            pytest.skip("AES-GCM-SIV requires cryptography>=42.0.0")
         from crdt_merge.encryption import AESGCMSIVBackend
         self.backend = AESGCMSIVBackend()
         self.key = secrets.token_bytes(32)
@@ -483,17 +498,22 @@ class TestEncryptedMergeWithBackends:
 
         em_xor = EncryptedMerge(prov, backend="xor-legacy")
         em_gcm = EncryptedMerge(prov, backend="aes-256-gcm")
-        em_siv = EncryptedMerge(prov, backend="aes-256-gcm-siv")
         em_cc = EncryptedMerge(prov, backend="chacha20-poly1305")
 
         tag_xor = em_xor.encrypt_field(42, "f").order_tag
         tag_gcm = em_gcm.encrypt_field(42, "f").order_tag
-        tag_siv = em_siv.encrypt_field(42, "f").order_tag
         tag_cc = em_cc.encrypt_field(42, "f").order_tag
 
-        assert tag_xor == tag_gcm == tag_siv == tag_cc
+        assert tag_xor == tag_gcm == tag_cc
+
+        if AESGCMSIV_AVAILABLE:
+            em_siv = EncryptedMerge(prov, backend="aes-256-gcm-siv")
+            tag_siv = em_siv.encrypt_field(42, "f").order_tag
+            assert tag_xor == tag_siv
 
     def test_encrypt_records_explicit_siv(self):
+        if not AESGCMSIV_AVAILABLE:
+            pytest.skip("AES-GCM-SIV requires cryptography>=42.0.0")
         key = secrets.token_bytes(32)
         prov = StaticKeyProvider(key)
         em = EncryptedMerge(prov, backend="aes-256-gcm-siv")
@@ -525,6 +545,8 @@ class TestEncryptedMergeWithBackends:
         assert {r["id"] for r in dec} == {"A", "B"}
 
     def test_full_pipeline_gcm_siv(self):
+        if not AESGCMSIV_AVAILABLE:
+            pytest.skip("AES-GCM-SIV requires cryptography>=42.0.0")
         key = secrets.token_bytes(32)
         prov = StaticKeyProvider(key)
         em = EncryptedMerge(prov, backend="aes-256-gcm-siv")

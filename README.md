@@ -5,10 +5,10 @@
 <p><strong>The first merge library where every operation is mathematically guaranteed to converge.</strong><br/>
 Tabular data. Neural network weights. Distributed agents. One unified CRDT layer.</p>
 
-[![PyPI version](https://img.shields.io/badge/pypi-v0.9.2-orange)](https://pypi.org/project/crdt-merge/)
+[![PyPI version](https://img.shields.io/badge/pypi-v0.9.3-orange)](https://pypi.org/project/crdt-merge/)
 [![Downloads](https://img.shields.io/pypi/dm/crdt-merge?label=downloads&color=brightgreen)](https://pypi.org/project/crdt-merge/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Tests](https://img.shields.io/badge/tests-3%2C254%20passing-brightgreen)](TEST_RESULTS.md)
+[![Tests](https://img.shields.io/badge/tests-3%2C291%20passing-brightgreen)](TEST_RESULTS.md)
 [![CRDT Compliance](https://img.shields.io/badge/CRDT%20compliance-26%2F26%20strategies-blue)](docs/CRDT_ARCHITECTURE.md)
 [![License: BSL 1.1](https://img.shields.io/badge/license-BSL%201.1%20%E2%86%92%20Apache%202.0-orange)](LICENSE)
 
@@ -270,6 +270,52 @@ print(f"Merge took {metric.duration_ms:.1f}ms, {metric.conflicts_resolved} confl
 health = HealthCheck(observed.collector)
 status = health.check_health()  # {"status": "healthy", ...}
 ```
+
+---
+
+## What's New in v0.9.3 — "Usability Enhancements & Bug Fixes"
+
+Comprehensive CLI hardening, full test-suite pass, PyPI packaging fix, and
+expanded documentation — closing 28 tracked issues.
+
+### CLI — All Commands Working End-to-End
+
+All 9 CLI command handlers (`verify`, `merge`, `json`, `query`, `merkle`,
+`gossip`, `wire`, `hub`) are now fully functional. Key fixes:
+
+- **`crdt-merge verify`** — correct `verify_crdt(merge_fn, gen_fn)` API; all 5 CRDT types
+- **`crdt-merge query`** — engine now receives query string (not pre-parsed AST)
+- **`crdt-merge merge --stream`** — `ProgressBar(desc=...)` kwarg fixed
+- **`crdt-merge json merge-lines`** — loads JSONL files before passing to merge engine
+- **`crdt-merge gossip sync`** — calls `.digest()` before `anti_entropy()`
+- **`crdt-merge merkle diff/compare`** — handles `MerkleDiff` dataclass correctly
+- **`crdt-merge hub push/pull/merge`** — uses correct `HfApi` methods; no spurious kwargs
+
+### Encryption Backends
+
+- Lazy AEAD imports now wrapped in `try/except BaseException` to handle broken Rust bindings
+- Test suite correctly probes functional availability (not just import success)
+
+### Packaging
+
+- Pinned `setuptools<77` in build requirements to produce Metadata 2.1, resolving `twine check` errors on PyPI upload
+- `[tool.pytest.ini_options] testpaths = ["tests"]` prevents benchmark helpers from being collected as tests
+
+### Test Suite
+
+- **3,291 tests passing** (was 3,254)
+- 37 new tests covering CLI commands, hub integration, and wire protocol
+
+### Documentation
+
+- Full `docs/` refresh from the CRDT-Mapping_Docs architecture reference
+- New sections: getting-started, cookbook, guides, explanations, API reference by layer
+
+### v0.9.3 Numbers
+
+- **28 GitHub issues** resolved
+- **3,291 tests passing**, 0 failures
+- **218 documentation files** across 15 topic areas
 
 ---
 
@@ -1154,7 +1200,7 @@ crdt-merge follows a **reference + protocol** architecture:
 
 | Language | Package | Version | Status |
 |----------|---------|---------|--------|
-| **Python** (reference) | [crdt-merge](https://pypi.org/project/crdt-merge/) | v0.9.2 | ✅ Full feature set + 26 model merge strategies + CRDT architecture + 8 accelerators + Context Memory + Agentic AI + Continual Merge + HF Hub + Enterprise (Unmerge, Audit, Encryption w/ 4 AEAD backends, RBAC, Observability, Compliance, Flower FL) |
+| **Python** (reference) | [crdt-merge](https://pypi.org/project/crdt-merge/) | v0.9.3 | ✅ Full feature set + 26 model merge strategies + CRDT architecture + 8 accelerators + Context Memory + Agentic AI + Continual Merge + HF Hub + Enterprise (Unmerge, Audit, Encryption w/ 4 AEAD backends, RBAC, Observability, Compliance, Flower FL) |
 | Rust | [crdt-merge](https://crates.io/crates/crdt-merge) | v0.2.0 | Core CRDTs + merge |
 | TypeScript | [crdt-merge](https://www.npmjs.com/package/crdt-merge) | v0.2.0 | Core CRDTs + merge |
 | Java | [crdt-merge](https://github.com/mgillr/crdt-merge-java) | v0.2.0 | Source complete |
@@ -1220,6 +1266,7 @@ See [CHANGELOG.md](CHANGELOG.md) for the full project history.
 | v0.9.1 | Iron Dome: Pluggable crypto backends, 186 new tests, audit remediation | ✅ Released |
 | v0.9.1.1 | Backfill: [crypto] optional dependency group | ✅ Released |
 | v0.9.2 | Completion: Compliance, Observability Extensions, Flower FL Plugin | ✅ Released |
+| v0.9.3 | Usability Enhancements: CLI hardening, docs refresh, packaging fix | ✅ Released |
 | v1.0 | Stable API, formal spec, security audit, cross-language parity | Planned |
 
 **Full roadmap:** [`docs/roadmap/roadmap_v2_0.md`](docs/roadmap/roadmap_v2_0.md)
@@ -1228,7 +1275,7 @@ See [CHANGELOG.md](CHANGELOG.md) for the full project history.
 
 <div align="center">
 
-**[Documentation](docs/)** · **[API Reference](docs/api/README.md)** · **[Architecture](docs/CRDT_ARCHITECTURE.md)** · **[Benchmarks](notebooks/)** · **[Changelog](CHANGELOG.md)** · **[License](LICENSE)**
+**[Documentation](docs/README.md)** · **[API Reference](docs/api-reference/README.md)** · **[Architecture](docs/architecture/OVERVIEW.md)** · **[Benchmarks](notebooks/)** · **[Changelog](CHANGELOG.md)** · **[License](LICENSE)**
 
 *Built by [Ryan Gillespie / Optitransfer](https://optitransfer.ch)*
 

@@ -1,0 +1,1407 @@
+[
+  {
+    "registry_name": "ada_merging",
+    "class_name": "AdaptiveMerging",
+    "module": "crdt_merge.model.strategies.weighted",
+    "source_file": "crdt_merge/model/strategies/weighted.py",
+    "category": "Weighted / Importance",
+    "paper_reference": "Yang et al., 2024 \u2014 AdaMerging: Adaptive Model Merging",
+    "crdt_properties": {
+      "commutative": "conditional",
+      "associative": "conditional",
+      "idempotent": true
+    },
+    "init_signature": "(self, /, *args, **kwargs)",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 131,
+    "docstring": "AdaMerging: Entropy-based adaptive merge coefficients (Yang et al., 2024).\n\n    Without calibration data, uses an entropy-based heuristic on weight\n    distributions to determine per-model merge coeff",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  },
+  {
+    "registry_name": "adarank",
+    "class_name": "AdaptiveRankPruning",
+    "module": "crdt_merge.model.strategies.subspace",
+    "source_file": "crdt_merge/model/strategies/subspace.py",
+    "category": "Subspace / Sparsification",
+    "paper_reference": "ICLR 2026 \u2014 AdaRank: Adaptive Rank Pruning for Model Merging",
+    "crdt_properties": {
+      "commutative": true,
+      "associative": false,
+      "idempotent": false
+    },
+    "init_signature": "(self, /, *args, **kwargs)",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 126,
+    "docstring": "AdaRank: Per-layer adaptive rank selection + pruned merge (ICLR 2026).",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  },
+  {
+    "registry_name": "dam",
+    "class_name": "DifferentiableAdaptiveMerging",
+    "module": "crdt_merge.model.strategies.weighted",
+    "source_file": "crdt_merge/model/strategies/weighted.py",
+    "category": "Weighted / Importance",
+    "paper_reference": "2024 \u2014 Differentiable Adaptive Merging (DAM)",
+    "crdt_properties": {
+      "commutative": "conditional",
+      "associative": "conditional",
+      "idempotent": true
+    },
+    "init_signature": "(self, /, *args, **kwargs)",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 118,
+    "docstring": "DAM: Differentiable Adaptive Merging via gradient-free coefficient optimization (2024).\n\n    Optimizes merge coefficients to minimize output variance using a\n    simple grid search / iterative refinem",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  },
+  {
+    "registry_name": "dare",
+    "class_name": "DareDropAndRescale",
+    "module": "crdt_merge.model.strategies.subspace",
+    "source_file": "crdt_merge/model/strategies/subspace.py",
+    "category": "Subspace / Sparsification",
+    "paper_reference": "Yu et al., 2024 \u2014 Language Models are Super Mario",
+    "crdt_properties": {
+      "commutative": false,
+      "associative": false,
+      "idempotent": false
+    },
+    "init_signature": "(self, /, *args, **kwargs)",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 68,
+    "docstring": "DARE: Drop And REscale (Yu et al., 2024 \u2014 Language Models are Super Mario).",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  },
+  {
+    "registry_name": "dare_ties",
+    "class_name": "DareTiesHybrid",
+    "module": "crdt_merge.model.strategies.subspace",
+    "source_file": "crdt_merge/model/strategies/subspace.py",
+    "category": "Subspace / Sparsification",
+    "paper_reference": "Community hybrid, 2024 \u2014 DARE-TIES",
+    "crdt_properties": {
+      "commutative": false,
+      "associative": false,
+      "idempotent": false
+    },
+    "init_signature": "(self, /, *args, **kwargs)",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 133,
+    "docstring": "DARE-TIES: DARE dropping + TIES sign election (Community hybrid, 2024).",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  },
+  {
+    "registry_name": "della",
+    "class_name": "DellaDropElectLowRank",
+    "module": "crdt_merge.model.strategies.subspace",
+    "source_file": "crdt_merge/model/strategies/subspace.py",
+    "category": "Subspace / Sparsification",
+    "paper_reference": "Bansal, 2024 \u2014 DELLA-Merging",
+    "crdt_properties": {
+      "commutative": false,
+      "associative": false,
+      "idempotent": false
+    },
+    "init_signature": "(self, /, *args, **kwargs)",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 86,
+    "docstring": "DELLA-Merging: DARE + magnitude-aware dropping (Bansal, 2024).",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  },
+  {
+    "registry_name": "dual_projection",
+    "class_name": "DualProjectionMerge",
+    "module": "crdt_merge.model.strategies.continual",
+    "source_file": "crdt_merge/model/strategies/continual.py",
+    "category": "continual",
+    "paper_reference": "Yuan et al., NeurIPS 2025",
+    "crdt_properties": {
+      "commutative": true,
+      "associative": true,
+      "idempotent": true,
+      "crdt_tier": "TRUE_CRDT"
+    },
+    "init_signature": "(self, stability_weight: 'float' = 0.5, rank_fraction: 'float' = 0.5) -> 'None'",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 262,
+    "docstring": "Dual-projection continual merge with CRDT guarantees.\n\n    Decomposes task vectors (differences from a base model) into two\n    orthogonal components via truncated SVD:\n\n    * **Shared subspace** (top",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  },
+  {
+    "registry_name": "emr",
+    "class_name": "EMRMerge",
+    "module": "crdt_merge.model.strategies.subspace",
+    "source_file": "crdt_merge/model/strategies/subspace.py",
+    "category": "Subspace / Sparsification",
+    "paper_reference": "Huang et al., 2024 \u2014 EMR-Merging",
+    "crdt_properties": {
+      "commutative": true,
+      "associative": false,
+      "idempotent": false
+    },
+    "init_signature": "(self, /, *args, **kwargs)",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 104,
+    "docstring": "EMR-Merging: Elect, Mask, Rescale (Huang et al., 2024).",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  },
+  {
+    "registry_name": "evolutionary_merge",
+    "class_name": "EvolutionaryMerge",
+    "module": "crdt_merge.model.strategies.evolutionary",
+    "source_file": "crdt_merge/model/strategies/evolutionary.py",
+    "category": "Evolutionary",
+    "paper_reference": "Sakana AI, 2024; M2N2 (GECCO 2025)",
+    "crdt_properties": {
+      "commutative": false,
+      "associative": false,
+      "idempotent": false
+    },
+    "init_signature": "(self, /, *args, **kwargs)",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 122,
+    "docstring": "Population-based optimization over merge weights (CMA-ES style).\n\n    Sakana AI, 2024; M2N2 (GECCO 2025).\n\n    Evolves a population of coefficient vectors, selecting the\n    best-fitness merge. Defaul",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  },
+  {
+    "registry_name": "fisher_merge",
+    "class_name": "FisherMerge",
+    "module": "crdt_merge.model.strategies.weighted",
+    "source_file": "crdt_merge/model/strategies/weighted.py",
+    "category": "Weighted / Importance",
+    "paper_reference": "Matena & Raffel, 2022 \u2014 Merging Models with Fisher-Weighted Averaging",
+    "crdt_properties": {
+      "commutative": true,
+      "associative": false,
+      "idempotent": true
+    },
+    "init_signature": "(self, /, *args, **kwargs)",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 103,
+    "docstring": "Fisher-weighted averaging (Matena & Raffel, 2022).\n\n    ``\u03b8 = \u03a3(F\u1d62 \u00b7 \u03b8\u1d62) / \u03a3(F\u1d62)`` where F\u1d62 is the diagonal Fisher\n    information matrix for model *i*.\n\n    If no Fisher matrices are provided, falls ",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  },
+  {
+    "registry_name": "genetic_merge",
+    "class_name": "GeneticMerge",
+    "module": "crdt_merge.model.strategies.evolutionary",
+    "source_file": "crdt_merge/model/strategies/evolutionary.py",
+    "category": "Evolutionary",
+    "paper_reference": "Mergenetic library, 2025",
+    "crdt_properties": {
+      "commutative": false,
+      "associative": false,
+      "idempotent": true
+    },
+    "init_signature": "(self, /, *args, **kwargs)",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 138,
+    "docstring": "Genetic algorithm merge with crossover and mutation (Mergenetic, 2025).\n\n    Chromosome = weight vector. Uses uniform crossover, Gaussian\n    mutation, and tournament selection.",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  },
+  {
+    "registry_name": "led_merge",
+    "class_name": "LEDMerge",
+    "module": "crdt_merge.model.strategies.safety",
+    "source_file": "crdt_merge/model/strategies/safety.py",
+    "category": "Safety-Aware",
+    "paper_reference": "2025 \u2014 Layer-wise Evaluation-Driven Merging (LED)",
+    "crdt_properties": {
+      "commutative": true,
+      "associative": false,
+      "idempotent": true
+    },
+    "init_signature": "(self, /, *args, **kwargs)",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 121,
+    "docstring": "LEDMerge: Layer-wise Evaluation-Driven best-source selection (2025).\n\n    For each parameter position, picks the source closest to the mean\n    (lowest L2 distance). With an optional ``eval_fn``, eval",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  },
+  {
+    "registry_name": "linear",
+    "class_name": "LinearInterpolation",
+    "module": "crdt_merge.model.strategies.basic",
+    "source_file": "crdt_merge/model/strategies/basic.py",
+    "category": "interpolation",
+    "paper_reference": "Wortsman et al., 2022 \u2014 Model soups: averaging weights of multiple fine-tuned models improves accuracy without increasing inference time",
+    "crdt_properties": {
+      "commutative": "conditional",
+      "associative": false,
+      "idempotent": true
+    },
+    "init_signature": "(self, /, *args, **kwargs)",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 62,
+    "docstring": "Linear interpolation / model soups (Wortsman et al., 2022).\n\n    ``\u03b8_merged = (1 - t) \u00b7 \u03b8\u2081 + t \u00b7 \u03b8\u2082``",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  },
+  {
+    "registry_name": "model_breadcrumbs",
+    "class_name": "ModelBreadcrumbs",
+    "module": "crdt_merge.model.strategies.subspace",
+    "source_file": "crdt_merge/model/strategies/subspace.py",
+    "category": "Subspace / Sparsification",
+    "paper_reference": "Davari & Belilovsky, 2023 \u2014 Model Breadcrumbs",
+    "crdt_properties": {
+      "commutative": true,
+      "associative": false,
+      "idempotent": false
+    },
+    "init_signature": "(self, /, *args, **kwargs)",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 93,
+    "docstring": "Model Breadcrumbs: Sparse masks + task vector aggregation (Davari & Belilovsky, 2023).",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  },
+  {
+    "registry_name": "negative_merge",
+    "class_name": "NegativeMerge",
+    "module": "crdt_merge.model.strategies.unlearning",
+    "source_file": "crdt_merge/model/strategies/unlearning.py",
+    "category": "Unlearning",
+    "paper_reference": "ICML 2025 \u2014 NegMerge: Weight Negation for Unlearning",
+    "crdt_properties": {
+      "commutative": true,
+      "associative": false,
+      "idempotent": false
+    },
+    "init_signature": "(self, /, *args, **kwargs)",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 108,
+    "docstring": "NegMerge: Weight negation for unlearning (ICML 2025).\n\n    ``\u03b8 = \u03b8_base - \u03b1 \u00b7 (\u03b8_toxic - \u03b8_base)`` \u2014 negate unwanted task vectors.\n\n    If ``models_to_negate`` is specified, only those models are nega",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  },
+  {
+    "registry_name": "regression_mean",
+    "class_name": "RegressionMean",
+    "module": "crdt_merge.model.strategies.weighted",
+    "source_file": "crdt_merge/model/strategies/weighted.py",
+    "category": "Weighted / Importance",
+    "paper_reference": "Jin et al., 2023 \u2014 Dataless Knowledge Fusion by Merging Weights",
+    "crdt_properties": {
+      "commutative": true,
+      "associative": false,
+      "idempotent": true
+    },
+    "init_signature": "(self, /, *args, **kwargs)",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 86,
+    "docstring": "RegMean: Dataless knowledge fusion via regularized regression mean (Jin et al., 2023).\n\n    Simplified diagonal case:\n    ``\u03b8 = (\u03a3 \u03b8\u1d62\u1d40\u03b8\u1d62 + \u03bbI)\u207b\u00b9 \u00b7 \u03a3(\u03b8\u1d62\u1d40\u03b8\u1d62 \u00b7 \u03b8\u1d62)``\n\n    For 1D parameters this reduces t",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  },
+  {
+    "registry_name": "representation_surgery",
+    "class_name": "RepresentationSurgery",
+    "module": "crdt_merge.model.strategies.calibration",
+    "source_file": "crdt_merge/model/strategies/calibration.py",
+    "category": "Post-Calibration",
+    "paper_reference": "2024 \u2014 Post-Merge Representation Surgery",
+    "crdt_properties": {
+      "commutative": true,
+      "associative": false,
+      "idempotent": true
+    },
+    "init_signature": "(self, /, *args, **kwargs)",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 150,
+    "docstring": "Post-merge representation correction (2024).\n\n    Analyzes the merged distribution, identifies distortions relative\n    to the input average, and corrects them.\n\n    Correction methods:\n    - ``\"cente",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  },
+  {
+    "registry_name": "safe_merge",
+    "class_name": "SafeMerge",
+    "module": "crdt_merge.model.strategies.safety",
+    "source_file": "crdt_merge/model/strategies/safety.py",
+    "category": "Safety-Aware",
+    "paper_reference": "2025 \u2014 Safety-Preserving Model Merging",
+    "crdt_properties": {
+      "commutative": true,
+      "associative": false,
+      "idempotent": true
+    },
+    "init_signature": "(self, /, *args, **kwargs)",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 117,
+    "docstring": "Safety-preserving model merging (2025).\n\n    Identifies safety-critical parameters and freezes them (uses base\n    model's values), then merges the remaining parameters via averaging.\n\n    When ``safe",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  },
+  {
+    "registry_name": "slerp",
+    "class_name": "SphericalLinearInterpolation",
+    "module": "crdt_merge.model.strategies.basic",
+    "source_file": "crdt_merge/model/strategies/basic.py",
+    "category": "interpolation",
+    "paper_reference": "Shoemake, 1985 \u2014 Animating Rotation with Quaternion Curves",
+    "crdt_properties": {
+      "commutative": "conditional",
+      "associative": false,
+      "idempotent": true
+    },
+    "init_signature": "(self, /, *args, **kwargs)",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 135,
+    "docstring": "Spherical linear interpolation (Shoemake 1985, applied to LLMs 2024).\n\n    ``SLERP(\u03b8\u2081, \u03b8\u2082, t) = sin((1-t)\u03a9)/sin(\u03a9) \u00b7 \u03b8\u2081 + sin(t\u03a9)/sin(\u03a9) \u00b7 \u03b8\u2082``\n    where ``\u03a9 = arccos(\u03b8\u2081\u00b7\u03b8\u2082 / (|\u03b8\u2081|\u00b7|\u03b8\u2082|))``.",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  },
+  {
+    "registry_name": "split_unlearn_merge",
+    "class_name": "SplitUnlearnMerge",
+    "module": "crdt_merge.model.strategies.unlearning",
+    "source_file": "crdt_merge/model/strategies/unlearning.py",
+    "category": "Unlearning",
+    "paper_reference": "2025 \u2014 Sequential Split-Unlearn-Merge",
+    "crdt_properties": {
+      "commutative": true,
+      "associative": false,
+      "idempotent": false
+    },
+    "init_signature": "(self, /, *args, **kwargs)",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 110,
+    "docstring": "Split \u2192 Unlearn \u2192 Merge (2025).\n\n    Splits parameters into subspaces by magnitude, unlearns targeted\n    fraction, then merges the clean remainder.",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  },
+  {
+    "registry_name": "star",
+    "class_name": "SpectralTruncationAdaptiveRescaling",
+    "module": "crdt_merge.model.strategies.subspace",
+    "source_file": "crdt_merge/model/strategies/subspace.py",
+    "category": "Subspace / Sparsification",
+    "paper_reference": "2025 \u2014 Spectral Truncation Adaptive Rescaling (STAR)",
+    "crdt_properties": {
+      "commutative": true,
+      "associative": false,
+      "idempotent": false
+    },
+    "init_signature": "(self, /, *args, **kwargs)",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 121,
+    "docstring": "STAR: SVD decompose, truncate, rescale, reconstruct (2025).",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  },
+  {
+    "registry_name": "svd_knot_tying",
+    "class_name": "SVDKnotTying",
+    "module": "crdt_merge.model.strategies.subspace",
+    "source_file": "crdt_merge/model/strategies/subspace.py",
+    "category": "Subspace / Sparsification",
+    "paper_reference": "2024 \u2014 SVD Knot Tying: Aligning Merge Subspaces",
+    "crdt_properties": {
+      "commutative": true,
+      "associative": false,
+      "idempotent": true
+    },
+    "init_signature": "(self, /, *args, **kwargs)",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 122,
+    "docstring": "SVD Knot Tying: Align SVD bases, merge in aligned space (2024).",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  },
+  {
+    "registry_name": "task_arithmetic",
+    "class_name": "TaskArithmetic",
+    "module": "crdt_merge.model.strategies.basic",
+    "source_file": "crdt_merge/model/strategies/basic.py",
+    "category": "task_vector",
+    "paper_reference": "Ilharco et al., 2023 \u2014 Editing Models with Task Arithmetic",
+    "crdt_properties": {
+      "commutative": true,
+      "associative": true,
+      "idempotent": false
+    },
+    "init_signature": "(self, /, *args, **kwargs)",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 76,
+    "docstring": "Task arithmetic merge (Ilharco et al., 2023).\n\n    ``\u03b8_merged = \u03b8_base + \u03a3(\u03b1\u1d62 \u00b7 \u03c4\u1d62)`` where ``\u03c4\u1d62 = \u03b8\u1d62 - \u03b8_base``.",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  },
+  {
+    "registry_name": "ties",
+    "class_name": "TIESMerge",
+    "module": "crdt_merge.model.strategies.subspace",
+    "source_file": "crdt_merge/model/strategies/subspace.py",
+    "category": "Subspace / Sparsification",
+    "paper_reference": "Yadav et al., NeurIPS 2023 \u2014 Resolving Interference When Merging Models (TIES-Merging)",
+    "crdt_properties": {
+      "commutative": true,
+      "associative": false,
+      "idempotent": false
+    },
+    "init_signature": "(self, /, *args, **kwargs)",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 132,
+    "docstring": "TIES-Merging: Trim, Elect sign, Disjoint merge (Yadav et al., NeurIPS 2023).",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  },
+  {
+    "registry_name": "weight_average",
+    "class_name": "WeightAverage",
+    "module": "crdt_merge.model.strategies.basic",
+    "source_file": "crdt_merge/model/strategies/basic.py",
+    "category": "averaging",
+    "paper_reference": "McMahan et al., 2017 \u2014 Communication-Efficient Learning of Deep Networks from Decentralized Data",
+    "crdt_properties": {
+      "commutative": true,
+      "associative": false,
+      "idempotent": true
+    },
+    "init_signature": "(self, /, *args, **kwargs)",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 63,
+    "docstring": "Federated-averaging style weighted average (McMahan et al., 2017).\n\n    ``\u03b8_merged = \u03a3(\u03b1\u1d62 \u00b7 \u03b8\u1d62)``  where ``\u03a3\u03b1\u1d62 = 1``.\n\n    .. note:: CRDT compliance\n\n       This strategy is **commutative** and **idem",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  },
+  {
+    "registry_name": "weight_scope_alignment",
+    "class_name": "WeightScopeAlignment",
+    "module": "crdt_merge.model.strategies.calibration",
+    "source_file": "crdt_merge/model/strategies/calibration.py",
+    "category": "Post-Calibration",
+    "paper_reference": "2024 \u2014 Weight Distribution Scope Alignment",
+    "crdt_properties": {
+      "commutative": true,
+      "associative": false,
+      "idempotent": true
+    },
+    "init_signature": "(self, /, *args, **kwargs)",
+    "merge_signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+    "source_lines": 166,
+    "docstring": "Weight Scope Alignment: Normalize weight distributions \u2192 align \u2192 merge (2024).\n\n    Normalizes each model's parameters to a target scope (z-score, min-max,\n    or unit norm), averages in normalized sp",
+    "methods": [
+      {
+        "name": "category",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_properties",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "crdt_tier",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "merge",
+        "signature": "(self, tensors: 'list', weights: 'Optional[List[float]]' = None, base: 'Any' = None, **kwargs: 'Any') -> 'Any'",
+        "type": "method"
+      },
+      {
+        "name": "name",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "paper_reference",
+        "signature": "property",
+        "type": "property"
+      },
+      {
+        "name": "verify_crdt",
+        "signature": "(self, gen_fn=None, trials: 'int' = 100, base_gen_fn=None) -> 'Dict[str, Any]'",
+        "type": "method"
+      }
+    ]
+  }
+]
