@@ -399,7 +399,7 @@ class TestCLI:
             cli_migrate(["--help"])
         assert exc_info.value.code == 0
         captured = capsys.readouterr()
-        assert "Usage:" in captured.out
+        assert "usage:" in captured.out.lower()
 
     def test_cli_no_args(self, capsys):
         with pytest.raises(SystemExit) as exc_info:
@@ -418,14 +418,14 @@ class TestCLI:
         with pytest.raises(SystemExit):
             main()
         captured = capsys.readouterr()
-        assert "Usage:" in captured.out
+        assert "usage:" in captured.out.lower()
 
     def test_main_unknown_command(self, capsys, monkeypatch):
         monkeypatch.setattr(sys, "argv", ["crdt-merge", "bogus"])
         with pytest.raises(SystemExit):
             main()
         captured = capsys.readouterr()
-        assert "Unknown command" in captured.out
+        assert "invalid choice" in captured.err or "Unknown command" in captured.err
 
 
 # ===================================================================

@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=68,<77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "crdt-merge"
-version = "0.9.2"
+version = "0.9.3"
 description = "Mathematically proven conflict-free merge for AI model weights, datasets, and agent memory. Zero dependencies. Patent pending."
 readme = "README.md"
 license = {text = "BUSL-1.1"}
@@ -57,6 +57,13 @@ Repository = "https://github.com/mgillr/crdt-merge"
 Issues = "https://github.com/mgillr/crdt-merge/issues"
 Documentation = "https://github.com/mgillr/crdt-merge#readme"
 Changelog = "https://github.com/mgillr/crdt-merge/blob/main/CHANGELOG.md"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "strict"
+
+[tool.setuptools]
+license-files = ["LICENSE", "NOTICE"]
 
 [tool.setuptools.packages.find]
 include = ["crdt_merge*"]
