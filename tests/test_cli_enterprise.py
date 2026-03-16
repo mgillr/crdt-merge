@@ -273,9 +273,8 @@ class TestEnterpriseCLI:
         parser = argparse.ArgumentParser()
         sub = parser.add_subparsers(dest="command")
         register(sub)
-        commands = [action.dest for action in sub._group_actions
-                    if hasattr(action, '_name_parser_map')]
-        # All commands should be accessible
+        # All enterprise commands should be reachable via --help
         for cmd in ("audit", "provenance", "compliance", "encrypt", "decrypt", "rbac"):
-            with pytest.raises(SystemExit):
+            with pytest.raises(SystemExit) as exc_info:
                 parser.parse_args([cmd, "--help"])
+            assert exc_info.value.code == 0
