@@ -58,14 +58,13 @@ import secrets
 import struct
 import warnings
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Tuple
 
-# Issue #25: These top-level imports create a potential circular dependency chain
-# (encryption -> crdt_merge -> encryption). Currently safe because __init__.py imports
-# encryption late in the module, but could break if import order changes.
-# TODO: Consider lazy-importing merge/MergeSchema inside methods that use them.
-from crdt_merge import merge
-from crdt_merge.strategies import MergeSchema
+# MergeSchema is used only as a type annotation and at runtime inside
+# merge_encrypted().  Import via TYPE_CHECKING for annotations; the runtime
+# import lives inside merge_encrypted() to avoid any circular-import risk.
+if TYPE_CHECKING:
+    from crdt_merge.strategies import MergeSchema
 
 __all__ = [
     "CryptoBackend",
@@ -633,7 +632,7 @@ class EncryptedMerge:
         left: List[Dict[str, Any]],
         right: List[Dict[str, Any]],
         key: str,
-        schema: Optional[MergeSchema] = None,
+        schema: "Optional[MergeSchema]" = None,
     ) -> List[Dict[str, Any]]:
         """Merge two sets of encrypted records using order-tags for strategy
         resolution.
@@ -643,6 +642,9 @@ class EncryptedMerge:
         internally so that LWW / Max / Min strategies work on the encrypted
         representation, then returns the merged encrypted records.
         """
+        # Lazy import avoids circular dependency (encryption ↔ crdt_merge.__init__)
+        from crdt_merge.strategies import MergeSchema as _MergeSchema  # noqa: F401 (runtime only)
+
         # Materialise EncryptedValue objects for comparison during merge
         left_ev = self._hydrate_encrypted_values(left)
         right_ev = self._hydrate_encrypted_values(right)
