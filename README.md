@@ -48,7 +48,59 @@ A CRDT-compliant merge satisfies three algebraic laws:
 
 When all three hold, your distributed system **always converges** — no coordination, no locking, no central arbiter required.
 
-> [Deep dive: How we proved all 26 strategies are CRDT-compliant — 7 architectures tested, full mathematical proofs](docs/CRDT_ARCHITECTURE.md)
+---
+
+## The Novel Innovation
+
+> ⚠️ **Patent Pending — UK Application No. 2607132.4 (filed 30 March 2026)**
+
+The starting point for crdt-merge was a mathematically uncomfortable finding: **virtually every standard merge algorithm fails CRDT laws when applied directly to data or model tensors.**
+
+This isn't an implementation problem. It's provable:
+
+| Strategy | Commutative | Associative | Idempotent | CRDT on raw tensors? |
+|---|:---:|:---:|:---:|:---:|
+| Weight Average | ✓ | ✗ | ✓ | **✗** |
+| SLERP | ✗ | ✗ | ✓ | **✗** |
+| TIES | ~ | ✗ | ✗ | **✗** |
+| DARE | ✗ | ✗ | ✗ | **✗** |
+| Fisher Merge | ✓ | ✗ | ✓ | **✗** |
+| Task Arithmetic | ✓ | ✗ | ✗ | **✗** |
+
+Even simple weight averaging fails associativity: `((A+B)/2 + C)/2 ≠ (A + (B+C)/2)/2`. Every strategy in the table — and every strategy anyone is likely to build — fails at least one law.
+
+**Seven architectures** were designed and evaluated to solve this. The winning insight was a fundamental reframing:
+
+> *Don't try to make the strategy satisfy CRDT laws. Lift CRDT compliance to the layer above it.*
+
+The solution is a **two-layer OR-Set architecture**:
+
+```
+┌──────────────────────────────────────────────────────┐
+│  Layer 1 — CRDTMergeState (OR-Set wrapper)            │
+│                                                       │
+│  • Contributions stored as a set, not a sequence      │
+│  • Set union is commutative ✓  associative ✓          │
+│    idempotent ✓  — CRDT laws hold here, always        │
+│  • Merkle hash + vector clock enforce canonical order │
+│  • Seeded randomness: stochastic strategies become    │
+│    fully deterministic given the same input set       │
+└──────────────────────┬───────────────────────────────┘
+                       │ ordered, deterministic set
+                       ▼
+┌──────────────────────────────────────────────────────┐
+│  Layer 2 — Strategy (pure function)                   │
+│                                                       │
+│  • SLERP / TIES / DARE / Fisher / LoRA / ...          │
+│  • Raw algorithm — does not need to be CRDT-safe      │
+│  • Same ordered input set → same output, always       │
+│  • Fully swappable without re-adding contributions    │
+└──────────────────────────────────────────────────────┘
+```
+
+**The key insight:** CRDT guarantees live in Layer 1, not in individual strategies. A strategy can be inherently stochastic, non-commutative, or non-associative — the OR-Set wrapper above it absorbs all of that and guarantees convergence at the system level. This is why all 26 strategies in crdt-merge are fully CRDT-compliant, even DARE (which randomly drops tensor entries) and EvolutionaryMerge (which runs a stochastic search).
+
+> **[Full architecture document](docs/CRDT_ARCHITECTURE.md)** — mathematical proofs for each strategy, all 7 candidate architectures evaluated, benchmark results, full compliance matrix.
 
 ---
 
@@ -69,39 +121,6 @@ When all three hold, your distributed system **always converges** — no coordin
 | A model training framework | No. Operates on already-trained weights only |
 | A database | No. No persistence, no queries, no networking |
 | Slow because of "CRDT overhead" | No. Overhead is **< 0.5ms** per merge |
-
----
-
-## Architecture
-
-crdt-merge uses a **two-layer OR-Set architecture** — the result of evaluating 7 candidate designs against the full CRDT compliance matrix. It is the only approach that guarantees convergence across all 26 merge strategies without sacrificing performance or API simplicity.
-
-```
-┌──────────────────────────────────────────────────────┐
-│  Layer 1 — CRDTMergeState (OR-Set wrapper)            │
-│                                                       │
-│  • Canonical ordering via Merkle hash + vector clock  │
-│  • Seeded randomness: stochastic strategies become    │
-│    deterministic given the same input set             │
-│  • Set union is commutative ✓  associative ✓          │
-│    idempotent ✓ — CRDT laws hold at this layer        │
-└──────────────────────┬───────────────────────────────┘
-                       │ deterministic, ordered set
-                       ▼
-┌──────────────────────────────────────────────────────┐
-│  Layer 2 — Strategy (pure function)                   │
-│                                                       │
-│  • SLERP / TIES / DARE / Fisher / LoRA / ...          │
-│  • Raw algorithms — some inherently stochastic        │
-│  • The wrapper above guarantees CRDT compliance       │
-│    even for non-deterministic strategies              │
-│  • Fully swappable without re-adding contributions    │
-└──────────────────────────────────────────────────────┘
-```
-
-**The key insight:** CRDT guarantees live in Layer 1, not in individual strategies. A strategy declares `commutative: False` because it is a raw algorithm — the system guarantee comes from the wrapper, not the strategy. This lets you swap strategies freely while the convergence property is preserved at the architectural level.
-
-> **[Full architecture document](docs/CRDT_ARCHITECTURE.md)** — mathematical proofs, 7 alternative architectures evaluated, benchmark results, full compliance matrix for all 26 strategies.
 
 ---
 
