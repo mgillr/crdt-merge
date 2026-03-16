@@ -1,0 +1,213 @@
+# SPDX-License-Identifier: BUSL-1.1
+
+# Model Strategy CRDT Property Matrix
+
+This guide documents the algebraic properties of every model-merge strategy
+shipped with crdt-merge. Understanding these properties is essential for
+choosing strategies in distributed, multi-node, or multi-round merge pipelines
+where the order and grouping of operations must not affect the final result.
+
+---
+
+## CRDT Properties for Model Merging
+
+### Commutativity
+
+A strategy is **commutative** when `merge(A, B) == merge(B, A)`. In a
+distributed system where nodes may receive models in arbitrary order, a
+commutative strategy produces the same result regardless of message arrival
+sequence. Non-commutative strategies require a globally agreed ordering.
+
+### Associativity
+
+A strategy is **associative** when `merge(merge(A, B), C) == merge(A, merge(B, C))`.
+Associativity enables safe pairwise chaining: you can merge models two at a
+time in any grouping and obtain the same result as a single N-way merge.
+Non-associative strategies must receive all models in a single call to avoid
+order-dependent bias.
+
+### Idempotency
+
+A strategy is **idempotent** when `merge(A, A) == A`. Idempotency means that
+re-applying a merge (e.g., after a network retry or duplicate delivery) does
+not change the state. Strategies that are not idempotent will drift if the
+same model is applied multiple times.
+
+### N-Way Safety
+
+A strategy is **safe for direct N-way** merge when all inputs can be passed
+in a single `merge([t1, t2, ..., tN])` call and the result does not depend on
+internal processing order. Strategies that are only **pairwise-safe** require
+sequential or tree-structured application but may give different results
+depending on the pairing order.
+
+### Notation
+
+| Symbol | Meaning |
+|--------|---------|
+| ✅ | Property holds unconditionally |
+| ❌ | Property does not hold |
+| ⚠️ | Conditional — holds under specific assumptions (see Notes column) |
+| N/A | Not applicable |
+
+---
+
+## Strategy CRDT Property Matrix
+
+| Strategy | Registry Name | Commutative | Associative | Idempotent | N-Way Safe | Notes |
+|----------|--------------|:-----------:|:-----------:|:----------:|:----------:|-------|
+| **WeightAverage** | `weight_average` | ✅ | ❌ | ✅ | ✅ | Pass all tensors in one call. Pairwise averaging assigns progressively less weight to earlier inputs. Single-call N-way result is order-independent. |
+| **LinearInterpolation** | `linear` | ⚠️ | ❌ | ✅ | ⚠️ | Commutative only when `t=0.5`. Pairwise sequential for N>2; result depends on pairing order. Prefer `weight_average` for true N-way. |
+| **SLERP** | `slerp` | ⚠️ | ❌ | ✅ | ⚠️ | Commutative at `t=0.5`; not in general. Pairwise sequential for N>2 introduces order dependence. Use for two-model merges only. |
+| **TaskArithmetic** | `task_arithmetic` | ✅ | ✅ | ❌ | ✅ | Fully commutative and associative — task vectors add independently. Not idempotent: applying the same model twice doubles its task vector. Requires a base model. |
+| **TIES** | `ties` | ✅ | ❌ | ✅ | ✅ | Sign election is commutative (majority vote). Not associative under pairwise composition because sign masks change when computed on intermediate results. Pass all models together. |
+| **DARE** | `dare` | ✅ | ❌ | ❌ | ⚠️ | Random dropout is seeded per-call; results vary between runs without a fixed seed. Not idempotent. Best applied once with all models. |
+| **DELLA** | `della` | ✅ | ❌ | ❌ | ⚠️ | Magnitude-aware DARE variant. Same caveats as DARE regarding idempotency and ordering. |
+| **DARETies** | `dare_ties` | ✅ | ❌ | ❌ | ⚠️ | Hybrid combining DARE dropout and TIES sign election. TIES component is commutative; DARE component is not idempotent. Pass all models in one call. |
+| **ModelBreadcrumbs** | `breadcrumbs` | ✅ | ❌ | ✅ | ✅ | Binary sparse masks are commutative (OR-union). Not associative: mask density depends on which models are included in a given call. |
+| **EMRMerge** | `emr` | ✅ | ❌ | ✅ | ✅ | Elect-Mask-Rescale. Commutative and idempotent but not associative under pairwise application due to rescaling on intermediate results. |
+| **STAR** | `star` | ✅ | ❌ | ✅ | ⚠️ | Spectral truncation changes with the set of models provided. Non-associative. Idempotent. |
+| **SVDKnotTying** | `svd_knot_tying` | ⚠️ | ❌ | ✅ | ⚠️ | SVD alignment is not commutative in general; order affects which basis is treated as reference. Pairwise only. |
+| **AdaptiveRankPruning** | `ada_rank` | ✅ | ❌ | ✅ | ⚠️ | Rank pruning thresholds are computed globally; commutative. Not associative. |
+| **FisherMerge** | `fisher_merge` | ✅ | ❌ | ✅ | ✅ | Fisher information proxy `|θ|²` changes on intermediate merges. Pass all models in one call for correct N-way result. |
+| **RegressionMean** | `regression_mean` | ✅ | ❌ | ✅ | ✅ | Self-weighted by `θ²+λ`. Non-associative under pairwise composition; single N-way call is correct. |
+| **AdaptiveMerging** | `ada_merging` | ⚠️ | ⚠️ | ✅ | ⚠️ | Entropy-based iterative refinement converges to the same fixed point only when inputs have identical entropy distributions. Treat as conditionally commutative and associative. |
+| **DifferentiableAdaptiveMerging** | `dam` | ⚠️ | ⚠️ | ✅ | ⚠️ | Gradient-free optimisation; convergence point depends on initialization order for asymmetric inputs. Idempotent. |
+| **EvolutionaryMerge** | `evolutionary` | ❌ | ❌ | ❌ | ❌ | CMA-ES population search uses random seeds. Results are non-deterministic without a fixed seed. Not suitable for CRDT-safe distributed merging. |
+| **GeneticMerge** | `genetic` | ❌ | ❌ | ❌ | ❌ | Genetic algorithm with crossover/mutation. Same caveats as EvolutionaryMerge. Use only in offline/experimental pipelines. |
+| **Passthrough** | `passthrough` | ✅ | ✅ | ✅ | ✅ | Returns the first tensor unchanged. Trivially satisfies all CRDT properties. Used as a no-op placeholder. |
+| **DualProjection** | `dual_projection` | ✅ | ❌ | ✅ | ✅ | Shared subspace (GCounter semantics) is commutative and idempotent. Task-specific subspace (OR-Set semantics) is commutative but not associative under pairwise composition. |
+| **UniformAverage** | `uniform_average` | ✅ | ❌ | ✅ | ✅ | Special case of `weight_average` with equal weights. Same pairwise non-associativity; use single N-way call. |
+| **MagnitudePrune** | `magnitude_prune` | ✅ | ❌ | ✅ | ⚠️ | Pruning threshold is computed from the merged tensor; different when applied pairwise vs. jointly. |
+| **RandPrune** | `rand_prune` | ✅ | ❌ | ❌ | ❌ | Random pruning is not idempotent (each call may drop different parameters). Use for one-shot model compression only. |
+| **LoRAMerge** | `lora_merge` | ✅ | ❌ | ✅ | ⚠️ | Low-rank adapter averaging. Non-associative because rank selection changes with the set of adapters provided. |
+| **KnowledgeDistillation** | `knowledge_distillation` | ⚠️ | ❌ | ✅ | ❌ | Requires forward-pass evaluation data; result depends on dataset ordering. Primarily a training-time operation. |
+| **SER** | `ser` | ✅ | ❌ | ✅ | ⚠️ | Spectral Entropy Regularization. Commutative and idempotent. Non-associative due to spectral decomposition on intermediate results. |
+| **HessianWeighted** | `hessian_weighted` | ✅ | ❌ | ✅ | ✅ | Fisher approximation via Hessian diagonal. Commutative and idempotent. Non-associative under pairwise composition; pass all models together. |
+| **GradientWeighted** | `gradient_weighted` | ✅ | ❌ | ✅ | ✅ | Weight by gradient magnitude. Commutative and idempotent. Non-associative. |
+| **ConsensusVoting** | `consensus_voting` | ✅ | ❌ | ✅ | ✅ | Majority-vote sign selection. Commutative and idempotent. Non-associative because vote counts depend on which models are included. |
+| **MoEExpert** | `moe_expert` | ✅ | ❌ | ✅ | ⚠️ | Mixture-of-Experts router merging. Commutative. Not idempotent if expert routing changes. |
+| **KnowledgeGraph** | `knowledge_graph` | ⚠️ | ❌ | ✅ | ❌ | Graph-topology-aware merging; commutativity depends on edge symmetry. Not suitable for fully automated distributed merging. |
+| **EnsembleDistillation** | `ensemble_distillation` | ⚠️ | ❌ | ✅ | ❌ | Logit ensembling with distillation; requires consistent token vocabularies across models. |
+| **ActivationAware** | `activation_aware` | ✅ | ❌ | ✅ | ⚠️ | Weighted by activation statistics. Commutative given identical calibration data. |
+| **LayerWiseLearningRate** | `layer_wise_lr` | ✅ | ❌ | ✅ | ⚠️ | Layer-specific coefficients; commutative but non-associative under pairwise composition. |
+| **SparseAttention** | `sparse_attention` | ✅ | ❌ | ✅ | ⚠️ | Attention-head sparsification. Commutative and idempotent. Non-associative. |
+
+---
+
+## N-Way vs. Pairwise Summary
+
+### Safe for Direct N-Way (pass all models in one call)
+
+These strategies produce order-independent results when all tensors are
+provided to a single `merge([t1, ..., tN])` call:
+
+- `weight_average`, `uniform_average`
+- `task_arithmetic`
+- `fisher_merge`, `regression_mean`
+- `hessian_weighted`, `gradient_weighted`
+- `consensus_voting`
+- `ties`, `breadcrumbs`, `emr`
+- `dual_projection`
+- `passthrough`
+
+### Pairwise-Only (sequential or tree-structured application)
+
+These strategies may give different results depending on pairing order. Use
+them for two-model merges, or apply them as a final step after pre-aggregating
+with an N-way strategy:
+
+- `slerp`, `linear` — designed for two-model interpolation
+- `svd_knot_tying` — SVD alignment selects a reference basis
+- `evolutionary`, `genetic` — stochastic; not suitable for CRDT workflows
+- `knowledge_distillation`, `knowledge_graph`, `ensemble_distillation` — require data evaluation
+- `lora_merge` — rank selection changes with adapter count
+
+---
+
+## Usage Guidance
+
+### General-Purpose Merging
+
+**`weight_average`** is the workhorse for most merging tasks. It satisfies
+commutativity and idempotency, produces stable results when all models are
+passed together, and has a clear mathematical interpretation (McMahan et al.,
+FedAvg). Use it as the default unless you have a specific reason not to.
+
+**`task_arithmetic`** is the right choice when you have a pretrained base
+model and want to add or remove capabilities surgically. Its full
+commutativity and associativity make it the most CRDT-safe strategy in the
+library. Scaling coefficients (`scaling_coefficients=[0.5, 0.3]`) control
+how strongly each fine-tuned model's task vector is applied.
+
+### Geometry-Preserving Merges
+
+**`slerp`** is best for two-model merges where maintaining directional
+geometry in weight space matters (e.g., instruction-tuned chat models).
+Restrict to two models; for more models, consider sequential application
+with decreasing `t` values or switch to `weight_average`.
+
+**`linear`** is the simplest interpolation and is equivalent to `weight_average`
+at uniform weights. Use it for rapid prototyping.
+
+### Sparse / Conflict-Aware Merges
+
+**`ties`** and **`dare_ties`** are recommended when merging models fine-tuned
+on competing tasks. TIES resolves sign conflicts via majority vote, reducing
+interference. DARE adds stochastic pruning to further reduce redundancy.
+
+**`breadcrumbs`** and **`emr`** are lighter-weight sparsification approaches
+that do not require a base model, making them applicable when the base
+checkpoint is unavailable.
+
+### Importance-Weighted Merges
+
+**`fisher_merge`** is the principled choice when Fisher information matrices
+are available from training. It weights each parameter by its importance to
+the model's task. Without precomputed Fisher matrices, it falls back to
+magnitude-based importance (`|θ|²`), which is a reasonable proxy.
+
+**`regression_mean`** (RegMean) is a fast closed-form alternative that
+self-weights by parameter magnitude with ridge regularization. Good for
+merging many fine-tuned variants of the same base model.
+
+### Experimental / Research Strategies
+
+**`evolutionary`** and **`genetic`** strategies are non-deterministic and
+not suitable for production distributed workflows. Use them only in
+controlled offline experiments where result reproducibility can be enforced
+via fixed random seeds.
+
+**`knowledge_distillation`** and **`ensemble_distillation`** require forward
+passes over calibration data and a teacher-student training step. They are
+training-time operations rather than weight-space merge operations.
+
+### LoRA Adapters
+
+**`lora_merge`** is the correct strategy for merging PEFT/LoRA adapters. It
+handles rank alignment automatically. Use the `linear` or `cat` sub-strategy
+via `--rank-method` to control how adapter ranks are combined.
+
+---
+
+## Selecting a Strategy: Decision Guide
+
+```
+Does your merge involve LoRA adapters?
+  → lora_merge
+
+Do you have a pretrained base model?
+  Yes: Do tasks compete (different domains)?
+    Yes  → dare_ties, ties, breadcrumbs
+    No   → task_arithmetic, slerp (2 models), weight_average (N models)
+  No: → weight_average, fisher_merge, regression_mean
+
+Do you need full CRDT guarantees (commutative + associative + idempotent)?
+  → task_arithmetic (with base) or weight_average / fisher_merge / regression_mean (without base)
+
+Merging exactly two models?
+  → slerp, linear, or any N-way strategy
+
+Need maximum simplicity?
+  → weight_average or linear
+```

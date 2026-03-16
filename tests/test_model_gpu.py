@@ -33,8 +33,49 @@ import pytest
 # GPU and without PyTorch being installed.
 # ---------------------------------------------------------------------------
 
+class _FakeTensor:
+    """Minimal tensor-like object for stub purposes."""
+
+    def __init__(self, data):
+        if isinstance(data, (int, float)):
+            self._data = [float(data)]
+        elif isinstance(data, (list, tuple)):
+            flat = data
+            # Flatten one level of nesting
+            if flat and isinstance(flat[0], (list, tuple)):
+                flat = [x for row in flat for x in row]
+            self._data = [float(x) for x in flat]
+        else:
+            self._data = [0.0]
+
+    def detach(self):
+        return self
+
+    def cpu(self):
+        return self
+
+    def to(self, device=None, dtype=None):
+        return self
+
+    def tolist(self):
+        return list(self._data)
+
+    def __mul__(self, scalar):
+        result = _FakeTensor([v * scalar for v in self._data])
+        return result
+
+    def __rmul__(self, scalar):
+        return self.__mul__(scalar)
+
+    def __iadd__(self, other):
+        if isinstance(other, _FakeTensor):
+            for i in range(min(len(self._data), len(other._data))):
+                self._data[i] += other._data[i]
+        return self
+
+
 def _make_torch_stub(cuda_available: bool = False):
-    """Return a minimal torch-like MagicMock."""
+    """Return a minimal torch-like MagicMock with a real Tensor class."""
     torch_stub = MagicMock(name="torch")
 
     # dtype constants
@@ -43,67 +84,23 @@ def _make_torch_stub(cuda_available: bool = False):
     torch_stub.float64 = "float64_dtype"
     torch_stub.bfloat16 = "bfloat16_dtype"
 
+    # Expose real Tensor class so isinstance checks work
+    torch_stub.Tensor = _FakeTensor
+
     # cuda availability
     torch_stub.cuda.is_available.return_value = cuda_available
 
-    # tensor constructor: returns a simple list-based fake tensor
     def _tensor(data, device=None, dtype=None):
-        t = MagicMock(name="FakeTensor")
-        # Store numeric data
-        if isinstance(data, (int, float)):
-            t._data = [float(data)]
-        elif isinstance(data, (list, tuple)):
-            t._data = [float(x) for x in (data if not isinstance(data[0], (list, tuple)) else [x for row in data for x in row])]
-        else:
-            t._data = [0.0]
-        t.detach.return_value = t
-        t.cpu.return_value = t
-        t.to.return_value = t
-        t.tolist.return_value = t._data
-        # Support zeros_like
-        def _zeros_like(ref):
-            z = MagicMock(name="ZeroTensor")
-            z._data = [0.0] * len(ref._data)
-            z.detach.return_value = z
-            z.cpu.return_value = z
-            z.tolist.return_value = z._data
-            # iadd: z += w * t → accumulate
-            def _iadd(other):
-                for i, v in enumerate(other._data):
-                    z._data[i] += v
-                z.tolist.return_value = z._data
-                return z
-            z.__iadd__ = _iadd
-            return z
-        t._zeros_like = _zeros_like
-        return t
+        return _FakeTensor(data)
 
     torch_stub.tensor.side_effect = _tensor
 
     def _zeros_like(ref):
-        z = MagicMock(name="ZeroTensor")
-        if hasattr(ref, "_data"):
-            z._data = [0.0] * len(ref._data)
-        else:
-            z._data = [0.0]
-        z.detach.return_value = z
-        z.cpu.return_value = z
-        z.tolist.return_value = z._data
-
-        def _iadd(other):
-            if hasattr(other, "_data"):
-                for i, v in enumerate(other._data):
-                    if i < len(z._data):
-                        z._data[i] += v
-            z.tolist.return_value = z._data
-            return z
-        z.__iadd__ = _iadd
+        z = _FakeTensor([0.0] * len(ref._data))
         return z
 
     torch_stub.zeros_like.side_effect = _zeros_like
 
-    # Tensor.__mul__: scale a fake tensor by scalar
-    # We patch this via the stub's Tensor class — simple MagicMock handles it.
     return torch_stub
 
 
@@ -184,40 +181,11 @@ class TestGPUMergeMerge:
         assert result == model
 
     def test_two_models_uniform_weights(self, torch_stub):
-        """With uniform weights and simple stub data the merge should proceed."""
+        """With uniform weights the merge should proceed without error."""
         from crdt_merge.model.gpu import GPUMerge
         g = GPUMerge(device="cpu", dtype="float32", chunk_size=1024)
         model_a = {"w": [1.0, 2.0]}
         model_b = {"w": [3.0, 4.0]}
-        # Patch tensor & zeros_like to return predictable list-based results
-        results = {}
-
-        def _tensor(data, device=None, dtype=None):
-            t = MagicMock()
-            t._data = list(data) if isinstance(data, (list, tuple)) else [float(data)]
-            t.detach.return_value = t
-            t.cpu.return_value = t
-            t.tolist.return_value = t._data
-            t.to.return_value = t
-            return t
-
-        def _zeros_like(ref):
-            z = MagicMock()
-            z._data = [0.0] * len(ref._data)
-            z.detach.return_value = z
-            z.cpu.return_value = z
-            z.tolist.return_value = z._data
-
-            def _iadd(other):
-                # other is w * t — a MagicMock from __mul__
-                # We can't easily intercept __mul__ so just accept any result
-                return z
-            z.__iadd__ = _iadd
-            return z
-
-        torch_stub.tensor.side_effect = _tensor
-        torch_stub.zeros_like.side_effect = _zeros_like
-
         result = g.merge([model_a, model_b])
         assert "w" in result
 
@@ -226,7 +194,6 @@ class TestGPUMergeMerge:
         g = GPUMerge(device="cpu", dtype="float32", chunk_size=1024)
         model_a = {"x": [0.0]}
         model_b = {"x": [4.0]}
-        # Just verify it doesn't raise and returns the expected key
         result = g.merge([model_a, model_b], weights=[1.0, 3.0])
         assert "x" in result
 
@@ -247,14 +214,28 @@ class TestGPUMergeMerge:
 # ---------------------------------------------------------------------------
 
 class TestGPUMergeIsGpuAvailable:
-    def test_returns_false_when_torch_missing(self):
-        with patch("crdt_merge.model.gpu._import_torch", side_effect=ImportError()):
-            # is_gpu_available does its own import, patch at module level
-            with patch("builtins.__import__", side_effect=ImportError):
+    def test_returns_false_when_torch_import_fails(self):
+        """is_gpu_available catches ImportError and returns False."""
+        import sys
+        import builtins
+
+        real_import = builtins.__import__
+
+        def _fake_import(name, *args, **kwargs):
+            if name == "torch":
+                raise ImportError("no torch")
+            return real_import(name, *args, **kwargs)
+
+        # Temporarily remove any cached torch module to force re-import
+        torch_backup = sys.modules.pop("torch", None)
+        try:
+            with patch("builtins.__import__", side_effect=_fake_import):
                 from crdt_merge.model.gpu import GPUMerge
-                # It catches ImportError and returns False
-                # We just confirm the method exists and is callable
-                assert callable(GPUMerge.is_gpu_available)
+                result = GPUMerge.is_gpu_available()
+                assert result is False
+        finally:
+            if torch_backup is not None:
+                sys.modules["torch"] = torch_backup
 
     def test_classmethod_callable_without_instance(self, torch_stub):
         from crdt_merge.model.gpu import GPUMerge

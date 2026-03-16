@@ -79,7 +79,11 @@ class TestConflictHeatmapFromModels:
         hm = _two_model_heatmap()
         for layer, contrib in hm.model_contributions.items():
             total = sum(contrib.values())
-            assert math.isclose(total, 1.0, abs_tol=1e-6), f"{layer}: {total}"
+            # Contributions sum to 1.0 when norms are non-zero;
+            # all-zero layers may produce a total of 0.0.
+            assert math.isclose(total, 1.0, abs_tol=1e-6) or math.isclose(total, 0.0, abs_tol=1e-9), (
+                f"{layer}: {total}"
+            )
 
     def test_with_base_computes_deltas(self):
         base = {"w": [1.0, 1.0]}

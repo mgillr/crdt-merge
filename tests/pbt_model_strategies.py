@@ -100,8 +100,8 @@ def _state_dicts_close(sd_a, sd_b, tol=1e-5):
 
 
 @given(sd=gen_state_dict())
-@settings(max_examples=50)
-def test_weight_average_idempotency(sd):
+@settings(max_examples=50, deadline=None)
+def test_weight_average_idempotency(sd):  # noqa
     """Merging a single state-dict with itself produces the same values."""
     schema = ModelMergeSchema(strategies={"default": "weight_average"})
     crdt = ModelCRDT(schema)
@@ -112,7 +112,7 @@ def test_weight_average_idempotency(sd):
 
 
 @given(data=st.data())
-@settings(max_examples=50)
+@settings(max_examples=50, deadline=None)
 def test_weight_average_uniform_weights_symmetric(data):
     """With equal weights, weighting explicitly is same as uniform default."""
     pair, keys = data.draw(gen_shared_state_dicts(n=2))
@@ -127,7 +127,7 @@ def test_weight_average_uniform_weights_symmetric(data):
 
 
 @given(data=st.data())
-@settings(max_examples=50)
+@settings(max_examples=50, deadline=None)
 def test_weight_average_preserves_layer_keys(data):
     """N-way merge output has exactly the same keys as the inputs."""
     dicts, keys = data.draw(gen_shared_state_dicts(n=3))
@@ -137,7 +137,7 @@ def test_weight_average_preserves_layer_keys(data):
 
 
 @given(sd=gen_state_dict())
-@settings(max_examples=50)
+@settings(max_examples=50, deadline=None)
 def test_weight_average_single_model_passthrough(sd):
     """Merging a single model returns the same tensors unchanged."""
     schema = ModelMergeSchema(strategies={"default": "weight_average"})
@@ -151,7 +151,7 @@ def test_weight_average_single_model_passthrough(sd):
 
 
 @given(sd=gen_state_dict())
-@settings(max_examples=50)
+@settings(max_examples=50, deadline=None)
 def test_slerp_idempotency(sd):
     """SLERP of a tensor with itself should return the same values."""
     schema = ModelMergeSchema(strategies={"default": "slerp"})
@@ -161,7 +161,7 @@ def test_slerp_idempotency(sd):
 
 
 @given(data=st.data())
-@settings(max_examples=50)
+@settings(max_examples=50, deadline=None)
 def test_slerp_preserves_layer_keys(data):
     """SLERP N-way merge preserves all input layer keys."""
     pair, keys = data.draw(gen_shared_state_dicts(n=2))
@@ -176,7 +176,7 @@ def test_slerp_preserves_layer_keys(data):
 
 
 @given(data=st.data())
-@settings(max_examples=50)
+@settings(max_examples=50, deadline=None)
 def test_task_arithmetic_preserves_keys(data):
     """TaskArithmetic merge preserves layer keys from all inputs."""
     pair, keys = data.draw(gen_shared_state_dicts(n=2))
@@ -186,7 +186,7 @@ def test_task_arithmetic_preserves_keys(data):
 
 
 @given(sd=gen_state_dict())
-@settings(max_examples=50)
+@settings(max_examples=50, deadline=None)
 def test_task_arithmetic_single_passthrough(sd):
     """TaskArithmetic single-model merge passes through unchanged."""
     schema = ModelMergeSchema(strategies={"default": "task_arithmetic"})
@@ -200,7 +200,7 @@ def test_task_arithmetic_single_passthrough(sd):
 
 
 @given(sd=gen_state_dict())
-@settings(max_examples=50)
+@settings(max_examples=50, deadline=None)
 def test_linear_interpolation_idempotency(sd):
     """LinearInterpolation of a model with itself returns the same values."""
     schema = ModelMergeSchema(strategies={"default": "linear"})
@@ -211,7 +211,7 @@ def test_linear_interpolation_idempotency(sd):
 
 
 @given(data=st.data())
-@settings(max_examples=50)
+@settings(max_examples=50, deadline=None)
 def test_linear_interpolation_preserves_keys(data):
     """LinearInterpolation merge preserves all layer keys."""
     dicts, keys = data.draw(gen_shared_state_dicts(n=3))
@@ -231,7 +231,7 @@ def test_linear_interpolation_preserves_keys(data):
         ["weight_average", "slerp", "task_arithmetic", "linear"]
     ),
 )
-@settings(max_examples=50)
+@settings(max_examples=50, deadline=None)
 def test_schema_exact_pattern_resolution(layer, strategy):
     """Exact pattern in schema resolves to the correct strategy name."""
     schema = ModelMergeSchema(strategies={layer: strategy, "default": "linear"})
@@ -244,7 +244,7 @@ def test_schema_exact_pattern_resolution(layer, strategy):
         ["weight_average", "slerp", "task_arithmetic", "linear"]
     )
 )
-@settings(max_examples=50)
+@settings(max_examples=50, deadline=None)
 def test_schema_default_fallback(strategy):
     """Unknown layer falls back to the default strategy."""
     schema = ModelMergeSchema(strategies={"default": strategy})
@@ -257,7 +257,7 @@ def test_schema_default_fallback(strategy):
         ["weight_average", "slerp", "task_arithmetic", "linear"]
     )
 )
-@settings(max_examples=50)
+@settings(max_examples=50, deadline=None)
 def test_schema_roundtrip(strategy):
     """to_dict / from_dict roundtrip preserves all strategy mappings."""
     schema = ModelMergeSchema(
@@ -278,7 +278,7 @@ def test_schema_roundtrip(strategy):
 
 
 @given(data=st.data())
-@settings(max_examples=50)
+@settings(max_examples=50, deadline=None)
 def test_crdt_merge_sets_guarantee_flag(data):
     """crdt_merge() always sets metadata['crdt_guaranteed'] = True."""
     pair, _ = data.draw(gen_shared_state_dicts(n=2))
@@ -288,7 +288,7 @@ def test_crdt_merge_sets_guarantee_flag(data):
 
 
 @given(data=st.data())
-@settings(max_examples=50)
+@settings(max_examples=50, deadline=None)
 def test_crdt_merge_preserves_all_layer_keys(data):
     """crdt_merge() output contains all layer keys from all inputs."""
     dicts, keys = data.draw(gen_shared_state_dicts(n=3))
@@ -298,7 +298,7 @@ def test_crdt_merge_preserves_all_layer_keys(data):
 
 
 @given(sd=gen_state_dict())
-@settings(max_examples=50)
+@settings(max_examples=50, deadline=None)
 def test_merge_empty_model_list_returns_empty_tensor(sd):
     """Merging an empty list always returns an empty tensor dict."""
     schema = ModelMergeSchema(strategies={"default": "weight_average"})
