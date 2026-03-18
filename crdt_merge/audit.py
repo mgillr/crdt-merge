@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import threading
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -176,13 +177,15 @@ class AuditLog:
     def __init__(self, node_id: str = "default") -> None:
         self._node_id = node_id
         self._entries: List[AuditEntry] = []
+        self._lock = threading.RLock()
 
     # -- Properties ----------------------------------------------------------
 
     @property
     def entries(self) -> List[AuditEntry]:
         """Return a shallow copy of the entry list."""
-        return list(self._entries)
+        with self._lock:
+            return list(self._entries)
 
     @property
     def node_id(self) -> str:
@@ -197,29 +200,34 @@ class AuditLog:
         output_hash: str,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> AuditEntry:
-        """Create a new chained entry and append it to the log."""
-        prev_hash = (
-            self._entries[-1].entry_hash if self._entries else _GENESIS_HASH
-        )
-        entry_id = str(uuid.uuid4())
-        ts = time.time()
-        entry_hash = _compute_entry_hash(
-            entry_id, ts, operation, self._node_id,
-            input_hash, output_hash, prev_hash,
-        )
-        entry = AuditEntry(
-            entry_id=entry_id,
-            timestamp=ts,
-            operation=operation,
-            node_id=self._node_id,
-            input_hash=input_hash,
-            output_hash=output_hash,
-            metadata=metadata or {},
-            prev_hash=prev_hash,
-            entry_hash=entry_hash,
-        )
-        self._entries.append(entry)
-        return entry
+        """Create a new chained entry and append it to the log.
+
+        Serialised under ``_lock`` so that concurrent callers cannot observe
+        a partially-updated chain or race on ``prev_hash`` selection.
+        """
+        with self._lock:
+            prev_hash = (
+                self._entries[-1].entry_hash if self._entries else _GENESIS_HASH
+            )
+            entry_id = str(uuid.uuid4())
+            ts = time.time()
+            entry_hash = _compute_entry_hash(
+                entry_id, ts, operation, self._node_id,
+                input_hash, output_hash, prev_hash,
+            )
+            entry = AuditEntry(
+                entry_id=entry_id,
+                timestamp=ts,
+                operation=operation,
+                node_id=self._node_id,
+                input_hash=input_hash,
+                output_hash=output_hash,
+                metadata=metadata or {},
+                prev_hash=prev_hash,
+                entry_hash=entry_hash,
+            )
+            self._entries.append(entry)
+            return entry
 
     def log_merge(
         self,
@@ -288,16 +296,17 @@ class AuditLog:
         * Every entry's ``prev_hash`` matches the previous entry's
           ``entry_hash`` (with the first using ``"genesis"``).
         """
-        if not self._entries:
+        with self._lock:
+            snapshot = list(self._entries)
+
+        if not snapshot:
             return True
 
-        for idx, entry in enumerate(self._entries):
-            # Verify the entry's own hash.
+        for idx, entry in enumerate(snapshot):
             if not entry.verify():
                 return False
-            # Verify the chain link.
             expected_prev = (
-                self._entries[idx - 1].entry_hash if idx > 0 else _GENESIS_HASH
+                snapshot[idx - 1].entry_hash if idx > 0 else _GENESIS_HASH
             )
             if entry.prev_hash != expected_prev:
                 return False
@@ -319,8 +328,10 @@ class AuditLog:
             since:     Minimum timestamp (inclusive).
             until:     Maximum timestamp (inclusive).
         """
+        with self._lock:
+            snapshot = list(self._entries)
         results: List[AuditEntry] = []
-        for entry in self._entries:
+        for entry in snapshot:
             if operation is not None and entry.operation != operation:
                 continue
             if since is not None and entry.timestamp < since:
@@ -336,10 +347,14 @@ class AuditLog:
         """Serialise the log to a JSON string.
 
         If *filepath* is provided the JSON is also written to that path.
+        Takes a consistent snapshot under the lock so concurrent writers
+        do not corrupt the serialised output.
         """
+        with self._lock:
+            snapshot = list(self._entries)
         payload = {
             "node_id": self._node_id,
-            "entries": [e.to_dict() for e in self._entries],
+            "entries": [e.to_dict() for e in snapshot],
         }
         text = json.dumps(payload, indent=2, default=str)
         if filepath:
@@ -365,10 +380,13 @@ class AuditLog:
     # -- Dunder helpers ------------------------------------------------------
 
     def __len__(self) -> int:
-        return len(self._entries)
+        with self._lock:
+            return len(self._entries)
 
     def __iter__(self) -> Iterator[AuditEntry]:
-        return iter(self._entries)
+        with self._lock:
+            snapshot = list(self._entries)
+        return iter(snapshot)
 
     def __repr__(self) -> str:
         return f"AuditLog(node_id={self._node_id!r}, entries={len(self._entries)})"
