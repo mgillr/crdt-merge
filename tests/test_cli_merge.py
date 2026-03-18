@@ -25,6 +25,8 @@ import argparse
 import io
 import json
 import os
+from contextlib import contextmanager
+from unittest.mock import patch
 
 import pytest
 
@@ -36,6 +38,18 @@ from crdt_merge.cli.cmd_merge import (
     handle_diff,
     handle_merge,
 )
+
+
+# ---------------------------------------------------------------------------
+# Patch spinner to a no-op context manager (avoids sys.stderr.isatty() in pytest)
+# ---------------------------------------------------------------------------
+
+@contextmanager
+def _noop_spinner(*args, **kwargs):
+    yield
+
+
+_spinner_patch = patch("crdt_merge.cli._progress.spinner", side_effect=_noop_spinner)
 
 
 # ---------------------------------------------------------------------------
@@ -148,6 +162,12 @@ class TestParseStrategyFlags:
 
 
 class TestHandleMerge:
+    @pytest.fixture(autouse=True)
+    def _patch_spinner(self):
+        """Patch spinner to no-op so sys.stderr.isatty() is never called in tests."""
+        with _spinner_patch:
+            yield
+
     def test_basic_merge_csv(self, tmp_path):
         fa = _write_csv(tmp_path, "a.csv", ROWS_A)
         fb = _write_csv(tmp_path, "b.csv", ROWS_B)
@@ -410,6 +430,11 @@ class TestHandleDedup:
 
 
 class TestMainDispatch:
+    @pytest.fixture(autouse=True)
+    def _patch_spinner(self):
+        with _spinner_patch:
+            yield
+
     def test_merge_help(self, capsys):
         with pytest.raises(SystemExit) as exc_info:
             main(["merge", "--help"])
