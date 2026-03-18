@@ -178,10 +178,12 @@ def test_slerp_preserves_layer_keys(data):
 @given(data=st.data())
 @settings(max_examples=50, deadline=None)
 def test_task_arithmetic_preserves_keys(data):
-    """TaskArithmetic merge preserves layer keys from all inputs."""
+    """TaskArithmetic merge preserves layer keys from all inputs (base provided)."""
     pair, keys = data.draw(gen_shared_state_dicts(n=2))
+    # TaskArithmetic requires a base_model; use the first model as the base
+    base = pair[0]
     schema = ModelMergeSchema(strategies={"default": "task_arithmetic"})
-    result = ModelCRDT(schema).merge(pair)
+    result = ModelCRDT(schema).merge(pair, base_model=base)
     assert set(result.tensor.keys()) == set(keys)
 
 
@@ -189,6 +191,7 @@ def test_task_arithmetic_preserves_keys(data):
 @settings(max_examples=50, deadline=None)
 def test_task_arithmetic_single_passthrough(sd):
     """TaskArithmetic single-model merge passes through unchanged."""
+    # Single-model merge short-circuits before calling strategy.merge()
     schema = ModelMergeSchema(strategies={"default": "task_arithmetic"})
     result = ModelCRDT(schema).merge([sd])
     assert _state_dicts_close(result.tensor, sd)
