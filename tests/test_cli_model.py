@@ -216,15 +216,14 @@ class TestHandlePipelineValidate:
             handle_pipeline_validate(args, _make_formatter())
         assert exc_info.value.code == 1
 
-    def test_handle_validate_exits_on_attribute_error(self, tmp_path):
-        # from_config does not exist; handler wraps that in SystemExit(1)
+    def test_handle_validate_valid_config_succeeds(self, tmp_path):
+        # from_dict is now used correctly; valid config should not raise
         cfg = {"stages": [{"name": "s1", "strategy": "linear",
                             "models": [{"l": 1.0}, {"l": 2.0}]}]}
         p = _write_file(tmp_path, "valid.json", json.dumps(cfg))
         args = _make_args(config_file=p)
-        with pytest.raises(SystemExit) as exc_info:
-            handle_pipeline_validate(args, _make_formatter())
-        assert exc_info.value.code == 1
+        # Should not raise; valid pipeline passes validation
+        handle_pipeline_validate(args, _make_formatter())
 
     # -- MergePipeline.validate() tested directly (bypassing handler) --------
 
@@ -366,8 +365,7 @@ class TestCLIMain:
         assert captured.out.strip() or captured.err.strip()
 
     def test_model_pipeline_validate_via_main(self, tmp_path, capsys):
-        # MergePipeline.from_config() does not exist; the CLI handler wraps
-        # the AttributeError and exits 1.  Verify that behaviour end-to-end.
+        # from_dict now used correctly — valid config should succeed end-to-end.
         cfg = {
             "stages": [
                 {
@@ -380,8 +378,7 @@ class TestCLIMain:
         p = str(tmp_path / "pipe.json")
         with open(p, "w") as f:
             json.dump(cfg, f)
-        with pytest.raises(SystemExit) as exc_info:
-            main(["model", "pipeline", "validate", p])
-        assert exc_info.value.code == 1
+        # Should not raise SystemExit for a valid pipeline config
+        main(["model", "pipeline", "validate", p])
         captured = capsys.readouterr()
-        assert "pipeline validation failed" in captured.err.lower()
+        assert "valid" in captured.out.lower() or "valid" in captured.err.lower()
