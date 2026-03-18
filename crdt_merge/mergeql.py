@@ -365,69 +365,155 @@ class MergeQLParser:
 # ---------------------------------------------------------------------------
 
 def _eval_where(record: dict, clause: str) -> bool:
-    """Evaluate a simple WHERE clause against a record dict.
+    """Evaluate a WHERE clause against a record dict.
 
-    Supports: field = value, field != value, field > value, field < value,
-              field >= value, field <= value, and AND/OR connectives.
+    Supports the following operators and constructs:
+
+    * Comparison: ``field = value``, ``field != value``, ``field > value``,
+      ``field < value``, ``field >= value``, ``field <= value``
+    * Null checks: ``field IS NULL``, ``field IS NOT NULL``
+    * Pattern match: ``field LIKE 'pat%tern'`` (``%`` = any substring,
+      ``_`` = single char — mapped to :func:`fnmatch.fnmatch`)
+    * Set membership: ``field IN ('a', 'b', 'c')``
+    * Boolean connectives: ``AND``, ``OR`` (short-circuit)
+    * Parenthesised sub-expressions: ``(A AND B) OR C``
     """
+    import fnmatch as _fnmatch
+
     if not clause:
         return True
 
     clause = clause.strip()
 
-    # Handle AND / OR (very simple — no parentheses)
-    # Split on AND first (higher precedence grouping)
-    or_parts = re.split(r'\bOR\b', clause, flags=re.IGNORECASE)
+    # --- parenthesised sub-expression stripping ---
+    # Handle expressions that are entirely wrapped in outer parens:
+    # "(expr)" -> recurse on "expr"
+    if clause.startswith("(") and clause.endswith(")"):
+        # Verify the outer parens are actually matching (not just any outer chars)
+        depth = 0
+        matched = True
+        for i, ch in enumerate(clause):
+            if ch == "(":
+                depth += 1
+            elif ch == ")":
+                depth -= 1
+            if depth == 0 and i < len(clause) - 1:
+                matched = False
+                break
+        if matched:
+            return _eval_where(record, clause[1:-1])
+
+    # --- OR (lowest precedence): split on OR outside parens ---
+    or_parts = _split_outside_parens(clause, r'\bOR\b')
     if len(or_parts) > 1:
         return any(_eval_where(record, p) for p in or_parts)
 
-    and_parts = re.split(r'\bAND\b', clause, flags=re.IGNORECASE)
+    # --- AND (higher precedence): split on AND outside parens ---
+    and_parts = _split_outside_parens(clause, r'\bAND\b')
     if len(and_parts) > 1:
         return all(_eval_where(record, p) for p in and_parts)
 
-    # Single comparison
-    m = re.match(r'(\w+)\s*(!=|>=|<=|>|<|=)\s*(.+)', clause.strip())
+    clause = clause.strip()
+
+    # --- IS NULL / IS NOT NULL ---
+    m_null = re.match(r'(\w+)\s+IS\s+(NOT\s+)?NULL', clause, re.IGNORECASE)
+    if m_null:
+        field = m_null.group(1)
+        is_not = m_null.group(2) is not None
+        rec_val = record.get(field)
+        is_null = rec_val is None or rec_val == ""
+        return (not is_null) if is_not else is_null
+
+    # --- LIKE ---
+    m_like = re.match(r'(\w+)\s+LIKE\s+([\'"]?)(.+?)\2$', clause, re.IGNORECASE)
+    if m_like:
+        field = m_like.group(1)
+        pattern = m_like.group(3)
+        rec_val = record.get(field)
+        if rec_val is None:
+            return False
+        # Translate SQL LIKE wildcards to fnmatch: % -> *, _ -> ?
+        fn_pattern = pattern.replace("%", "*").replace("_", "?")
+        return _fnmatch.fnmatch(str(rec_val), fn_pattern)
+
+    # --- IN (...) ---
+    m_in = re.match(r'(\w+)\s+IN\s*\((.+)\)', clause, re.IGNORECASE | re.DOTALL)
+    if m_in:
+        field = m_in.group(1)
+        raw_values = m_in.group(2)
+        # Parse comma-separated values, stripping quotes
+        values = {v.strip().strip("'\"") for v in raw_values.split(",")}
+        rec_val = record.get(field)
+        if rec_val is None:
+            return False
+        return str(rec_val) in values or rec_val in values
+
+    # --- Standard comparison: field op value ---
+    m = re.match(r'(\w+)\s*(!=|>=|<=|<>|>|<|=)\s*(.+)', clause.strip())
     if not m:
-        return True  # unparseable → pass through
+        return True  # unparseable clause → pass-through (permissive)
     field, op, raw_val = m.group(1), m.group(2), m.group(3).strip().strip("'\"")
+    if op == "<>":
+        op = "!="
     rec_val = record.get(field)
     if rec_val is None:
-        return False
+        return op == "!="
 
-    # Try numeric comparison
+    # Try numeric comparison first
     try:
         num_rec = float(rec_val)
         num_val = float(raw_val)
-        if op == "=":
-            return num_rec == num_val
-        if op == "!=":
-            return num_rec != num_val
-        if op == ">":
-            return num_rec > num_val
-        if op == "<":
-            return num_rec < num_val
-        if op == ">=":
-            return num_rec >= num_val
-        if op == "<=":
-            return num_rec <= num_val
+        if op == "=":   return num_rec == num_val
+        if op == "!=":  return num_rec != num_val
+        if op == ">":   return num_rec > num_val
+        if op == "<":   return num_rec < num_val
+        if op == ">=":  return num_rec >= num_val
+        if op == "<=":  return num_rec <= num_val
     except (ValueError, TypeError):
         pass
 
-    # String comparison
-    str_rec = str(rec_val)
-    if op == "=":
-        return str_rec == raw_val
-    if op == "!=":
-        return str_rec != raw_val
-    if op == ">":
-        return str_rec > raw_val
-    if op == "<":
-        return str_rec < raw_val
-    if op == ">=":
-        return str_rec >= raw_val
-    if op == "<=":
-        return str_rec <= raw_val
+    # String comparison fallback
+    str_rec, str_val = str(rec_val), str(raw_val)
+    if op == "=":   return str_rec == str_val
+    if op == "!=":  return str_rec != str_val
+    if op == ">":   return str_rec > str_val
+    if op == "<":   return str_rec < str_val
+    if op == ">=":  return str_rec >= str_val
+    if op == "<=":  return str_rec <= str_val
     return True
+
+
+def _split_outside_parens(text: str, pattern: str) -> list:
+    """Split *text* on *pattern* only when not inside parentheses."""
+    parts: list = []
+    depth = 0
+    current: list = []
+    i = 0
+    while i < len(text):
+        ch = text[i]
+        if ch == "(":
+            depth += 1
+            current.append(ch)
+            i += 1
+        elif ch == ")":
+            depth -= 1
+            current.append(ch)
+            i += 1
+        elif depth == 0:
+            # Try to match the keyword at this position
+            m = re.match(pattern, text[i:], re.IGNORECASE)
+            if m:
+                parts.append("".join(current).strip())
+                current = []
+                i += len(m.group(0))
+            else:
+                current.append(ch)
+                i += 1
+        else:
+            current.append(ch)
+            i += 1
+    parts.append("".join(current).strip())
+    return [p for p in parts if p]
 
 # ---------------------------------------------------------------------------
 # Engine
