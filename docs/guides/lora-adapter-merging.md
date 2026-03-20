@@ -66,27 +66,28 @@ crdt-merge's `LoRAMerge` solves both.
 import numpy as np
 from crdt_merge.model.lora import LoRAMerge, LoRAMergeSchema
 
-# Three LoRA adapters with different ranks
+# Three LoRA adapters with different ranks (nested dict format)
 adapter_a = {
-    "q_proj.lora_A": np.random.randn(64, 768).astype(np.float32),  # r=64
-    "q_proj.lora_B": np.random.randn(768, 64).astype(np.float32),
-    "v_proj.lora_A": np.random.randn(64, 768).astype(np.float32),
-    "v_proj.lora_B": np.random.randn(768, 64).astype(np.float32),
+    "q_proj": {"lora_A": np.random.randn(64, 768).astype(np.float32),  # r=64
+               "lora_B": np.random.randn(768, 64).astype(np.float32)},
+    "v_proj": {"lora_A": np.random.randn(64, 768).astype(np.float32),
+               "lora_B": np.random.randn(768, 64).astype(np.float32)},
 }
 adapter_b = {
-    "q_proj.lora_A": np.random.randn(16, 768).astype(np.float32),  # r=16
-    "q_proj.lora_B": np.random.randn(768, 16).astype(np.float32),
-    "v_proj.lora_A": np.random.randn(16, 768).astype(np.float32),
-    "v_proj.lora_B": np.random.randn(768, 16).astype(np.float32),
+    "q_proj": {"lora_A": np.random.randn(16, 768).astype(np.float32),  # r=16
+               "lora_B": np.random.randn(768, 16).astype(np.float32)},
+    "v_proj": {"lora_A": np.random.randn(16, 768).astype(np.float32),
+               "lora_B": np.random.randn(768, 16).astype(np.float32)},
 }
 adapter_c = {
-    "q_proj.lora_A": np.random.randn(32, 768).astype(np.float32),  # r=32
-    "q_proj.lora_B": np.random.randn(768, 32).astype(np.float32),
-    "v_proj.lora_A": np.random.randn(32, 768).astype(np.float32),
-    "v_proj.lora_B": np.random.randn(768, 32).astype(np.float32),
+    "q_proj": {"lora_A": np.random.randn(32, 768).astype(np.float32),  # r=32
+               "lora_B": np.random.randn(768, 32).astype(np.float32)},
+    "v_proj": {"lora_A": np.random.randn(32, 768).astype(np.float32),
+               "lora_B": np.random.randn(768, 32).astype(np.float32)},
 }
 
-merger = LoRAMerge()
+schema = LoRAMergeSchema(strategies={"q_proj": "ties", "v_proj": "ties"})
+merger = LoRAMerge(schema=schema)
 
 # Adaptive rank harmonization — weight-proportional target rank
 merged = merger.merge_adapters(
@@ -95,7 +96,7 @@ merged = merger.merge_adapters(
     rank_strategy="adaptive",
 )
 
-print(f"q_proj.lora_A shape: {merged['q_proj.lora_A'].shape}")
+print(f"q_proj lora_A shape: {merged['q_proj']['lora_A'].shape}")
 # Adaptive rank = max(1, round(64*0.5 + 16*0.25 + 32*0.25)) = r=40
 ```
 
@@ -105,36 +106,36 @@ print(f"q_proj.lora_A shape: {merged['q_proj.lora_A'].shape}")
 
 ```python
 import numpy as np
-from crdt_merge.model.lora import LoRAMerge
+from crdt_merge.model.lora import LoRAMerge, LoRAMergeSchema
 
 adapters = [
-    {"layer.lora_A": np.random.randn(64, 128).astype(np.float32),
-     "layer.lora_B": np.random.randn(128, 64).astype(np.float32)},
-    {"layer.lora_A": np.random.randn(16, 128).astype(np.float32),
-     "layer.lora_B": np.random.randn(128, 16).astype(np.float32)},
-    {"layer.lora_A": np.random.randn(32, 128).astype(np.float32),
-     "layer.lora_B": np.random.randn(128, 32).astype(np.float32)},
+    {"layer": {"lora_A": np.random.randn(64, 128).astype(np.float32),
+               "lora_B": np.random.randn(128, 64).astype(np.float32)}},
+    {"layer": {"lora_A": np.random.randn(16, 128).astype(np.float32),
+               "lora_B": np.random.randn(128, 16).astype(np.float32)}},
+    {"layer": {"lora_A": np.random.randn(32, 128).astype(np.float32),
+               "lora_B": np.random.randn(128, 32).astype(np.float32)}},
 ]
 weights = [0.5, 0.25, 0.25]
-merger = LoRAMerge()
+merger = LoRAMerge(schema=LoRAMergeSchema(strategies={"layer": "weight_average"}))
 
 # max: target rank = max(64, 16, 32) = 64
 # Smaller adapters padded with zeros — no information loss
 result_max = merger.merge_adapters(adapters, weights, rank_strategy="max")
-assert result_max["layer.lora_A"].shape[0] == 64
+assert result_max["layer"]["lora_A"].shape[0] == 64
 
 # min: target rank = min(64, 16, 32) = 16
 # Larger adapters SVD-truncated — keeps most significant components
 result_min = merger.merge_adapters(adapters, weights, rank_strategy="min")
-assert result_min["layer.lora_A"].shape[0] == 16
+assert result_min["layer"]["lora_A"].shape[0] == 16
 
 # mean: target rank = round(mean(64, 16, 32)) = round(37.3) = 37
 result_mean = merger.merge_adapters(adapters, weights, rank_strategy="mean")
-assert result_mean["layer.lora_A"].shape[0] == 37
+assert result_mean["layer"]["lora_A"].shape[0] == 37
 
 # adaptive: target rank = round(64*0.5 + 16*0.25 + 32*0.25) = round(40) = 40
 result_adaptive = merger.merge_adapters(adapters, weights, rank_strategy="adaptive")
-assert result_adaptive["layer.lora_A"].shape[0] == 40
+assert result_adaptive["layer"]["lora_A"].shape[0] == 40
 ```
 
 ---
@@ -218,11 +219,12 @@ base_model = {
 }
 
 # Merged LoRA adapter (lora_B @ lora_A applied to base)
-merger = LoRAMerge()
+schema = LoRAMergeSchema(strategies={"q_proj": "weight_average", "v_proj": "weight_average"})
+merger = LoRAMerge(schema=schema)
 merged_adapter = merger.merge_adapters(adapters=[adapter_a, adapter_b], weights=[0.6, 0.4])
 
 # Apply: θ = θ_base + lora_B @ lora_A
-fused_model = merger.apply_to_base(base_model, merged_adapter, scale=1.0)
+fused_model = merger.apply_to_base(merged_adapter, base_model)
 
 print(f"q_proj shape: {fused_model['q_proj.weight'].shape}")  # (768, 768) unchanged
 ```
@@ -283,24 +285,24 @@ from crdt_merge.model import CRDTMergeState
 import numpy as np
 
 # Monthly merge using CRDTMergeState for convergence guarantees
-state = CRDTMergeState(node_id="enterprise-prod", strategy="lora_merge")
+state = CRDTMergeState("lora_merge")
 
 # Each team registers their adapter
 state.add(
-    "team_legal_may",
     legal_team_adapter,
+    model_id="team_legal_may",
     weight=0.35,
     metadata={"team": "legal", "month": "2026-05", "rank": 32}
 )
 state.add(
-    "team_finance_may",
     finance_team_adapter,
+    model_id="team_finance_may",
     weight=0.40,
     metadata={"team": "finance", "month": "2026-05", "rank": 48}
 )
 state.add(
-    "team_hr_may",
     hr_team_adapter,
+    model_id="team_hr_may",
     weight=0.25,
     metadata={"team": "hr", "month": "2026-05", "rank": 16}
 )
@@ -310,7 +312,7 @@ prod_adapter = state.resolve()
 
 # Month 2: legal team found a bias issue in their adapter
 state.remove("team_legal_may")
-state.add("team_legal_may_v2", fixed_legal_adapter, weight=0.35,
+state.add(fixed_legal_adapter, model_id="team_legal_may_v2", weight=0.35,
           metadata={"team": "legal", "month": "2026-05", "rank": 32, "version": 2})
 
 updated_prod = state.resolve()

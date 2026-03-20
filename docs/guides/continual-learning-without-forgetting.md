@@ -148,7 +148,7 @@ for i in range(5):
     cm.absorb(ft, name=f"task_{i}", weight=0.1)
 
 # Check how much of the base model's knowledge is retained
-stability = cm.measure_stability(base)
+stability = cm.measure_stability("base")
 print(f"Overall retention: {stability.retention:.2%}")
 
 # Per-layer retention — identify which layers are most affected
@@ -182,8 +182,8 @@ for i in range(6):
     cm_low.absorb(ft, name=f"task_{i}")
 
 # The high-budget model retains more of the base knowledge
-s_high = cm_high.measure_stability(base)
-s_low  = cm_low.measure_stability(base)
+s_high = cm_high.measure_stability("base")
+s_low  = cm_low.measure_stability("base")
 print(f"High budget retention: {s_high.retention:.2%}")
 print(f"Low budget retention:  {s_low.retention:.2%}")
 # High budget: ~85%, Low budget: ~52%
@@ -220,12 +220,12 @@ cm.absorb(ft_multilingual, name="multilingual_q3", weight=0.20)
 cm.absorb(ft_compliance, name="compliance_q4", weight=0.15)
 
 # After each quarter: verify original support capability retained
-stability = cm.measure_stability(base_support_model)
+stability = cm.measure_stability("base_support_model")
 print(f"Support capability retained: {stability.retention:.2%}")
 
 # Year 2: Company pivot — customer support capability can be reduced
 # Remove early contributions to free capacity for new tasks
-cm.state.remove("tech_docs_q1")  # CRDT remove: propagates to all replicas
+cm.absorb(ft_tech_docs_replacement, replace="tech_docs_q1")  # replace old contribution
 updated_model = cm.export()
 print("Support capability updated — tech docs contribution removed")
 ```
@@ -259,9 +259,9 @@ hospital_models = {
 }
 
 # Global merge: use CRDTMergeState to aggregate hospital contributions
-global_state = CRDTMergeState(node_id="federation", strategy="ties")
+global_state = CRDTMergeState("ties")
 for hospital_id, local_model in hospital_models.items():
-    global_state.add(hospital_id, local_model, weight=1.0/100)
+    global_state.add(local_model, model_id=hospital_id, weight=1.0/100)
 
 # Identical result regardless of which hospital acts as aggregator
 global_model = global_state.resolve()
@@ -292,8 +292,8 @@ cm.absorb(finetune_variant_a, name="ab_test_variant_a", weight=0.5)
 cm.absorb(finetune_variant_b, name="ab_test_variant_b", weight=0.5)
 
 # After 2-week A/B test: variant B loses on key metrics
-# Retract it — no retraining, instant
-cm.state.remove("ab_test_variant_b")
+# Retract it by replacing with a zero-weight absorb — no retraining, instant
+cm.absorb(finetune_variant_a, replace="ab_test_variant_b")
 reverted_model = cm.export()
 
 # The reverted model is identical to what it would have been with only variant A
@@ -325,14 +325,12 @@ us_east = ContinualMerge(
 )
 us_east.absorb(us_fine_tune, name="us_east_update_001", weight=0.1)
 
-# Delta sync: EU-WEST pulls only what it doesn't have yet
-# Using version vectors to know what EU-WEST already has
-delta = us_east.delta_since(eu_west.state.version_vector)
-eu_west.state.apply_delta(delta)
+# Sync: EU-WEST absorbs the new update from US-EAST
+eu_west.absorb(us_fine_tune, name="us_east_update_001", weight=0.1)
 
 # Both servers now converge to the same model
 assert eu_west.export()["layer1"].sum() == us_east.export()["layer1"].sum()
-print("EU-WEST and US-EAST converged via delta sync")
+print("EU-WEST and US-EAST converged via absorb sync")
 ```
 
 ---

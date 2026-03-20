@@ -50,11 +50,11 @@ import numpy as np
 
 def gen_state():
     """Generate a random CRDTMergeState for testing."""
-    state = CRDTMergeState(node_id="test", strategy="ties")
+    state = CRDTMergeState("ties")
     n_contributions = np.random.randint(1, 5)
     for i in range(n_contributions):
-        tensors = {"layer": np.random.randn(10, 10).astype(np.float32)}
-        state.add(f"model_{i}", tensors, weight=1.0 / n_contributions)
+        tensors = np.random.randn(10, 10).astype(np.float32)
+        state.add(tensors, model_id=f"model_{i}", weight=1.0 / n_contributions)
     return state
 
 result = verify_crdt(
@@ -64,9 +64,9 @@ result = verify_crdt(
 )
 
 print(f"Passed: {result.passed}")
-print(f"Commutativity:  {result.commutativity_pass}/{result.trials}")
-print(f"Associativity:  {result.associativity_pass}/{result.trials}")
-print(f"Idempotency:    {result.idempotency_pass}/{result.trials}")
+print(f"Commutativity:  {result.commutativity.trials - result.commutativity.failures}/{result.total_trials}")
+print(f"Associativity:  {result.associativity.trials - result.associativity.failures}/{result.total_trials}")
+print(f"Idempotency:    {result.idempotency.trials - result.idempotency.failures}/{result.total_trials}")
 
 assert result.passed  # All three laws hold
 ```
@@ -99,13 +99,13 @@ print(f"All laws satisfied: {result.passed}")
 
 # Individual law verification
 comm_result = verify_commutative(my_merge, gen_state, trials=5000)
-print(f"Commutative: {comm_result.passed} ({comm_result.commutativity_pass}/{comm_result.trials})")
+print(f"Commutative: {comm_result.passed} ({comm_result.commutativity.trials - comm_result.commutativity.failures}/{comm_result.total_trials})")
 
 assoc_result = verify_associative(my_merge, gen_state, trials=5000)
-print(f"Associative: {assoc_result.passed} ({assoc_result.associativity_pass}/{assoc_result.trials})")
+print(f"Associative: {assoc_result.passed} ({assoc_result.associativity.trials - assoc_result.associativity.failures}/{assoc_result.total_trials})")
 
 idem_result = verify_idempotent(my_merge, gen_state, trials=5000)
-print(f"Idempotent: {idem_result.passed} ({idem_result.idempotency_pass}/{idem_result.trials})")
+print(f"Idempotent: {idem_result.passed} ({idem_result.idempotency.trials - idem_result.idempotency.failures}/{idem_result.total_trials})")
 ```
 
 ---
@@ -145,9 +145,9 @@ def gen_state():
 result = verify_crdt(buggy_merge, gen_state, trials=2000)
 if not result.passed:
     print(f"Bug detected!")
-    print(f"Commutativity failures: {result.trials - result.commutativity_pass}")
-    if result.counterexample:
-        print(f"Counterexample: {result.counterexample}")
+    print(f"Commutativity failures: {result.commutativity.failures}")
+    if result.commutativity.first_failure:
+        print(f"Counterexample: {result.commutativity.first_failure}")
 ```
 
 ---
@@ -191,9 +191,9 @@ for name, strategy in strategies.items():
 
     status = "PASS" if result.passed else "FAIL"
     print(f"{name:20s}: {status} "
-          f"(comm={result.commutativity_pass}, "
-          f"assoc={result.associativity_pass}, "
-          f"idem={result.idempotency_pass})")
+          f"(comm={result.commutativity.trials - result.commutativity.failures}, "
+          f"assoc={result.associativity.trials - result.associativity.failures}, "
+          f"idem={result.idempotency.trials - result.idempotency.failures})")
 ```
 
 ---
@@ -212,10 +212,10 @@ def verified_merge(gen_fn, trials=1000):
         if not result.passed:
             raise ValueError(
                 f"Merge function '{merge_fn.__name__}' is not a CRDT!\n"
-                f"  Commutativity: {result.commutativity_pass}/{result.trials}\n"
-                f"  Associativity: {result.associativity_pass}/{result.trials}\n"
-                f"  Idempotency:   {result.idempotency_pass}/{result.trials}\n"
-                + (f"  Counterexample: {result.counterexample}" if result.counterexample else "")
+                f"  Commutativity: {result.commutativity.trials - result.commutativity.failures}/{result.total_trials}\n"
+                f"  Associativity: {result.associativity.trials - result.associativity.failures}/{result.total_trials}\n"
+                f"  Idempotency:   {result.idempotency.trials - result.idempotency.failures}/{result.total_trials}\n"
+                + (f"  Counterexample: {result.commutativity.first_failure}" if result.commutativity.first_failure else "")
             )
         print(f"✓ {merge_fn.__name__}: CRDT-compliant ({trials} trials)")
         return merge_fn
@@ -274,15 +274,15 @@ def merge_patient_records(a: dict, b: dict) -> dict:
 def test_patient_merge_is_crdt(trials):
     result = verify_crdt(merge_patient_records, gen_patient_record, trials=trials)
 
-    assert result.commutativity_pass == trials, (
-        f"Commutativity failed {trials - result.commutativity_pass}/{trials} times\n"
-        f"Counterexample: {result.counterexample}"
+    assert result.commutativity.failures == 0, (
+        f"Commutativity failed {result.commutativity.failures}/{trials} times\n"
+        f"Counterexample: {result.commutativity.first_failure}"
     )
-    assert result.associativity_pass == trials, (
-        f"Associativity failed {trials - result.associativity_pass}/{trials} times"
+    assert result.associativity.failures == 0, (
+        f"Associativity failed {result.associativity.failures}/{trials} times"
     )
-    assert result.idempotency_pass == trials, (
-        f"Idempotency failed {trials - result.idempotency_pass}/{trials} times"
+    assert result.idempotency.failures == 0, (
+        f"Idempotency failed {result.idempotency.failures}/{trials} times"
     )
     assert result.passed
 ```
@@ -317,9 +317,9 @@ result = verify_crdt(
 )
 
 print(f"AgentState CRDT compliance: {result.passed}")
-print(f"  Commutativity: {result.commutativity_pass}/{result.trials}")
-print(f"  Associativity: {result.associativity_pass}/{result.trials}")
-print(f"  Idempotency:   {result.idempotency_pass}/{result.trials}")
+print(f"  Commutativity: {result.commutativity.trials - result.commutativity.failures}/{result.total_trials}")
+print(f"  Associativity: {result.associativity.trials - result.associativity.failures}/{result.total_trials}")
+print(f"  Idempotency:   {result.idempotency.trials - result.idempotency.failures}/{result.total_trials}")
 ```
 
 ---
@@ -352,11 +352,11 @@ if result.passed:
     print("Third-party library is CRDT-compliant — safe to use in distributed system")
 else:
     print("THIRD-PARTY LIBRARY IS NOT CRDT-COMPLIANT — DO NOT USE IN DISTRIBUTED SYSTEM")
-    print(f"Commutativity failures: {result.trials - result.commutativity_pass}")
-    print(f"Associativity failures: {result.trials - result.associativity_pass}")
-    print(f"Idempotency failures:   {result.trials - result.idempotency_pass}")
-    if result.counterexample:
-        print(f"Counterexample that breaks commutativity: {result.counterexample}")
+    print(f"Commutativity failures: {result.commutativity.failures}")
+    print(f"Associativity failures: {result.associativity.failures}")
+    print(f"Idempotency failures:   {result.idempotency.failures}")
+    if result.commutativity.first_failure:
+        print(f"Counterexample that breaks commutativity: {result.commutativity.first_failure}")
 ```
 
 ---
@@ -367,14 +367,16 @@ else:
 from crdt_merge.verify import CRDTVerification
 
 # CRDTVerification fields:
-result = CRDTVerification(
-    passed=True,            # All three laws hold for all trials
-    trials=1000,            # Number of random test cases
-    commutativity_pass=1000,   # Times merge(A,B) == merge(B,A)
-    associativity_pass=1000,   # Times merge(merge(A,B),C) == merge(A,merge(B,C))
-    idempotency_pass=1000,     # Times merge(A,A) == A
-    counterexample=None,    # First failing input (if any)
-)
+# result.passed              — True if all three laws hold for all trials
+# result.total_trials        — Number of random test cases
+# result.commutativity       — VerificationResult: .passed, .trials, .failures, .first_failure
+# result.associativity       — VerificationResult: .passed, .trials, .failures, .first_failure
+# result.idempotency         — VerificationResult: .passed, .trials, .failures, .first_failure
+
+# Example access:
+# result.commutativity.passed         — True if all commutativity checks passed
+# result.commutativity.failures       — Number of failures
+# result.commutativity.first_failure  — First failing input (if any)
 
 # A merge function is CRDT-compliant if and only if result.passed is True
 # Pass rates below 100% indicate a non-deterministic merge (e.g., random tie-breaking)
