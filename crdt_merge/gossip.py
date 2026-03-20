@@ -25,6 +25,9 @@ crdt-merge provides the merge logic.
 
 Key design: NO networking. NO scheduling. Pure state machine.
 
+Float values in gossip digests use IEEE 754 big-endian encoding
+(struct.pack('>d', v)) for deterministic hashing across Python versions.
+
 The GossipState class manages a key-value store where each entry is tracked
 with a VectorClock for causal ordering. Anti-entropy methods enable efficient
 synchronisation by comparing compact digests rather than full state.
@@ -61,6 +64,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import struct
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Set, Tuple
 
@@ -273,9 +277,13 @@ class GossipState:
         """
         result: Dict[str, str] = {}
         for key, entry in self._entries.items():
+            # Use IEEE 754 big-endian encoding for float values to ensure
+            # deterministic hashing across Python versions and platforms.
+            v = entry.value
+            v_repr = struct.pack('>d', v).hex() if isinstance(v, float) else str(v)
             content = json.dumps(
                 {
-                    "v": str(entry.value),
+                    "v": v_repr,
                     "c": entry.clock.to_dict(),
                     "t": entry.tombstone,
                 },
