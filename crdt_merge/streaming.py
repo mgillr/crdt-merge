@@ -46,6 +46,7 @@ Usage:
 """
 
 from __future__ import annotations
+import queue
 import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, Generator, Iterable, Iterator, List, Optional, Tuple, Union
@@ -153,12 +154,19 @@ def merge_stream(
     schema: Optional[MergeSchema] = None,
     timestamp_col: Optional[str] = None,
     stats: Optional[StreamStats] = None,
+    buffer_size: int = 1000,
 ) -> Generator[List[dict], None, None]:
     """
     Streaming merge of two row sources. Memory: O(batch_size + |source_b|).
 
     Loads source_b into a lookup dict, then streams source_a against it.
     Output is yielded in batches of up to batch_size rows.
+
+    Backpressure mechanism: rows from source_a are consumed via an internal
+    queue.Queue(maxsize=buffer_size). This limits how far ahead the producer
+    can run relative to the consumer, preventing unbounded memory growth when
+    the downstream consumer is slower than the upstream source. If the buffer
+    is full, the producer blocks until the consumer drains a slot.
 
     v0.4.0: Optimized with column caching and efficient GC handling for
     stable ~400K rows/s throughput regardless of scale.
@@ -171,6 +179,9 @@ def merge_stream(
         schema: Optional MergeSchema for per-column strategies.
         timestamp_col: Column name for LWW timestamps.
         stats: Optional StreamStats to track progress.
+        buffer_size: Maximum number of rows to buffer from source_a before
+            applying backpressure (default: 1000). Acts as a bound on
+            in-flight rows from upstream.
 
     Yields:
         Lists of merged dicts, each list up to batch_size rows.
@@ -190,7 +201,24 @@ def merge_stream(
     cached_cols: Optional[List[str]] = None
     default_strategy = LWW()
 
-    for row_a in source_a:
+    # Backpressure: use a bounded queue to limit how far ahead the upstream
+    # source can produce relative to downstream consumption.
+    _sentinel = object()
+    _buf: queue.Queue = queue.Queue(maxsize=buffer_size)
+
+    def _fill_buffer() -> None:
+        for row in source_a:
+            _buf.put(row)  # blocks if buffer is full (backpressure)
+        _buf.put(_sentinel)  # signal end-of-stream
+
+    import threading
+    _producer = threading.Thread(target=_fill_buffer, daemon=True)
+    _producer.start()
+
+    while True:
+        row_a = _buf.get()
+        if row_a is _sentinel:
+            break
         k = row_a[key]
         if k in b_index:
             row_b = b_index.pop(k)
@@ -213,6 +241,8 @@ def merge_stream(
             _emit_batch(output_batch, stats)
             yield output_batch
             output_batch = []
+
+    _producer.join()
 
     # Remaining unmatched rows from source_b
     unique_b = 0
