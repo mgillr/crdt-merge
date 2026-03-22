@@ -28,6 +28,10 @@ External dependency: ``polars`` — **lazy-imported**.  The module can be
 imported even when Polars is not installed; operations that need Polars
 will raise a clear ``ImportError`` at call-time.
 
+Note: Current implementation uses Python-level processing, not native Polars
+LazyFrame expressions. For maximum performance with large datasets, use the
+Arrow backend via crdt_merge.arrow_merge() instead.
+
 Usage::
 
     from crdt_merge.accelerators.polars_plugin import PolarsCRDTMerge
@@ -247,6 +251,10 @@ class PolarsCRDTMerge:
 
         Returns:
             PolarsMergeResult with merged DataFrame and statistics.
+
+        Note: Current implementation uses Python-level processing, not native
+        Polars LazyFrame expressions. For maximum performance with large
+        datasets, use the Arrow backend via crdt_merge.arrow_merge() instead.
         """
         pl = _require_polars()
         start = time.time()

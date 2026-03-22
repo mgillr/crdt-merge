@@ -28,6 +28,10 @@ users can run conflict-free merge operations directly from SQL:
 All external dependencies use lazy imports — the module is importable even
 without ``duckdb`` installed.
 
+Note: Current implementation marshals all data through Python lists (no
+SQL-level push-down). Performance scales with O(n) data transfer.
+Column-at-a-time batching is not yet implemented.
+
 Example::
 
     from crdt_merge.accelerators.duckdb_udf import DuckDBMergeUDF
@@ -217,6 +221,10 @@ class DuckDBMergeUDF:
         Each function accepts and returns JSON-encoded strings so no Arrow
         type negotiation is required.  For bulk table merging, prefer
         :meth:`merge_tables` which avoids JSON serialisation overhead.
+
+        Note: Current implementation marshals all data through Python lists
+        (no SQL-level push-down). Performance scales with O(n) data transfer.
+        Column-at-a-time batching is not yet implemented.
         """
         import json as _json
 
@@ -292,6 +300,10 @@ class DuckDBMergeUDF:
 
         Returns:
             Merged records as ``list[dict]``.
+
+        Note: Current implementation marshals all data through Python lists
+        (no SQL-level push-down). Performance scales with O(n) data transfer.
+        Column-at-a-time batching is not yet implemented.
         """
         conn = self._ensure_conn()
         left_recs = _records_from_relation(conn.sql(f"SELECT * FROM {left}"))
@@ -338,6 +350,10 @@ class DuckDBMergeUDF:
 
         Returns:
             Merged records.
+
+        Note: Current implementation marshals all data through Python lists
+        (no SQL-level push-down). Performance scales with O(n) data transfer.
+        Column-at-a-time batching is not yet implemented.
         """
         left_recs = _records_from_relation(left_result)
         right_recs = _records_from_relation(right_result)
