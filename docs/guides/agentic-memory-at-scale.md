@@ -130,8 +130,8 @@ assert m2["source"] == "agent-b"
 from crdt_merge.context.bloom import ContextBloom
 
 # 64-shard CRDT Bloom filter
-bloom_a = ContextBloom(capacity=1_000_000, fp_rate=0.001)
-bloom_b = ContextBloom(capacity=1_000_000, fp_rate=0.001)
+bloom_a = ContextBloom(expected_items=1_000_000, fp_rate=0.001)
+bloom_b = ContextBloom(expected_items=1_000_000, fp_rate=0.001)
 
 # Agent A processes 500K memories
 for i in range(500_000):
@@ -164,18 +164,18 @@ print(f"False positive rate: {merged_bloom.estimated_fp_rate():.4%}")
 
 ```python
 from crdt_merge.context.merge import ContextMerge, MemoryChunk
+from crdt_merge.context.consolidator import MemorySidecar
 
 # 100,000 memories — each has a sidecar with metadata
 memories = [
     MemoryChunk(
-        id=f"m{i:06d}",
-        content=f"Memory content {i}",  # not read until sidecar passes
-        confidence=0.5 + (i % 50) * 0.01,
-        source_agent=f"agent-{i % 5}",
-        timestamp=1700000000 + i * 60,
-        tags=frozenset(["research" if i % 3 == 0 else "general"]),
-        topic="finance" if i % 7 == 0 else "operations",
-        ttl=3600.0,
+        fact=f"Memory content {i}",  # not read until sidecar passes
+        sidecar=MemorySidecar.from_fact(
+            f"Memory content {i}",
+            source_agent=f"agent-{i % 5}",
+            topic="finance" if i % 7 == 0 else "operations",
+            confidence=0.5 + (i % 50) * 0.01,
+        ),
     )
     for i in range(100_000)
 ]
@@ -217,7 +217,7 @@ for agent_id in range(5):
 
 # Budget: fit within 2048 tokens
 merger = ContextMerge(strategy="max_confidence", budget=2048)
-result = merger.merge(*[all_memories[i::5] for i in range(5)])
+result = merger.merge_multi(*[all_memories[i::5] for i in range(5)])
 
 print(f"Input: {len(all_memories)} memories from 5 agents")
 print(f"Output: {len(result.memories)} memories (budget-capped)")
@@ -273,6 +273,7 @@ A customer service agent has handled 50,000 conversations. Its memory grows with
 
 ```python
 from crdt_merge.context.merge import ContextMerge, MemoryChunk
+from crdt_merge.context.consolidator import MemorySidecar
 from crdt_merge.context.bloom import ContextBloom
 import time
 
@@ -283,7 +284,7 @@ class InfiniteAgent:
         self.agent_id = agent_id
         self.token_budget = token_budget
         self.memories: list[MemoryChunk] = []
-        self.bloom = ContextBloom(capacity=10_000_000, fp_rate=0.0001)
+        self.bloom = ContextBloom(expected_items=10_000_000, fp_rate=0.0001)
         self.merger = ContextMerge(strategy="max_confidence", budget=token_budget)
 
     def learn(self, memory_id: str, content: str, confidence: float, tags: frozenset, ttl_hours: float = 24):
@@ -293,13 +294,12 @@ class InfiniteAgent:
 
         self.bloom.add(memory_id)
         chunk = MemoryChunk(
-            id=memory_id,
-            content=content,
-            confidence=confidence,
-            source_agent=self.agent_id,
-            timestamp=time.time(),
-            tags=tags,
-            ttl=ttl_hours * 3600,
+            fact=content,
+            sidecar=MemorySidecar.from_fact(
+                content,
+                source_agent=self.agent_id,
+                confidence=confidence,
+            ),
         )
         self.memories.append(chunk)
 

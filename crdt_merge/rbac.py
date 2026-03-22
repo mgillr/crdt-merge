@@ -170,6 +170,18 @@ class AccessContext:
 
 
 # ---------------------------------------------------------------------------
+# Role hierarchy
+# ---------------------------------------------------------------------------
+
+_ROLE_HIERARCHY: Dict[Role, Set[Role]] = {
+    ADMIN: {ADMIN, MERGER, WRITER, READER},
+    MERGER: {MERGER, WRITER, READER},
+    WRITER: {WRITER, READER},
+    READER: {READER},
+}
+
+
+# ---------------------------------------------------------------------------
 # RBACController
 # ---------------------------------------------------------------------------
 
@@ -178,11 +190,19 @@ class RBACController:
     """Central policy store and enforcement engine.
 
     Thread-safe — all mutations are guarded by an internal lock.
+
+    Parameters
+    ----------
+    allow_unknown_nodes:
+        When ``False`` (default) unregistered nodes are denied all
+        permissions.  When ``True`` the legacy behaviour is preserved
+        (full access for unregistered nodes).
     """
 
-    def __init__(self) -> None:
+    def __init__(self, allow_unknown_nodes: bool = False) -> None:
         self._policies: Dict[str, Policy] = {}
         self._lock = threading.Lock()
+        self._allow_unknown_nodes = allow_unknown_nodes
 
     # -- policy management ---------------------------------------------------
 
@@ -204,12 +224,32 @@ class RBACController:
 
     # -- permission checks ---------------------------------------------------
 
+    def _effective_permissions(self, role: Role) -> frozenset:
+        """Return the union of permissions granted by *role* and all roles
+        that *role* subsumes in the hierarchy."""
+        effective_roles = _ROLE_HIERARCHY.get(role, {role})
+        perms: Set[Permission] = set()
+        for r in effective_roles:
+            perms |= set(r.permissions)
+        return frozenset(perms)
+
     def check_permission(self, context: AccessContext, permission: Permission) -> bool:
-        """Return *True* if *context* grants *permission*."""
+        """Return *True* if *context* grants *permission*.
+
+        Applies role hierarchy so ADMIN subsumes MERGER ⊃ WRITER ⊃ READER.
+        Unregistered nodes are denied when ``allow_unknown_nodes=False``.
+        """
         policy = self.get_policy(context.node_id)
         if policy is None:
-            return False
-        return context.role.has_permission(permission)
+            if not self._allow_unknown_nodes:
+                logger.warning(
+                    "RBAC: unknown node '%s' denied (default-deny)", context.node_id
+                )
+                return False
+            # Legacy: allow full access
+            return context.role.has_permission(permission)
+        effective = self._effective_permissions(context.role)
+        return permission in effective
 
     def check_field_access(
         self, context: AccessContext, field_name: str, permission: Permission
@@ -297,10 +337,44 @@ class SecureMerge:
     ----------
     rbac:
         The :class:`RBACController` that holds all active policies.
+    audit_log:
+        Optional :class:`~crdt_merge.audit.AuditLog` instance.  When
+        provided, every RBAC decision is recorded as an ``rbac_decision``
+        entry linked to the corresponding merge entry via ``merge_id``.
     """
 
-    def __init__(self, rbac: RBACController) -> None:
+    def __init__(self, rbac: RBACController, audit_log: Any = None) -> None:
         self._rbac = rbac
+        self._audit_log = audit_log
+
+    def _log_decision(
+        self,
+        node_id: str,
+        role: Role,
+        operation: str,
+        decision: str,
+        merge_id: Optional[str] = None,
+        extra: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Write an RBAC decision to the audit log if one is configured."""
+        if self._audit_log is None:
+            return
+        meta: Dict[str, Any] = {
+            "node_id": node_id,
+            "role": role.name,
+            "operation": operation,
+            "decision": decision,
+        }
+        if merge_id is not None:
+            meta["merge_id"] = merge_id
+        if extra:
+            meta.update(extra)
+        self._audit_log.log_operation(
+            "rbac_decision",
+            input_data={"node_id": node_id, "role": role.name, "operation": operation},
+            output_data={"decision": decision},
+            **meta,
+        )
 
     def merge(
         self,
@@ -324,47 +398,94 @@ class SecureMerge:
         if context is None:
             return _crdt_merge(left, right, key=key, schema=schema, **kwargs)
 
+        node_id = context.node_id
+        role = context.role
+
         # 1. Permission gate
         if not self._rbac.check_permission(context, Permission.MERGE):
+            self._log_decision(node_id, role, "merge", "denied",
+                               extra={"reason": "lacks MERGE permission"})
             raise PermissionError(
-                f"Node '{context.node_id}' lacks MERGE permission"
+                f"Node '{node_id}' lacks MERGE permission"
             )
 
         # 2. Record-count gate
-        policy = self._rbac.get_policy(context.node_id)
+        policy = self._rbac.get_policy(node_id)
         if policy is not None and policy.max_record_count is not None:
             total = (len(left) if isinstance(left, list) else 0) + (
                 len(right) if isinstance(right, list) else 0
             )
             if total > policy.max_record_count:
+                self._log_decision(node_id, role, "merge", "denied",
+                                   extra={"reason": "record count exceeded"})
                 raise PermissionError(
                     f"Record count {total} exceeds limit "
-                    f"{policy.max_record_count} for node '{context.node_id}'"
+                    f"{policy.max_record_count} for node '{node_id}'"
                 )
 
-        # 3. Strategy gate
+        # 3. Field whitelist gate (issue #77)
+        if policy is not None and policy.allowed_fields is not None:
+            all_records = (
+                (left if isinstance(left, list) else [])
+                + (right if isinstance(right, list) else [])
+            )
+            for rec in all_records:
+                if not isinstance(rec, dict):
+                    continue
+                for fname in rec:
+                    if fname not in policy.allowed_fields:
+                        self._log_decision(
+                            node_id, role, "merge", "denied",
+                            extra={"reason": "field not permitted", "field": fname},
+                        )
+                        raise PermissionError(
+                            f"Field '{fname}' not permitted for role {role.name}"
+                        )
+
+        # 4. Strategy gate
         if schema is not None and policy is not None and policy.allowed_strategies is not None:
             # Check per-field strategies stored in _strategies dict
             field_strats = getattr(schema, "_strategies", None) or {}
             for _fname, strat in field_strats.items():
                 sname = type(strat).__name__
                 if sname not in policy.allowed_strategies:
+                    self._log_decision(node_id, role, "merge", "denied",
+                                       extra={"reason": "strategy not allowed",
+                                              "strategy": sname})
                     raise PermissionError(
-                        f"Strategy '{sname}' not allowed for node '{context.node_id}'"
+                        f"Strategy '{sname}' not allowed for node '{node_id}'"
                     )
             # Check the default strategy
             default_strat = getattr(schema, "default", None)
             if default_strat is not None:
                 dname = type(default_strat).__name__
                 if dname not in policy.allowed_strategies:
+                    self._log_decision(node_id, role, "merge", "denied",
+                                       extra={"reason": "default strategy not allowed",
+                                              "strategy": dname})
                     raise PermissionError(
-                        f"Default strategy '{dname}' not allowed for node '{context.node_id}'"
+                        f"Default strategy '{dname}' not allowed for node '{node_id}'"
                     )
 
-        # 4. Perform the real merge
+        # 5. Perform the real merge
         result = _crdt_merge(left, right, key=key, schema=schema, **kwargs)
 
-        # 5. Filter output fields based on READ permissions
+        # 6. Log the merge to the audit log and capture the merge_id
+        merge_id: Optional[str] = None
+        if self._audit_log is not None:
+            merge_entry = self._audit_log.log_merge(
+                left_records=left,
+                right_records=right,
+                result_records=result,
+                schema=schema,
+                key=key if isinstance(key, str) else str(key),
+            )
+            merge_id = merge_entry.entry_id
+
+        # 7. Log RBAC grant decision linked to the merge entry
+        self._log_decision(node_id, role, "merge", "granted", merge_id=merge_id)
+
+        # 8. Filter output fields based on READ permissions
         if isinstance(result, list):
             result = self._rbac._filter_fields(context, result)
 

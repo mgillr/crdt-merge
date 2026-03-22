@@ -41,6 +41,15 @@ Usage::
 
 from __future__ import annotations
 
+__status__ = 'stub'
+
+import warnings
+warnings.warn(
+    "crdt_merge.accelerators.ducklake is not yet implemented (stub)",
+    UserWarning,
+    stacklevel=2,
+)
+
 import hashlib
 import json
 import time

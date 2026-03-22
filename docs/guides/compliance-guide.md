@@ -7,9 +7,9 @@
 ```python
 from crdt_merge.unmerge import GDPRForget
 
-forget = GDPRForget(audit_log=log)
-cleaned = forget.forget(data=df, subject_id="user-123", key_col="user_id")
-cert = forget.generate_certificate("user-123")
+forget = GDPRForget()
+cleaned = forget.forget_data(merged_data=df, provenance=provenance, contributor="user-123", key_field='id')
+cert = forget.compliance_report()
 ```
 
 ### Audit Trail Requirements

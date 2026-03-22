@@ -428,7 +428,7 @@ result = ql.execute("""
     MERGE source_a, source_b
     ON id
     STRATEGY value='max'
-""", include_provenance=True)
+""")
 
 # Full per-row provenance
 if result.provenance:

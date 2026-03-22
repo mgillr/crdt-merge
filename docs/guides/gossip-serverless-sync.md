@@ -326,8 +326,8 @@ class VehicleNode:
 
     def get_hazards(self) -> list:
         return [
-            (k, v) for k, v in self.state.items()
-            if k.startswith("hazard:") and not self.state.is_tombstoned(k)
+            (k, v) for k, v in list(self.state.to_dict().items())
+            if k.startswith("hazard:")
         ]
 
 

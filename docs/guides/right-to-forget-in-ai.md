@@ -86,10 +86,10 @@ from crdt_merge.unmerge import ModelUnmerge
 from crdt_merge.model import CRDTMergeState
 
 # Three models merged together
-state = CRDTMergeState(node_id="global", strategy="ties")
-state.add("model_alice", {"layer1": np.random.randn(10, 10).astype(np.float32)}, weight=0.4)
-state.add("model_bob",   {"layer1": np.random.randn(10, 10).astype(np.float32)}, weight=0.35)
-state.add("model_carol", {"layer1": np.random.randn(10, 10).astype(np.float32)}, weight=0.25)
+state = CRDTMergeState("ties")
+state.add(np.random.randn(10, 10).astype(np.float32), model_id="model_alice", weight=0.4)
+state.add(np.random.randn(10, 10).astype(np.float32), model_id="model_bob",   weight=0.35)
+state.add(np.random.randn(10, 10).astype(np.float32), model_id="model_carol", weight=0.25)
 
 merged_model = state.resolve()
 
@@ -99,7 +99,7 @@ updated_model = state.resolve()
 
 # Verify the influence is reduced
 unmerge = ModelUnmerge()
-residual = unmerge.measure_residual(merged_model, updated_model, "model_bob")
+residual = unmerge.measure_residual(updated_model, merged_model)
 
 print(f"Influence score after removal: {residual.influence_score:.3f}")  # < original
 print(f"Parameters checked: {residual.parameters_checked}")
@@ -123,15 +123,15 @@ target = {"layer": np.array([0.4, 0.35, 0.65, 0.25], dtype=np.float32)}  # contr
 unmerge = ModelUnmerge()
 
 # Strategy 1: Negmerge — subtract the target contribution
-result_neg = unmerge.negmerge(merged, target, weight=0.35)
+result_neg = unmerge.unmerge_model(merged, target, remove_model="target", method='negmerge')
 print("Negmerge:", result_neg["layer"])
 
 # Strategy 2: Surgical zeroing — zero parameters where target was dominant
-result_surgical = unmerge.surgical_zeroing(merged, target, threshold=0.1)
+result_surgical = unmerge.unmerge_model(merged, target, remove_model="target", method='surgical')
 print("Surgical zero:", result_surgical["layer"])
 
 # Strategy 3: Proportional rescaling — rescale weights to remove contribution
-result_scaled = unmerge.proportional_rescale(merged, target, weight=0.35)
+result_scaled = unmerge.unmerge_model(merged, target, remove_model="target", method='proportional')
 print("Rescaled:", result_scaled["layer"])
 ```
 
@@ -159,12 +159,12 @@ merged, log = merge_with_provenance(customer_a, customer_b, key="id")
 audit = AuditLog(node_id="gdpr-processor")
 
 # GDPR erasure request
-gdpr = GDPRForget(audit_log=audit)
+gdpr = GDPRForget()
 
 # Process the erasure
-result = gdpr.forget(
-    data=merged,
-    provenance=log,
+result = gdpr.forget_data(
+    merged,
+    log,
     contributor="a",   # remove records from source "a"
     key_field="id",
 )
@@ -175,7 +175,7 @@ print(f"Compliance timestamp: {result.compliance_timestamp}")
 print(f"Contributor: {result.contributor}")
 
 # Generate the compliance report
-report = gdpr.generate_report()
+report = gdpr.compliance_report()
 print(report.to_json())
 ```
 
@@ -202,22 +202,22 @@ for source_name, records in list(sources.items())[1:]:
     merged, log_a_b = merge_with_provenance(merged, records, key="id")
 
 audit = AuditLog(node_id="gdpr-batch")
-gdpr = GDPRForget(audit_log=audit)
+gdpr = GDPRForget()
 
 # Process multiple erasure requests
 erasure_requests = ["hospital_a", "hospital_c"]
 
 for contributor in erasure_requests:
-    result = gdpr.forget(
-        data=merged,
-        provenance=log_a_b,
+    result = gdpr.forget_data(
+        merged,
+        log_a_b,
         contributor=contributor,
         key_field="id",
     )
     print(f"Erased {contributor}: {result.data_records_removed} records removed")
 
 # Final compliance report covers all erasure requests
-report = gdpr.generate_report()
+report = gdpr.compliance_report()
 print(f"Total requests: {len(report.requests_processed)}")
 print(f"Total records removed: {report.total_records_removed}")
 ```
@@ -237,19 +237,19 @@ from crdt_merge.model import CRDTMergeState
 from crdt_merge.unmerge import ModelUnmerge, GDPRForget
 import numpy as np
 
-# 100 clients, each with a unique node_id
+# 100 clients, each with their own state
 clients = {
-    f"client_{i}": CRDTMergeState(node_id=f"client_{i}", strategy="ties")
+    f"client_{i}": CRDTMergeState("ties")
     for i in range(100)
 }
 
 # Each client adds their model update
 for client_id, state in clients.items():
-    weights = {"layer1": np.random.randn(50, 50).astype(np.float32)}
-    state.add(f"update_{client_id}", weights, weight=1.0 / 100)
+    weights = np.random.randn(50, 50).astype(np.float32)
+    state.add(weights, model_id=f"update_{client_id}", weight=1.0 / 100)
 
 # Global state: merge all clients
-global_state = CRDTMergeState(node_id="server", strategy="ties")
+global_state = CRDTMergeState("ties")
 for client_state in clients.values():
     global_state.merge(client_state)
 
@@ -268,7 +268,7 @@ updated_model = global_state.resolve()
 
 # Measure residual influence
 unmerge = ModelUnmerge()
-residual = unmerge.measure_residual(merged_model, updated_model, "update_client_42")
+residual = unmerge.measure_residual(updated_model, merged_model)
 print(f"Residual influence after removal: {residual.influence_score:.4f}")
 
 # Generate GDPR compliance evidence
@@ -287,10 +287,11 @@ from crdt_merge.unmerge import ModelUnmerge
 import numpy as np
 
 # Base model + fine-tune on problematic dataset
-state = CRDTMergeState(node_id="safety-team", strategy="negmerge")
+state = CRDTMergeState("neg_merge")
 
-state.add("base_model", {"attn": np.random.randn(128, 128).astype(np.float32)}, weight=0.7)
-state.add("harmful_finetune", {"attn": np.random.randn(128, 128).astype(np.float32)}, weight=0.3)
+base_tensor = np.random.randn(128, 128).astype(np.float32)
+state.add(base_tensor, model_id="base_model", weight=0.7)
+state.add(np.random.randn(128, 128).astype(np.float32), model_id="harmful_finetune", weight=0.3)
 
 merged = state.resolve()
 
@@ -300,7 +301,7 @@ safe_model = state.resolve()
 
 # Verify the harmful contribution is gone
 unmerge = ModelUnmerge()
-residual = unmerge.measure_residual(merged, safe_model, "harmful_finetune")
+residual = unmerge.measure_residual(safe_model, merged)
 
 print(f"Harmful influence removed: {1 - residual.influence_score:.1%}")
 
@@ -320,29 +321,26 @@ from crdt_merge.unmerge import ModelUnmerge
 import numpy as np
 
 continual = ContinualMerge(
-    base_model_id="llama-base",
+    base_model=base_model,
     strategy="ties",
-    forgetting_threshold=0.1,
 )
 
 # Six months of regional updates
 for month in range(6):
     for region in ["EU", "US", "APAC"]:
         update = {"layer1": np.random.randn(64, 64).astype(np.float32)}
-        continual.add_update(
-            model_id=f"update-{region}-month{month}",
-            tensors=update,
+        continual.absorb(
+            update,
+            name=f"update-{region}-month{month}",
             weight=0.1 / 6,
-            metadata={"region": region, "month": month},
         )
 
 # New regulation: forget all EU data
+# Re-absorb non-EU contributions only, replacing earlier EU updates
 eu_model_ids = [f"update-EU-month{m}" for m in range(6)]
-for model_id in eu_model_ids:
-    continual.state.remove(model_id)
 
 # Re-resolve — EU data is gone, US and APAC contributions intact
-compliant_model = continual.resolve()
+compliant_model = continual.export()
 print("EU data removed. Model re-resolved without EU contributions.")
 ```
 
@@ -362,7 +360,7 @@ unmerge = ModelUnmerge()
 before = {"layer1": np.array([0.5, 0.3, 0.7], dtype=np.float32)}
 after  = {"layer1": np.array([0.45, 0.32, 0.68], dtype=np.float32)}
 
-report: ResidualReport = unmerge.measure_residual(before, after, "removed_model")
+report: ResidualReport = unmerge.measure_residual(after, before)
 
 print(f"Influence score: {report.influence_score:.4f}")
 # 0.0 = completely removed, 1.0 = fully present
@@ -381,10 +379,10 @@ from crdt_merge.unmerge import GDPRForget, GDPRComplianceReport
 from crdt_merge.audit import AuditLog
 import json
 
-gdpr = GDPRForget(audit_log=AuditLog(node_id="compliance"))
+gdpr = GDPRForget()
 
 # After processing erasure requests...
-report: GDPRComplianceReport = gdpr.generate_report()
+report: GDPRComplianceReport = gdpr.compliance_report()
 
 # JSON export for legal/compliance teams
 report_json = report.to_json()
@@ -426,7 +424,7 @@ import secrets
 
 em = EncryptedMerge(StaticKeyProvider(secrets.token_bytes(32)))
 audit = AuditLog(node_id="gdpr-encrypted")
-gdpr = GDPRForget(audit_log=audit)
+gdpr = GDPRForget()
 
 # Data is encrypted at rest — GDPR request requires:
 # 1. Decrypt to identify records by contributor
