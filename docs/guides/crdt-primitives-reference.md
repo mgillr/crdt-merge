@@ -174,8 +174,9 @@ records = [
     {"id": 1, "name": "Alice"},
     {"id": 2, "name": "Bob"},
 ]
-unique_records = dedup_records(records, key="id")
+unique_records, num_removed = dedup_records(records, columns=["id"])
 print(len(unique_records))  # 2
+print(num_removed)          # 1
 ```
 
 ## Verification

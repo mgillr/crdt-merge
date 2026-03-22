@@ -60,8 +60,8 @@ class TestFederatedQuickStart:
         # Both resolve paths should produce the same result (CRDT convergence)
         np.testing.assert_array_almost_equal(resolved_abc, resolved_bac)
 
-    def test_merge_returns_new_state(self):
-        """merge() must return a new CRDTMergeState (immutable semantics)."""
+    def test_merge_returns_self(self):
+        """merge() mutates self in-place and returns self (mutable semantics per architecture spec)."""
         from crdt_merge.model import CRDTMergeState
 
         a = CRDTMergeState("weight_average")
@@ -70,8 +70,9 @@ class TestFederatedQuickStart:
         b.add(_tensor(seed=11), model_id="m2")
 
         merged = a.merge(b)
-        assert merged is not a
-        assert merged is not b
+        assert merged is a  # in-place mutation, returns self
+        assert "m1" in a.model_ids
+        assert "m2" in a.model_ids
 
     def test_remove_before_add_works(self):
         """remove() tombstones a model_id so it's excluded from resolve."""

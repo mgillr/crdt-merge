@@ -498,10 +498,15 @@ class CRDTMergeState:
         return self
 
     def merge(self, other: "CRDTMergeState") -> "CRDTMergeState":
-        """CRDT merge: set union of contributions with conflict resolution.
+        """CRDT merge: in-place set union of contributions.
+
+        Mutates *self* to include all contributions from *other*, then
+        returns *self* for method chaining.  This matches the OR-Set
+        architecture specification: the merge operation is the set-union
+        ⊔ applied in place, exactly like ``add()`` and ``remove()``.
 
         This operation satisfies all three CRDT laws: commutativity,
-        associativity, and idempotency. The resulting state is equivalent
+        associativity, and idempotency.  The resulting state is equivalent
         regardless of merge order.
 
         Parameters
@@ -511,51 +516,57 @@ class CRDTMergeState:
 
         Returns
         -------
-        merged : CRDTMergeState
-            New state containing the union of both contribution sets.
+        self : CRDTMergeState
+            Returns *self* for method chaining, e.g.::
+
+                state.merge(peer_a).merge(peer_b)
         """
-        result = CRDTMergeState(
-            strategy_name=self.strategy_name,
-            base=self.base if self.base is not None else other.base,
-            conflict_resolution=self.conflict_resolution,
-            seed=self.seed,
-        )
+        if self.strategy_name != other.strategy_name:
+            raise ValueError(
+                f"Cannot merge states with different strategies: "
+                f"{self.strategy_name} vs {other.strategy_name}"
+            )
 
-        # Union of tombstones
-        result._tombstones = self._tombstones | other._tombstones
+        # OR-Set union: expand tombstones first so we can filter below
+        self._tombstones = self._tombstones | other._tombstones
 
-        # Collect all contributions from both sides
-        all_contribs: Dict[str, MergeContribution] = {}
+        # Evict self contributions now covered by the expanded tombstone set
+        for mid in list(self._contributions.keys()):
+            if self._contributions[mid]._tag in self._tombstones:
+                del self._contributions[mid]
 
-        for mid, contrib in self._contributions.items():
-            if contrib._tag not in result._tombstones:
-                all_contribs[mid] = contrib
-
+        # Merge other's contributions into self
         for mid, contrib in other._contributions.items():
-            if contrib._tag not in result._tombstones:
-                if mid in all_contribs:
-                    # Conflict: same model_id from both replicas
-                    existing = all_contribs[mid]
-                    if self.conflict_resolution == ConflictResolution.HIGHEST_VERSION:
-                        if contrib.version > existing.version:
-                            all_contribs[mid] = contrib
-                        elif contrib.version == existing.version:
-                            # Tie-break: deterministic by merkle hash
-                            if contrib.merkle_hash < existing.merkle_hash:
-                                all_contribs[mid] = contrib
-                    elif self.conflict_resolution == ConflictResolution.LAST_WRITE_WINS:
-                        if contrib.timestamp > existing.timestamp:
-                            all_contribs[mid] = contrib
-                    # FIRST_WRITE_WINS: keep existing (do nothing)
-                else:
-                    all_contribs[mid] = contrib
+            if contrib._tag in self._tombstones:
+                continue  # skip tombstoned other contributions
+            if mid in self._contributions:
+                existing = self._contributions[mid]
+                # Conflict resolution
+                if self.conflict_resolution == ConflictResolution.HIGHEST_VERSION:
+                    if contrib.version > existing.version:
+                        self._contributions[mid] = contrib
+                    elif contrib.version == existing.version:
+                        # Tie-break: deterministic by merkle hash
+                        if contrib.merkle_hash < existing.merkle_hash:
+                            self._contributions[mid] = contrib
+                elif self.conflict_resolution == ConflictResolution.LAST_WRITE_WINS:
+                    if contrib.timestamp > existing.timestamp:
+                        self._contributions[mid] = contrib
+                # FIRST_WRITE_WINS: keep existing (do nothing)
+            else:
+                self._contributions[mid] = contrib
 
-        result._contributions = OrderedDict(
-            sorted(all_contribs.items(), key=lambda x: x[0])
+        # Re-sort contributions for canonical ordering across replicas
+        self._contributions = OrderedDict(
+            sorted(self._contributions.items(), key=lambda x: x[0])
         )
 
-        # Cache is already invalid in the fresh `result` (initialized False)
-        return result
+        # Inherit base model if self has none
+        if self.base is None and other.base is not None:
+            self.base = other.base
+
+        self._invalidate_cache()
+        return self
 
     @classmethod
     def merge_many(cls, states: List["CRDTMergeState"]) -> "CRDTMergeState":
@@ -731,6 +742,25 @@ class CRDTMergeState:
     def is_stochastic(self) -> bool:
         """Whether this state's strategy has internal RNG."""
         return self.strategy_name in self.STOCHASTIC
+
+    @property
+    def state_hash(self) -> str:
+        """SHA-256 Merkle root over active contributions in canonical order.
+
+        Computed as SHA-256 over the sorted merkle_hashes of all active
+        (non-tombstoned) contributions.  Identical visible sets on any
+        replica produce an identical ``state_hash``.
+
+        Returns
+        -------
+        str
+            Hex-encoded SHA-256 digest.
+        """
+        import hashlib
+        active = self._active_contributions()
+        # Canonical order: sort by model_id (already sorted in OrderedDict)
+        hashes = "".join(c.merkle_hash for c in sorted(active.values(), key=lambda c: c.model_id))
+        return hashlib.sha256(hashes.encode()).hexdigest()
 
     @property
     def estimated_memory_bytes(self) -> int:

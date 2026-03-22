@@ -329,8 +329,9 @@ class MergeSchema:
                 result[k] = va
             elif va == vb:
                 result[k] = va
-            elif isinstance(va, dict) and isinstance(vb, dict):
-                # Recursively merge nested dicts
+            elif isinstance(va, dict) and isinstance(vb, dict) and k not in self._strategies:
+                # Recursively merge nested dicts only when no per-field strategy is registered.
+                # A registered strategy takes priority over structural recursion.
                 result[k] = self.resolve_row(va, vb, timestamp_col=timestamp_col,
                                              node_a=node_a, node_b=node_b)
             elif isinstance(va, list) and isinstance(vb, list):

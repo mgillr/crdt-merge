@@ -85,8 +85,8 @@ import numpy as np
 from crdt_merge.unmerge import ModelUnmerge
 from crdt_merge.model import CRDTMergeState
 
-# Three models merged together
-state = CRDTMergeState("ties")
+# Three models merged together (weight_average needs no base; use ties/dare_ties with base= for task-vectors)
+state = CRDTMergeState("weight_average")
 state.add(np.random.randn(10, 10).astype(np.float32), model_id="model_alice", weight=0.4)
 state.add(np.random.randn(10, 10).astype(np.float32), model_id="model_bob",   weight=0.35)
 state.add(np.random.randn(10, 10).astype(np.float32), model_id="model_carol", weight=0.25)
@@ -239,7 +239,7 @@ import numpy as np
 
 # 100 clients, each with their own state
 clients = {
-    f"client_{i}": CRDTMergeState("ties")
+    f"client_{i}": CRDTMergeState("weight_average")
     for i in range(100)
 }
 
@@ -249,7 +249,7 @@ for client_id, state in clients.items():
     state.add(weights, model_id=f"update_{client_id}", weight=1.0 / 100)
 
 # Global state: merge all clients
-global_state = CRDTMergeState("ties")
+global_state = CRDTMergeState("weight_average")
 for client_state in clients.values():
     global_state.merge(client_state)
 
@@ -322,7 +322,7 @@ import numpy as np
 
 continual = ContinualMerge(
     base_model=base_model,
-    strategy="ties",
+    strategy="weight_average",
 )
 
 # Six months of regional updates
