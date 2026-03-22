@@ -376,3 +376,150 @@ WHERE score >= 50
 - String comparisons use Python's lexicographic ordering when numeric coercion fails.
 - The `LIMIT` clause applies after WHERE filtering, not before.
 - `MAP` is applied before `LIMIT`.
+
+---
+
+## Python API
+
+The `MergeQL` class is the Python entry point for executing MergeQL statements.
+
+### Basic Usage
+
+```python
+import pandas as pd
+from crdt_merge.mergeql import MergeQL
+
+# Create engine
+ql = MergeQL()
+
+# Register data sources by name
+nyc = pd.DataFrame([{"id": 1, "salary": 90000, "status": "review", "tags": "python,ml"}])
+london = pd.DataFrame([{"id": 1, "salary": 85000, "status": "approved", "tags": "python,ai"}])
+
+ql.register("nyc", nyc)
+ql.register("london", london)
+
+# Execute
+result = ql.execute("""
+    MERGE nyc, london
+    ON id
+    STRATEGY salary='max', tags='union', status='priority'
+""")
+
+print(result.data)
+# [{"id": 1, "salary": 90000, "tags": "ai,ml,python", "status": "approved"}]
+print(f"Conflicts resolved: {result.conflicts}")
+print(f"Merge time: {result.merge_time_ms:.1f}ms")
+```
+
+### EXPLAIN Plan
+
+```python
+plan = ql.execute("EXPLAIN MERGE nyc, london ON id STRATEGY salary='max'")
+print(plan)
+# MergePlan
+#   Sources: nyc, london
+#   Key: id
+#   Strategies: {'salary': 'max'}
+#   Estimated rows: 1
+#   Arrow backend: False
+#   Steps:
+#     1. Load source: nyc (1 rows)
+#     2. Load source: london (1 rows)
+#     3. Merge on key: id
+#     4. Apply strategy: salary → MaxWins
+```
+
+### Custom Strategies
+
+Register Python functions as named strategies for use in `STRATEGY` clauses:
+
+```python
+from crdt_merge.strategies import Custom, MergeStrategy
+
+# Register a callable (2-arg lambda)
+ql.register_strategy("prefer_longer", Custom(fn=lambda a, b: a if len(str(a)) >= len(str(b)) else b))
+
+# Use in MergeQL query
+result = ql.execute("""
+    MERGE src_a, src_b
+    ON id
+    STRATEGY description='custom:prefer_longer'
+""")
+```
+
+### WHERE Filtering
+
+```python
+ql.register("products_a", df_a)
+ql.register("products_b", df_b)
+
+# Filter merged output
+result = ql.execute("""
+    MERGE products_a, products_b
+    ON sku
+    STRATEGY price='min', tags='union'
+    WHERE price < 100 AND active = true
+    LIMIT 50
+""")
+
+print(f"Products under $100: {len(result.data)}")
+```
+
+### Column Renaming with MAP
+
+```python
+result = ql.execute("""
+    MERGE legacy_data, new_data
+    ON cust_id
+    STRATEGY name='lww', score='max'
+    MAP cust_id -> customer_id, fname -> first_name
+""")
+
+# Output columns are renamed
+print(result.data[0].keys())   # dict_keys(['customer_id', 'first_name', 'score'])
+```
+
+### Multi-Source Merge
+
+```python
+ql.register("eu", eu_data)
+ql.register("us", us_data)
+ql.register("apac", apac_data)
+
+# Merge three regions
+result = ql.execute("""
+    MERGE eu, us, apac
+    ON user_id
+    STRATEGY score='max', tags='union', status='priority'
+    WHERE status != 'deleted'
+""")
+```
+
+### MergeQLResult Fields
+
+```python
+result = ql.execute("MERGE a, b ON id STRATEGY score='max'")
+
+result.data            # List[dict] — merged records
+result.plan            # MergePlan — execution plan
+result.conflicts       # int — number of fields that needed resolution
+result.merge_time_ms   # float — execution time in milliseconds
+result.sources_merged  # int — number of sources merged
+```
+
+### Error Handling
+
+```python
+from crdt_merge.mergeql import MergeQLSyntaxError, MergeQLValidationError
+
+try:
+    result = ql.execute("MERGE unknown_source ON id")
+except MergeQLValidationError as e:
+    print(f"Unknown source: {e}")
+
+try:
+    result = ql.execute("MERGE a b ON")  # missing comma, missing key
+except MergeQLSyntaxError as e:
+    print(f"Syntax error: {e}")
+```

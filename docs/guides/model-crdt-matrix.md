@@ -211,3 +211,144 @@ Merging exactly two models?
 Need maximum simplicity?
   → weight_average or linear
 ```
+
+---
+
+## Code Examples
+
+### Two-Layer Architecture: CRDTMergeState
+
+All strategies are made CRDT-safe through the `CRDTMergeState` wrapper. The CRDT guarantee comes from **set union** (OR-Set semantics) at the contribution level — not from the strategy itself.
+
+```python
+from crdt_merge.model.crdt_state import CRDTMergeState
+
+# Node A adds its contribution
+state_a = CRDTMergeState("weight_average")
+state_a.add_contribution(tensor_a, model_id="node_a", weight=1.0)
+
+# Node B adds its contribution
+state_b = CRDTMergeState("weight_average")
+state_b.add_contribution(tensor_b, model_id="node_b", weight=1.0)
+
+# CRDT guarantee: any merge order converges to the same state
+merged_1 = state_a.merge(state_b)   # merge is in-place on state_a, returns self
+merged_2 = state_b.merge(state_a)   # different order
+assert merged_1.state_hash == merged_2.state_hash  # same content ✅
+
+# resolve() applies the strategy to all contributions
+result = merged_1.resolve()
+```
+
+### N-Way Strategies (pass all models together)
+
+```python
+from crdt_merge.model.crdt_state import CRDTMergeState
+
+# weight_average: N-way safe, commutative, idempotent
+state = CRDTMergeState("weight_average")
+state.add_contribution(model_a, model_id="hospital_a", weight=0.4)
+state.add_contribution(model_b, model_id="hospital_b", weight=0.3)
+state.add_contribution(model_c, model_id="hospital_c", weight=0.3)
+
+merged = state.resolve()   # Weighted average of all three — order-independent ✅
+```
+
+### Strategies Requiring a Base Model (TIES, DARE, TaskArithmetic)
+
+```python
+from crdt_merge.model.crdt_state import CRDTMergeState
+
+# ties: requires base= at construction time
+state = CRDTMergeState("ties", base=pretrained_llama)
+state.add_contribution(finetuned_chat, model_id="chat-ft")
+state.add_contribution(finetuned_code, model_id="code-ft")
+
+merged = state.resolve()   # TIES sign election across both fine-tuned models
+```
+
+```python
+# task_arithmetic: fully commutative + associative + NOT idempotent
+state_ta = CRDTMergeState("task_arithmetic", base=base_model)
+state_ta.add_contribution(expert_model, model_id="expert", weight=0.7)
+merged = state_ta.resolve()
+```
+
+```python
+# dare_ties: DARE pruning + TIES sign election
+state_dt = CRDTMergeState("dare_ties", base=pretrained_base)
+state_dt.add_contribution(domain_a, model_id="domain_a")
+state_dt.add_contribution(domain_b, model_id="domain_b")
+merged = state_dt.resolve()
+```
+
+### Two-Model Interpolation (SLERP, Linear)
+
+```python
+from crdt_merge.model.crdt_state import CRDTMergeState
+
+# slerp: commutative at t=0.5 only — best for two-model merges
+state = CRDTMergeState("slerp")
+state.add_contribution(base_model, model_id="base", weight=0.5)
+state.add_contribution(instruct_model, model_id="instruct", weight=0.5)
+merged = state.resolve()
+```
+
+### Checking CRDT Properties at Runtime
+
+```python
+from crdt_merge.model.crdt_state import CRDTMergeState
+
+state_x = CRDTMergeState("weight_average")
+state_x.add_contribution(model_a, model_id="a")
+state_y = CRDTMergeState("weight_average")
+state_y.add_contribution(model_b, model_id="b")
+
+# Commutativity: merge order doesn't matter
+m1 = CRDTMergeState("weight_average").merge(state_x).merge(state_y)
+m2 = CRDTMergeState("weight_average").merge(state_y).merge(state_x)
+assert m1.state_hash == m2.state_hash   # ✅
+
+# Idempotency: merging same state twice
+m3 = CRDTMergeState("weight_average").merge(state_x).merge(state_x)
+m4 = CRDTMergeState("weight_average").merge(state_x)
+assert m3.state_hash == m4.state_hash   # ✅ (OR-Set deduplicates by model_id)
+```
+
+### LoRA Adapter Merging
+
+```python
+from crdt_merge.model.lora import LoRAMerge, LoRAMergeSchema
+
+schema = LoRAMergeSchema(
+    default_strategy="weight_average",
+    layer_strategies={
+        "q_proj": "weight_average",
+        "v_proj": "weight_average",
+    }
+)
+merger = LoRAMerge(schema=schema)
+merged_adapter = merger.merge([adapter_a, adapter_b])
+```
+
+### Distributed Federation Example
+
+```python
+from crdt_merge.model.crdt_state import CRDTMergeState
+
+# Each hospital creates its own state and trains locally
+hospital_a = CRDTMergeState("weight_average")
+hospital_a.add_contribution(local_model_a, model_id="hospital_a")
+
+hospital_b = CRDTMergeState("weight_average")
+hospital_b.add_contribution(local_model_b, model_id="hospital_b")
+
+# Coordinator merges — no parameter server needed
+# Any merge order converges to the same global model
+global_state = CRDTMergeState("weight_average")
+global_state.merge(hospital_a)
+global_state.merge(hospital_b)
+
+print(global_state.state_hash)   # SHA-256 Merkle root of all contributions
+federated_model = global_state.resolve()
+```
