@@ -1,6 +1,6 @@
 # crdt_merge.audit — Immutable Audit Log with Hash Chaining
 
-> **Module**: `crdt_merge/audit.py` | **Layer**: 5 — Enterprise | **Version**: 0.9.3
+> **Module**: `crdt_merge/audit.py` | **Layer**: 5 — Enterprise | **Version**: 0.9.4
 
 ---
 

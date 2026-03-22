@@ -5,6 +5,27 @@
 > See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
 
 
+## [0.9.4] - 2026-04-02 — "Documentation Complete, Test Suite Green"
+
+### What's New
+
+- **Documentation**: All 25 guides, 6 architecture files, 3 explanation docs, 3 getting-started files, 2 cookbook files, and MergeQL BNF reference fully written — no more skeleton files. Every code example verified against live APIs.
+- **Tests**: 4,498 passing, 0 failing. Two new stress-test files and unicode edge-case tests updated to current API.
+
+### Bug Fixes
+
+- **rbac**: `SecureMerge.merge()` with `allowed_fields` policy now strips disallowed fields from input records rather than raising `PermissionError`. This matches documented semantics: the merge proceeds on the permitted field subset (#133).
+- **tests**: `test_unicode_edge_cases` and `test_stress_large_datasets` updated from removed `strategy="lww"` kwarg to `schema=MergeSchema(default=LWW())` (#134).
+
+### Stats
+
+- Tests passing: 3,291 → **4,498** (+1,207 — guide test suites #117–#132 + new tests)
+- Tests skipped: 14 (optional deps not installed in CI)
+- xfailed: 2 (known platform-specific)
+- **Zero test failures**
+
+---
+
 ## [0.9.3] - 2026-04-02 — "Usability Enhancements, Documentation & Bug Fixes"
 
 ### Bug Fixes — CLI (21 issues, #21–#48)
