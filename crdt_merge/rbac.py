@@ -424,23 +424,21 @@ class SecureMerge:
                 )
 
         # 3. Field whitelist gate (issue #77)
+        # Strip disallowed fields from input records rather than raising, so
+        # the merge proceeds on the permitted subset of the data.
         if policy is not None and policy.allowed_fields is not None:
-            all_records = (
-                (left if isinstance(left, list) else [])
-                + (right if isinstance(right, list) else [])
-            )
-            for rec in all_records:
-                if not isinstance(rec, dict):
-                    continue
-                for fname in rec:
-                    if fname not in policy.allowed_fields:
-                        self._log_decision(
-                            node_id, role, "merge", "denied",
-                            extra={"reason": "field not permitted", "field": fname},
-                        )
-                        raise PermissionError(
-                            f"Field '{fname}' not permitted for role {role.name}"
-                        )
+            def _strip(records):
+                if not isinstance(records, list):
+                    return records
+                stripped = []
+                for rec in records:
+                    if isinstance(rec, dict):
+                        stripped.append({k: v for k, v in rec.items() if k in policy.allowed_fields})
+                    else:
+                        stripped.append(rec)
+                return stripped
+            left = _strip(left)
+            right = _strip(right)
 
         # 4. Strategy gate
         if schema is not None and policy is not None and policy.allowed_strategies is not None:
