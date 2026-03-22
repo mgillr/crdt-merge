@@ -84,7 +84,12 @@ class MetricsCollector:
         Maximum number of metrics to retain (FIFO eviction).
     """
 
-    def __init__(self, node_id: str = "default", max_history: int = 10_000) -> None:
+    def __init__(
+        self,
+        node_id: str = "default",
+        max_history: int = 10_000,
+        warn_every_n: int = 1_000,
+    ) -> None:
         """Initialise a new metrics collector.
 
         Parameters
@@ -94,13 +99,18 @@ class MetricsCollector:
         max_history:
             Maximum number of :class:`MergeMetric` entries to retain.
             Oldest entries are evicted in FIFO order.
+        warn_every_n:
+            Emit a drop-warning every *n* additional drops after the first.
         """
         self._node_id = node_id
         self._max_history = max_history
+        self._warn_every_n = warn_every_n
         self._metrics: Deque[MergeMetric] = deque(maxlen=max_history)
         self._lock = threading.Lock()
         self._error_count: int = 0
         self._total_count: int = 0
+        self.total_dropped: int = 0
+        self._capacity_warning_emitted: bool = False
 
     # -- recording -----------------------------------------------------------
 
@@ -199,6 +209,7 @@ class MetricsCollector:
             return {
                 "total_operations": 0,
                 "total_errors": self._error_count,
+                "total_dropped": self.total_dropped,
                 "avg_duration_ms": 0.0,
                 "max_duration_ms": 0.0,
                 "min_duration_ms": 0.0,
@@ -220,6 +231,7 @@ class MetricsCollector:
         return {
             "total_operations": total_ops,
             "total_errors": self._error_count,
+            "total_dropped": self.total_dropped,
             "avg_duration_ms": sum(durations) / total_ops,
             "max_duration_ms": max(durations),
             "min_duration_ms": min(durations),
@@ -234,11 +246,13 @@ class MetricsCollector:
     # -- lifecycle -----------------------------------------------------------
 
     def reset(self) -> None:
-        """Drop all recorded metrics."""
+        """Drop all recorded metrics and reset all counters."""
         with self._lock:
             self._metrics.clear()
             self._error_count = 0
             self._total_count = 0
+            self.total_dropped = 0
+            self._capacity_warning_emitted = False
 
     def export_metrics(self, filepath: Optional[str] = None) -> str:
         """Serialise all metrics to JSON.  Optionally write to *filepath*."""
@@ -263,15 +277,85 @@ class MetricsCollector:
         with self._lock:
             return iter(list(self._metrics))
 
+    # -- percentiles ---------------------------------------------------------
+
+    def get_percentile(self, p: float) -> float:
+        """Return the *p*-th percentile of recorded ``duration_ms`` values.
+
+        Parameters
+        ----------
+        p:
+            Percentile in the range ``[0.0, 100.0]``.
+
+        Raises
+        ------
+        ValueError
+            If the buffer is empty or *p* is outside ``[0.0, 100.0]``.
+        """
+        if not 0.0 <= p <= 100.0:
+            raise ValueError(f"p must be in [0.0, 100.0], got {p}")
+        with self._lock:
+            durations = sorted(m.duration_ms for m in self._metrics)
+        if not durations:
+            raise ValueError("No metrics recorded — cannot compute percentile")
+        n = len(durations)
+        idx = (p / 100.0) * (n - 1)
+        lo = int(idx)
+        hi = min(lo + 1, n - 1)
+        frac = idx - lo
+        return durations[lo] * (1.0 - frac) + durations[hi] * frac
+
+    # -- capacity ------------------------------------------------------------
+
+    @property
+    def capacity_utilisation(self) -> float:
+        """Fraction of the buffer currently occupied (``len / maxlen``)."""
+        with self._lock:
+            return len(self._metrics) / self._max_history if self._max_history else 0.0
+
+    def get_stats(self) -> Dict[str, Any]:
+        """Return drop / capacity statistics."""
+        with self._lock:
+            return {
+                "total_dropped": self.total_dropped,
+                "capacity_utilisation": len(self._metrics) / self._max_history
+                if self._max_history
+                else 0.0,
+                "buffer_size": len(self._metrics),
+                "max_history": self._max_history,
+            }
+
     # -- internals -----------------------------------------------------------
 
     def _append(self, metric: MergeMetric, *, is_error: bool = False) -> None:
-        """Append *metric* to the deque, incrementing counters under lock."""
+        """Append *metric* to the deque, incrementing counters under lock.
+
+        Detects when the buffer is at capacity (an existing entry will be
+        evicted) and emits a :pydata:`logging.WARNING` on the first drop and
+        then every ``warn_every_n`` drops thereafter.
+        """
         with self._lock:
+            at_capacity = len(self._metrics) >= self._max_history
             self._metrics.append(metric)
             self._total_count += 1
             if is_error:
                 self._error_count += 1
+            if at_capacity:
+                self.total_dropped += 1
+                if not self._capacity_warning_emitted:
+                    logger.warning(
+                        "MetricsCollector buffer at capacity (%d); oldest entries are "
+                        "being dropped (total_dropped=%d)",
+                        self._max_history,
+                        self.total_dropped,
+                    )
+                    self._capacity_warning_emitted = True
+                elif self.total_dropped % self._warn_every_n == 0:
+                    logger.warning(
+                        "MetricsCollector has dropped %d entries (buffer maxlen=%d)",
+                        self.total_dropped,
+                        self._max_history,
+                    )
 
 
 # ---------------------------------------------------------------------------

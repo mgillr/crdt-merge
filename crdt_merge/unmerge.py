@@ -29,6 +29,7 @@ reliable way to attribute contributions to their sources.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import sys
@@ -424,6 +425,17 @@ class ModelUnmerge:
     * **negmerge** — ``cleaned = merged − α · removed``
     * **surgical** — zero out the contribution entirely
     * **proportional** — rescale remaining contributions by their weight ratio
+
+    Correctness notes per strategy
+    --------------------------------
+    * **_negmerge**: Approximate. Subtracts α·removed from merged. Exact only
+      when contributions are orthogonal. Error increases with cosine similarity
+      between contributions.
+    * **_surgical**: Exact for TIES strategy when the contribution's task vector
+      is disjoint (non-overlapping parameters). Approximate otherwise.
+    * **_proportional**: Approximate. Rescales remaining contributions by their
+      weight fraction. Exact only for linear combination strategies
+      (weight_average). Approximate for non-linear strategies.
     """
 
     _METHODS = {"negmerge", "surgical", "proportional"}
@@ -653,7 +665,12 @@ class ModelUnmerge:
 
     @staticmethod
     def _negmerge(merged, removed, alpha: float, np):
-        """``cleaned = merged − alpha * removed``"""
+        """``cleaned = merged − alpha * removed``
+
+        Correctness: Approximate. Subtracts α·removed from merged. Exact only
+        when contributions are orthogonal. Error increases with cosine
+        similarity between contributions.
+        """
         if np is not None:
             m = np.asarray(merged, dtype=np.float64)
             r = np.asarray(removed, dtype=np.float64)
@@ -665,7 +682,11 @@ class ModelUnmerge:
 
     @staticmethod
     def _surgical(merged, removed, np):
-        """Zero out the removed contribution: ``cleaned = merged − removed``."""
+        """Zero out the removed contribution: ``cleaned = merged − removed``.
+
+        Correctness: Exact for TIES strategy when the contribution's task
+        vector is disjoint (non-overlapping parameters). Approximate otherwise.
+        """
         if np is not None:
             m = np.asarray(merged, dtype=np.float64)
             r = np.asarray(removed, dtype=np.float64)
@@ -676,7 +697,12 @@ class ModelUnmerge:
 
     @staticmethod
     def _proportional(merged, removed, removed_weight, total_weight, scale, np):
-        """Remove contribution proportionally and rescale remaining weights."""
+        """Remove contribution proportionally and rescale remaining weights.
+
+        Correctness: Approximate. Rescales remaining contributions by their
+        weight fraction. Exact only for linear combination strategies
+        (weight_average). Approximate for non-linear strategies.
+        """
         if np is not None:
             m = np.asarray(merged, dtype=np.float64)
             r = np.asarray(removed, dtype=np.float64)
@@ -745,6 +771,8 @@ class GDPRForget:
         provenance,
         contributor: str,
         key_field: str = "id",
+        *,
+        audit_log=None,
     ) -> ForgetResult:
         """Remove a contributor's data records and return a :class:`ForgetResult`.
 
@@ -758,6 +786,10 @@ class GDPRForget:
             Source identifier (``"a"`` or ``"b"``).
         key_field:
             Key column name.
+        audit_log:
+            Optional audit log instance.  When provided, a ``gdpr_forget``
+            entry is written containing a SHA-256 hash of *contributor* (no
+            PII stored).
 
         Returns
         -------
@@ -768,6 +800,18 @@ class GDPRForget:
             merged_data, provenance, contributor, key_field=key_field,
         )
         removed_count = original_count - len(cleaned)
+
+        if audit_log is not None:
+            audit_log.log_operation(
+                "gdpr_forget",
+                input_data={"contributor": contributor, "key_field": key_field},
+                output_data={
+                    "records_removed": removed_count,
+                    "contributor_hash": hashlib.sha256(
+                        contributor.encode()
+                    ).hexdigest(),
+                },
+            )
 
         result = ForgetResult(
             success=True,
@@ -785,6 +829,8 @@ class GDPRForget:
         provenance,
         data_to_forget: str,
         method: str = "negmerge",
+        *,
+        audit_log=None,
     ) -> ForgetResult:
         """Remove a model contributor's influence.
 
@@ -798,6 +844,10 @@ class GDPRForget:
             The ``model_id`` of the contributor to forget.
         method:
             Unmerge method (``"negmerge"``, ``"surgical"``, ``"proportional"``).
+        audit_log:
+            Optional audit log instance.  When provided, a ``gdpr_forget``
+            entry is written containing a SHA-256 hash of *data_to_forget*
+            (no PII stored).
 
         Returns
         -------
@@ -810,6 +860,18 @@ class GDPRForget:
             success = True
         except Exception:
             success = False
+
+        if audit_log is not None:
+            audit_log.log_operation(
+                "gdpr_forget",
+                input_data={"contributor": data_to_forget, "key_field": None},
+                output_data={
+                    "records_removed": 0,
+                    "contributor_hash": hashlib.sha256(
+                        data_to_forget.encode()
+                    ).hexdigest(),
+                },
+            )
 
         result = ForgetResult(
             success=success,
