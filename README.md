@@ -1,3 +1,24 @@
+---
+title: crdt-merge
+colorFrom: gray
+colorTo: gray
+sdk: gradio
+sdk_version: 4.44.0
+app_file: app.py
+pinned: true
+license: other
+license_name: BUSL-1.1
+license_link: https://github.com/mgillr/crdt-merge/blob/main/LICENSE
+tags:
+  - crdt
+  - merge
+  - model-merging
+  - distributed
+  - convergence
+  - neural-network
+short_description: Mathematically guaranteed convergent model and data merge
+---
+
 <div align="center">
 
 <h1>crdt-merge</h1>
