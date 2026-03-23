@@ -330,7 +330,7 @@ ALL_STRATEGIES_INFO = [
     # Decomposition (2)
     ("svd_knot_tying",   True, "SVD subspace alignment across models"),
     ("dam",             False, "Decompositional Alignment Merging"),
-    # Weighted (4)
+    # Weighted (3)
     ("fisher_merge",    False, "Fisher-information weighted merging (Matena & Raffel 2022)"),
     ("ada_merging",     False, "Adaptive coefficients via entropy minimization (Yang 2024)"),
     ("regression_mean", False, "Regression-optimal mean (Jin 2023)"),

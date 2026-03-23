@@ -128,7 +128,7 @@ def _build_topology(n_nodes: int, topology: str, rng_seed: int = 42):
         # Add random extra edges
         for i in range(n_nodes):
             for j in range(i + 2, n_nodes):
-                if rng.random() < 0.4:
+                if rng.random() < 0.45:
                     adj[i].add(j)
                     adj[j].add(i)
 

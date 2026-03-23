@@ -906,7 +906,7 @@ S ⊔ S = S                                                              ∎
 
 Therefore, the resolved value converges across all replicas.            ∎
 
-### 6.3 Corollary: All 25 Strategies Are CRDTs
+### 6.3 Corollary: All 26 Strategies Are CRDTs
 
 **Corollary.** Every merge strategy `f` in the library, when used via
 the `CRDTMergeState` wrapper, satisfies the CRDT convergence guarantee.
@@ -1010,6 +1010,7 @@ execution:
 | RepresentationSurgery | 423ms | +0.3ms |
 | SafeMerge | 267ms | +0.3ms |
 | LEDMerge | 189ms | +0.2ms |
+| DualProjection | 156ms | +0.2ms |
 
 **CRDT overhead is consistently < 0.5ms** — negligible compared to all
 strategy execution times.
@@ -1364,6 +1365,7 @@ function over the visible contribution set.
 | 23 | **RepresentationSurgery** | Surgical editing of internal representations | `surgery_config` |
 | 24 | **SafeMerge** | Safety-constrained merging with guardrails | `safety_threshold` |
 | 25 | **LEDMerge** | Low-rank Efficient Decomposition merging | `decomposition_rank` |
+| 26 | **DualProjection** | Dual subspace projection for continual learning | `projection_dim` |
 
 ### 9.7 CRDT Compliance Matrix
 
@@ -1397,6 +1399,7 @@ WeightScopeAlignment      |     ✓       |      ✓      |     ✓      |     �
 RepresentationSurgery     |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
 SafeMerge                 |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
 LEDMerge                  |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
+DualProjection              |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
 ─────────────────────────┼─────────────┼─────────────┼────────────┼────────────┼───────
 TOTAL                     |   26/26     |    26/26    |   26/26    |   26/26    | 26/26
 ```
