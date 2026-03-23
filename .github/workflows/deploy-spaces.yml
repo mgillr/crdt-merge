@@ -1,0 +1,110 @@
+name: Deploy HuggingFace Spaces
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - app.py
+      - spaces/**
+      - requirements.txt
+
+jobs:
+  deploy-flagship:
+    name: Deploy optitransfer/crdt-merge
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install "huggingface_hub>=0.20.0"
+      - name: Push flagship space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python - <<'EOF'
+          import os
+          from huggingface_hub import HfApi, CommitOperationAdd
+          token = os.environ["HF_TOKEN"]
+          api = HfApi(token=token)
+          repo_id = "optitransfer/crdt-merge"
+          operations = []
+          for local_path, remote_path in [("app.py","app.py"),("requirements.txt","requirements.txt")]:
+              if os.path.exists(local_path):
+                  with open(local_path, "rb") as f:
+                      operations.append(CommitOperationAdd(path_in_repo=remote_path, path_or_fileobj=f.read()))
+          if operations:
+              api.create_commit(repo_id=repo_id, repo_type="space", operations=operations,
+                                commit_message="Deploy crdt-merge v0.9.4 flagship demo")
+              print(f"Deployed {len(operations)} files to {repo_id}")
+          EOF
+
+  deploy-data-playground:
+    name: Deploy optitransfer/crdt-merge-data
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install "huggingface_hub>=0.20.0"
+      - name: Push data-playground space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python - <<'EOF'
+          import os
+          from huggingface_hub import HfApi, CommitOperationAdd
+          token = os.environ["HF_TOKEN"]
+          api = HfApi(token=token)
+          repo_id = "optitransfer/crdt-merge-data"
+          try:
+              api.create_repo(repo_id=repo_id, repo_type="space", space_sdk="gradio", exist_ok=True)
+          except Exception as e:
+              print(f"Repo: {e}")
+          operations = []
+          for fname in ["app.py","requirements.txt","README.md"]:
+              path = os.path.join("spaces/data-playground", fname)
+              if os.path.exists(path):
+                  with open(path, "rb") as f:
+                      operations.append(CommitOperationAdd(path_in_repo=fname, path_or_fileobj=f.read()))
+          if operations:
+              api.create_commit(repo_id=repo_id, repo_type="space", operations=operations,
+                                commit_message="Deploy crdt-merge-data v0.9.4")
+              print(f"Deployed {len(operations)} files to {repo_id}")
+          EOF
+
+  deploy-federation:
+    name: Deploy optitransfer/crdt-merge-federation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install "huggingface_hub>=0.20.0"
+      - name: Push federation space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python - <<'EOF'
+          import os
+          from huggingface_hub import HfApi, CommitOperationAdd
+          token = os.environ["HF_TOKEN"]
+          api = HfApi(token=token)
+          repo_id = "optitransfer/crdt-merge-federation"
+          try:
+              api.create_repo(repo_id=repo_id, repo_type="space", space_sdk="gradio", exist_ok=True)
+          except Exception as e:
+              print(f"Repo: {e}")
+          operations = []
+          for fname in ["app.py","requirements.txt","README.md"]:
+              path = os.path.join("spaces/federation", fname)
+              if os.path.exists(path):
+                  with open(path, "rb") as f:
+                      operations.append(CommitOperationAdd(path_in_repo=fname, path_or_fileobj=f.read()))
+          if operations:
+              api.create_commit(repo_id=repo_id, repo_type="space", operations=operations,
+                                commit_message="Deploy crdt-merge-federation v0.9.4")
+              print(f"Deployed {len(operations)} files to {repo_id}")
+          EOF
