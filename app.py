@@ -1300,6 +1300,18 @@ For repeated large-scale merges the Polars engine delivers up to **38.8× faster
 # GRADIO UI
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _safe(fn):
+    """Wrap a demo.load callback so errors show in-tab, not crash the Space."""
+    import functools, traceback
+    @functools.wraps(fn)
+    def _wrapper(*args, **kwargs):
+        try:
+            return fn(*args, **kwargs)
+        except Exception as exc:
+            traceback.print_exc()
+            raise gr.Error(f"{fn.__name__}: {exc}") from exc
+    return _wrapper
+
 with gr.Blocks(theme=THEME, css=CSS, title="crdt-merge v0.9.4 — The CRDT Merge Library") as demo:
 
     gr.Markdown(HERO_MD)
@@ -1347,7 +1359,7 @@ Same set → same output. OR-Set union is trivially C+A+I. **Full convergence gu
                 return df, fig, comm_md, idem_md
 
             proof_run_btn.click(_run_proof, outputs=[proof_table, proof_chart, comm_md_out, idem_md_out])
-            demo.load(_run_proof, outputs=[proof_table, proof_chart, comm_md_out, idem_md_out])
+            demo.load(_safe(_run_proof), outputs=[proof_table, proof_chart, comm_md_out, idem_md_out])
 
         # ═══════════════════════════════════════════════════════════════════════
         # TAB 2 — STRATEGY MATRIX
@@ -1381,7 +1393,7 @@ The OR-Set layer absorbs ordering non-determinism — the strategy itself doesn'
                 return summary, fig, df
 
             matrix_btn.click(_run_matrix, outputs=[matrix_summary, matrix_chart, matrix_table])
-            demo.load(_run_matrix, outputs=[matrix_summary, matrix_chart, matrix_table])
+            demo.load(_safe(_run_matrix), outputs=[matrix_summary, matrix_chart, matrix_table])
 
         # ═══════════════════════════════════════════════════════════════════════
         # TAB 3 — LIVE MODEL MERGE
@@ -1427,7 +1439,7 @@ Runs a full CRDT merge with commutativity verification.
 
             merge_btn.click(_run_live, inputs=[strat_dd, weight_sl],
                             outputs=[prov_table, heat_plot, contrib_plot, comm_proof_md, merge_summary_md])
-            demo.load(lambda: _run_live("weight_average", 0.5),
+            demo.load(_safe(lambda: _run_live("weight_average", 0.5)),
                       outputs=[prov_table, heat_plot, contrib_plot, comm_proof_md, merge_summary_md])
 
         # ═══════════════════════════════════════════════════════════════════════
@@ -1449,7 +1461,7 @@ Watch the State Hash Matrix turn uniform — that's mathematical convergence.
                     n_rounds_sl   = gr.Slider(1, 25, value=10, step=1, label="Gossip Rounds")
                     topology_dd   = gr.Dropdown(["Random", "Ring", "Star"], value="Random", label="Topology")
                     g_strategy_dd = gr.Dropdown(["weight_average", "slerp", "linear"], value="weight_average", label="Strategy")
-                    late_chk      = gr.Checkbox(False, label="Late Joiner (last node joins after round 2)")
+                    late_chk      = gr.Checkbox(value=False, label="Late Joiner (last node joins after round 2)")
                     partition_sl  = gr.Slider(0, 10, value=0, step=1,
                                              label="Partition heals at round (0 = no partition)")
                     gossip_btn    = gr.Button("▶  Run Gossip Simulation", variant="primary")
@@ -1471,7 +1483,7 @@ Watch the State Hash Matrix turn uniform — that's mathematical convergence.
             gossip_btn.click(_run_gossip,
                 inputs=[n_nodes_sl, n_rounds_sl, topology_dd, g_strategy_dd, late_chk, partition_sl],
                 outputs=[conv_chart, hash_matrix_chart, audit_table, gossip_summary_md])
-            demo.load(lambda: _run_gossip(4, 10, "Random", "weight_average", False, 0),
+            demo.load(_safe(lambda: _run_gossip(4, 10, "Random", "weight_average", False, 0)),
                       outputs=[conv_chart, hash_matrix_chart, audit_table, gossip_summary_md])
 
         # ═══════════════════════════════════════════════════════════════════════
@@ -1510,7 +1522,7 @@ This is the foundation for convergent multi-agent AI systems — CrewAI, AutoGen
                 return summary, fdf, adf
 
             agent_btn.click(_run_agents, outputs=[agent_summary_md, fact_table, agent_table])
-            demo.load(_run_agents, outputs=[agent_summary_md, fact_table, agent_table])
+            demo.load(_safe(_run_agents), outputs=[agent_summary_md, fact_table, agent_table])
 
         # ═══════════════════════════════════════════════════════════════════════
         # TAB 6 — MERGEQL
@@ -1541,7 +1553,6 @@ Select a pre-built example or write your own query.
                 value=MERGEQL_EXAMPLES["Basic LWW Merge"],
                 language="sql",
                 label="MergeQL Query",
-                lines=5,
             )
             mql_summary_md = gr.Markdown()
             mql_result_table = gr.Dataframe(label="Result (first 20 rows)", wrap=True)
@@ -1562,7 +1573,7 @@ Select a pre-built example or write your own query.
             example_dd.change(_load_example, inputs=[example_dd], outputs=[query_box])
             mql_run_btn.click(_run_mql, inputs=[query_box],
                               outputs=[mql_summary_md, mql_result_table, mql_plan_json])
-            demo.load(lambda: _run_mql(MERGEQL_EXAMPLES["Basic LWW Merge"]),
+            demo.load(_safe(lambda: _run_mql(MERGEQL_EXAMPLES["Basic LWW Merge"])),
                       outputs=[mql_summary_md, mql_result_table, mql_plan_json])
 
         # ═══════════════════════════════════════════════════════════════════════
@@ -1603,7 +1614,7 @@ Commutativity is verified: `merge(A, B)` must return the same record set as `mer
             data_merge_btn.click(_run_data, inputs=[data_strat_dd],
                                  outputs=[data_summary_md, data_table])
             conflict_btn.click(_run_conflict, outputs=[conflict_chart, conflict_table])
-            demo.load(lambda: _run_data("LWW"), outputs=[data_summary_md, data_table])
+            demo.load(_safe(lambda: _run_data("LWW")), outputs=[data_summary_md, data_table])
 
         # ═══════════════════════════════════════════════════════════════════════
         # TAB 8 — MERKLE + WIRE
@@ -1644,7 +1655,7 @@ Commutativity is verified: `merge(A, B)` must return the same record set as `mer
 
             wire_run_btn.click(_run_wire,
                 outputs=[wire_summary_md, wire_json_out, rt_table, merkle_table, vc_table, prov_wire_table])
-            demo.load(_run_wire,
+            demo.load(_safe(_run_wire),
                 outputs=[wire_summary_md, wire_json_out, rt_table, merkle_table, vc_table, prov_wire_table])
 
         # ═══════════════════════════════════════════════════════════════════════
@@ -1682,7 +1693,7 @@ Real benchmark results from NVIDIA A100-SXM4-40GB · v0.7.1 · Python 3.12.
                 tput_fig, speedup_fig, prim_fig, stream_fig, summary = build_benchmark_figures()
                 return summary, tput_fig, speedup_fig, prim_fig, stream_fig
 
-            demo.load(_load_bench, outputs=[bench_summary_md, tput_plot, speedup_plot, prim_plot, stream_plot])
+            demo.load(_safe(_load_bench), outputs=[bench_summary_md, tput_plot, speedup_plot, prim_plot, stream_plot])
 
     # ── Footer ────────────────────────────────────────────────────────────────
     gr.Markdown("""
