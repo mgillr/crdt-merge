@@ -39,19 +39,23 @@ CSS = """
 }
 footer { display: none !important; }
 .tab-nav button {
-    color: #52525b !important;
-    font-size: 11px !important;
-    letter-spacing: 0.08em !important;
+    color: #a1a1aa !important;
+    font-size: 13px !important;
+    letter-spacing: 0.06em !important;
     text-transform: uppercase !important;
     font-weight: 600 !important;
+    padding: 10px 16px !important;
 }
 .tab-nav button.selected {
     color: #f4f4f5 !important;
     border-bottom: 2px solid #3b82f6 !important;
 }
+.tab-nav button:hover {
+    color: #e4e4e7 !important;
+}
 code, pre, .monospace {
     font-family: 'JetBrains Mono', ui-monospace, monospace !important;
-    font-size: 12px !important;
+    font-size: 13px !important;
 }
 .contain { border-radius: 8px !important; }
 .gr-button-primary {
@@ -62,7 +66,41 @@ code, pre, .monospace {
     letter-spacing: 0.02em !important;
 }
 h1, h2, h3 { color: #f4f4f5 !important; }
-p, li { color: #a1a1aa !important; }
+p, li { color: #d4d4d8 !important; font-size: 15px !important; line-height: 1.7 !important; }
+label, .gr-input-label, .label-wrap span {
+    color: #e4e4e7 !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+}
+input, textarea, select, .gr-box {
+    color: #f4f4f5 !important;
+    background: #18181b !important;
+    border-color: #3f3f46 !important;
+}
+.gr-dataframe, .table-wrap, table {
+    color: #e4e4e7 !important;
+}
+.gr-dataframe th, table th {
+    color: #f4f4f5 !important;
+    background: #18181b !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+}
+.gr-dataframe td, table td {
+    color: #d4d4d8 !important;
+    font-size: 13px !important;
+    border-color: #27272a !important;
+}
+.gr-dataframe tr:hover td {
+    background: #1e1e22 !important;
+}
+.gr-info, .info {
+    color: #a1a1aa !important;
+    font-size: 12px !important;
+}
+.markdown-text strong, strong { color: #f4f4f5 !important; }
+blockquote { border-left: 3px solid #3b82f6 !important; }
+blockquote p { color: #d4d4d8 !important; }
 """
 
 PLOTLY_LAYOUT = dict(
@@ -937,19 +975,30 @@ def _load_dataset_records():
     source = "synthetic"
     records_a, records_b = [], []
 
-    if HF_TOKEN:
-        try:
-            from datasets import load_dataset
-            ds = load_dataset("glue", "sst2", split="train[:200]",
-                              token=HF_TOKEN)
-            all_r = [{"id": i, "sentence": ds[i]["sentence"],
-                      "label": ds[i]["label"], "_ts": float(i)}
-                     for i in range(len(ds))]
-            records_a = all_r[:150]
-            records_b = all_r[100:]
-            source = "glue/sst2 (HuggingFace Hub, 200 rows)"
-        except Exception:
-            pass
+    try:
+        from datasets import load_dataset
+        ds = load_dataset("glue", "sst2", split="train[:200]",
+                          token=HF_TOKEN or None)
+        all_r = [{"id": i, "sentence": ds[i]["sentence"],
+                  "label": ds[i]["label"], "_ts": float(i)}
+                 for i in range(len(ds))]
+        records_a = all_r[:150]
+        # Node B: overlapping records (100-149) get modified values + later timestamps
+        records_b = []
+        for r in all_r[100:]:
+            rid = r["id"]
+            if rid < 150:  # overlapping region — simulate a different node's edits
+                records_b.append({
+                    "id": rid,
+                    "sentence": r["sentence"].strip() + " [node-B edit]",
+                    "label": 1 - r["label"],  # flip label to create real conflict
+                    "_ts": float(rid + 50),    # later timestamp for LWW
+                })
+            else:
+                records_b.append(r)
+        source = "glue/sst2 (HuggingFace Hub, 200 rows, 50 conflicting overlap)"
+    except Exception:
+        pass
 
     if not records_a:
         rng = np.random.RandomState(7)

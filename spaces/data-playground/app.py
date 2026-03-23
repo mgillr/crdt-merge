@@ -29,11 +29,21 @@ import plotly.graph_objects as go
 
 CSS = """
 .gradio-container { background: #09090b !important; font-family: 'Inter', system-ui, sans-serif !important; }
-.gr-button-primary { background: #2563eb !important; border: none !important; color: #fafafa !important; }
+.gr-button-primary { background: linear-gradient(135deg, #2563eb, #1d4ed8) !important; border: none !important; color: #fff !important; font-weight: 600 !important; }
 footer { display: none !important; }
-.tab-nav button { color: #71717a !important; font-size: 13px !important; letter-spacing: 0.05em !important; text-transform: uppercase !important; }
-.tab-nav button.selected { color: #fafafa !important; border-bottom: 2px solid #3b82f6 !important; }
-code, .monospace { font-family: 'JetBrains Mono', ui-monospace, monospace !important; font-size: 12px !important; }
+.tab-nav button { color: #a1a1aa !important; font-size: 13px !important; letter-spacing: 0.05em !important; text-transform: uppercase !important; font-weight: 600 !important; padding: 10px 16px !important; }
+.tab-nav button.selected { color: #f4f4f5 !important; border-bottom: 2px solid #3b82f6 !important; }
+.tab-nav button:hover { color: #e4e4e7 !important; }
+code, .monospace { font-family: 'JetBrains Mono', ui-monospace, monospace !important; font-size: 13px !important; }
+h1, h2, h3 { color: #f4f4f5 !important; }
+p, li { color: #d4d4d8 !important; font-size: 15px !important; line-height: 1.7 !important; }
+label, .gr-input-label, .label-wrap span { color: #e4e4e7 !important; font-size: 14px !important; font-weight: 500 !important; }
+input, textarea, select, .gr-box { color: #f4f4f5 !important; background: #18181b !important; border-color: #3f3f46 !important; }
+.gr-dataframe th, table th { color: #f4f4f5 !important; background: #18181b !important; font-weight: 600 !important; font-size: 13px !important; }
+.gr-dataframe td, table td { color: #d4d4d8 !important; font-size: 13px !important; border-color: #27272a !important; }
+.gr-dataframe tr:hover td { background: #1e1e22 !important; }
+.gr-info, .info { color: #a1a1aa !important; font-size: 12px !important; }
+strong { color: #f4f4f5 !important; }
 """
 
 PLOTLY_LAYOUT = dict(
@@ -77,8 +87,20 @@ def _load_dataset_records():
         all_records = [{"id": i, "sentence": ds[i]["sentence"], "label": ds[i]["label"], "_ts": i}
                        for i in range(len(ds))]
         records_a = all_records[:150]
-        records_b = all_records[100:]  # 50 overlapping + 50 new
-        source = "glue/sst2 (HuggingFace datasets, first 200 rows)"
+        # Node B: overlapping records (100-149) get modified values + later timestamps
+        records_b = []
+        for r in all_records[100:]:
+            rid = r["id"]
+            if rid < 150:  # overlapping region — simulate a different node's edits
+                records_b.append({
+                    "id": rid,
+                    "sentence": r["sentence"].strip() + " [node-B edit]",
+                    "label": 1 - r["label"],  # flip label to create real conflict
+                    "_ts": rid + 50,           # later timestamp for LWW
+                })
+            else:
+                records_b.append(r)
+        source = "glue/sst2 (HuggingFace datasets, 200 rows, 50 conflicting overlap)"
     except Exception:
         pass
 
