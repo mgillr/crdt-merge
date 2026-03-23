@@ -121,15 +121,15 @@ THEME = gr.themes.Base(
 HERO_MD = """
 # crdt-merge v0.9.4
 
-> **The world's only merge library with mathematical convergence guarantees across all strategies.**
+> **The world's first merge library with mathematical convergence guarantees — 26 strategies, all CRDT-compliant.**
 
-Every standard merge algorithm — weight averaging, SLERP, TIES, DARE, Fisher — **fails** at least one of the three algebraic laws required for distributed convergence. crdt-merge introduces a patented two-layer OR-Set architecture that wraps any strategy and makes it provably CRDT-compliant.
+Standard merge algorithms — weight averaging, SLERP, TIES, DARE, Fisher, and 21 others — **fail** the algebraic laws needed for distributed convergence. crdt-merge's patented **two-layer OR-Set architecture** wraps any strategy and delivers provable convergence: same set of inputs → same output, regardless of merge order, network partitions, or late joiners.
 
 | | |
 |---|---|
-| **Architecture** | 6 layers · 44,304 LOC · 104 modules · 25 strategies · all CRDT-compliant |
-| **Targets** | DataFrames · ML model weights · distributed agent state · federated learning |
-| **Laws verified** | Commutativity · Associativity · Idempotency |
+| **26 Strategies** | Basic · Subspace · Weighted · Evolutionary · Safety · Unlearning · Calibration · Continual |
+| **Targets** | ML model weights · DataFrames · distributed agent state · federated learning |
+| **CRDT Laws** | Commutativity ✓ · Associativity ✓ · Idempotency ✓ — all 26 verified |
 | **Patent** | Pending UK 2607132.4 · BUSL-1.1 → Apache 2.0 (2028-03-29) |
 
 `pip install crdt-merge` · [github.com/mgillr/crdt-merge](https://github.com/mgillr/crdt-merge)
@@ -156,8 +156,8 @@ ARCH_MD = """
 │  LAYER 2 — Strategy Execution (pure function over sorted set)        │
 │                                                                      │
 │  Sees a SET — ordering non-determinism completely absorbed           │
-│  25 strategies: weight_average, slerp, linear, task_arithmetic,      │
-│    ties, dare, dare_ties, della, ada_merging, svd, evolutionary, ... │
+│  26 strategies: weight_average, slerp, ties, dare, fisher, dual_     │
+│    projection, evolutionary, negative, safe_merge, and 18 more ...   │
 │  Same inputs → always same output (determinism via canonical sort)   │
 │                                                                      │
 │  f(sorted_set_of_contributions) → merged_tensor                     │
@@ -192,6 +192,12 @@ def run_the_proof():
         ("weight_average", False),
         ("slerp",          False),
         ("linear",         False),
+        ("task_arithmetic", True),
+        ("ties",            True),
+        ("dare",            True),
+        ("dare_ties",       True),
+        ("fisher_merge",   False),
+        ("dual_projection", False),
     ]
 
     rows = []
@@ -315,12 +321,42 @@ def run_the_proof():
 # ─────────────────────────────────────────────────────────────────────────────
 
 ALL_STRATEGIES_INFO = [
-    ("weight_average", False, "Classic weighted average of parameters"),
-    ("slerp",          False, "Spherical linear interpolation on unit hypersphere"),
-    ("linear",         False, "Linear interpolation with scalar alpha"),
-    ("task_arithmetic",True,  "Task vector arithmetic: θ_merged = θ_base + Σ λᵢ(θᵢ − θ_base)"),
-    ("ties",           True,  "Trim, Elect Sign & Disjoint Merge — reduces interference"),
-    ("dare_ties",      True,  "DARE + TIES: drop & rescale then elect sign"),
+    # Basic (3)
+    ("weight_average",  False, "Weighted arithmetic mean of parameters (McMahan 2017)"),
+    ("slerp",           False, "Spherical linear interpolation on unit hypersphere (Shoemake 1985)"),
+    ("linear",          False, "Element-wise linear interpolation between models"),
+    # Task-vector (4)
+    ("task_arithmetic",  True, "Task vector arithmetic: θ_base + Σ λᵢ(θᵢ − θ_base) (Ilharco 2023)"),
+    ("ties",             True, "Trim, Elect Sign & Disjoint Merge (Yadav NeurIPS 2023)"),
+    ("dare",             True, "Drop And REscale — stochastic sparsification (Yu 2024)"),
+    ("dare_ties",        True, "Combined DARE + TIES pipeline"),
+    # Subspace (5)
+    ("della",            True, "DARE + low-rank reconstruction (Bansal 2024)"),
+    ("emr",              True, "Elect, Mask, Rescale — partitioned merge (Huang 2024)"),
+    ("model_breadcrumbs",True, "Sparse breadcrumb trails of significant params"),
+    ("adarank",          True, "Adaptive rank pruning per weight matrix (ICLR 2026)"),
+    ("star",             True, "Spectral Truncation Adaptive Rescaling"),
+    # Decomposition (2)
+    ("svd_knot_tying",   True, "SVD subspace alignment across models"),
+    ("dam",             False, "Decompositional Alignment Merging"),
+    # Weighted (4)
+    ("fisher_merge",    False, "Fisher-information weighted merging (Matena & Raffel 2022)"),
+    ("ada_merging",     False, "Adaptive coefficients via entropy minimization (Yang 2024)"),
+    ("regression_mean", False, "Regression-optimal mean (Jin 2023)"),
+    # Evolutionary (2)
+    ("evolutionary_merge",False, "CMA-ES search over merge coefficients (Sakana AI 2024)"),
+    ("genetic_merge",    False, "Genetic algorithm for layer-wise merge ratios"),
+    # Safety (2)
+    ("safe_merge",       True, "Safety-preserving merge with guardrails"),
+    ("led_merge",       False, "Layer-wise Evaluation-Driven merging"),
+    # Unlearning (2)
+    ("negative_merge",   True, "Negative-weight task vector for capability removal (ICML 2025)"),
+    ("split_unlearn_merge",True, "Split-and-unlearn for targeted knowledge removal"),
+    # Calibration (2)
+    ("representation_surgery",False, "Post-merge representation drift correction"),
+    ("weight_scope_alignment",False, "Weight distribution scope alignment"),
+    # Continual (1)
+    ("dual_projection",  False, "Dual subspace projection — TRUE CRDT tier (Yuan NeurIPS 2025)"),
 ]
 
 def run_strategy_matrix():
@@ -393,19 +429,20 @@ def run_strategy_matrix():
     fig = go.Figure()
     fig.add_bar(
         x=[r["Strategy"] for r in rows],
-        y=[0.0 if "COMPLIANT" in r["CRDT Status"] else 1.0 for r in rows],
+        y=[1.0 for _ in rows],
         marker_color=["#16a34a" if "COMPLIANT" in r["CRDT Status"] else "#dc2626" for r in rows],
-        text=["CRDT ✓" if "COMPLIANT" in r["CRDT Status"] else "FAIL ✗" for r in rows],
+        text=["✓ CRDT" if "COMPLIANT" in r["CRDT Status"] else "✗ FAIL" for r in rows],
         textposition="inside",
-        textfont=dict(color="#fff", size=11),
+        textfont=dict(color="#fff", size=10),
     )
-    _lay = {k: v for k, v in PLOTLY_LAYOUT.items() if k != "yaxis"}
+    _lay = {k: v for k, v in PLOTLY_LAYOUT.items() if k not in ("yaxis", "xaxis")}
     fig.update_layout(
         **_lay,
-        title=f"CRDT Compliance: {compliant_count}/{len(rows)} strategies verified",
+        title=f"CRDT Compliance: {compliant_count}/{len(rows)} strategies verified — Two-Layer OR-Set Architecture",
         yaxis=dict(visible=False, range=[0, 1.5]),
-        xaxis_title="Strategy",
+        xaxis=dict(tickangle=-45, tickfont=dict(size=9), gridcolor="#27272a", linecolor="#3f3f46"),
         showlegend=False,
+        height=400,
     )
 
     summary = f"**{compliant_count}/{len(rows)} strategies verified CRDT-compliant** (commutativity + associativity + idempotency). All pass via the two-layer OR-Set architecture — the strategy never sees message ordering."
@@ -461,8 +498,17 @@ def _load_model_weights():
     return weights_a, weights_b, source
 
 
-LIVE_STRATEGIES_NO_BASE  = ["weight_average", "slerp", "linear"]
-LIVE_STRATEGIES_WITH_BASE = ["task_arithmetic", "ties", "dare_ties"]
+LIVE_STRATEGIES_NO_BASE = [
+    "weight_average", "slerp", "linear", "fisher_merge", "ada_merging",
+    "dam", "regression_mean", "evolutionary_merge", "genetic_merge",
+    "led_merge", "representation_surgery", "weight_scope_alignment",
+    "dual_projection",
+]
+LIVE_STRATEGIES_WITH_BASE = [
+    "task_arithmetic", "ties", "dare", "dare_ties", "della", "emr",
+    "model_breadcrumbs", "adarank", "star", "svd_knot_tying",
+    "safe_merge", "negative_merge", "split_unlearn_merge",
+]
 LIVE_ALL_STRATEGIES = LIVE_STRATEGIES_NO_BASE + LIVE_STRATEGIES_WITH_BASE
 
 
@@ -1415,12 +1461,12 @@ Same set → same output. OR-Set union is trivially C+A+I. **Full convergence gu
         # ═══════════════════════════════════════════════════════════════════════
         with gr.Tab("📊 Strategy Matrix"):
             gr.Markdown("""
-## All Strategies × CRDT Law Compliance
+## All 26 Strategies × CRDT Law Compliance
 
-Every strategy is tested against all three algebraic laws using the two-layer architecture.
+Every strategy is tested live against all three algebraic laws (commutativity, associativity, idempotency) using the two-layer OR-Set architecture.
 The OR-Set layer absorbs ordering non-determinism — the strategy itself doesn't need to be CRDT-aware.
 
-**Strategies requiring a base model** (task-vector methods): `task_arithmetic`, `ties`, `dare_ties` — a synthetic base (mean of inputs) is used.
+**26 strategies** across 8 categories. Task-vector methods (task_arithmetic, ties, dare, dare_ties, della, emr, etc.) use a synthetic base (mean of inputs). All achieve CRDT compliance via the two-layer OR-Set architecture.
 """)
             with gr.Row():
                 matrix_btn = gr.Button("▶  Run Compliance Matrix", variant="primary", scale=0)
@@ -1449,18 +1495,16 @@ The OR-Set layer absorbs ordering non-determinism — the strategy itself doesn'
         # ═══════════════════════════════════════════════════════════════════════
         with gr.Tab("🧬 Live Model Merge"):
             gr.Markdown("""
-## Live Model Merge — prajjwal1/bert-tiny or Synthetic Weights
+## Live Model Merge — 26 Strategies × Real or Synthetic Weights
 
-Loads real weights from HuggingFace Hub (if `HF_TOKEN` is set) or generates synthetic bert-tiny-shaped tensors.
-Model B is derived from Model A with structured fine-tuning noise.
-Runs a full CRDT merge with commutativity verification.
+Pick any of 26 strategies. Loads real prajjwal1/bert-tiny weights from HuggingFace Hub (if `HF_TOKEN` is set) or generates synthetic tensors. Model B = Model A + structured fine-tuning noise. Every merge is verified for commutativity: `merge(A,B) == merge(B,A)`.
 """)
             with gr.Row():
                 with gr.Column(scale=1):
                     strat_dd = gr.Dropdown(
                         choices=LIVE_ALL_STRATEGIES, value="weight_average",
                         label="Merge Strategy",
-                        info="task_arithmetic / ties / dare_ties use a base model (mean of A+B)",
+                        info="Strategies with 'base': task_arithmetic, ties, dare, dare_ties, della, emr, etc.",
                     )
                     weight_sl = gr.Slider(
                         minimum=0.1, maximum=0.9, value=0.5, step=0.05,
@@ -1509,7 +1553,7 @@ Watch the State Hash Matrix turn uniform — that's mathematical convergence.
                     n_nodes_sl    = gr.Slider(2, 8, value=4, step=1, label="Number of Nodes")
                     n_rounds_sl   = gr.Slider(1, 25, value=10, step=1, label="Gossip Rounds")
                     topology_dd   = gr.Dropdown(["Random", "Ring", "Star"], value="Random", label="Topology")
-                    g_strategy_dd = gr.Dropdown(["weight_average", "slerp", "linear"], value="weight_average", label="Strategy")
+                    g_strategy_dd = gr.Dropdown(LIVE_STRATEGIES_NO_BASE, value="weight_average", label="Strategy")
                     late_chk      = gr.Checkbox(value=False, label="Late Joiner (last node joins after round 2)")
                     partition_sl  = gr.Slider(0, 10, value=0, step=1,
                                              label="Partition heals at round (0 = no partition)")
