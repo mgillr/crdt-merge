@@ -42,7 +42,7 @@
 
 | Guide | What it covers |
 |---|---|
-| [Federated Model Merging](guides/federated-model-merging.md) | `CRDTMergeState`, 25 strategies, no parameter server |
+| [Federated Model Merging](guides/federated-model-merging.md) | `CRDTMergeState`, 26 strategies, no parameter server |
 | [Model Merge Strategies](guides/model-merge-strategies.md) | SLERP, TIES, DARE, DARE-TIES, Fisher, and more |
 | [Model CRDT Matrix](guides/model-crdt-matrix.md) | Strategy × CRDT-compliance comparison table |
 | [LoRA Adapter Merging](guides/lora-adapter-merging.md) | `LoRAMerge`, `LoRAMergeSchema`, per-layer strategies |
@@ -148,7 +148,7 @@ crdt-merge uses a strict **6-layer architecture** — each layer is independentl
 | 1 | `crdt_merge.core` | OR-Set, G-Counter, LWW-Register, VectorClock |
 | 2 | `crdt_merge` | DataFrame/JSON merge, strategies, MergeQL |
 | 3 | `crdt_merge.wire` / `.gossip` / `.merkle` | Transport, serialisation, content integrity |
-| 4 | `crdt_merge.model` | ML model merging, CRDTMergeState, 25 strategies |
+| 4 | `crdt_merge.model` | ML model merging, CRDTMergeState, 26 strategies |
 | 5 | `crdt_merge.encryption` / `.rbac` / `.metrics` | Security, access control, observability |
 | 6 | `crdt_merge.compliance` | GDPR, HIPAA, SOX, EU AI Act |
 | + | `crdt_merge.context` / `.agentic` | Agent memory, ContextBloom, ContextManifest |

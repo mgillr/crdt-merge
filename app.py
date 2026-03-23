@@ -8,7 +8,7 @@ The world's only merge library with mathematical convergence guarantees.
 
 9-tab showcase covering all 6 architecture layers:
   Tab 1: The Proof          — why every other library fails, crdt-merge wins
-  Tab 2: Strategy Matrix    — all 25 strategies, CRDT-compliant
+  Tab 2: Strategy Matrix    — all 26 strategies, CRDT-compliant
   Tab 3: Live Model Merge   — HF Hub + bert-tiny + heatmaps
   Tab 4: Federated Gossip   — distributed convergence simulation
   Tab 5: Agentic AI         — multi-agent state convergence
@@ -205,7 +205,10 @@ def run_the_proof():
         crdt_gap  = 0.0
         compliant = "COMPLIANT"
         try:
+            base_t = (A + B + C) / 3.0 if needs_base else None
             def make_state(name):
+                if needs_base:
+                    return CRDTMergeState(strat, base=base_t)
                 return CRDTMergeState(strat)
 
             s_a1 = make_state("A"); s_a1.add(A, model_id="model_A", weight=0.33)
@@ -305,7 +308,7 @@ def run_the_proof():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TAB 2 — STRATEGY MATRIX: All 25 strategies × 3 CRDT laws
+# TAB 2 — STRATEGY MATRIX: All 26 strategies × 3 CRDT laws
 # ─────────────────────────────────────────────────────────────────────────────
 
 ALL_STRATEGIES_INFO = [
@@ -514,7 +517,7 @@ def run_live_model_merge(strategy: str, weight_a: float):
     for layer_name, t_a in list(weights_a.items())[:8]:
         t_b = weights_b.get(layer_name, np.zeros_like(t_a))
         try:
-            base = (t_a + t_b) / 2.0 if needs_base else None
+            base = np.random.RandomState(42).randn(*t_a.shape).astype(np.float32) * 0.1 if needs_base else None
             state = CRDTMergeState(strategy, base=base) if needs_base else CRDTMergeState(strategy)
             state.add(t_a, model_id="model_A", weight=weight_a)
             state.add(t_b, model_id="model_B", weight=weight_b)
@@ -527,7 +530,7 @@ def run_live_model_merge(strategy: str, weight_a: float):
             prov_rows.append({
                 "Layer":            layer_name,
                 "Strategy":         strategy,
-                "Dominant":         "model_A" if weight_a >= weight_b else "model_B",
+                "Dominant":         "equal" if abs(weight_a - weight_b) < 0.01 else "model_A" if weight_a > weight_b else "model_B",
                 "Conflict Score":   f"{conflict:.4f}",
                 "Merkle Hash":      prov[0]["merkle_hash"][:16] + "..." if prov else "n/a",
                 "State Hash":       state.state_hash[:12] + "...",
@@ -1133,12 +1136,13 @@ def run_strategy_comparison():
     )
 
     comp_rows = []
+    n_field_pairs = len(overlap_ids) * len(fields)
     for sname in snames:
         diffs = sum(1 for rid in overlap_ids
                     for f in fields
                     if str(results_by_strat["LWW"].get(rid, {}).get(f, ""))
                        != str(results_by_strat[sname].get(rid, {}).get(f, "")))
-        comp_rows.append([sname, diffs, len(overlap_ids), f"{diffs/max(len(overlap_ids),1):.2%}"])
+        comp_rows.append([sname, diffs, n_field_pairs, f"{diffs/max(n_field_pairs,1):.2%}"])
 
     return fig, comp_rows
 
@@ -1397,7 +1401,7 @@ def _safe(fn):
     return _wrapper
 
 
-with gr.Blocks(theme=THEME, css=CSS, title="crdt-merge — Deterministic Model Merging") as demo:
+with gr.Blocks(theme=THEME, css=CSS, title="crdt-merge — Deterministic Model Merging") as demo:  # Gradio 5.x compatible; move theme/css to launch() for Gradio 6.0+
 
     # ── Navigation Bar ────────────────────────────────────────────────────────
     gr.Markdown(NAV_MD)
@@ -1410,7 +1414,9 @@ with gr.Blocks(theme=THEME, css=CSS, title="crdt-merge — Deterministic Model M
         # ═══════════════════════════════════════════════════════════════════════
         with gr.Tab("▶ Try It"):
             gr.Markdown("""Pick a strategy. Merge two models. See the mathematical proof that `merge(A,B) == merge(B,A)`.
-Uses real **prajjwal1/bert-tiny** weights from HuggingFace Hub when available, otherwise synthetic tensors.""")
+Uses real **prajjwal1/bert-tiny** weights from HuggingFace Hub when available, otherwise synthetic tensors.
+
+> **Note:** Some strategies may produce similar or identical outputs with only 2 models at equal weights — this is mathematically expected. Differences become significant with 3+ models or real fine-tuned weights.""")
 
             with gr.Row():
                 with gr.Column(scale=1):
@@ -1711,4 +1717,4 @@ Streaming merge: **O(1) memory** verified — throughput dead-flat from 100K to 
 
 
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", server_port=7860, show_error=True)
+    demo.launch(server_name="0.0.0.0", server_port=7860, show_error=True, theme=THEME, css=CSS)

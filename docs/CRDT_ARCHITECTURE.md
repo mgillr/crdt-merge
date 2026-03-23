@@ -28,7 +28,7 @@
 6. [Mathematical Proof of CRDT Compliance](#mathematical-proof)
 7. [Benchmark Results](#benchmark-results)
 8. [API Usage](#api-usage)
-9. [All 25 CRDT-Compliant Strategies](#all-25-strategies)
+9. [All 26 CRDT-Compliant Strategies](#all-26-strategies)
 10. [Future Work](#future-work)
 11. [References](#references)
 
@@ -36,7 +36,7 @@
 
 ## 1. Executive Summary <a name="executive-summary"></a>
 
-This document describes the architecture that enables all 25 model-merge
+This document describes the architecture that enables all 26 model-merge
 strategies in the `crdt-merge` library to operate as **true CRDTs**
 (Conflict-free Replicated Data Types). CRDTs guarantee that concurrent,
 unsynchronized updates on distributed replicas will always converge to
@@ -56,7 +56,7 @@ the problem into two layers:
 
 This two-layer design was the winning architecture out of **seven**
 candidate approaches explored during R&D. All seven ultimately achieved
-25/25 strategies passing full CRDT compliance tests, but the two-layer
+26/26 strategies passing full CRDT compliance tests, but the two-layer
 OR-Set approach emerged as the production architecture due to its
 simplicity, performance, and mathematical elegance.
 
@@ -209,7 +209,7 @@ model-merge algorithms. A different approach is required.
 During the R&D phase, seven distinct CRDT-based architectures were
 designed, implemented as full prototypes, and tested for compliance
 with all three CRDT laws (commutativity, associativity, idempotency)
-across all 25 merge strategies.
+across all 26 merge strategies.
 
 The architectures explored ranged from minimal append-only structures
 to complex multi-component lattice designs. Each prototype represented
@@ -218,7 +218,7 @@ flexibility (e.g., the ability to add *and* remove model contributions),
 provenance tracking, and synchronisation efficiency in distributed
 settings.
 
-**All seven prototypes achieved 100% CRDT compliance** — 25/25
+**All seven prototypes achieved 100% CRDT compliance** — 26/26
 strategies passed all three laws in every architecture. This confirmed
 that the core insight (separating CRDT state management from strategy
 execution) is robust across a wide design space.
@@ -916,7 +916,7 @@ the `CRDTMergeState` wrapper, satisfies the CRDT convergence guarantee.
 2. The strategy being deterministic (enforced by canonical ordering and
    seeded randomness).
 
-Since these properties hold for all 25 strategies, all 25 strategies
+Since these properties hold for all 26 strategies, all 26 strategies
 are CRDTs when used via `CRDTMergeState`.                              ∎
 
 ### 6.4 Formal Summary
@@ -950,7 +950,7 @@ All benchmarks were run with the following configuration:
 - **Hardware**: Single-node tests (CRDT operations are local)
 - **Model sizes**: Small (1M params), Medium (100M params), Large (1B params)
 - **Number of contributions**: 2, 4, 8, 16
-- **Strategies tested**: All 25
+- **Strategies tested**: All 26
 
 ### 7.2 CRDT Overhead
 
@@ -1016,12 +1016,12 @@ strategy execution times.
 
 ### 7.4 CRDT Compliance Test Results
 
-All 25 strategies were tested for full CRDT compliance using the
+All 26 strategies were tested for full CRDT compliance using the
 following test matrix:
 
 ```
 Test Matrix:
-    - 3 model sizes × 25 strategies × 4 node counts = 300 configurations
+    - 3 model sizes × 26 strategies × 4 node counts = 300 configurations
     - Each configuration tested for:
         ✓ Commutativity (merge order independence)
         ✓ Associativity (grouping independence)
@@ -1304,7 +1304,7 @@ except ValueError as e:
 
 ---
 
-## 9. All 25 CRDT-Compliant Strategies <a name="all-25-strategies"></a>
+## 9. All 26 CRDT-Compliant Strategies <a name="all-26-strategies"></a>
 
 Every strategy below achieves full CRDT compliance via the two-layer
 architecture. The strategy itself operates as a pure, deterministic
@@ -1367,7 +1367,7 @@ function over the visible contribution set.
 
 ### 9.7 CRDT Compliance Matrix
 
-All 25 strategies pass the full CRDT compliance test suite:
+All 26 strategies pass the full CRDT compliance test suite:
 
 ```
 Strategy                  | Commutative | Associative | Idempotent | Convergent | Status
@@ -1398,7 +1398,7 @@ RepresentationSurgery     |     ✓       |      ✓      |     ✓      |     �
 SafeMerge                 |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
 LEDMerge                  |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
 ─────────────────────────┼─────────────┼─────────────┼────────────┼────────────┼───────
-TOTAL                     |   25/25     |    25/25    |   25/25    |   25/25    | 25/25
+TOTAL                     |   26/26     |    26/26    |   26/26    |   26/26    | 26/26
 ```
 
 > **Note**: The ✓ marks in the compliance matrix refer to the
