@@ -1401,7 +1401,7 @@ def _safe(fn):
     return _wrapper
 
 
-with gr.Blocks(theme=THEME, css=CSS, title="crdt-merge — Deterministic Model Merging") as demo:  # Gradio 5.x compatible; move theme/css to launch() for Gradio 6.0+
+with gr.Blocks(theme=THEME, css=CSS, title="crdt-merge — Deterministic Model Merging") as demo:  # Gradio 5.x: theme/css go here; for Gradio 6.0+ move to launch()
 
     # ── Navigation Bar ────────────────────────────────────────────────────────
     gr.Markdown(NAV_MD)
@@ -1717,4 +1717,4 @@ Streaming merge: **O(1) memory** verified — throughput dead-flat from 100K to 
 
 
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", server_port=7860, show_error=True, theme=THEME, css=CSS)
+    demo.launch(server_name="0.0.0.0", server_port=7860, show_error=True)
