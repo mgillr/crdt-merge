@@ -78,16 +78,6 @@ PLOTLY_LAYOUT = dict(
 THEME = gr.themes.Base(
     primary_hue=gr.themes.colors.blue,
     neutral_hue=gr.themes.colors.zinc,
-    radius_size=gr.themes.sizes.sm,
-).set(
-    body_background_fill="#09090b",
-    block_background_fill="#18181b",
-    block_border_color="#27272a",
-    block_label_text_color="#71717a",
-    input_background_fill="#09090b",
-    input_border_color="#27272a",
-    button_primary_background_fill="#2563eb",
-    button_primary_text_color="#ffffff",
 )
 
 HERO_MD = """
@@ -371,8 +361,9 @@ def run_strategy_matrix():
         textposition="inside",
         textfont=dict(color="#fff", size=11),
     )
+    _lay = {k: v for k, v in PLOTLY_LAYOUT.items() if k != "yaxis"}
     fig.update_layout(
-        **PLOTLY_LAYOUT,
+        **_lay,
         title=f"CRDT Compliance: {compliant_count}/{len(rows)} strategies verified",
         yaxis=dict(visible=False, range=[0, 1.5]),
         xaxis_title="Strategy",
@@ -1224,12 +1215,12 @@ def build_benchmark_figures():
         name="Polars Engine", line=dict(color="#3b82f6", width=3),
         marker=dict(size=7, color="#3b82f6"),
     )
+    _lay = {k: v for k, v in PLOTLY_LAYOUT.items() if k not in ("xaxis", "yaxis")}
     tput_fig.update_layout(
-        **PLOTLY_LAYOUT,
+        **_lay,
         title="Python vs Polars Engine Throughput (A100, v0.7.1)",
         xaxis=dict(**PLOTLY_LAYOUT["xaxis"], type="log", title="Row Count (log scale)"),
         yaxis=dict(**PLOTLY_LAYOUT["yaxis"], type="log", title="Rows / second (log scale)"),
-        xaxis_title="Row Count", yaxis_title="Throughput (rows/s)",
     )
 
     # ── Chart 2: Speedup curve ────────────────────────────────────────────────
@@ -1258,10 +1249,11 @@ def build_benchmark_figures():
         text=[f"{v/1e6:.1f}M/s" if v >= 1e6 else f"{v/1e3:.0f}K/s" for v in PRIMITIVE_RPS],
         textposition="outside", textfont=dict(color="#f4f4f5"),
     )
+    _lay2 = {k: v for k, v in PLOTLY_LAYOUT.items() if k != "yaxis"}
     prim_fig.update_layout(
-        **PLOTLY_LAYOUT,
+        **_lay2,
         title="CRDT Primitive Throughput — Pure Python, No C Extensions (A100)",
-        xaxis_title="Primitive", yaxis_title="Operations / second",
+        xaxis_title="Primitive",
         yaxis=dict(**PLOTLY_LAYOUT["yaxis"], type="log", title="Ops/s (log)"),
     )
 
@@ -1278,8 +1270,9 @@ def build_benchmark_figures():
         annotation_text="Dead flat = O(1) memory verified",
         annotation_font_color="#86efac",
     )
+    _lay3 = {k: v for k, v in PLOTLY_LAYOUT.items() if k != "xaxis"}
     stream_fig.update_layout(
-        **PLOTLY_LAYOUT,
+        **_lay3,
         title="Streaming Merge — O(1) Memory Verification (throughput must stay flat)",
         xaxis=dict(**PLOTLY_LAYOUT["xaxis"], type="log", title="Row Count"),
         yaxis_title="Rows / second",
