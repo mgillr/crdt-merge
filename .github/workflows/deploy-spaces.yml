@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - app.py
+      - README.md
       - spaces/**
       - requirements.txt
 
@@ -37,7 +38,7 @@ jobs:
           except Exception as e:
               print(f"create_repo: {e}")
           operations = []
-          for local_path, remote_path in [("app.py","app.py"),("requirements.txt","requirements.txt")]:
+          for local_path, remote_path in [("app.py","app.py"),("requirements.txt","requirements.txt"),("README.md","README.md")]:
               if os.path.exists(local_path):
                   with open(local_path, "rb") as f:
                       operations.append(CommitOperationAdd(path_in_repo=remote_path, path_or_fileobj=f.read()))
