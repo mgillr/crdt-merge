@@ -26,6 +26,7 @@ from plotly.subplots import make_subplots
 
 HF_TOKEN = os.environ.get("HF_TOKEN", "")
 
+
 # ─────────────────────────────────────────────────────────────────────────────
 # THEME & STYLE
 # ─────────────────────────────────────────────────────────────────────────────
@@ -41,31 +42,29 @@ footer { display: none !important; }
 .tab-nav button {
     color: #a1a1aa !important;
     font-size: 13px !important;
-    letter-spacing: 0.06em !important;
-    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
     font-weight: 600 !important;
-    padding: 10px 16px !important;
+    padding: 10px 20px !important;
 }
 .tab-nav button.selected {
     color: #f4f4f5 !important;
     border-bottom: 2px solid #3b82f6 !important;
 }
-.tab-nav button:hover {
-    color: #e4e4e7 !important;
-}
+.tab-nav button:hover { color: #e4e4e7 !important; }
 code, pre, .monospace {
     font-family: 'JetBrains Mono', ui-monospace, monospace !important;
     font-size: 13px !important;
 }
 .contain { border-radius: 8px !important; }
 .gr-button-primary {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+    background: #2563eb !important;
     border: none !important;
     color: #fff !important;
     font-weight: 600 !important;
-    letter-spacing: 0.02em !important;
 }
-h1, h2, h3 { color: #f4f4f5 !important; }
+h1 { color: #f4f4f5 !important; }
+h2 { color: #f4f4f5 !important; font-size: 1.25rem !important; }
+h3 { color: #e4e4e7 !important; font-size: 1.1rem !important; }
 p, li { color: #d4d4d8 !important; font-size: 15px !important; line-height: 1.7 !important; }
 label, .gr-input-label, .label-wrap span {
     color: #e4e4e7 !important;
@@ -77,9 +76,7 @@ input, textarea, select, .gr-box {
     background: #18181b !important;
     border-color: #3f3f46 !important;
 }
-.gr-dataframe, .table-wrap, table {
-    color: #e4e4e7 !important;
-}
+.gr-dataframe, .table-wrap, table { color: #e4e4e7 !important; }
 .gr-dataframe th, table th {
     color: #f4f4f5 !important;
     background: #18181b !important;
@@ -91,13 +88,8 @@ input, textarea, select, .gr-box {
     font-size: 13px !important;
     border-color: #27272a !important;
 }
-.gr-dataframe tr:hover td {
-    background: #1e1e22 !important;
-}
-.gr-info, .info {
-    color: #a1a1aa !important;
-    font-size: 12px !important;
-}
+.gr-dataframe tr:hover td { background: #1e1e22 !important; }
+.gr-info, .info { color: #a1a1aa !important; font-size: 12px !important; }
 .markdown-text strong, strong { color: #f4f4f5 !important; }
 blockquote { border-left: 3px solid #3b82f6 !important; }
 blockquote p { color: #d4d4d8 !important; }
@@ -118,25 +110,21 @@ THEME = gr.themes.Base(
     neutral_hue=gr.themes.colors.zinc,
 )
 
+NAV_MD = """**[🏠 Flagship](https://huggingface.co/spaces/optitransfer/crdt-merge) · [🔬 Data Playground](https://huggingface.co/spaces/optitransfer/crdt-merge-data) · [🌐 Federation](https://huggingface.co/spaces/optitransfer/crdt-merge-federation) · [GitHub ↗](https://github.com/mgillr/crdt-merge) · [PyPI ↗](https://pypi.org/project/crdt-merge/)**"""
+
 HERO_MD = """
-# crdt-merge v0.9.4
+# crdt-merge
 
-> **The world's first merge library with mathematical convergence guarantees — 26 strategies, all CRDT-compliant.**
+**Deterministic model merging with mathematical convergence guarantees.**
 
-Standard merge algorithms — weight averaging, SLERP, TIES, DARE, Fisher, and 21 others — **fail** the algebraic laws needed for distributed convergence. crdt-merge's patented **two-layer OR-Set architecture** wraps any strategy and delivers provable convergence: same set of inputs → same output, regardless of merge order, network partitions, or late joiners.
+The first merge library where `merge(A, B) == merge(B, A)` — always.
+26 strategies across 8 categories. All CRDT-compliant. Proven, not promised.
 
-| | |
-|---|---|
-| **26 Strategies** | Basic · Subspace · Weighted · Evolutionary · Safety · Unlearning · Calibration · Continual |
-| **Targets** | ML model weights · DataFrames · distributed agent state · federated learning |
-| **CRDT Laws** | Commutativity ✓ · Associativity ✓ · Idempotency ✓ — all 26 verified |
-| **Patent** | Pending UK 2607132.4 · BUSL-1.1 → Apache 2.0 (2028-03-29) |
-
-`pip install crdt-merge` · [github.com/mgillr/crdt-merge](https://github.com/mgillr/crdt-merge)
+`pip install crdt-merge` · [GitHub](https://github.com/mgillr/crdt-merge) · [PyPI](https://pypi.org/project/crdt-merge/) · Patent Pending UK 2607132.4
 """
 
 ARCH_MD = """
-## Two-Layer Architecture — The Key Innovation
+### Two-Layer Architecture — The Key Innovation
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -149,7 +137,7 @@ ARCH_MD = """
 │  Tombstones for safe remove/replace operations                        │
 │                                                                      │
 │  merge(state_a, state_b) → set union  ← CRDT laws guaranteed here   │
-└──────────────────────────────┬───────────────────────────────────────┘
+└──────────────────────────────────────────────────────────────────────┘
                                │  resolve() — applied atomically
                                ▼
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -1391,8 +1379,9 @@ For repeated large-scale merges the Polars engine delivers up to **38.8× faster
     return tput_fig, speedup_fig, prim_fig, stream_fig, bench_summary_md
 
 
+
 # ─────────────────────────────────────────────────────────────────────────────
-# GRADIO UI
+# GRADIO UI — 4-Tab Redesign with Progressive Disclosure
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _safe(fn):
@@ -1407,73 +1396,73 @@ def _safe(fn):
             raise gr.Error(f"{fn.__name__}: {exc}") from exc
     return _wrapper
 
-with gr.Blocks(theme=THEME, css=CSS, title="crdt-merge v0.9.4 — The CRDT Merge Library") as demo:
 
+with gr.Blocks(theme=THEME, css=CSS, title="crdt-merge — Deterministic Model Merging") as demo:
+
+    # ── Navigation Bar ────────────────────────────────────────────────────────
+    gr.Markdown(NAV_MD)
     gr.Markdown(HERO_MD)
 
     with gr.Tabs():
 
         # ═══════════════════════════════════════════════════════════════════════
-        # TAB 1 — THE PROOF
+        # TAB 1 — TRY IT  (the money shot — first thing users see)
         # ═══════════════════════════════════════════════════════════════════════
-        with gr.Tab("⚡ The Proof"):
-            gr.Markdown("""
-## Why Every Other Merge Library Fails — And How crdt-merge Fixes It
-
-**The problem:** Standard merge strategies fail algebraic laws required for distributed convergence.
-
-```
-Naive weight average:  (A+B)/2  then  +C  →  (a+b)/4 + c/2
-Naive weight average:  (B+C)/2  then  A+  →  a/2 + (b+c)/4
-These are NOT equal. Associativity VIOLATED.
-```
-
-**The fix:** crdt-merge wraps any strategy in a Layer 1 OR-Set. The strategy sees a **set** (not a sequence).
-Same set → same output. OR-Set union is trivially C+A+I. **Full convergence guaranteed.**
-""")
-            gr.Markdown(ARCH_MD)
+        with gr.Tab("▶ Try It"):
+            gr.Markdown("""Pick a strategy. Merge two models. See the mathematical proof that `merge(A,B) == merge(B,A)`.
+Uses real **prajjwal1/bert-tiny** weights from HuggingFace Hub when available, otherwise synthetic tensors.""")
 
             with gr.Row():
-                proof_run_btn = gr.Button("▶  Run Live Proof", variant="primary", scale=0)
+                with gr.Column(scale=1):
+                    strat_dd = gr.Dropdown(
+                        choices=LIVE_ALL_STRATEGIES, value="weight_average",
+                        label="Merge Strategy",
+                        info="26 strategies. Task-vector strategies (ties, dare, etc.) use a synthetic base.",
+                    )
+                    weight_sl = gr.Slider(
+                        minimum=0.1, maximum=0.9, value=0.5, step=0.05,
+                        label="Model A Weight  (Model B = 1 − A)",
+                    )
+                    merge_btn = gr.Button("▶  Merge", variant="primary")
 
-            proof_table = gr.Dataframe(
-                headers=["Strategy", "Naive Assoc Gap ‖g₁−g₂‖", "CRDT Gap ‖g₁−g₂‖", "Status"],
-                label="Associativity Verification (lower gap = better; 0 = CRDT-compliant)",
-                wrap=True,
+                with gr.Column(scale=2):
+                    merge_summary_md = gr.Markdown()
+                    comm_proof_md = gr.Markdown()
+
+            with gr.Row():
+                heat_plot = gr.Plot(label="Attention Weight Heatmap — Model A | Model B | Merged")
+                contrib_plot = gr.Plot(label="Layer Contribution Map")
+
+            prov_table = gr.Dataframe(
+                headers=["Layer", "Strategy", "Dominant", "Conflict Score", "Merkle Hash", "State Hash"],
+                label="Per-Layer Provenance",
             )
-            proof_chart = gr.Plot(label="Naive vs crdt-merge Associativity Gap")
 
-            with gr.Row():
-                comm_md_out = gr.Markdown(label="Commutativity Proof")
-                idem_md_out = gr.Markdown(label="Idempotency Proof")
+            def _run_live(strat, wa):
+                rows, hfig, cfig, comm_md, summary_md = run_live_model_merge(strat, wa)
+                df = [[r["Layer"], r["Strategy"], r["Dominant"],
+                       r["Conflict Score"], r["Merkle Hash"], r["State Hash"]] for r in rows]
+                return df, hfig, cfig, comm_md, summary_md
 
-            def _run_proof():
-                rows, fig, comm_md, idem_md = run_the_proof()
-                df = [[r["Strategy"], r["Naive Assoc Gap ‖g₁−g₂‖"],
-                       r["CRDT Gap ‖g₁−g₂‖"], r["Status"]] for r in rows]
-                return df, fig, comm_md, idem_md
+            merge_btn.click(_run_live, inputs=[strat_dd, weight_sl],
+                            outputs=[prov_table, heat_plot, contrib_plot, comm_proof_md, merge_summary_md])
+            demo.load(_safe(lambda: _run_live("weight_average", 0.5)),
+                      outputs=[prov_table, heat_plot, contrib_plot, comm_proof_md, merge_summary_md])
 
-            proof_run_btn.click(_run_proof, outputs=[proof_table, proof_chart, comm_md_out, idem_md_out])
-            demo.load(_safe(_run_proof), outputs=[proof_table, proof_chart, comm_md_out, idem_md_out])
 
         # ═══════════════════════════════════════════════════════════════════════
-        # TAB 2 — STRATEGY MATRIX
+        # TAB 2 — ALL 26 STRATEGIES
         # ═══════════════════════════════════════════════════════════════════════
-        with gr.Tab("📊 Strategy Matrix"):
-            gr.Markdown("""
-## All 26 Strategies × CRDT Law Compliance
+        with gr.Tab("26 Strategies"):
+            gr.Markdown("""Every strategy tested live against all three CRDT laws — **commutativity**, **associativity**, **idempotency**.
+The two-layer OR-Set architecture makes any strategy CRDT-compliant without modifying the strategy itself.""")
 
-Every strategy is tested live against all three algebraic laws (commutativity, associativity, idempotency) using the two-layer OR-Set architecture.
-The OR-Set layer absorbs ordering non-determinism — the strategy itself doesn't need to be CRDT-aware.
-
-**26 strategies** across 8 categories. Task-vector methods (task_arithmetic, ties, dare, dare_ties, della, emr, etc.) use a synthetic base (mean of inputs). All achieve CRDT compliance via the two-layer OR-Set architecture.
-""")
             with gr.Row():
                 matrix_btn = gr.Button("▶  Run Compliance Matrix", variant="primary", scale=0)
 
             matrix_summary = gr.Markdown()
-            matrix_chart   = gr.Plot(label="CRDT Compliance Status by Strategy")
-            matrix_table   = gr.Dataframe(
+            matrix_chart = gr.Plot(label="CRDT Compliance — All 26 Strategies")
+            matrix_table = gr.Dataframe(
                 headers=["Strategy", "Commutative", "Associative", "Idempotent", "CRDT Status",
                          "Description", "Comm Norm", "Assoc Norm", "Idem Norm"],
                 label="Full Compliance Matrix",
@@ -1488,289 +1477,51 @@ The OR-Set layer absorbs ordering non-determinism — the strategy itself doesn'
                 return summary, fig, df
 
             matrix_btn.click(_run_matrix, outputs=[matrix_summary, matrix_chart, matrix_table])
-            demo.load(_safe(_run_matrix), outputs=[matrix_summary, matrix_chart, matrix_table])
 
-        # ═══════════════════════════════════════════════════════════════════════
-        # TAB 3 — LIVE MODEL MERGE
-        # ═══════════════════════════════════════════════════════════════════════
-        with gr.Tab("🧬 Live Model Merge"):
-            gr.Markdown("""
-## Live Model Merge — 26 Strategies × Real or Synthetic Weights
+            gr.Markdown("---")
+            gr.Markdown("### The Mathematical Proof — Naive vs crdt-merge")
+            gr.Markdown("""Standard merge strategies fail associativity: `merge(merge(A,B), C) ≠ merge(A, merge(B,C))`.
+crdt-merge's OR-Set layer absorbs this — the gap drops to exactly **0.0** for every strategy.""")
 
-Pick any of 26 strategies. Loads real prajjwal1/bert-tiny weights from HuggingFace Hub (if `HF_TOKEN` is set) or generates synthetic tensors. Model B = Model A + structured fine-tuning noise. Every merge is verified for commutativity: `merge(A,B) == merge(B,A)`.
-""")
             with gr.Row():
-                with gr.Column(scale=1):
-                    strat_dd = gr.Dropdown(
-                        choices=LIVE_ALL_STRATEGIES, value="weight_average",
-                        label="Merge Strategy",
-                        info="Strategies with 'base': task_arithmetic, ties, dare, dare_ties, della, emr, etc.",
-                    )
-                    weight_sl = gr.Slider(
-                        minimum=0.1, maximum=0.9, value=0.5, step=0.05,
-                        label="Model A Weight (Model B = 1 − Model A)",
-                    )
-                    merge_btn = gr.Button("▶  Run Live Merge", variant="primary")
+                proof_run_btn = gr.Button("▶  Run Associativity Proof", variant="primary", scale=0)
 
-                with gr.Column(scale=2):
-                    merge_summary_md = gr.Markdown()
-
-            prov_table = gr.Dataframe(
-                headers=["Layer", "Strategy", "Dominant", "Conflict Score", "Merkle Hash", "State Hash"],
-                label="Per-Layer Provenance",
-            )
-            with gr.Row():
-                heat_plot = gr.Plot(label="Attention Weight Heatmap (Model A | B | Merged)")
-                contrib_plot = gr.Plot(label="Layer Contribution Map")
-            comm_proof_md = gr.Markdown()
-
-            def _run_live(strat, wa):
-                rows, hfig, cfig, comm_md, summary_md = run_live_model_merge(strat, wa)
-                df = [[r["Layer"], r["Strategy"], r["Dominant"],
-                       r["Conflict Score"], r["Merkle Hash"], r["State Hash"]] for r in rows]
-                return df, hfig, cfig, comm_md, summary_md
-
-            merge_btn.click(_run_live, inputs=[strat_dd, weight_sl],
-                            outputs=[prov_table, heat_plot, contrib_plot, comm_proof_md, merge_summary_md])
-            demo.load(_safe(lambda: _run_live("weight_average", 0.5)),
-                      outputs=[prov_table, heat_plot, contrib_plot, comm_proof_md, merge_summary_md])
-
-        # ═══════════════════════════════════════════════════════════════════════
-        # TAB 4 — FEDERATED GOSSIP
-        # ═══════════════════════════════════════════════════════════════════════
-        with gr.Tab("🌐 Federated Gossip"):
-            gr.Markdown("""
-## Distributed Gossip Convergence — No Coordinator Required
-
-Each node maintains a `CRDTMergeState`. Nodes exchange states via `merge()` following the selected topology.
-With OR-Set semantics, **convergence is mathematically guaranteed** regardless of message order, late joiners,
-or temporary network partitions.
-
-Watch the State Hash Matrix turn uniform — that's mathematical convergence.
-""")
-            with gr.Row():
-                with gr.Column(scale=1):
-                    n_nodes_sl    = gr.Slider(2, 8, value=4, step=1, label="Number of Nodes")
-                    n_rounds_sl   = gr.Slider(1, 25, value=10, step=1, label="Gossip Rounds")
-                    topology_dd   = gr.Dropdown(["Random", "Ring", "Star"], value="Random", label="Topology")
-                    g_strategy_dd = gr.Dropdown(LIVE_STRATEGIES_NO_BASE, value="weight_average", label="Strategy")
-                    late_chk      = gr.Checkbox(value=False, label="Late Joiner (last node joins after round 2)")
-                    partition_sl  = gr.Slider(0, 10, value=0, step=1,
-                                             label="Partition heals at round (0 = no partition)")
-                    gossip_btn    = gr.Button("▶  Run Gossip Simulation", variant="primary")
-
-                with gr.Column(scale=2):
-                    gossip_summary_md = gr.Markdown()
-
-            conv_chart   = gr.Plot(label="Convergence — Avg Pairwise L2 Distance per Round")
-            hash_matrix_chart = gr.Plot(label="State Hash Matrix — Viridis (uniform color = converged)")
-            audit_table  = gr.Dataframe(
-                headers=["Round", "From", "To", "hash_before", "hash_after", "Changed"],
-                label="Gossip Audit Log (last 50 events)",
-            )
-
-            def _run_gossip(n, r, top, strat, late, part):
-                cf, hf, audit, summary = run_gossip_simulation(n, r, top, strat, late, part)
-                return cf, hf, audit, summary
-
-            gossip_btn.click(_run_gossip,
-                inputs=[n_nodes_sl, n_rounds_sl, topology_dd, g_strategy_dd, late_chk, partition_sl],
-                outputs=[conv_chart, hash_matrix_chart, audit_table, gossip_summary_md])
-            demo.load(_safe(lambda: _run_gossip(4, 10, "Random", "weight_average", False, 0)),
-                      outputs=[conv_chart, hash_matrix_chart, audit_table, gossip_summary_md])
-
-        # ═══════════════════════════════════════════════════════════════════════
-        # TAB 5 — AGENTIC AI
-        # ═══════════════════════════════════════════════════════════════════════
-        with gr.Tab("🤖 Agentic AI"):
-            gr.Markdown("""
-## Multi-Agent Knowledge Convergence
-
-4 AI agents independently gather facts with different confidence scores.
-When their states are merged via `SharedKnowledge.merge()`, the result is **identical regardless of merge order**.
-
-**Conflict resolution:** When two agents have the same fact, the higher-confidence, newer fact wins (LWW with confidence tie-breaking).
-This is the foundation for convergent multi-agent AI systems — CrewAI, AutoGen, LangGraph.
-""")
-            with gr.Row():
-                agent_btn = gr.Button("▶  Run Multi-Agent Convergence Demo", variant="primary", scale=0)
-
-            agent_summary_md = gr.Markdown()
-            fact_table = gr.Dataframe(
-                headers=["Fact Key", "Value (Order 1)", "Value (Order 2)", "Convergent", "Winning Agent"],
-                label="Fact Convergence: merge(researcher→analyst→validator→auditor) vs merge(auditor→...→researcher)",
+            proof_table = gr.Dataframe(
+                headers=["Strategy", "Naive Assoc Gap ‖g₁−g₂‖", "CRDT Gap ‖g₁−g₂‖", "Status"],
+                label="Associativity Verification",
                 wrap=True,
             )
-            agent_table = gr.Dataframe(
-                headers=["Agent", "Facts", "Tags", "Queries"],
-                label="Individual Agent States",
-            )
+            proof_chart = gr.Plot(label="Naive vs crdt-merge Associativity Gap")
 
-            def _run_agents():
-                fact_rows, agent_rows, summary = run_agentic_demo()
-                fdf = [[r["Fact Key"], r["Value (Order 1)"], r["Value (Order 2)"],
-                        r["Convergent"], r["Winning Agent"]] for r in fact_rows]
-                adf = [[r["Agent"], r["Facts"], r["Tags"],
-                        r["Queries"].value if r["Queries"] else 0] for r in agent_rows]
-                return summary, fdf, adf
-
-            agent_btn.click(_run_agents, outputs=[agent_summary_md, fact_table, agent_table])
-            demo.load(_safe(_run_agents), outputs=[agent_summary_md, fact_table, agent_table])
-
-        # ═══════════════════════════════════════════════════════════════════════
-        # TAB 6 — MERGEQL
-        # ═══════════════════════════════════════════════════════════════════════
-        with gr.Tab("🔍 MergeQL"):
-            gr.Markdown("""
-## MergeQL — SQL-Like Distributed Merge
-
-Express CRDT merges as SQL statements. `MergeQL` compiles to `CRDTMergeState` under the hood.
-
-```sql
-MERGE users_nyc, users_london
-ON id
-STRATEGY name='lww', score='max', tags='union'
-```
-
-Select a pre-built example or write your own query.
-""")
             with gr.Row():
-                example_dd = gr.Dropdown(
-                    choices=list(MERGEQL_EXAMPLES.keys()),
-                    value="Basic LWW Merge",
-                    label="Example Query",
-                )
-                mql_run_btn = gr.Button("▶  Execute", variant="primary", scale=0)
+                comm_md_out = gr.Markdown()
+                idem_md_out = gr.Markdown()
 
-            query_box = gr.Code(
-                value=MERGEQL_EXAMPLES["Basic LWW Merge"],
-                language="sql",
-                label="MergeQL Query",
-            )
-            mql_summary_md = gr.Markdown()
-            mql_result_table = gr.Dataframe(label="Result (first 20 rows)", wrap=True)
-            mql_plan_json = gr.Code(language="json", label="Query Plan (EXPLAIN)")
+            def _run_proof():
+                rows, fig, comm_md, idem_md = run_the_proof()
+                df = [[r["Strategy"], r["Naive Assoc Gap ‖g₁−g₂‖"],
+                       r["CRDT Gap ‖g₁−g₂‖"], r["Status"]] for r in rows]
+                return df, fig, comm_md, idem_md
 
-            def _load_example(name):
-                return MERGEQL_EXAMPLES.get(name, "")
+            proof_run_btn.click(_run_proof, outputs=[proof_table, proof_chart, comm_md_out, idem_md_out])
 
-            def _run_mql(query):
-                rows, plan_json, summary = run_mergeql(query)
-                if rows:
-                    keys = list(rows[0].keys()) if isinstance(rows[0], dict) else []
-                    df = [[r[k] for k in keys] for r in rows] if keys else rows
-                else:
-                    df = []
-                return summary, df, plan_json or ""
-
-            example_dd.change(_load_example, inputs=[example_dd], outputs=[query_box])
-            mql_run_btn.click(_run_mql, inputs=[query_box],
-                              outputs=[mql_summary_md, mql_result_table, mql_plan_json])
-            demo.load(_safe(lambda: _run_mql(MERGEQL_EXAMPLES["Basic LWW Merge"])),
-                      outputs=[mql_summary_md, mql_result_table, mql_plan_json])
 
         # ═══════════════════════════════════════════════════════════════════════
-        # TAB 7 — DATA MERGE
+        # TAB 3 — BENCHMARKS
         # ═══════════════════════════════════════════════════════════════════════
-        with gr.Tab("📦 Data Merge"):
-            gr.Markdown("""
-## DataFrame / Dataset CRDT Merge
+        with gr.Tab("Benchmarks"):
+            gr.Markdown("""Real benchmark results from **NVIDIA A100-SXM4-40GB** · v0.7.1 · Python 3.12.
+Polars engine peak: **38.8× speedup** over Python at 500K rows.
+Streaming merge: **O(1) memory** verified — throughput dead-flat from 100K to 5M rows.""")
 
-Merges two partitions of glue/sst2 (or synthetic) with configurable per-field strategy.
-Commutativity is verified: `merge(A, B)` must return the same record set as `merge(B, A)`.
-""")
-            with gr.Row():
-                data_strat_dd = gr.Dropdown(["LWW", "MaxWins", "MinWins", "Union"],
-                                           value="LWW", label="Merge Strategy")
-                data_merge_btn = gr.Button("▶  Run Data Merge", variant="primary", scale=0)
-                conflict_btn   = gr.Button("▶  Strategy Comparison", variant="secondary", scale=0)
-
-            data_summary_md = gr.Markdown()
-            data_table = gr.Dataframe(
-                headers=["id", "sentence", "label", "_ts"],
-                label="Merged Records (first 20 rows)", wrap=True,
-            )
-            conflict_chart = gr.Plot(label="Per-Field Conflict Rate Between Strategies")
-            conflict_table = gr.Dataframe(
-                headers=["Strategy", "Diffs vs LWW", "Overlap Records", "Conflict Rate"],
-                label="Strategy Conflict Comparison",
-            )
-
-            def _run_data(strat):
-                df, summary = run_data_merge(strat)
-                return summary, df
-
-            def _run_conflict():
-                fig, rows = run_strategy_comparison()
-                return fig, rows
-
-            data_merge_btn.click(_run_data, inputs=[data_strat_dd],
-                                 outputs=[data_summary_md, data_table])
-            conflict_btn.click(_run_conflict, outputs=[conflict_chart, conflict_table])
-            demo.load(_safe(lambda: _run_data("LWW")), outputs=[data_summary_md, data_table])
-
-        # ═══════════════════════════════════════════════════════════════════════
-        # TAB 8 — MERKLE + WIRE
-        # ═══════════════════════════════════════════════════════════════════════
-        with gr.Tab("🔗 Merkle + Wire"):
-            gr.Markdown("""
-## Layer 3: Transport, Serialization & Integrity
-
-- **Wire Protocol**: `CRDTMergeState` serializes to a binary-safe JSON envelope with base64-encoded tensors
-- **Round-trip Proof**: `from_dict(to_dict(state)).state_hash == state.state_hash`
-- **MerkleTree**: content-addressable integrity verification; `merkle_diff()` for delta sync
-- **VectorClock**: causal ordering across nodes; merge = per-node maximum
-""")
-            wire_run_btn = gr.Button("▶  Run Transport Layer Demo", variant="primary", scale=0)
-
-            wire_summary_md = gr.Markdown()
-            wire_json_out = gr.Code(language="json", label="CRDTMergeState Wire Format (tensor values omitted)")
-            rt_table = gr.Dataframe(
-                headers=["State", "Original Hash", "Round-trip Hash", "Result"],
-                label="Round-trip Serialization Proof",
-            )
-            merkle_table = gr.Dataframe(
-                headers=["Key", "Value"],
-                label="MerkleTree Demonstration",
-            )
-            vc_table = gr.Dataframe(
-                headers=["Node", "Clock State"],
-                label="VectorClock Causal Ordering",
-            )
-            prov_wire_table = gr.Dataframe(
-                headers=["model_id", "merkle_hash", "weight", "timestamp"],
-                label="Contribution Provenance Registry",
-            )
-
-            def _run_wire():
-                wire_d, rt_rows, m_rows, vc_rows, prov_rows, summary = run_merkle_wire_demo()
-                return summary, json.dumps(wire_d, indent=2), rt_rows, m_rows, vc_rows, prov_rows
-
-            wire_run_btn.click(_run_wire,
-                outputs=[wire_summary_md, wire_json_out, rt_table, merkle_table, vc_table, prov_wire_table])
-            demo.load(_safe(_run_wire),
-                outputs=[wire_summary_md, wire_json_out, rt_table, merkle_table, vc_table, prov_wire_table])
-
-        # ═══════════════════════════════════════════════════════════════════════
-        # TAB 9 — BENCHMARK
-        # ═══════════════════════════════════════════════════════════════════════
-        with gr.Tab("📈 Benchmark"):
-            gr.Markdown("""
-## A100 Performance Dashboard
-
-Real benchmark results from NVIDIA A100-SXM4-40GB · v0.7.1 · Python 3.12.
-
-**Polars engine peak: 38.8× speedup over Python at 500K rows.**
-**Streaming merge: O(1) memory verified — throughput dead-flat from 100K to 5M rows.**
-""")
             bench_summary_md = gr.Markdown()
 
             with gr.Row():
-                tput_plot    = gr.Plot(label="Python vs Polars Throughput (log scale)")
-                speedup_plot = gr.Plot(label="Polars Speedup Factor by Row Count")
+                tput_plot = gr.Plot(label="Python vs Polars Throughput")
+                speedup_plot = gr.Plot(label="Polars Speedup Factor")
             with gr.Row():
-                prim_plot    = gr.Plot(label="CRDT Primitive Throughput (ops/s)")
-                stream_plot  = gr.Plot(label="Streaming Merge — O(1) Memory Proof")
+                prim_plot = gr.Plot(label="CRDT Primitive Throughput")
+                stream_plot = gr.Plot(label="Streaming Merge — O(1) Memory")
 
             bench_table_data = [
                 [f"{r:,}", f"{p/1e3:.0f}K/s", f"{po/1e6:.1f}M/s" if po >= 1e6 else f"{po/1e3:.0f}K/s", f"{s}×"]
@@ -1788,12 +1539,174 @@ Real benchmark results from NVIDIA A100-SXM4-40GB · v0.7.1 · Python 3.12.
 
             demo.load(_safe(_load_bench), outputs=[bench_summary_md, tput_plot, speedup_plot, prim_plot, stream_plot])
 
+
+        # ═══════════════════════════════════════════════════════════════════════
+        # TAB 4 — DEEP DIVE  (progressive disclosure via accordions)
+        # ═══════════════════════════════════════════════════════════════════════
+        with gr.Tab("Deep Dive"):
+            gr.Markdown("""Explore the architecture layers, distributed protocols, and domain-specific merge capabilities.""")
+            gr.Markdown(ARCH_MD)
+
+            # ── Federated Gossip ──────────────────────────────────────────────
+            with gr.Accordion("🌐 Federated Gossip Protocol", open=False):
+                gr.Markdown("Each node maintains a `CRDTMergeState`. Nodes exchange states via `merge()` — no coordinator required. Convergence is guaranteed regardless of message order, late joiners, or network partitions.")
+                with gr.Row():
+                    with gr.Column(scale=1):
+                        g_nodes = gr.Slider(2, 8, value=4, step=1, label="Nodes")
+                        g_rounds = gr.Slider(1, 25, value=10, step=1, label="Rounds")
+                        g_topology = gr.Dropdown(["Random", "Ring", "Star"], value="Random", label="Topology")
+                        g_strategy = gr.Dropdown(LIVE_STRATEGIES_NO_BASE, value="weight_average", label="Strategy")
+                        g_late = gr.Checkbox(value=False, label="Late Joiner")
+                        g_partition = gr.Slider(0, 10, value=0, step=1, label="Partition heals at round (0 = none)")
+                        gossip_btn = gr.Button("▶  Simulate", variant="primary")
+                    with gr.Column(scale=2):
+                        gossip_summary_md = gr.Markdown()
+
+                conv_chart = gr.Plot(label="Convergence — Avg Pairwise L2 Distance")
+                hash_matrix_chart = gr.Plot(label="State Hash Matrix (uniform color = converged)")
+                audit_table = gr.Dataframe(
+                    headers=["Round", "From", "To", "hash_before", "hash_after", "Changed"],
+                    label="Gossip Audit Log (last 50)",
+                )
+
+                def _run_gossip(n, r, top, strat, late, part):
+                    return run_gossip_simulation(n, r, top, strat, late, part)
+
+                gossip_btn.click(_run_gossip,
+                    inputs=[g_nodes, g_rounds, g_topology, g_strategy, g_late, g_partition],
+                    outputs=[conv_chart, hash_matrix_chart, audit_table, gossip_summary_md])
+
+            # ── Agentic AI ────────────────────────────────────────────────────
+            with gr.Accordion("🤖 Multi-Agent Knowledge Convergence", open=False):
+                gr.Markdown("4 AI agents independently gather facts with different confidence scores. `SharedKnowledge.merge()` produces identical results regardless of merge order — proving CRDT convergence for multi-agent systems (CrewAI, AutoGen, LangGraph).")
+                agent_btn = gr.Button("▶  Run Demo", variant="primary", scale=0)
+                agent_summary_md = gr.Markdown()
+                fact_table = gr.Dataframe(
+                    headers=["Fact Key", "Value (Order 1)", "Value (Order 2)", "Convergent", "Winning Agent"],
+                    label="Fact Convergence: Order 1 vs Order 2 (reversed)",
+                    wrap=True,
+                )
+                agent_table = gr.Dataframe(
+                    headers=["Agent", "Facts", "Tags", "Queries"],
+                    label="Individual Agent States",
+                )
+
+                def _run_agents():
+                    fact_rows, agent_rows, summary = run_agentic_demo()
+                    fdf = [[r["Fact Key"], r["Value (Order 1)"], r["Value (Order 2)"],
+                            r["Convergent"], r["Winning Agent"]] for r in fact_rows]
+                    adf = [[r["Agent"], r["Facts"], r["Tags"],
+                            r["Queries"].value if r["Queries"] else 0] for r in agent_rows]
+                    return summary, fdf, adf
+
+                agent_btn.click(_run_agents, outputs=[agent_summary_md, fact_table, agent_table])
+
+            # ── MergeQL ───────────────────────────────────────────────────────
+            with gr.Accordion("🔍 MergeQL — SQL-Like Distributed Merge", open=False):
+                gr.Markdown("Express CRDT merges as SQL statements. `MergeQL` compiles to `CRDTMergeState` operations under the hood.")
+                with gr.Row():
+                    example_dd = gr.Dropdown(
+                        choices=list(MERGEQL_EXAMPLES.keys()),
+                        value="Basic LWW Merge",
+                        label="Example Query",
+                    )
+                    mql_run_btn = gr.Button("▶  Execute", variant="primary", scale=0)
+
+                query_box = gr.Code(
+                    value=MERGEQL_EXAMPLES["Basic LWW Merge"],
+                    language="sql",
+                    label="MergeQL Query",
+                )
+                mql_summary_md = gr.Markdown()
+                mql_result_table = gr.Dataframe(label="Result (first 20 rows)", wrap=True)
+                mql_plan_json = gr.Code(language="json", label="Query Plan")
+
+                def _load_example(name):
+                    return MERGEQL_EXAMPLES.get(name, "")
+
+                def _run_mql(query):
+                    rows, plan_json, summary = run_mergeql(query)
+                    if rows:
+                        keys = list(rows[0].keys()) if isinstance(rows[0], dict) else []
+                        df = [[r[k] for k in keys] for r in rows] if keys else rows
+                    else:
+                        df = []
+                    return summary, df, plan_json or ""
+
+                example_dd.change(_load_example, inputs=[example_dd], outputs=[query_box])
+                mql_run_btn.click(_run_mql, inputs=[query_box],
+                                  outputs=[mql_summary_md, mql_result_table, mql_plan_json])
+
+            # ── Data Merge ────────────────────────────────────────────────────
+            with gr.Accordion("📦 Data Merge — DataFrames & Datasets", open=False):
+                gr.Markdown("Merges two partitions of glue/sst2 with configurable per-field strategy. Verifies commutativity: `merge(A, B)` must return the same records as `merge(B, A)`.")
+                with gr.Row():
+                    data_strat_dd = gr.Dropdown(["LWW", "MaxWins", "MinWins", "Union"],
+                                               value="LWW", label="Merge Strategy")
+                    data_merge_btn = gr.Button("▶  Merge", variant="primary", scale=0)
+                    conflict_btn = gr.Button("Strategy Comparison", variant="secondary", scale=0)
+
+                data_summary_md = gr.Markdown()
+                data_table = gr.Dataframe(
+                    headers=["id", "sentence", "label", "_ts"],
+                    label="Merged Records (first 20)", wrap=True,
+                )
+                conflict_chart = gr.Plot(label="Per-Field Conflict Rate Between Strategies")
+                conflict_table = gr.Dataframe(
+                    headers=["Strategy", "Diffs vs LWW", "Overlap Records", "Conflict Rate"],
+                    label="Strategy Conflict Comparison",
+                )
+
+                def _run_data(strat):
+                    df, summary = run_data_merge(strat)
+                    return summary, df
+
+                def _run_conflict():
+                    fig, rows = run_strategy_comparison()
+                    return fig, rows
+
+                data_merge_btn.click(_run_data, inputs=[data_strat_dd],
+                                     outputs=[data_summary_md, data_table])
+                conflict_btn.click(_run_conflict, outputs=[conflict_chart, conflict_table])
+
+            # ── Wire Protocol & Merkle Trees ──────────────────────────────────
+            with gr.Accordion("🔗 Wire Protocol & Merkle Trees", open=False):
+                gr.Markdown("Wire format serialization, round-trip proof, Merkle tree integrity verification, and VectorClock causal ordering.")
+                wire_run_btn = gr.Button("▶  Run Demo", variant="primary", scale=0)
+                wire_summary_md = gr.Markdown()
+                wire_json_out = gr.Code(language="json", label="CRDTMergeState Wire Format")
+                rt_table = gr.Dataframe(
+                    headers=["State", "Original Hash", "Round-trip Hash", "Result"],
+                    label="Round-trip Serialization Proof",
+                )
+                with gr.Row():
+                    merkle_table = gr.Dataframe(
+                        headers=["Key", "Value"],
+                        label="MerkleTree",
+                    )
+                    vc_table = gr.Dataframe(
+                        headers=["Node", "Clock State"],
+                        label="VectorClock",
+                    )
+                prov_wire_table = gr.Dataframe(
+                    headers=["model_id", "merkle_hash", "weight", "timestamp"],
+                    label="Provenance Registry",
+                )
+
+                def _run_wire():
+                    wire_d, rt_rows, m_rows, vc_rows, prov_rows, summary = run_merkle_wire_demo()
+                    return summary, json.dumps(wire_d, indent=2), rt_rows, m_rows, vc_rows, prov_rows
+
+                wire_run_btn.click(_run_wire,
+                    outputs=[wire_summary_md, wire_json_out, rt_table, merkle_table, vc_table, prov_wire_table])
+
     # ── Footer ────────────────────────────────────────────────────────────────
     gr.Markdown("""
 ---
+
 **crdt-merge v0.9.4** · Patent Pending UK 2607132.4 · BUSL-1.1 → Apache 2.0 (2028-03-29)
 
-[github.com/mgillr/crdt-merge](https://github.com/mgillr/crdt-merge) · `pip install crdt-merge`
+[🏠 Flagship](https://huggingface.co/spaces/optitransfer/crdt-merge) · [🔬 Data Playground](https://huggingface.co/spaces/optitransfer/crdt-merge-data) · [🌐 Federation](https://huggingface.co/spaces/optitransfer/crdt-merge-federation) · [GitHub](https://github.com/mgillr/crdt-merge) · [PyPI](https://pypi.org/project/crdt-merge/) · `pip install crdt-merge`
 """)
 
 

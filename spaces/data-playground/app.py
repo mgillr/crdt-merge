@@ -60,12 +60,14 @@ THEME = gr.themes.Base(
     neutral_hue=gr.themes.colors.zinc,
 )
 
+NAV_MD = """**[🏠 Flagship](https://huggingface.co/spaces/optitransfer/crdt-merge) · [🔬 Data Playground](https://huggingface.co/spaces/optitransfer/crdt-merge-data) · [🌐 Federation](https://huggingface.co/spaces/optitransfer/crdt-merge-federation) · [GitHub ↗](https://github.com/mgillr/crdt-merge) · [PyPI ↗](https://pypi.org/project/crdt-merge/)**"""
+
 HERO_MD = """
-# crdt-merge v0.9.4 — Data Playground
+# crdt-merge — Data Playground
 
 Tabular CRDT merge for DataFrames and datasets. Conflict-free record merge, deduplication, and provenance tracking.
 
-`pip install crdt-merge` · [github.com/mgillr/crdt-merge](https://github.com/mgillr/crdt-merge)
+`pip install crdt-merge` · [GitHub](https://github.com/mgillr/crdt-merge) · [PyPI](https://pypi.org/project/crdt-merge/) · Patent Pending UK 2607132.4
 """
 
 STRATEGIES_DF = ["LWW", "MaxWins", "MinWins", "Union"]
@@ -361,6 +363,7 @@ def run_primitives_demo():
 # ─────────────────────────────────────────────────────────────────
 
 with gr.Blocks(theme=THEME, css=CSS, title="crdt-merge — Data Playground") as demo:
+    gr.Markdown(NAV_MD)
     gr.Markdown(HERO_MD)
 
     with gr.Tabs():
@@ -461,10 +464,13 @@ Note: `.value` is a property (no parentheses required).
             prim_btn.click(_run_prims, outputs=[prim_table])
             demo.load(_run_prims, outputs=[prim_table])
 
-    gr.Markdown(
-        "crdt-merge v0.9.4 · Patent Pending UK 2607132.4 · "
-        "[github.com/mgillr/crdt-merge](https://github.com/mgillr/crdt-merge)"
-    )
+    gr.Markdown("""
+---
+
+**crdt-merge v0.9.4** · Patent Pending UK 2607132.4 · BUSL-1.1 → Apache 2.0 (2028-03-29)
+
+[🏠 Flagship](https://huggingface.co/spaces/optitransfer/crdt-merge) · [🔬 Data Playground](https://huggingface.co/spaces/optitransfer/crdt-merge-data) · [🌐 Federation](https://huggingface.co/spaces/optitransfer/crdt-merge-federation) · [GitHub](https://github.com/mgillr/crdt-merge) · [PyPI](https://pypi.org/project/crdt-merge/) · `pip install crdt-merge`
+""")
 
 if __name__ == "__main__":
     demo.launch()

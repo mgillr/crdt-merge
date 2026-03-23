@@ -62,13 +62,15 @@ THEME = gr.themes.Base(
     neutral_hue=gr.themes.colors.zinc,
 )
 
+NAV_MD = """**[🏠 Flagship](https://huggingface.co/spaces/optitransfer/crdt-merge) · [🔬 Data Playground](https://huggingface.co/spaces/optitransfer/crdt-merge-data) · [🌐 Federation](https://huggingface.co/spaces/optitransfer/crdt-merge-federation) · [GitHub ↗](https://github.com/mgillr/crdt-merge) · [PyPI ↗](https://pypi.org/project/crdt-merge/)**"""
+
 HERO_MD = """
-# crdt-merge v0.9.4 — Federation
+# crdt-merge — Federation
 
 Distributed gossip convergence simulation. Every node maintains a CRDTMergeState.
 Nodes exchange states via merge() — no coordinator, no locking. Convergence is guaranteed.
 
-`pip install crdt-merge` · [github.com/mgillr/crdt-merge](https://github.com/mgillr/crdt-merge)
+`pip install crdt-merge` · [GitHub](https://github.com/mgillr/crdt-merge) · [PyPI](https://pypi.org/project/crdt-merge/) · Patent Pending UK 2607132.4
 """
 
 LAYER_SHAPE = (16, 16)
@@ -449,7 +451,8 @@ def run_orset_state_trace(n_nodes: int, n_rounds: int, strategy: str):
 # Gradio UI
 # ─────────────────────────────────────────────────────────────────
 
-with gr.Blocks(theme=THEME, css=CSS, title="crdt-merge v0.9.4 — Federation") as demo:
+with gr.Blocks(theme=THEME, css=CSS, title="crdt-merge — Federation") as demo:
+    gr.Markdown(NAV_MD)
     gr.Markdown(HERO_MD)
 
     with gr.Tabs():
@@ -555,10 +558,13 @@ Round-trip proof: `from_dict(to_dict(state)).state_hash == state.state_hash` mus
                 outputs=[trace_table, wire_chart, roundtrip_table, tombstone_md],
             )
 
-    gr.Markdown(
-        "crdt-merge v0.9.4 · Patent Pending UK 2607132.4 · "
-        "[github.com/mgillr/crdt-merge](https://github.com/mgillr/crdt-merge)"
-    )
+    gr.Markdown("""
+---
+
+**crdt-merge v0.9.4** · Patent Pending UK 2607132.4 · BUSL-1.1 → Apache 2.0 (2028-03-29)
+
+[🏠 Flagship](https://huggingface.co/spaces/optitransfer/crdt-merge) · [🔬 Data Playground](https://huggingface.co/spaces/optitransfer/crdt-merge-data) · [🌐 Federation](https://huggingface.co/spaces/optitransfer/crdt-merge-federation) · [GitHub](https://github.com/mgillr/crdt-merge) · [PyPI](https://pypi.org/project/crdt-merge/) · `pip install crdt-merge`
+""")
 
 if __name__ == "__main__":
     demo.launch()
