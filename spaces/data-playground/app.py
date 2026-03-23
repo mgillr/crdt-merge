@@ -109,13 +109,13 @@ def _load_dataset_records():
 
 def run_dataset_merge(strategy_name: str):
     from crdt_merge.dataframe import merge as df_merge
-    from crdt_merge.strategies import MergeSchema, LWW, MaxWins, MinWins, Union
+    from crdt_merge.strategies import MergeSchema, LWW, MaxWins, MinWins, UnionSet
 
     strategy_map = {
         "LWW": LWW(),
         "MaxWins": MaxWins(),
         "MinWins": MinWins(),
-        "Union": Union(),
+        "Union": UnionSet(),
     }
     schema = MergeSchema(default=strategy_map[strategy_name])
 
@@ -160,7 +160,7 @@ def run_dataset_merge(strategy_name: str):
 
 def run_conflict_analysis():
     from crdt_merge.dataframe import merge as df_merge
-    from crdt_merge.strategies import MergeSchema, LWW, MaxWins, MinWins, Union
+    from crdt_merge.strategies import MergeSchema, LWW, MaxWins, MinWins, UnionSet
 
     records_a, records_b, source = _load_dataset_records()
     overlap_ids = set(r["id"] for r in records_a) & set(r["id"] for r in records_b)
@@ -169,7 +169,7 @@ def run_conflict_analysis():
         "LWW": LWW(),
         "MaxWins": MaxWins(),
         "MinWins": MinWins(),
-        "Union": Union(),
+        "Union": UnionSet(),
     }
 
     fields = ["sentence", "label"]
