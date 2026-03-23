@@ -1,4 +1,3 @@
-# crdt-merge has ZERO required dependencies.
-# pandas is optional — only needed for DataFrame merge operations.
-# Install with: pip install crdt-merge[pandas]
-# pandas>=1.5
+crdt-merge==0.9.4
+gradio>=4.44.0
+huggingface_hub>=0.23.0
