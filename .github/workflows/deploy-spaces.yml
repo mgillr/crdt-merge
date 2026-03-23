@@ -23,11 +23,19 @@ jobs:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           python - <<'EOF'
-          import os
+          import os, sys
           from huggingface_hub import HfApi, CommitOperationAdd
-          token = os.environ["HF_TOKEN"]
+          token = os.environ.get("HF_TOKEN", "").strip()
+          if not token:
+              print("ERROR: HF_TOKEN secret is not set — skipping deploy")
+              sys.exit(1)
           api = HfApi(token=token)
           repo_id = "optitransfer/crdt-merge"
+          try:
+              api.create_repo(repo_id=repo_id, repo_type="space", space_sdk="gradio", exist_ok=True)
+              print(f"Space ready: {repo_id}")
+          except Exception as e:
+              print(f"create_repo: {e}")
           operations = []
           for local_path, remote_path in [("app.py","app.py"),("requirements.txt","requirements.txt")]:
               if os.path.exists(local_path):
