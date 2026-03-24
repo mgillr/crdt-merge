@@ -16,7 +16,7 @@
 # Change License: Apache License, Version 2.0
 
 """
-CRDT-Aware Merge State — the layer that makes ALL 25 strategies true CRDTs.
+CRDT-Aware Merge State — the layer that makes ALL 26 strategies true CRDTs.
 
 Architecture
 ============

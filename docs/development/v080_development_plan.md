@@ -12,7 +12,7 @@
 
 ## Executive Summary
 
-v0.8.0 transforms crdt-merge from a tabular-data merge engine into the **only comprehensive CRDT merge framework** covering both structured data AND model weights under one algebraic framework. This release introduces ModelCRDT — a CRDT-native model merge engine with 25 strategies, per-parameter provenance, conflict heatmaps, and formal verification.
+v0.8.0 transforms crdt-merge from a tabular-data merge engine into the **only comprehensive CRDT merge framework** covering both structured data AND model weights under one algebraic framework. This release introduces ModelCRDT — a CRDT-native model merge engine with 26 strategies, per-parameter provenance, conflict heatmaps, and formal verification.
 
 **What makes this unique:** Every existing model merging tool (MergeKit, FusionBench, Mergenetic) treats merging as a one-shot operation with zero provenance, zero verification, and zero reversibility. ModelCRDT brings the same algebraic rigor crdt-merge applies to tabular data into the model weight space.
 
@@ -280,7 +280,7 @@ CRDT Properties:
 | 2 | SQL-based merge (MergeQL) | ✅ v0.7.0 |
 | 3 | Per-parameter provenance for model merges | 🆕 v0.8.0 |
 | 4 | Conflict heatmaps / layer disagreement | 🆕 v0.8.0 |
-| 5 | CRDT-verified model merging (25 strategies) | 🆕 v0.8.0 |
+| 5 | CRDT-verified model merging (26 strategies) | 🆕 v0.8.0 |
 | 6 | LoRA-native merge with rank harmonization | 🆕 v0.8.0 |
 | 7 | Evolutionary merge optimization | 🆕 v0.8.0 |
 

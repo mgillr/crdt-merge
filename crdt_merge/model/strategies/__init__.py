@@ -164,7 +164,7 @@ def _reset_registry() -> None:
 
 # ─── Auto-register all built-in strategies ─────────────────────────────────
 # Importing strategy modules triggers @register_strategy decorators.
-# This ensures list_strategies() returns all 25 strategies without
+# This ensures list_strategies() returns all 26 strategies without
 # requiring users to manually import each module.
 
 def _auto_register():

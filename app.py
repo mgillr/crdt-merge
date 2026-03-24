@@ -206,7 +206,10 @@ def run_the_proof():
         crdt_gap  = 0.0
         compliant = "COMPLIANT"
         try:
-            base_t = (A + B + C) / 3.0 if needs_base else None
+            # Use a fixed random base (not the mean) so task-vector strategies
+            # produce visibly distinct outputs — audit issue #6.
+            _base_rng = np.random.RandomState(0)
+            base_t = _base_rng.randn(*A.shape).astype(np.float32) * 0.1 if needs_base else None
             def make_state(name):
                 if needs_base:
                     return CRDTMergeState(strat, base=base_t)
@@ -358,7 +361,8 @@ def run_strategy_matrix():
     A = rng.randn(16, 16).astype(np.float32)
     B = rng.randn(16, 16).astype(np.float32)
     C = rng.randn(16, 16).astype(np.float32)
-    base = ((A + B + C) / 3.0)  # synthetic base for task-vector strategies
+    _base_rng = np.random.RandomState(0)
+    base = _base_rng.randn(*A.shape).astype(np.float32) * 0.1  # fixed random base (not mean) for task-vector strategies — audit #6
 
     rows = []
 
@@ -516,15 +520,15 @@ LIVE_ALL_STRATEGIES = LIVE_STRATEGIES_NO_BASE + LIVE_STRATEGIES_WITH_BASE
 
 # ── Popular HF Models for Model Merge Lab ──────────────────────────────────
 POPULAR_HF_MODELS = [
-    "prajjwal1/bert-tiny",
-    "prajjwal1/bert-mini",
-    "prajjwal1/bert-small",
-    "prajjwal1/bert-medium",
-    "albert-base-v2",
-    "google/mobilebert-uncased",
-    "distilbert-base-uncased",
-    "distilgpt2",
-    "gpt2",
+    "EleutherAI/pythia-70m",                    # 70M — small GPT-NeoX
+    "sentence-transformers/all-MiniLM-L6-v2",   # 22M — compact BERT
+    "albert-base-v2",                           # 12M — ALBERT
+    "distilbert-base-uncased",                  # 66M — distilled BERT
+    "bert-base-uncased",                        # 110M — standard BERT
+    "roberta-base",                             # 125M — RoBERTa
+    "EleutherAI/pythia-160m",                   # 160M — medium GPT-NeoX
+    "distilgpt2",                               # 82M — distilled GPT-2
+    "gpt2",                                     # 124M — GPT-2
 ]
 
 
@@ -1490,6 +1494,90 @@ def generate_merge_artifact(strategy, weight_a):
 # MODEL MERGE LAB — Real HuggingFace Model Merging
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _load_pytorch_bin_pure(bin_files):
+    """Load pytorch .bin files WITHOUT torch — pure Python via zipfile + pickle.
+
+    pytorch_model.bin is a zip archive containing:
+      archive/data.pkl  — pickled OrderedDict referencing storage objects
+      archive/data/0..N — raw tensor bytes
+
+    We intercept torch-specific pickle classes and rebuild tensors as numpy arrays.
+    """
+    import zipfile, pickle, io
+
+    _DTYPE_MAP = {
+        "FloatStorage": np.float32, "DoubleStorage": np.float64,
+        "HalfStorage": np.float16,  "BFloat16Storage": np.float32,
+        "LongStorage": np.int64,    "IntStorage": np.int32,
+        "ShortStorage": np.int16,   "ByteStorage": np.uint8,
+        "CharStorage": np.int8,     "BoolStorage": np.bool_,
+    }
+
+    class _Placeholder:
+        """Stands in for torch classes we don't need."""
+        def __init__(self, *a, **kw):
+            pass
+        def __call__(self, *a, **kw):
+            return _Placeholder()
+
+    def _rebuild_tensor_v2(storage, storage_offset, size, stride,
+                           requires_grad=False, backward_hooks=None):
+        flat = storage.ravel()
+        numel = 1
+        for s in size:
+            numel *= s
+        arr = flat[storage_offset:storage_offset + numel]
+        return arr.reshape(size) if len(size) > 0 else arr
+
+    full_state = {}
+    for bf in bin_files:
+        if not zipfile.is_zipfile(str(bf)):
+            continue
+        with zipfile.ZipFile(str(bf), "r") as zf:
+            # Map data file keys to raw bytes
+            data_blobs = {}
+            for name in zf.namelist():
+                parts = name.split("/")
+                if len(parts) >= 2 and parts[-2] == "data" and parts[-1].isdigit():
+                    data_blobs[parts[-1]] = zf.read(name)
+
+            # Find pickle file
+            pkl_names = [n for n in zf.namelist() if n.endswith("data.pkl")]
+            if not pkl_names:
+                continue
+
+            class _TorchUnpickler(pickle.Unpickler):
+                def persistent_load(self, saved_id):
+                    if isinstance(saved_id, tuple) and len(saved_id) >= 5:
+                        _, storage_cls, key, _loc, numel = saved_id[:5]
+                        dtype_name = storage_cls if isinstance(storage_cls, str) else getattr(storage_cls, "__name__", "FloatStorage")
+                        dtype = _DTYPE_MAP.get(dtype_name, np.float32)
+                        raw = data_blobs.get(str(key), b"")
+                        return np.frombuffer(raw, dtype=dtype)[:numel].copy()
+                    return None
+
+                def find_class(self, module, name):
+                    if module == "torch._utils" and name == "_rebuild_tensor_v2":
+                        return _rebuild_tensor_v2
+                    if module == "collections" and name == "OrderedDict":
+                        from collections import OrderedDict
+                        return OrderedDict
+                    if "torch" in module:
+                        # Return the dtype name for storage classes, placeholder for others
+                        if "Storage" in name:
+                            return name
+                        return _Placeholder
+                    return super().find_class(module, name)
+
+            pkl_bytes = io.BytesIO(zf.read(pkl_names[0]))
+            result = _TorchUnpickler(pkl_bytes).load()
+            if isinstance(result, dict):
+                for k, v in result.items():
+                    if isinstance(v, np.ndarray):
+                        full_state[k] = v.astype(np.float32)
+    return full_state
+
+
 def _pull_hf_weights(model_id):
     """Pull weights from HuggingFace Hub, return dict of {name: np.ndarray}.
 
@@ -1529,9 +1617,10 @@ def _pull_hf_weights(model_id):
         except ImportError:
             pass
 
-    # Last resort: pytorch .bin files (requires torch)
+    # Fallback: pytorch .bin files — try torch first, then pure-python loader
     bin_files = sorted(local_path.glob("*.bin"))
     if bin_files:
+        # Option A: torch available
         try:
             import torch
             state_dict = {}
@@ -1539,6 +1628,13 @@ def _pull_hf_weights(model_id):
                 state_dict.update(torch.load(str(bf), map_location="cpu"))
             return {k: np.array(v, dtype=np.float32) for k, v in state_dict.items()}
         except ImportError:
+            pass
+        # Option B: pure-python loader (no torch needed)
+        try:
+            state_dict = _load_pytorch_bin_pure(bin_files)
+            if state_dict:
+                return state_dict
+        except Exception:
             pass
 
     raise FileNotFoundError(
@@ -2458,7 +2554,7 @@ Streaming merge: **O(1) memory** verified — throughput dead-flat from 100K to 
                 gr.Markdown("Each node maintains a `CRDTMergeState`. Nodes exchange states via `merge()` — no coordinator required. Convergence is guaranteed regardless of message order, late joiners, or network partitions.")
                 with gr.Row():
                     with gr.Column(scale=1):
-                        g_nodes = gr.Slider(2, 8, value=4, step=1, label="Nodes")
+                        g_nodes = gr.Slider(2, 100, value=4, step=1, label="Nodes")
                         g_rounds = gr.Slider(1, 25, value=10, step=1, label="Rounds")
                         g_topology = gr.Dropdown(["Random", "Ring", "Star"], value="Random", label="Topology")
                         g_strategy = gr.Dropdown(LIVE_STRATEGIES_NO_BASE, value="weight_average", label="Strategy")

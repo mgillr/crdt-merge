@@ -15,7 +15,7 @@
 """
 crdt-merge v0.8.1 — Comprehensive CRDT Architecture Benchmark
 
-Tests all 25 strategies for CRDT law compliance, performance,
+Tests all 26 strategies for CRDT law compliance, performance,
 integration, OR-Set semantics, memory estimation, and edge cases.
 """
 
@@ -123,12 +123,12 @@ def benchmark_strategy_registry():
 
 
 # ======================================================================
-# 2. CRDT Law Verification (all 25 strategies, 10 trials each)
+# 2. CRDT Law Verification (all 26 strategies, 10 trials each)
 # ======================================================================
 
 def benchmark_crdt_laws(strategies, trials=10, tensor_size=50):
     print("\n" + "=" * 70)
-    print("2. CRDT LAW VERIFICATION (all 25 strategies × 3 laws)")
+    print("2. CRDT LAW VERIFICATION (all 26 strategies × 3 laws)")
     print("=" * 70)
 
     results = {}

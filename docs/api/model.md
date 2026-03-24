@@ -1,6 +1,6 @@
 # Model Merge — ModelCRDT & Strategies
 
-CRDT-native model weight merging with 25 strategies, LoRA support, federated bridge, GPU acceleration, and more.
+CRDT-native model weight merging with 26 strategies, LoRA support, federated bridge, GPU acceleration, and more.
 
 ## Quick Example
 
@@ -384,7 +384,7 @@ Instantiate a registered strategy by *name*.
 
 ## `crdt_merge.model.crdt_state`
 
-> CRDT-Aware Merge State — the layer that makes ALL 25 strategies true CRDTs.
+> CRDT-Aware Merge State — the layer that makes ALL 26 strategies true CRDTs.
 
 **Module:** `crdt_merge.model.crdt_state`
 

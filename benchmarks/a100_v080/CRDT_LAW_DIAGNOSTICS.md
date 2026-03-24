@@ -426,7 +426,7 @@ causing all three CRDT properties to be falsely reported as FAILED.
 
 ## Root Cause Classification
 
-### ARCHITECTURE (25 strategies)
+### ARCHITECTURE (26 strategies)
 The merge algorithm itself is mathematically incapable of satisfying the law.
 Strategies: ada_merging, adarank, dam, dare, dare_ties, della, emr, evolutionary_merge, fisher_merge, genetic_merge, led_merge, linear, model_breadcrumbs, negative_merge, regression_mean, representation_surgery, safe_merge, slerp, split_unlearn_merge, star, svd_knot_tying, task_arithmetic, ties, weight_average, weight_scope_alignment
 

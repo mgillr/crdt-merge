@@ -54,7 +54,7 @@ Comprehensive API reference for all crdt-merge modules, generated from source co
 ### Model Merge (v0.8.0+)
 | Module | Description | Docs |
 |--------|-------------|------|
-| `crdt_merge.model` | 25 strategies, LoRA, federated, GPU | [model.md](model.md) |
+| `crdt_merge.model` | 26 strategies, LoRA, federated, GPU | [model.md](model.md) |
 
 ### Ecosystem Accelerators (v0.7.0+)
 | Module | Description | Docs |

@@ -34,7 +34,7 @@
 
 | Guide | What it covers |
 |---|---|
-| [Federated Model Merging](federated-model-merging.md) | `CRDTMergeState`, 25 strategies, no-parameter-server federation |
+| [Federated Model Merging](federated-model-merging.md) | `CRDTMergeState`, 26 strategies, no-parameter-server federation |
 | [Model Merge Strategies](model-merge-strategies.md) | SLERP, TIES, DARE, DARE-TIES, Fisher, task arithmetic — full reference |
 | [Model CRDT Matrix](model-crdt-matrix.md) | Strategy × CRDT-compliance comparison table |
 | [LoRA Adapter Merging](lora-adapter-merging.md) | `LoRAMerge`, `LoRAMergeSchema`, per-layer strategy assignment |

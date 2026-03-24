@@ -238,12 +238,12 @@
   - Tensor shape validation and strategy name validation
   - Memory estimation via `estimated_memory_bytes` property
 - **`ModelMerge.crdt_merge()`** — High-level API wrapping every layer merge in CRDTMergeState, returns `MergeResult` with `metadata["crdt_guaranteed"] = True`
-- **195 new tests** — All 25 strategies × 3 CRDT laws × state + resolve levels + OR-Set + versioning + serialization + edge cases
+- **195 new tests** — All 26 strategies × 3 CRDT laws × state + resolve levels + OR-Set + versioning + serialization + edge cases
 - **Architecture document** — `docs/CRDT_ARCHITECTURE.md` (1,744 lines) documenting the failure, 7 R&D architectures tested (all 25/25), and production solution
 
 ### Research (Internal)
 - 7 distinct CRDT solution architectures designed, prototyped, and tested
-- All 7 achieved 25/25 strategies as true CRDTs
+- All 7 achieved 25/26 strategies as true CRDTs
 - Production implementation unifies best features of all seven
 
 ### Removed
@@ -259,7 +259,7 @@
 ## [0.8.0] - 2026-03-29 — "The Intelligence Release"
 
 ### Added
-- **ModelCRDT** — CRDT-native model merge engine with 25 strategies in 8 categories
+- **ModelCRDT** — CRDT-native model merge engine with 26 strategies in 8 categories
 - **Per-parameter provenance tracking** (Unicorn Feature #3) — tracks which model contributed which parameters
 - **Conflict heatmaps** (Unicorn Feature #4) — layer-level disagreement visualization with D3/Plotly export
 - **LoRA adapter merging** — rank harmonization (max/min/mean/adaptive), multi-adapter fusion

@@ -49,7 +49,7 @@ crdt-merge solves the merge convergence problem through the same two-layer patte
 │  • Applied over the FULL visible set — never pairwise    │
 │  • Canonical ordering: sorted by content_hash            │
 │  • Seeded randomness: seed = Merkle_root[:8]             │
-│  • 25 strategies: slerp, ties, dare, fisher, ...         │
+│  • 26 strategies: slerp, ties, dare, fisher, ...         │
 │                                                          │
 │  Same visible set → same merged model on every replica   │
 └─────────────────────────────────────────────────────────┘
@@ -212,7 +212,7 @@ current_global = continual.export()
 
 ## The 25 Strategies — All CRDT-Compliant
 
-All 25 strategies satisfy CRDT laws when used through `CRDTMergeState`. The non-CRDT behaviour of the raw strategy is irrelevant — convergence is guaranteed by the OR-Set layer.
+All 26 strategies satisfy CRDT laws when used through `CRDTMergeState`. The non-CRDT behaviour of the raw strategy is irrelevant — convergence is guaranteed by the OR-Set layer.
 
 | Strategy | Domain | Key Property |
 |---|---|---|

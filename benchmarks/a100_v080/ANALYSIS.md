@@ -56,7 +56,7 @@
 
 ## Model Merge — 25 Strategy Benchmark
 
-**25 strategies** benchmarked, each merging 3 models × 10 layers × 64 params
+**26 strategies** benchmarked, each merging 3 models × 10 layers × 64 params
 
 | # | Strategy | API | Merges/sec | Time (1000 merges) |
 |---|----------|-----|-----------|-------------------|

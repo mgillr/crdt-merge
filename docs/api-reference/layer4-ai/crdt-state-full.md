@@ -1,6 +1,6 @@
 # Crdt State
 
-> CRDT-Aware Merge State — the layer that makes ALL 25 strategies true CRDTs.
+> CRDT-Aware Merge State — the layer that makes ALL 26 strategies true CRDTs.
 
 **Source:** `crdt_merge/model/crdt_state.py`  
 **Lines of Code:** 928
