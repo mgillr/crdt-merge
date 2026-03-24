@@ -34,6 +34,10 @@ Tabular data. Neural network weights. Distributed agents. One unified CRDT layer
 [![CRDT Compliance](https://img.shields.io/badge/CRDT%20compliance-26%2F26%20strategies-blue)](docs/CRDT_ARCHITECTURE.md)
 [![License: BSL 1.1](https://img.shields.io/badge/license-BSL%201.1%20%E2%86%92%20Apache%202.0-orange)](LICENSE)
 
+[![🤗 Live Demo](https://img.shields.io/badge/%F0%9F%A4%97%20Live%20Demo-crdt--merge-yellow)](https://huggingface.co/spaces/optitransfer/crdt-merge)
+[![🤗 Data Merge](https://img.shields.io/badge/%F0%9F%A4%97%20Data%20Merge-crdt--merge--data-yellow)](https://huggingface.co/spaces/optitransfer/crdt-merge-data)
+[![🤗 Federation](https://img.shields.io/badge/%F0%9F%A4%97%20Federation-crdt--merge--federation-yellow)](https://huggingface.co/spaces/optitransfer/crdt-merge-federation)
+
 ```
 pip install crdt-merge
 ```
