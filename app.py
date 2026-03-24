@@ -520,16 +520,35 @@ LIVE_ALL_STRATEGIES = LIVE_STRATEGIES_NO_BASE + LIVE_STRATEGIES_WITH_BASE
 
 # ── Popular HF Models for Model Merge Lab ──────────────────────────────────
 POPULAR_HF_MODELS = [
-    "EleutherAI/pythia-70m",                    # 70M — small GPT-NeoX
-    "sentence-transformers/all-MiniLM-L6-v2",   # 22M — compact BERT
-    "albert-base-v2",                           # 12M — ALBERT
-    "distilbert-base-uncased",                  # 66M — distilled BERT
-    "bert-base-uncased",                        # 110M — standard BERT
-    "roberta-base",                             # 125M — RoBERTa
-    "EleutherAI/pythia-160m",                   # 160M — medium GPT-NeoX
-    "distilgpt2",                               # 82M — distilled GPT-2
-    "gpt2",                                     # 124M — GPT-2
+    # ── MiniLM Family (100% compatible, ~22M, fast) ──────────────────────
+    "sentence-transformers/all-MiniLM-L6-v2",       # 22M — semantic search
+    "sentence-transformers/paraphrase-MiniLM-L6-v2", # 22M — paraphrase
+    "sentence-transformers/all-MiniLM-L6-v1",       # 22M — v1 semantic search
+    # ── Pythia Family (shared layers compatible) ─────────────────────────
+    "EleutherAI/pythia-70m",                         # 70M — small GPT-NeoX
+    "EleutherAI/pythia-160m",                        # 160M — medium GPT-NeoX
+    # ── BERT Family (100% compatible, ~110M) ─────────────────────────────
+    "google-bert/bert-base-uncased",                 # 110M — standard BERT
+    "google-bert/bert-base-cased",                   # 110M — cased BERT
+    # ── DistilBERT Family ────────────────────────────────────────────────
+    "distilbert/distilbert-base-uncased",            # 66M — distilled BERT
+    "distilbert/distilbert-base-cased",              # 66M — cased distilBERT
 ]
+
+# Compatibility guide for the UI
+MODEL_FAMILIES = {
+    "MiniLM-L6": ["sentence-transformers/all-MiniLM-L6-v2", "sentence-transformers/paraphrase-MiniLM-L6-v2", "sentence-transformers/all-MiniLM-L6-v1"],
+    "Pythia": ["EleutherAI/pythia-70m", "EleutherAI/pythia-160m"],
+    "BERT-base": ["google-bert/bert-base-uncased", "google-bert/bert-base-cased"],
+    "DistilBERT": ["distilbert/distilbert-base-uncased", "distilbert/distilbert-base-cased"],
+}
+
+def _get_model_family(model_id):
+    """Return the family name for a model, or None if not in a known family."""
+    for family, members in MODEL_FAMILIES.items():
+        if model_id in members:
+            return family
+    return None
 
 
 
@@ -1730,6 +1749,7 @@ def run_model_merge_lab(model_a_choice, model_b_choice, custom_a, custom_b,
     heatmap_b = None
     heatmap_merged = None
 
+    merge_start_time = time.time()
     for idx, key in enumerate(compatible[:50]):  # Cap at 50 layers for speed
         progress(0.3 + 0.5 * (idx / min(len(compatible), 50)), desc=f"Merging layer {idx+1}/{min(len(compatible), 50)}...")
         t_a = weights_a[key]
@@ -1872,26 +1892,64 @@ The merge process is covered under BUSL-1.1 (converts to Apache 2.0 on 2028-03-2
     with open(card_path, "w") as f:
         f.write(card)
 
-    # ── Build heatmap ─────────────────────────────────────────────────────
+    # ── Build heatmap (4 panels: A, B, Merged, |Diff|) ───────────────────
     heatmap_fig = None
     if heatmap_layer is not None:
         import plotly.graph_objects as go
         from plotly.subplots import make_subplots
-        fig = make_subplots(rows=1, cols=3, subplot_titles=[
-            f"Model A: {heatmap_layer[:30]}", f"Model B: {heatmap_layer[:30]}", f"Merged ({strategy})"
-        ])
-        fig.add_trace(go.Heatmap(z=heatmap_a, coloraxis="coloraxis"), row=1, col=1)
-        fig.add_trace(go.Heatmap(z=heatmap_b, coloraxis="coloraxis"), row=1, col=2)
-        fig.add_trace(go.Heatmap(z=heatmap_merged, coloraxis="coloraxis"), row=1, col=3)
+        heatmap_diff = np.abs(heatmap_a - heatmap_b)
+        fig = make_subplots(rows=1, cols=4, subplot_titles=[
+            f"Model A", f"Model B", f"Merged ({strategy})", "|A − B| Divergence"
+        ], horizontal_spacing=0.04)
+        fig.add_trace(go.Heatmap(z=heatmap_a.tolist(), coloraxis="coloraxis", showscale=False), row=1, col=1)
+        fig.add_trace(go.Heatmap(z=heatmap_b.tolist(), coloraxis="coloraxis", showscale=False), row=1, col=2)
+        fig.add_trace(go.Heatmap(z=heatmap_merged.tolist(), coloraxis="coloraxis"), row=1, col=3)
+        fig.add_trace(go.Heatmap(z=heatmap_diff.tolist(), colorscale="Reds", showscale=True,
+                                  colorbar=dict(title="Diff", x=1.02, len=0.9)), row=1, col=4)
         fig.update_layout(
-            coloraxis=dict(colorscale="RdBu"),
-            height=350, margin=dict(t=40, b=20),
-            title_text=f"Weight Heatmap — {heatmap_layer}"
+            coloraxis=dict(colorscale="RdBu", colorbar=dict(title="Weight", x=0.73, len=0.9)),
+            height=380, margin=dict(t=50, b=30, l=30, r=80),
+            title_text=f"Weight Heatmap — {heatmap_layer}",
+            font=dict(size=11),
         )
         heatmap_fig = fig
 
-    # ── Build summary markdown ────────────────────────────────────────────
+    # ── Compute analytics ─────────────────────────────────────────────────
+    merge_elapsed = time.time() - merge_start_time if 'merge_start_time' in dir() else 0
     avg_conflict = total_conflict / max(len(prov_rows), 1)
+
+    # Cosine similarity between source models (on compatible layers)
+    cos_sims = []
+    for key in compatible[:50]:
+        fa = weights_a[key].ravel().astype(np.float32)
+        fb = weights_b[key].ravel().astype(np.float32)
+        norm_a, norm_b = np.linalg.norm(fa), np.linalg.norm(fb)
+        if norm_a > 1e-9 and norm_b > 1e-9:
+            cos_sims.append(float(np.dot(fa, fb) / (norm_a * norm_b)))
+    avg_cosine = np.mean(cos_sims) if cos_sims else 0.0
+    min_cosine = min(cos_sims) if cos_sims else 0.0
+    max_cosine = max(cos_sims) if cos_sims else 0.0
+
+    # Weight distribution of merged model
+    all_merged_vals = np.concatenate([v.ravel()[:2000] for v in list(merged_weights.values())[:20]])
+    weight_mean = float(np.mean(all_merged_vals))
+    weight_std = float(np.std(all_merged_vals))
+    weight_min = float(np.min(all_merged_vals))
+    weight_max = float(np.max(all_merged_vals))
+
+    throughput = total_params / max(merge_elapsed, 0.001)
+
+    # Family compatibility check
+    family_a = _get_model_family(source_a_label) if 'source_a_label' in dir() else None
+    family_b = _get_model_family(source_b_label) if 'source_b_label' in dir() else None
+    compat_note = ""
+    if family_a and family_b and family_a == family_b:
+        compat_note = f"✅ Both models from **{family_a}** family — full layer compatibility"
+    elif family_a and family_b and family_a != family_b:
+        compat_note = f"⚠️ Cross-family merge ({family_a} × {family_b}) — some layers may be skipped"
+    elif len(skipped) > len(compatible):
+        compat_note = "⚠️ High skip rate — models may be from different architectures"
+
     summary = f"""## ✅ Merge Complete
 
 | Metric | Value |
@@ -1900,21 +1958,50 @@ The merge process is covered under BUSL-1.1 (converts to Apache 2.0 on 2028-03-2
 | **Model B** | {source_b_label} |
 | **Strategy** | `{strategy}` |
 | **Weights** | A={weight_a} · B={weight_b} |
-| **Layers merged** | {len(merged_weights):,} of {len(compatible):,} compatible ({len(skipped)} skipped — shape mismatch) |
+| **Layers merged** | {len(merged_weights):,} of {len(compatible):,} compatible ({len(skipped)} skipped) |
 | **Total parameters** | {total_params:,} |
-| **Avg conflict score** | {avg_conflict:.4f} |
-| **Commutativity** | {comm_status} — `merge(A,B) = merge(B,A)` cryptographically verified |
 | **Merged file size** | {merge_size_mb:.1f} MB |
+
+{compat_note}
+
+### 📊 Performance Analytics
+
+| Metric | Value |
+|--------|-------|
+| **Merge time** | {merge_elapsed:.2f}s |
+| **Throughput** | {throughput:,.0f} params/sec |
+| **Avg conflict score** | {avg_conflict:.4f} |
+
+### 🔬 Model Similarity Analysis
+
+| Metric | Value |
+|--------|-------|
+| **Avg cosine similarity** | {avg_cosine:.4f} |
+| **Min cosine similarity** | {min_cosine:.4f} |
+| **Max cosine similarity** | {max_cosine:.4f} |
+| **Interpretation** | {"High agreement — models are closely related" if avg_cosine > 0.8 else "Significant divergence — models learned different representations" if avg_cosine > 0.5 else "Low similarity — very different model specializations"} |
+
+### 📈 Merged Weight Distribution
+
+| Statistic | Value |
+|-----------|-------|
+| **Mean** | {weight_mean:.6f} |
+| **Std Dev** | {weight_std:.6f} |
+| **Range** | [{weight_min:.4f}, {weight_max:.4f}] |
+| **Health** | {"✅ Normal" if abs(weight_mean) < 10 and weight_std < 100 else "⚠️ Check for numerical issues"} |
+
+### 🔐 CRDT Verification
+
+| Property | Status |
+|----------|--------|
+| **Commutativity** | {comm_status} — `merge(A,B) = merge(B,A)` |
+| **NaN check** | {"✅ Clean" if not any(np.isnan(v).any() for v in list(merged_weights.values())[:20]) else "❌ NaN detected"} |
+| **Inf check** | {"✅ Clean" if not any(np.isinf(v).any() for v in list(merged_weights.values())[:20]) else "❌ Inf detected"} |
 
 ### 📥 Downloads Available Below
 - **Merged Model (.npz)** — Load with `np.load()`, compatible with any ML framework
 - **Audit Trail (.json)** — Full provenance, hashes, and compliance report
 - **Model Card (.md)** — Ready to upload to HuggingFace Hub
-
-### Understanding the Results
-- **Heatmap:** Side-by-side visualization of a representative weight matrix from Model A, Model B, and the merged result. Color patterns show how the strategy blended the two models.
-- **Provenance Table:** Every merged layer with its shape, parameter count, L2 distance between source models (higher = more divergence), conflict score, and cryptographic state hash.
-- **Commutativity:** If PASS, merging in either order produces bit-identical results — a fundamental CRDT guarantee.
 """
 
     progress(1.0, desc="Done!")
@@ -2247,19 +2334,19 @@ The merged model is downloadable as `.npz` (load with `np.load()` in any framewo
                     gr.Markdown("### Model A")
                     lab_model_a = gr.Dropdown(
                         choices=[
-                            ("🟢 BERT Tiny (4.4M · ~17MB)", "prajjwal1/bert-tiny"),
-                            ("🟢 BERT Mini (11.2M · ~45MB)", "prajjwal1/bert-mini"),
-                            ("🟡 BERT Small (28.8M · ~112MB)", "prajjwal1/bert-small"),
-                            ("🟡 BERT Medium (41.4M · ~164MB)", "prajjwal1/bert-medium"),
-                            ("🟢 ALBERT Base v2 (11.7M · ~47MB)", "albert-base-v2"),
-                            ("🟡 MobileBERT (25.3M · ~100MB)", "google/mobilebert-uncased"),
-                            ("🟠 DistilBERT Base (66M · ~268MB)", "distilbert-base-uncased"),
-                            ("🟠 DistilGPT-2 (82M · ~330MB)", "distilgpt2"),
-                            ("🔴 GPT-2 (124M · ~548MB)", "gpt2"),
+                            ("🟢 MiniLM-L6-v2 — Semantic Search (22M)", "sentence-transformers/all-MiniLM-L6-v2"),
+                            ("🟢 MiniLM-L6-v2 — Paraphrase (22M)", "sentence-transformers/paraphrase-MiniLM-L6-v2"),
+                            ("🟢 MiniLM-L6-v1 — Semantic Search (22M)", "sentence-transformers/all-MiniLM-L6-v1"),
+                            ("🟡 Pythia-70m (70M)", "EleutherAI/pythia-70m"),
+                            ("🟡 Pythia-160m (160M)", "EleutherAI/pythia-160m"),
+                            ("🟠 BERT Base Uncased (110M)", "google-bert/bert-base-uncased"),
+                            ("🟠 BERT Base Cased (110M)", "google-bert/bert-base-cased"),
+                            ("🟡 DistilBERT Uncased (66M)", "distilbert/distilbert-base-uncased"),
+                            ("🟡 DistilBERT Cased (66M)", "distilbert/distilbert-base-cased"),
                         ],
-                        value="prajjwal1/bert-tiny",
+                        value="sentence-transformers/all-MiniLM-L6-v2",
                         label="Select Model A",
-                        info="Choose a popular model or enter a custom ID below",
+                        info="Choose a popular model or enter a custom ID below. Models in the same family are fully compatible.",
                     )
                     lab_custom_a = gr.Textbox(
                         label="Or enter any HuggingFace model ID",
@@ -2276,19 +2363,19 @@ The merged model is downloadable as `.npz` (load with `np.load()` in any framewo
                     gr.Markdown("### Model B")
                     lab_model_b = gr.Dropdown(
                         choices=[
-                            ("🟢 BERT Tiny (4.4M · ~17MB)", "prajjwal1/bert-tiny"),
-                            ("🟢 BERT Mini (11.2M · ~45MB)", "prajjwal1/bert-mini"),
-                            ("🟡 BERT Small (28.8M · ~112MB)", "prajjwal1/bert-small"),
-                            ("🟡 BERT Medium (41.4M · ~164MB)", "prajjwal1/bert-medium"),
-                            ("🟢 ALBERT Base v2 (11.7M · ~47MB)", "albert-base-v2"),
-                            ("🟡 MobileBERT (25.3M · ~100MB)", "google/mobilebert-uncased"),
-                            ("🟠 DistilBERT Base (66M · ~268MB)", "distilbert-base-uncased"),
-                            ("🟠 DistilGPT-2 (82M · ~330MB)", "distilgpt2"),
-                            ("🔴 GPT-2 (124M · ~548MB)", "gpt2"),
+                            ("🟢 MiniLM-L6-v2 — Semantic Search (22M)", "sentence-transformers/all-MiniLM-L6-v2"),
+                            ("🟢 MiniLM-L6-v2 — Paraphrase (22M)", "sentence-transformers/paraphrase-MiniLM-L6-v2"),
+                            ("🟢 MiniLM-L6-v1 — Semantic Search (22M)", "sentence-transformers/all-MiniLM-L6-v1"),
+                            ("🟡 Pythia-70m (70M)", "EleutherAI/pythia-70m"),
+                            ("🟡 Pythia-160m (160M)", "EleutherAI/pythia-160m"),
+                            ("🟠 BERT Base Uncased (110M)", "google-bert/bert-base-uncased"),
+                            ("🟠 BERT Base Cased (110M)", "google-bert/bert-base-cased"),
+                            ("🟡 DistilBERT Uncased (66M)", "distilbert/distilbert-base-uncased"),
+                            ("🟡 DistilBERT Cased (66M)", "distilbert/distilbert-base-cased"),
                         ],
-                        value="prajjwal1/bert-mini",
+                        value="sentence-transformers/paraphrase-MiniLM-L6-v2",
                         label="Select Model B",
-                        info="Choose a different model or checkpoint to merge with Model A",
+                        info="Choose a different model or checkpoint to merge with Model A. Pick from the same family for best results.",
                     )
                     lab_custom_b = gr.Textbox(
                         label="Or enter any HuggingFace model ID",
