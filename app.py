@@ -478,9 +478,7 @@ def _load_model_weights():
 
     if HF_TOKEN:
         try:
-            from crdt_merge.hub.hf import HFMergeHub
-            hub = HFMergeHub(token=HF_TOKEN)
-            sd  = hub.pull_weights("prajjwal1/bert-tiny")
+            sd = _pull_hf_weights("prajjwal1/bert-tiny")
             # Map to simplified layer names
             keys = list(sd.keys())
             for i, k in enumerate(keys[:10]):
@@ -1493,11 +1491,60 @@ def generate_merge_artifact(strategy, weight_a):
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _pull_hf_weights(model_id):
-    """Pull weights from HuggingFace Hub, return dict of {name: np.ndarray}."""
-    from crdt_merge.hub.hf import HFMergeHub
-    hub = HFMergeHub(token=HF_TOKEN or None)
-    sd = hub.pull_weights(model_id)
-    return {k: np.array(v, dtype=np.float32) for k, v in sd.items()}
+    """Pull weights from HuggingFace Hub, return dict of {name: np.ndarray}.
+
+    Downloads model files via huggingface_hub and loads safetensors weights
+    using the numpy backend directly — avoids the torch dependency that the
+    library's HFMergeHub.pull_weights() requires on CPU-only Spaces.
+    """
+    from huggingface_hub import snapshot_download
+    from pathlib import Path
+
+    local_dir = snapshot_download(
+        repo_id=model_id,
+        token=HF_TOKEN or None,
+    )
+    local_path = Path(local_dir)
+
+    # Load safetensors files with numpy backend (no torch needed)
+    safetensor_files = sorted(local_path.glob("*.safetensors"))
+    if safetensor_files:
+        try:
+            from safetensors.numpy import load_file
+            state_dict = {}
+            for sf in safetensor_files:
+                state_dict.update(load_file(str(sf)))
+            return {k: np.array(v, dtype=np.float32) for k, v in state_dict.items()}
+        except ImportError:
+            pass
+        # Fallback: safe_open with numpy framework
+        try:
+            from safetensors import safe_open
+            state_dict = {}
+            for sf in safetensor_files:
+                with safe_open(str(sf), framework="numpy") as f:
+                    for k in f.keys():
+                        state_dict[k] = f.get_tensor(k).astype(np.float32)
+            return state_dict
+        except ImportError:
+            pass
+
+    # Last resort: pytorch .bin files (requires torch)
+    bin_files = sorted(local_path.glob("*.bin"))
+    if bin_files:
+        try:
+            import torch
+            state_dict = {}
+            for bf in bin_files:
+                state_dict.update(torch.load(str(bf), map_location="cpu"))
+            return {k: np.array(v, dtype=np.float32) for k, v in state_dict.items()}
+        except ImportError:
+            pass
+
+    raise FileNotFoundError(
+        f"No loadable weight files found in {model_id}. "
+        "Ensure the model has .safetensors or .bin files and safetensors is installed."
+    )
 
 
 def _load_uploaded_weights(filepath):
