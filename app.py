@@ -110,7 +110,7 @@ THEME = gr.themes.Base(
     neutral_hue=gr.themes.colors.zinc,
 )
 
-NAV_MD = """**[🏠 Flagship](https://huggingface.co/spaces/optitransfer/crdt-merge) · [🔬 Data Playground](https://huggingface.co/spaces/optitransfer/crdt-merge-data) · [🌐 Federation](https://huggingface.co/spaces/optitransfer/crdt-merge-federation) · [GitHub ↗](https://github.com/mgillr/crdt-merge) · [PyPI ↗](https://pypi.org/project/crdt-merge/)**"""
+NAV_MD = """**[🏠 Flagship](https://huggingface.co/spaces/optitransfer/crdt-merge) · [🔬 Data Playground](https://huggingface.co/spaces/optitransfer/crdt-merge-data) · [🌐 Federation](https://huggingface.co/spaces/optitransfer/crdt-merge-federation) · [GitHub ↗](https://github.com/mgillr/crdt-merge) · [⭐ Star Repo](https://github.com/mgillr/crdt-merge/stargazers) · [👁️ Watch](https://github.com/mgillr/crdt-merge/subscription) · [PyPI ↗](https://pypi.org/project/crdt-merge/)**"""
 
 HERO_MD = """
 # crdt-merge
@@ -1776,12 +1776,141 @@ Streaming merge: **O(1) memory** verified — throughput dead-flat from 100K to 
                     outputs=[wire_summary_md, wire_json_out, rt_table, merkle_table, vc_table, prov_wire_table])
 
     # ── Footer ────────────────────────────────────────────────────────────────
+
+        # ═══════════════════════════════════════════════════════════════════════
+        # TAB 5 — USE CASES, GUIDES & WHY IT'S NOVEL
+        # ═══════════════════════════════════════════════════════════════════════
+        with gr.Tab("📚 Use Cases & Guides"):
+            gr.Markdown("""
+## Why crdt-merge Is Novel & Disruptive
+
+**crdt-merge is the first library to apply formal CRDT mathematics to ML model merging, data integration, and multi-agent AI — simultaneously.**
+
+No other framework provides all three of these guarantees:
+
+| Property | What it means | Why it matters |
+|----------|--------------|----------------|
+| **Commutativity** | `merge(A, B) == merge(B, A)` | No coordinator needed — any node can merge in any order |
+| **Associativity** | `merge(merge(A, B), C) == merge(A, merge(B, C))` | Pairwise gossip converges to the same global state |
+| **Idempotency** | `merge(A, A) == A` | Network retries and duplicate messages are harmless |
+
+### What makes this disruptive:
+
+1. **No Parameter Server** — Federated model merging without a central coordinator. Teams merge fine-tuned models peer-to-peer with mathematically guaranteed convergence.
+2. **26 Merge Strategies** — From simple weighted average to DARE-TIES, Fisher-weighted, and novel spectral methods like STAR and SVD Knot Tying — all wrapped in CRDT-compliant OR-Set semantics.
+3. **Cross-Domain Unification** — The same `merge()` primitive works for DataFrames, ML tensors, agent memory, and knowledge graphs. One theory, one API.
+4. **Provenance & Compliance Built In** — Every merge is auditable, reversible (via CRDT `remove()`), and GDPR/HIPAA/SOX/EU AI Act compliant out of the box.
+5. **Patent Pending (UK 2607132.4)** — The mathematical framework for deterministic model merging via CRDTs is a genuine invention, not incremental improvement.
+
+---
+
+## 🧠 AI & ML Model Merging
+
+> *Merge fine-tuned models from independent teams — no central server, guaranteed convergence.*
+
+| Use Case | Guide | What You'll Learn |
+|----------|-------|-------------------|
+| **Federated Model Merging** | [📖 Guide](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/federated-model-merging.md) | `CRDTMergeState`, peer-to-peer model merge, 26 strategies, gossip convergence |
+| **Model Merge Strategies** | [📖 Guide](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/model-merge-strategies.md) | SLERP, TIES, DARE, DARE-TIES, Fisher, RegMean, Model Breadcrumbs, and more |
+| **Strategy × CRDT Matrix** | [📖 Guide](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/model-crdt-matrix.md) | Which strategies satisfy which CRDT properties — commutativity, associativity, idempotency |
+| **LoRA Adapter Merging** | [📖 Guide](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/lora-adapter-merging.md) | `LoRAMerge`, `LoRAMergeSchema`, per-layer strategy selection for adapter fusion |
+| **Continual Learning** | [📖 Guide](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/continual-learning-without-forgetting.md) | `ContinualMerge`, replay buffers, EWC integration — merge without catastrophic forgetting |
+
+---
+
+## 📊 Data & Records
+
+> *Merge distributed DataFrames, resolve conflicts deterministically, query merged data with SQL.*
+
+| Use Case | Guide | What You'll Learn |
+|----------|-------|-------------------|
+| **CRDT Fundamentals** | [📖 Guide](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/crdt-fundamentals.md) | OR-Set, LWW-Register, G-Counter theory — the math behind every merge |
+| **CRDT Primitives** | [📖 Guide](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/crdt-primitives-reference.md) | Working code for every primitive type — GCounter, PNCounter, ORSet, LWWMap |
+| **Verification Toolkit** | [📖 Guide](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/crdt-verification-toolkit.md) | `verify_crdt`, `verify_commutative`, property-based testing for your own strategies |
+| **Merge Strategies** | [📖 Guide](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/merge-strategies.md) | LWW, MaxWins, MinWins, UnionSet, Priority, Custom — pick the right one |
+| **Schema Evolution** | [📖 Guide](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/schema-evolution.md) | Backwards-compatible schema changes across distributed systems |
+| **MergeQL** | [📖 Guide](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/mergeql-distributed-knowledge.md) | SQL-like merge interface — `MERGE ... USING strategy ... ON key` |
+| **Probabilistic Analytics** | [📖 Guide](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/probabilistic-crdt-analytics.md) | HyperLogLog, MinHash, Count-Min Sketch — approximate analytics over CRDTs |
+| **Performance Tuning** | [📖 Guide](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/performance-tuning.md) | `parallel_merge`, chunking, DuckDB acceleration, profiling |
+
+---
+
+## 🌐 Transport & Sync
+
+> *Move states between nodes efficiently — gossip, delta sync, Merkle verification.*
+
+| Use Case | Guide | What You'll Learn |
+|----------|-------|-------------------|
+| **Wire Protocol** | [📖 Guide](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/wire-protocol.md) | Binary serialization, `serialize`/`deserialize`, `peek_type` — the bytes on the wire |
+| **Gossip & Serverless Sync** | [📖 Guide](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/gossip-serverless-sync.md) | `GossipState`, peer-to-peer propagation, convergence proofs |
+| **Delta Sync & Merkle** | [📖 Guide](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/delta-sync-merkle-verification.md) | Bandwidth-efficient sync, content-addressed integrity verification |
+
+---
+
+## 🤖 Agentic & Context
+
+> *Multi-agent AI systems with convergent shared memory — no message ordering required.*
+
+| Use Case | Guide | What You'll Learn |
+|----------|-------|-------------------|
+| **Convergent Multi-Agent AI** | [📖 Guide](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/convergent-multi-agent-ai.md) | `AgentState`, `ContextMerge`, `ContextManifest` — agents that converge without coordination |
+| **Agentic Memory at Scale** | [📖 Guide](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/agentic-memory-at-scale.md) | `ContextBloom`, `MemorySidecar`, budget-bounded merge for large-scale agent systems |
+
+---
+
+## 🔒 Privacy, Provenance & Compliance
+
+> *Every merge is auditable, reversible, and regulation-compliant.*
+
+| Use Case | Guide | What You'll Learn |
+|----------|-------|-------------------|
+| **Provenance — Complete AI** | [📖 Guide](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/provenance-complete-ai.md) | `AuditLog`, `AuditedMerge`, tamper-evident hash chains |
+| **Right to Forget** | [📖 Guide](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/right-to-forget-in-ai.md) | CRDT `remove()`, GDPR Article 17 erasure, model unmerge |
+| **Privacy-Preserving Merge** | [📖 Guide](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/privacy-preserving-merge.md) | `EncryptedMerge`, field-level encryption, RBAC-gated merge |
+| **Security Hardening** | [📖 Guide](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/security-hardening.md) | Threat model, key rotation, audit log integration |
+| **Security Guide** | [📖 Guide](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/security-guide.md) | Encryption backends, `StaticKeyProvider`, RBAC policy definitions |
+| **Compliance Guide** | [📖 Guide](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/compliance-guide.md) | GDPR Art.5, HIPAA PHI safeguards, SOX controls, EU AI Act alignment |
+
+---
+
+## 🏗️ Architecture & Research
+
+| Resource | Link | Description |
+|----------|------|-------------|
+| **System Overview** | [📖 Overview](https://github.com/mgillr/crdt-merge/blob/main/docs/architecture/OVERVIEW.md) | 6-layer architecture, 44,304 LOC, 104 modules, design philosophy |
+| **Layer Map** | [📖 Layers](https://github.com/mgillr/crdt-merge/blob/main/docs/architecture/LAYER_MAP.md) | What each layer does, what it depends on, key classes |
+| **Data Flow** | [📖 Data Flow](https://github.com/mgillr/crdt-merge/blob/main/docs/architecture/DATA_FLOW.md) | How data moves through merge → resolve → wire → gossip pipelines |
+| **Design Decisions** | [📖 Decisions](https://github.com/mgillr/crdt-merge/blob/main/docs/architecture/DESIGN_DECISIONS.md) | Why OR-Set over LWW-Map, why 6 layers, why no external dependencies in core |
+| **Dependency Graph** | [📖 Dependencies](https://github.com/mgillr/crdt-merge/blob/main/docs/architecture/DEPENDENCY_GRAPH.md) | Module-level dependency analysis — strict downward-only |
+| **GDEPA Method** | [📖 Research](https://github.com/mgillr/crdt-merge/blob/main/docs/research/GDEPA_METHOD.md) | Graph-Theoretic Dependency & Execution Path Analysis — novel codebase audit method |
+| **RREA Method** | [📖 Research](https://github.com/mgillr/crdt-merge/blob/main/docs/research/RREA_METHOD.md) | Reverse Reachability Entropy Analysis — information-theoretic code prioritization |
+
+---
+
+## 🎓 Learning Path
+
+| Step | What | Time |
+|------|------|------|
+| 1 | [CRDT Fundamentals](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/crdt-fundamentals.md) — OR-Sets, convergence, the math | 15 min |
+| 2 | [CRDT Primitives Reference](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/crdt-primitives-reference.md) — hands-on with every type | 20 min |
+| 3 | [Merge Strategies](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/merge-strategies.md) — pick the right strategy | 10 min |
+| 4a | *Data path:* [MergeQL](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/mergeql-distributed-knowledge.md) → [Performance Tuning](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/performance-tuning.md) | 30 min |
+| 4b | *ML path:* [Federated Model Merging](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/federated-model-merging.md) → [LoRA](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/lora-adapter-merging.md) | 30 min |
+| 4c | *Agent path:* [Convergent Multi-Agent AI](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/convergent-multi-agent-ai.md) | 20 min |
+| 4d | *Compliance path:* [Provenance](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/provenance-complete-ai.md) → [Compliance](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/compliance-guide.md) | 25 min |
+
+---
+
+> **[Troubleshooting Guide](https://github.com/mgillr/crdt-merge/blob/main/docs/guides/troubleshooting.md)** — common errors and fixes when working with crdt-merge.
+""")
+
+
     gr.Markdown("""
 ---
 
 **crdt-merge v0.9.4** · Patent Pending UK 2607132.4 · BUSL-1.1 → Apache 2.0 (2028-03-29)
 
-[🏠 Flagship](https://huggingface.co/spaces/optitransfer/crdt-merge) · [🔬 Data Playground](https://huggingface.co/spaces/optitransfer/crdt-merge-data) · [🌐 Federation](https://huggingface.co/spaces/optitransfer/crdt-merge-federation) · [GitHub](https://github.com/mgillr/crdt-merge) · [PyPI](https://pypi.org/project/crdt-merge/) · `pip install crdt-merge`
+[🏠 Flagship](https://huggingface.co/spaces/optitransfer/crdt-merge) · [🔬 Data Playground](https://huggingface.co/spaces/optitransfer/crdt-merge-data) · [🌐 Federation](https://huggingface.co/spaces/optitransfer/crdt-merge-federation) · [GitHub](https://github.com/mgillr/crdt-merge) · [⭐ Star Repo](https://github.com/mgillr/crdt-merge/stargazers) · [👁️ Watch](https://github.com/mgillr/crdt-merge/subscription) · [PyPI](https://pypi.org/project/crdt-merge/) · `pip install crdt-merge`
 """)
 
 
