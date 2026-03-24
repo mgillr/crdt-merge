@@ -315,6 +315,19 @@ def run_gossip_simulation(
 | Partition Round | {partition_round if partition_round > 0 else "none"} |
 | Final Convergence | {"CONVERGED" if all_converged else f"NOT CONVERGED ({len(set(final_hashes))} distinct states)"} |
 | Rounds to Converge | {rounds_to_converge if rounds_to_converge is not None else "not within simulation"} |
+
+### Understanding the Outputs
+
+- **Convergence Chart:** Tracks the **average pairwise L2 distance** between all nodes' resolved state at each round. When this reaches **0.0**, every node holds bit-identical merged weights. The speed of convergence depends on topology density — Star converges fastest (1 hub), Ring slowest (sequential propagation), Random falls in between.
+- **State Hash Matrix:** Each cell represents one node's `state_hash` prefix at each round. **Same color = same state.** Watch for:
+  - All cells becoming the same color = **full convergence**
+  - Color clusters during network partitions that reunify when the partition heals
+  - Late joiners starting with a unique color that gradually matches the network
+- **Audit Log (last 50 events):** Every gossip exchange — `delta_norm` shows how much the receiving node's resolved tensor changed. `Changed=yes` means the node absorbed new information. Once all exchanges show `Changed=no`, the network has stabilized.
+- **Parameters:**
+  - **Topology:** Ring (each node talks to 2 neighbors), Star (all nodes talk through a central hub), Random (ring + random extra edges at 45% probability)
+  - **Late Joiner:** Last node starts with empty state after round 2 — tests catch-up convergence
+  - **Network Partition:** Splits nodes into two halves that can't communicate until the specified round — tests partition tolerance
 """
 
     audit_table_rows = [
@@ -462,9 +475,14 @@ with gr.Blocks(theme=THEME, css=CSS, title="crdt-merge — Federation") as demo:
             gr.Markdown("""
 ## Gossip Convergence Simulation
 
-Each node starts with its own weight tensor. Nodes exchange CRDTMergeState via merge()
+Each node starts with its own weight tensor. Nodes exchange CRDTMergeState via `merge()`
 following the selected topology. Convergence is measured as average pairwise L2 distance.
-When all nodes reach the same state_hash, the system has converged.
+When all nodes reach the same `state_hash`, the system has converged — **no coordinator, no locking, no message ordering required.**
+
+This simulates real-world federated model merging where:
+- Nodes are geographically distributed (edge devices, data centers)
+- Network connectivity is unreliable (partitions, late joiners)
+- There is no central server dictating merge order
 """)
 
             with gr.Row():
@@ -520,6 +538,13 @@ Traces the internal provenance() data at each gossip step.
 Shows wire protocol payload sizes, tombstone counts, and round-trip serialization proof.
 
 Round-trip proof: `from_dict(to_dict(state)).state_hash == state.state_hash` must hold for all nodes.
+
+### How to Read the Results
+
+- **Wire Protocol Chart:** Shows the serialized state size (bytes) for each node over gossip rounds. As nodes absorb more contributions via `merge()`, their wire payload grows. After convergence, all nodes have the same payload size (they hold the same set of contributions).
+- **Provenance Trace Table:** Each row shows a contributor inside a node's state at a given round. `merkle_hash` is the content-addressed hash of that contribution's tensor. `weight` shows how much influence this contribution has in the final resolve. As gossip proceeds, nodes accumulate contributions from all peers.
+- **Round-trip Serialization Proof:** For each node, `to_dict()` serializes the state to JSON, then `from_dict()` reconstructs it. **PASS** means the reconstructed state has an identical `state_hash` — serialization is lossless. This proves states can be safely transmitted over the wire without data corruption.
+- **Tombstone Count:** OR-Set remove semantics. When a model contribution is removed (e.g., a node retracts its weights), a tombstone is added. Tombstones ensure the removal is propagated to all replicas — even those that haven't seen the remove yet. High tombstone counts may indicate excessive churn.
 """)
 
             with gr.Row():

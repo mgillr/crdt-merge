@@ -169,6 +169,16 @@ def run_dataset_merge(strategy_name: str):
 | Merged records | {len(merged)} |
 | Elapsed | {elapsed:.1f}ms |
 | Commutative (merge_AB == merge_BA) | **{"PASS" if comm_pass else "FAIL"}** |
+
+### Understanding the Results
+
+- **Merged Records Table:** Shows the first 20 rows after merging Node A and Node B. For overlapping record IDs (where both nodes have the same row but different values), the selected strategy decides which value wins.
+- **Strategy Behavior:**
+  - `LWW` (Last-Writer-Wins) — the record with the **later timestamp** (`_ts`) wins. This is the most common strategy in distributed databases.
+  - `MaxWins` — for numeric fields, the **larger value** wins. For text, lexicographic max.
+  - `MinWins` — the **smaller value** wins. Useful for minimum-bid auctions or earliest-deadline scenarios.
+  - `Union` — keeps **all values** as a set (no data is lost, but deduplication may be needed downstream).
+- **Commutativity PASS** means `merge(A, B)` and `merge(B, A)` produce identical results — a core CRDT guarantee. This ensures any two replicas performing the merge get the same output regardless of order.
 """
 
         display_rows = merged[:20]
@@ -409,6 +419,14 @@ Demonstrates conflict-free merge with configurable strategy.
 
 Runs the same dataset through all 4 strategies and computes per-field conflict rates
 between strategy pairs. The heatmap shows how often two strategies disagree on a record.
+
+### How to Read the Results
+
+- **Conflict Rate Heatmap:** Each cell shows the fraction of overlapping records where two strategies produce **different values** for a given field. Brighter = more disagreement. The diagonal is always 0 (a strategy agrees with itself).
+  - `sentence:LWW` vs `sentence:MaxWins` = "how often do LWW and MaxWins disagree on the sentence field?"
+  - High conflict rates between strategies mean the choice of strategy materially affects the merged output.
+- **Comparison Table:** Shows how each strategy differs from LWW (the baseline). `0 conflicts` = identical behavior for this dataset. Higher numbers indicate the strategy resolves more records differently.
+- **Why this matters:** In production systems, teams need to understand which strategy is appropriate for their data. If all strategies agree, the choice doesn't matter. If they diverge significantly, the strategy selection is a critical design decision.
 """)
 
             with gr.Row():
@@ -440,7 +458,17 @@ Live demonstration of GCounter, PNCounter, LWWRegister, and ORSet.
 Each primitive is operated on two nodes independently, then merged in both directions.
 Commutativity is verified: merge(A,B) must equal merge(B,A).
 
-Note: `.value` is a property (no parentheses required).
+### How to Read the Results
+
+| Primitive | What It Does | Merge Semantics |
+|---|---|---|
+| **GCounter** | Grow-only counter | Each node's count is tracked separately. Merge takes the **max per node**, then sums. Node A=8 + Node B=7 → merged=15. |
+| **PNCounter** | Increment/decrement counter | Two internal GCounters (positive + negative). Merge takes max per node for each. Net value = positives − negatives. |
+| **LWWRegister** | Last-Writer-Wins register | Stores a single value + timestamp. Merge keeps the value with the **latest timestamp**. Node A writes "model_v2" at t=3.0 > Node B's t=2.0, so A wins. |
+| **ORSet** | Observed-Remove Set | Add/remove elements with unique tags. Merge is the **union** of all adds minus confirmed removes. Both nodes' elements appear in the merged set. |
+
+- **merge(A,B) = merge(B,A):** The "Commutative" column proves this. PASS means the primitive is safe for distributed use — merge order doesn't affect the result.
+- These are the building blocks that power crdt-merge's higher-level DataFrame and model merge operations.
 """)
 
             with gr.Row():
