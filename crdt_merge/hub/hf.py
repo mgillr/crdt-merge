@@ -204,14 +204,25 @@ class HFMergeHub:
         )
         local_path = Path(local_dir)
 
-        # Try safetensors first, then pytorch bin
+        # Try safetensors first (torch backend → numpy fallback), then pytorch bin
         safetensor_files = list(local_path.glob("*.safetensors"))
         if safetensor_files:
+            # Prefer torch backend (GPU-capable)
             try:
                 from safetensors.torch import load_file
                 state_dict = {}
                 for sf in sorted(safetensor_files):
                     state_dict.update(load_file(str(sf)))
+                return state_dict
+            except ImportError:
+                pass
+
+            # Fall back to numpy backend (no torch required — works on CPU-only Spaces)
+            try:
+                from safetensors.numpy import load_file as np_load_file
+                state_dict = {}
+                for sf in sorted(safetensor_files):
+                    state_dict.update(np_load_file(str(sf)))
                 return state_dict
             except ImportError:
                 pass

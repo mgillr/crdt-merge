@@ -1803,24 +1803,20 @@ def generate_benchmark_csv():
 
 def run_compliance_demo(action, contributor_id):
     """Run compliance/audit trail demonstration."""
-    from crdt_merge import CRDTMergeState
+    from crdt_merge.model.crdt_state import CRDTMergeState
 
     # Build a state with 3 contributors
     contributors = ["alice-node", "bob-node", "carol-node"]
     states = {}
     for name in contributors:
-        st = CRDTMergeState()
-        for layer in ["layer.0.weight", "layer.1.weight"]:
-            st.add(layer, {
-                "values": np.random.randn(4, 4).tolist(),
-                "model_id": name,
-                "timestamp": time.time(),
-                "strategy": "weight_average",
-            })
+        st = CRDTMergeState("weight_average")
+        # Simulate two layers by creating a 4x8 tensor (2×4×4 flattened)
+        tensor = np.random.randn(4, 8)
+        st.add(tensor, model_id=name, weight=1.0)
         states[name] = st
 
     # Merge all states
-    merged = CRDTMergeState()
+    merged = CRDTMergeState("weight_average")
     for name, st in states.items():
         merged.merge(st)
 
@@ -1839,7 +1835,7 @@ def run_compliance_demo(action, contributor_id):
     if action == "🗑️ GDPR Erasure (Right to Forget)":
         target = contributor_id.strip() if contributor_id.strip() else "bob-node"
         # Demonstrate erasure by rebuilding without target
-        rebuilt = CRDTMergeState()
+        rebuilt = CRDTMergeState("weight_average")
         removed_count = 0
         for name, st in states.items():
             if name == target:
