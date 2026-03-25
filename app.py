@@ -3130,6 +3130,8 @@ Passive interest. If you star the repo and move on, that's fine — but this pag
 
 **[📧 data@optitransfer.ch](mailto:data@optitransfer.ch)** — Partnership and collaboration inquiries
 
+**[🧑‍💻 @mgillr](https://github.com/mgillr)** — Reach out to our founder directly
+
 **[💬 GitHub Discussions](https://github.com/mgillr/crdt-merge/discussions)** — Open a thread, propose an integration
 
 **[📖 Documentation](https://github.com/mgillr/crdt-merge/tree/main/docs)** — Architecture, proofs, and guides
