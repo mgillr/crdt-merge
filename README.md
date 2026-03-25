@@ -1,24 +1,3 @@
----
-title: crdt-merge
-colorFrom: gray
-colorTo: gray
-sdk: gradio
-sdk_version: "5.50.0"
-python_version: "3.12"
-app_file: app.py
-pinned: true
-license: other
-license_name: BUSL-1.1
-license_link: https://github.com/mgillr/crdt-merge/blob/main/LICENSE
-tags:
-  - crdt
-  - merge
-  - model-merging
-  - distributed
-  - convergence
-  - neural-network
-short_description: Mathematically guaranteed convergent model and data merge
----
 
 <div align="center">
 
@@ -27,7 +6,7 @@ short_description: Mathematically guaranteed convergent model and data merge
 <p><strong>The first merge library where every operation is mathematically guaranteed to converge.</strong><br/>
 Tabular data. Neural network weights. Distributed agents. One unified CRDT layer.</p>
 
-[![PyPI version](https://img.shields.io/badge/pypi-v0.9.4-orange)](https://pypi.org/project/crdt-merge/)
+[![PyPI version](https://img.shields.io/badge/pypi-v0.9.3-orange)](https://pypi.org/project/crdt-merge/)
 [![Downloads](https://img.shields.io/pypi/dm/crdt-merge?label=downloads&color=brightgreen)](https://pypi.org/project/crdt-merge/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![Tests](https://img.shields.io/badge/tests-4%2C498%20passing-brightgreen)](TEST_RESULTS.md)
