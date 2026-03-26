@@ -30,7 +30,7 @@ pip install crdt-merge
 ---
 
 > 📄 **Research Paper** — *Conflict-Free Replicated Data Types for Neural Network Model Merging*
-> We prove that 25/26 merge strategies are structurally incompatible with CRDTs, then present the two-layer architecture that fixes all 26.
+> We prove that 25 of 26 merge strategies are structurally incompatible with direct CRDT application, then present a two-layer architecture that achieves CRDT compliance for all 26.
 > **[Read the paper →](paper/CRDT_Merge_ArXiv.pdf)** · **[LaTeX source](paper/)**
 
 ---
