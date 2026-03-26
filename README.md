@@ -16,6 +16,7 @@ Tabular data. Neural network weights. Distributed agents. One unified CRDT layer
 [![🤗 Live Demo](https://img.shields.io/badge/%F0%9F%A4%97%20Live%20Demo-crdt--merge-yellow)](https://huggingface.co/spaces/optitransfer/crdt-merge)
 [![🤗 Data Merge](https://img.shields.io/badge/%F0%9F%A4%97%20Data%20Merge-crdt--merge--data-yellow)](https://huggingface.co/spaces/optitransfer/crdt-merge-data)
 [![🤗 Federation](https://img.shields.io/badge/%F0%9F%A4%97%20Federation-crdt--merge--federation-yellow)](https://huggingface.co/spaces/optitransfer/crdt-merge-federation)
+[![🤗 Convergence Lab](https://img.shields.io/badge/%F0%9F%A4%97%20Convergence%20Lab-convergence--lab-yellow)](https://huggingface.co/spaces/Optitransfer/convergence-lab)
 
 ```
 pip install crdt-merge
