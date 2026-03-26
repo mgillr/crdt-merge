@@ -164,8 +164,8 @@ Lexicographic ordering does **not** match numeric ordering:
 
 | Comparison | Lexicographic Result | Numeric Result |
 |------------|---------------------|----------------|
-| `"node9" > "node10"` | `True` ✓ | `False` |
-| `"node2" > "node11"` | `True` ✓ | `False` |
+| `"node9" > "node10"` | `True` | `False` |
+| `"node2" > "node11"` | `True` | `False` |
 | `"abc" > "abd"` | `False` | N/A |
 
 **Recommendation:** Use zero-padded identifiers (`node01`, `node02`, …, `node10`) or UUIDs to ensure lexicographic order aligns with logical expectations.

@@ -156,7 +156,7 @@ Return a dict mapping column names to Arrow type strings.
 
 | Symbol | Entropy (H) | Role |
 |--------|-------------|------|
-| `_ensure_table` | **0.6232** | 🔴 **#1 Layer 2 chokepoint** — validates/converts input to pa.Table |
+| `_ensure_table` | **0.6232** | **#1 Layer 2 chokepoint** — validates/converts input to pa.Table |
 | `_import_pyarrow` | 0.5976 | Lazy import guard for pyarrow |
 | `_arrow_type_string` | 0.5203 | Convert Arrow type to string representation |
 | `_schema_dict` | 0.5203 | Extract schema as dict from Arrow table |

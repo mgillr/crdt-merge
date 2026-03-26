@@ -38,8 +38,7 @@ The same two-layer pattern that makes model merging CRDT-compliant applies here:
 │  Convergence: same order_tags → same winner, always      │
 └──────────────────────┬──────────────────────────────────┘
                        │ winner selected by order_tag
-                       ▼
-┌─────────────────────────────────────────────────────────┐
+                       ┌─────────────────────────────────────────────────────────┐
 │  Layer 2: EncryptedMerge (strategy over encrypted set)   │
 │                                                          │
 │  • 4 AEAD backends: AES-256-GCM, AES-GCM-SIV,           │

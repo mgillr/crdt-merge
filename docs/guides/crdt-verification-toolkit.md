@@ -221,7 +221,7 @@ def verified_merge(gen_fn, trials=1000):
                 f"  Idempotency:   {result.idempotency.trials - result.idempotency.failures}/{result.total_trials}\n"
                 + (f"  Counterexample: {result.commutativity.first_failure}" if result.commutativity.first_failure else "")
             )
-        print(f"✓ {merge_fn.__name__}: CRDT-compliant ({trials} trials)")
+        print(f"{merge_fn.__name__}: CRDT-compliant ({trials} trials)")
         return merge_fn
     return decorator
 

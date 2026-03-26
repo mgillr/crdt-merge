@@ -171,7 +171,7 @@
 - Strategy count: 25 → 26
 - Zero breaking changes, zero regressions
 
-### 🔒 CRDT Integrity
+### CRDT Integrity
 - **Fixed**: Commutativity violation on tied timestamps — `merge(A, B)` now always equals `merge(B, A)` regardless of input ordering
 - Deterministic tie-breaking via lexicographic value comparison across all merge paths
 - Verified all 6 tabular strategies and all 26 model strategies for full CRDT compliance
@@ -225,15 +225,15 @@
 ### Added
 - **Two-Layer CRDT Architecture** — Resolves fundamental mathematical limitation where model merge strategies (SLERP, TIES, DARE, Fisher, etc.) cannot satisfy CRDT laws on raw tensors. New architecture separates CRDT state management (set union) from strategy execution (deterministic pure functions).
 - **`CRDTMergeState`** — Production-ready CRDT wrapper (948 lines) with:
-  - OR-Set add/remove semantics with tombstones (add-wins)
-  - SHA-256 Merkle hashing for content-addressable provenance
-  - Version vectors with configurable conflict resolution (HIGHEST_VERSION, LWW, FWW)
-  - Canonical hash-sorted ordering for deterministic cross-replica convergence
-  - Wire serialization via `to_dict()` / `from_dict()`
-  - Cached active contributions with automatic invalidation
-  - Batch add (`add_batch()`) and N-way merge (`merge_many()`)
-  - Tensor shape validation and strategy name validation
-  - Memory estimation via `estimated_memory_bytes` property
+ - OR-Set add/remove semantics with tombstones (add-wins)
+ - SHA-256 Merkle hashing for content-addressable provenance
+ - Version vectors with configurable conflict resolution (HIGHEST_VERSION, LWW, FWW)
+ - Canonical hash-sorted ordering for deterministic cross-replica convergence
+ - Wire serialization via `to_dict()` / `from_dict()`
+ - Cached active contributions with automatic invalidation
+ - Batch add (`add_batch()`) and N-way merge (`merge_many()`)
+ - Tensor shape validation and strategy name validation
+ - Memory estimation via `estimated_memory_bytes` property
 - **`ModelMerge.crdt_merge()`** — High-level API wrapping every layer merge in CRDTMergeState, returns `MergeResult` with `metadata["crdt_guaranteed"] = True`
 - **195 new tests** — All 26 strategies × 3 CRDT laws × state + resolve levels + OR-Set + versioning + serialization + edge cases
 - **Architecture document** — `docs/CRDT_ARCHITECTURE.md` (1,744 lines) documenting the failure, 7 R&D architectures tested (all 25/25), and production solution
@@ -286,8 +286,8 @@
 
 ### Changed
 - **License changed from Apache-2.0 to Business Source License 1.1 (BSL 1.1)**
-  - Ultra-open terms: use for anything except reselling as a competing merge engine
-  - Converts to Apache 2.0 on 2028-03-29
+ - Ultra-open terms: use for anything except reselling as a competing merge engine
+ - Converts to Apache 2.0 on 2028-03-29
 
 All notable changes to this project will be documented in this file.
 
@@ -312,7 +312,7 @@ All notable changes to this project will be documented in this file.
 - Tests passing: 1,114 → **1,143** (+29)
 - Zero regressions against v0.7.0 baseline
 
-### 📓 Notebooks
+### Notebooks
 - **`crdt_merge_v071_sandbox_benchmark.ipynb`** — 27 code cells, all passing against live PyPI v0.7.1
 - **`crdt_merge_v071_a100_stress_test.ipynb`** — 28 code cells, full-scale A100 stress test
 
@@ -360,7 +360,7 @@ All notable changes to this project will be documented in this file.
 - **Wire protocol v2**: New wire tags for all v0.6.0 types (HLC timestamps, Merkle trees, Arrow tables, gossip state).
 - **Integration tests**: Cross-module pipeline tests verifying clocks→gossip→merkle→arrow→async→parallel flow.
 
-### 🐛 Bug Fix
+### Bug Fix
 - **json_merge.py**: Fixed deterministic tiebreak — B now correctly wins on equal timestamps (LWW Register convention).
 
 ### Stats

@@ -34,8 +34,7 @@ The current answer is ETL: extract data from all sources, load it into a central
 │  LIMIT 10000                                                 │
 └──────────────────────┬──────────────────────────────────────┘
                        │ parsed to MergeAST
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
+                       ┌─────────────────────────────────────────────────────────────┐
 │  MergeQL Engine                                              │
 │                                                              │
 │  1. Parse → MergeAST (sources, key, strategies, filters)     │

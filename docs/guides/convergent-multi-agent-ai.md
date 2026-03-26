@@ -35,11 +35,10 @@ crdt-merge solves all four problems through the same two-layer architecture that
 │  messages → append-only + content-hash dedup         │
 │                                                      │
 │  merge() = set union / lattice join                  │
-│  CRDT laws: commutative ✓  associative ✓  idem ✓    │
+│  CRDT laws: commutative  associative  idem    │
 └──────────────────────┬──────────────────────────────┘
                        │ convergent set
-                       ▼
-┌─────────────────────────────────────────────────────┐
+                       ┌─────────────────────────────────────────────────────┐
 │  Layer 2: ContextMerge (deterministic resolution)    │
 │                                                      │
 │  strategies: lww / max_confidence / priority / union │

@@ -6,7 +6,7 @@
 
 ---
 
-## ⛔ CRITICAL: ENGINE MANDATE
+## CRITICAL: ENGINE MANDATE
 
 ```
 WRONG: Writing a new ~100-line "simplified RREA" inline script

@@ -423,7 +423,7 @@ wire_size()
 
 #### Handling Guidance
 
-All public wire functions can raise `WireError`. Callers should wrap wire operations in try/except:
+All public wire functions can raise `WireError`. Callers should wrap wire operations in try/except Exception:
 
 ```python
 from crdt_merge.wire import serialize, deserialize, WireError

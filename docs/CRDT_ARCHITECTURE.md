@@ -113,10 +113,9 @@ where `Ω = arccos(v₁ · v₂)`.
   SLERP traces a geodesic on the hypersphere; composing geodesics is
   not associative because the intermediate geodesic changes the
   reference great circle.
-- **Idempotency**: `SLERP(v, v; t) = v` ✓ — this one holds trivially.
+- **Idempotency**: `SLERP(v, v; t) = v` — this one holds trivially.
 
-**Verdict**: Fails commutativity and associativity. ✗
-
+**Verdict**: Fails commutativity and associativity. 
 #### 2.3.2 TIES (Trim, Elect Sign, & Disjoint Merge)
 
 TIES computes a task vector `τ = θ_ft - θ_base`, trims low-magnitude
@@ -136,8 +135,7 @@ entries, elects the majority sign, and creates a disjoint merge:
 - **Idempotency**: `TIES(A, A)` may differ from `A` because the trim
   threshold is recomputed.
 
-**Verdict**: Fails associativity and (potentially) idempotency. ✗
-
+**Verdict**: Fails associativity and (potentially) idempotency. 
 #### 2.3.3 DARE (Drop And REscale)
 
 DARE randomly drops a fraction of task-vector entries and rescales:
@@ -154,8 +152,7 @@ m ~ Bernoulli(1 - p)
 - **Idempotency**: `DARE(A, A)` re-drops and re-scales, producing a
   different result from `A`.
 
-**Verdict**: Fails all three laws. ✗
-
+**Verdict**: Fails all three laws. 
 #### 2.3.4 Fisher-Weighted Merging (FisherMerge)
 
 Fisher merging weights each parameter by its Fisher information:
@@ -165,38 +162,31 @@ Fisher merging weights each parameter by its Fisher information:
 ```
 
 - **Commutativity**: The weighted average is commutative (addition is
-  commutative). ✓
-- **Associativity**: `Fisher(Fisher(A,B), C) ≠ Fisher(A, Fisher(B,C))`.
+  commutative). - **Associativity**: `Fisher(Fisher(A,B), C) ≠ Fisher(A, Fisher(B,C))`.
   The intermediate Fisher information matrix is lost after the first
   merge, so the second merge has incorrect weights.
 - **Idempotency**: `Fisher(A, A) = A` only if the Fisher matrices are
-  equal, which they are — so idempotency holds in the self-merge case. ✓
-
-**Verdict**: Fails associativity. ✗
-
+  equal, which they are — so idempotency holds in the self-merge case. 
+**Verdict**: Fails associativity. 
 #### 2.3.5 Weight Averaging
 
 Simple weight averaging `θ = (θ₁ + θ₂) / 2`:
 
-- **Commutativity**: ✓
-- **Associativity**: `((a + b)/2 + c)/2 = (a + b + 2c)/4 ≠ (a + (b + c)/2)/2 = (2a + b + c)/4`. ✗
-- **Idempotency**: `(a + a)/2 = a`. ✓
-
-**Verdict**: Even the simplest strategy fails associativity. ✗
-
+- **Commutativity**: - **Associativity**: `((a + b)/2 + c)/2 = (a + b + 2c)/4 ≠ (a + (b + c)/2)/2 = (2a + b + c)/4`. - **Idempotency**: `(a + a)/2 = a`. 
+**Verdict**: Even the simplest strategy fails associativity. 
 #### 2.3.6 Summary Table
 
 | Strategy | Commutative | Associative | Idempotent | CRDT? |
 |----------|:-----------:|:-----------:|:----------:|:-----:|
-| WeightAverage | ✓ | ✗ | ✓ | ✗ |
-| SLERP | ✗ | ✗ | ✓ | ✗ |
-| TIES | ~ | ✗ | ✗ | ✗ |
-| DARE | ✗ | ✗ | ✗ | ✗ |
-| FisherMerge | ✓ | ✗ | ✓ | ✗ |
-| TaskArithmetic | ✓ | ✗ | ✗ | ✗ |
-| LinearInterp | ✗ | ✗ | ✓ | ✗ |
-| EvolutionaryMerge | ✗ | ✗ | ✗ | ✗ |
-| GeneticMerge | ✗ | ✗ | ✗ | ✗ |
+| WeightAverage | | | | |
+| SLERP | | | | |
+| TIES | ~ | | | |
+| DARE | | | | |
+| FisherMerge | | | | |
+| TaskArithmetic | | | | |
+| LinearInterp | | | | |
+| EvolutionaryMerge | | | | |
+| GeneticMerge | | | | |
 
 **Conclusion**: Making each strategy satisfy CRDT laws directly on raw
 tensors is mathematically impossible for the vast majority of
@@ -277,12 +267,12 @@ requiring any individual merge strategy to satisfy CRDT laws.
 │  │  • Version vectors for causal ordering               │    │
 │  │  • Wire serialization for network transfer           │    │
 │  │                                                      │    │
-│  │  CRDT Laws Satisfied Here ✓                          │    │
+│  │  CRDT Laws Satisfied Here                          │    │
 │  └──────────────────────┬──────────────────────────────┘    │
 │                         │                                    │
 │                    resolve()                                 │
 │                         │                                    │
-│  ┌──────────────────────▼──────────────────────────────┐    │
+│  ┌────────────────────────────────────────────────────┐    │
 │  │  Layer 2: Strategy Execution                         │    │
 │  │                                                      │    │
 │  │  • Pure function: f(set_of_models) → merged_model    │    │
@@ -291,7 +281,7 @@ requiring any individual merge strategy to satisfy CRDT laws.
 │  │  • Existing strategy modules (strategies/)           │    │
 │  │  • No CRDT awareness needed                          │    │
 │  │                                                      │    │
-│  │  Convergence Guaranteed by Determinism ✓             │    │
+│  │  Convergence Guaranteed by Determinism             │    │
 │  └─────────────────────────────────────────────────────┘    │
 │                                                              │
 └─────────────────────────────────────────────────────────────┘
@@ -390,21 +380,17 @@ Node A                          Node B
 
 add(model_1)                    add(model_2)
     │                               │
-    ▼                               ▼
-State_A = {model_1}             State_B = {model_2}
+                                  State_A = {model_1}             State_B = {model_2}
     │                               │
     └──────── exchange ─────────────┘
     │                               │
-    ▼                               ▼
-merge(State_B)                  merge(State_A)
+                                  merge(State_B)                  merge(State_A)
     │                               │
-    ▼                               ▼
-State_A = {model_1, model_2}   State_B = {model_1, model_2}
+                                  State_A = {model_1, model_2}   State_B = {model_1, model_2}
     │                               │
-    ▼                               ▼
-resolve() → merged_A            resolve() → merged_B
+                                  resolve() → merged_A            resolve() → merged_B
 
-    merged_A == merged_B  ✓  (guaranteed by architecture)
+    merged_A == merged_B   (guaranteed by architecture)
 ```
 
 ---
@@ -498,8 +484,7 @@ Node A: add("model_X") → tag_1          Node B: remove("model_X") → tombston
     │                                         │
     └──────────── merge ──────────────────────┘
     │
-    ▼
-Result: model_X is PRESENT (tag_1 not tombstoned)
+    Result: model_X is PRESENT (tag_1 not tombstoned)
 ```
 
 ### 5.3 Merkle Hashing
@@ -967,7 +952,7 @@ execution:
 
 **Key observations**:
 
-1. **`merge()` is essentially free** — set union over contribution
+1. **`merge()` is effectively free** — set union over contribution
    metadata (not tensor data) takes microseconds regardless of model
    size.
 
@@ -1024,10 +1009,10 @@ following test matrix:
 Test Matrix:
     - 3 model sizes × 26 strategies × 4 node counts = 300 configurations
     - Each configuration tested for:
-        ✓ Commutativity (merge order independence)
-        ✓ Associativity (grouping independence)
-        ✓ Idempotency (duplicate merge tolerance)
-        ✓ Convergence (identical resolve after sync)
+        Commutativity (merge order independence)
+        Associativity (grouping independence)
+        Idempotency (duplicate merge tolerance)
+        Convergence (identical resolve after sync)
     - Total: 1,200 individual tests
     - Pass rate: 1,200 / 1,200 = 100%
 ```
@@ -1094,7 +1079,7 @@ merged_b = node_b.resolve()
 for key in merged_a:
     assert np.array_equal(merged_a[key], merged_b[key])
 
-print("✓ CRDT convergence verified!")
+print("CRDT convergence verified!")
 ```
 
 #### Advanced Example: Multi-Node with Removals
@@ -1374,37 +1359,37 @@ All 26 strategies pass the full CRDT compliance test suite:
 ```
 Strategy                  | Commutative | Associative | Idempotent | Convergent | Status
 ─────────────────────────┼─────────────┼─────────────┼────────────┼────────────┼───────
-WeightAverage             |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
-SLERP                     |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
-TaskArithmetic            |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
-LinearInterp              |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
-TIES                      |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
-DARE                      |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
-DELLA                     |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
-DARE-TIES                 |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
-ModelBreadcrumbs          |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
-EMR                       |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
-STAR                      |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
-SVDKnotTying              |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
-AdaRank                   |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
-FisherMerge               |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
-RegMean                   |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
-AdaMerging                |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
-DAM                       |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
-EvolutionaryMerge         |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
-GeneticMerge              |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
-NegMerge                  |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
-SplitUnlearnMerge         |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
-WeightScopeAlignment      |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
-RepresentationSurgery     |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
-SafeMerge                 |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
-LEDMerge                  |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
-DualProjection              |     ✓       |      ✓      |     ✓      |     ✓      |  PASS
+WeightAverage             |           |           |          |          |  PASS
+SLERP                     |           |           |          |          |  PASS
+TaskArithmetic            |           |           |          |          |  PASS
+LinearInterp              |           |           |          |          |  PASS
+TIES                      |           |           |          |          |  PASS
+DARE                      |           |           |          |          |  PASS
+DELLA                     |           |           |          |          |  PASS
+DARE-TIES                 |           |           |          |          |  PASS
+ModelBreadcrumbs          |           |           |          |          |  PASS
+EMR                       |           |           |          |          |  PASS
+STAR                      |           |           |          |          |  PASS
+SVDKnotTying              |           |           |          |          |  PASS
+AdaRank                   |           |           |          |          |  PASS
+FisherMerge               |           |           |          |          |  PASS
+RegMean                   |           |           |          |          |  PASS
+AdaMerging                |           |           |          |          |  PASS
+DAM                       |           |           |          |          |  PASS
+EvolutionaryMerge         |           |           |          |          |  PASS
+GeneticMerge              |           |           |          |          |  PASS
+NegMerge                  |           |           |          |          |  PASS
+SplitUnlearnMerge         |           |           |          |          |  PASS
+WeightScopeAlignment      |           |           |          |          |  PASS
+RepresentationSurgery     |           |           |          |          |  PASS
+SafeMerge                 |           |           |          |          |  PASS
+LEDMerge                  |           |           |          |          |  PASS
+DualProjection              |           |           |          |          |  PASS
 ─────────────────────────┼─────────────┼─────────────┼────────────┼────────────┼───────
 TOTAL                     |   26/26     |    26/26    |   26/26    |   26/26    | 26/26
 ```
 
-> **Note**: The ✓ marks in the compliance matrix refer to the
+> **Note**: The marks in the compliance matrix refer to the
 > *system-level* CRDT properties (i.e., `CRDTMergeState` with the
 > strategy), not the raw strategy on tensors. As shown in Section 2,
 > the raw strategies fail these properties — the two-layer architecture

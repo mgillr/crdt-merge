@@ -46,16 +46,16 @@ Three workstreams:
 ```
 Existing v0.9.0/v0.9.1 (foundations)          New v0.9.2 (reporting/export layer)
 ─────────────────────────────────────          ──────────────────────────────────
-AuditLog, AuditedMerge ──────────────────────► ComplianceAuditor
-ProvenanceLog, MergeRecord ──────────────────► ComplianceReport, EUAIActReport
+AuditLog, AuditedMerge ──────────────────────ComplianceAuditor
+ProvenanceLog, MergeRecord ──────────────────ComplianceReport, EUAIActReport
                                                 ComplianceFinding
 
-MetricsCollector, ObservedMerge ─────────────► MergeTracer (OTel-compatible)
-HealthCheck ─────────────────────────────────► DriftDetector, DriftReport
+MetricsCollector, ObservedMerge ─────────────MergeTracer (OTel-compatible)
+HealthCheck ─────────────────────────────────DriftDetector, DriftReport
                                                 PrometheusExporter
                                                 GrafanaDashboard
 
-FederatedMerge (v0.8.2) ────────────────────► CRDTStrategy
+FederatedMerge (v0.8.2) ────────────────────CRDTStrategy
                                                 FlowerCRDTClient
                                                 FlowerAggregator
 ```
@@ -329,14 +329,14 @@ tests/
 ## Execution Order
 
 ```
-Phase 5 (Compliance)       ──► commit ──┐
-Phase 3 (Observability)    ──► commit ──┤ (parallel — no file conflicts)
+Phase 5 (Compliance)       ──commit ──┐
+Phase 3 (Observability)    ──commit ──┤ (parallel — no file conflicts)
                                       │
-Phase 3 (Flower Plugin)    ◄────────────┘ (depends on federated.py — already exists)
-  └──► commit ──┐
+Phase 3 (Flower Plugin)    ────────────┘ (depends on federated.py — already exists)
+  └──commit ──┐
                  │
-Phase 1 (Integration)      ◄┘ (depends on all modules)
-  └──► commit ──► FULL TEST SWEEP ──► v0.9.2 TAG ──► PyPI PUBLISH
+Phase 1 (Integration)      ┘ (depends on all modules)
+  └──commit ──FULL TEST SWEEP ──v0.9.2 TAG ──PyPI PUBLISH
 ```
 
 **Sequential execution order (conservative):**

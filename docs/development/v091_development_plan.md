@@ -80,8 +80,7 @@ EncryptedMerge (public API — unchanged)
     ├── backend="xor-legacy"  ──→  XORLegacyBackend (stdlib)
     └── backend="custom"  ──→  register_backend() extensibility
            │
-           ▼
-    CryptoBackend (ABC)
+               CryptoBackend (ABC)
     ├── encrypt(key, plaintext, aad) → (ciphertext, nonce, tag)
     └── decrypt(key, ciphertext, nonce, tag, aad) → plaintext
 ```

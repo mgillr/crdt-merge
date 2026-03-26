@@ -382,7 +382,7 @@ def check_doc_coverage(symbol, doc_root):
                 with open(os.path.join(root, fname)) as f:
                     if sym_name in f.read():
                         return True
-            except:
+            except Exception:
                 pass
     return False
 

@@ -7,7 +7,7 @@
 
 ---
 
-## ⛔ CRITICAL: What GDEPA Is and Is NOT
+## CRITICAL: What GDEPA Is and Is NOT
 
 ```
 GDEPA is NOT just building import graphs from AST

@@ -6,7 +6,7 @@ This directory documents the innovative analysis methods developed during the cr
 
 ---
 
-## ⛔ CRITICAL: USE THE ENGINES, NOT APPROXIMATIONS
+## CRITICAL: USE THE ENGINES, NOT APPROXIMATIONS
 
 Each method has a specific implementation that handles edge cases. **Do NOT write simplified inline scripts.** The engines exist for a reason — use them.
 
@@ -33,20 +33,17 @@ Each method has a specific implementation that handles edge cases. **Do NOT writ
 ```
 Layer N source code
         │
-        ▼
-   ┌─────────┐     Finds: declared symbols, signatures, decorators
+           ┌─────────┐     Finds: declared symbols, signatures, decorators
    │  Team 1  │     Method: Python AST parsing
    │   AST    │     Catches: 100% of syntactically declared code
    └────┬─────┘
         │
-        ▼
-   ┌─────────┐     Finds: code smells, pragmas, patterns
+           ┌─────────┐     Finds: code smells, pragmas, patterns
    │  Team 2  │     Method: Regex line-by-line scan
    │  Regex   │     Catches: non-syntactic patterns (type:ignore, noqa, bare except)
    └────┬─────┘
         │
-        ▼
-   ┌─────────────────────────────────────────────────────────────────┐
+           ┌─────────────────────────────────────────────────────────────────┐
    │  Team 3 — GDEPA                                                │
    │  Method: Import/inheritance graph + RUNTIME inspect             │
    │  Catches: everything invisible to static analysis               │
@@ -56,8 +53,7 @@ Layer N source code
    │  If runtime-only symbols = 0, analysis is INCOMPLETE        │
    └────┬────────────────────────────────────────────────────────────┘
         │
-        ▼
-   ┌─────────────────────────────────────────────────────────────────┐
+           ┌─────────────────────────────────────────────────────────────────┐
    │  Team 4 — RREA                                                  │
    │  Method: Reverse call graph + Shannon entropy + Ping entropy    │
    │  Catches: dead code, critical chokepoints, shadow deps          │
@@ -68,14 +64,11 @@ Layer N source code
    │  Do NOT write a simplified inline script                    │
    └────┬────────────────────────────────────────────────────────────┘
         │
-        ▼
-   Cross-validation & deduplication
+           Cross-validation & deduplication
         │
-        ▼
-   Documentation update + GitHub issues (no duplicates)
+           Documentation update + GitHub issues (no duplicates)
         │
-        ▼
-   Master Architect sign-off + Method Compliance Gate (Gate 6)
+           Master Architect sign-off + Method Compliance Gate (Gate 6)
 ```
 
 ## Each Method's Unique Contribution

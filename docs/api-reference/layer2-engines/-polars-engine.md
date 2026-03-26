@@ -128,13 +128,11 @@ Extract per-field strategy from a MergeSchema.
 
 ```
 polars_merge_arrow()  ─┐
-                       ├──▶ _get_field_strategy(schema, col)  ──▶ strategy_to_expr(col, strategy, ...)
+                       ├──_get_field_strategy(schema, col)  ──strategy_to_expr(col, strategy, ...)
 polars_merge_dicts() ──┘         │
-                                 ▼
-                          MergeSchema.strategy_for(field)
+                                                           MergeSchema.strategy_for(field)
                                  │
-                                 ▼
-                          MergeStrategy instance (LWW, MaxWins, etc.)
+                                                           MergeStrategy instance (LWW, MaxWins, etc.)
 ```
 
 Both `polars_merge_arrow()` and `polars_merge_dicts()` call `_get_field_strategy` in a loop over every non-key column. The returned strategy is then compiled into a Polars expression by `strategy_to_expr()`.

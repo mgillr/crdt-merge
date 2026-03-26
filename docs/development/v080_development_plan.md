@@ -288,7 +288,7 @@ CRDT Properties:
 
 ## Competitive Position at v0.8.0
 
-| Capability | crdt-merge v0.8 | MergeKit (6.9K ⭐) | FusionBench | Mergenetic |
+| Capability | crdt-merge v0.8 | MergeKit (6.9K ) | FusionBench | Mergenetic |
 |-----------|-----------------|-------------------|-------------|------------|
 | Merge strategies | 25 | ~10 | Eval only | Evolutionary only |
 | CRDT verification | | | | |

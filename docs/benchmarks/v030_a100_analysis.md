@@ -18,7 +18,7 @@ The "ultimate failure test" tried to break crdt-merge at scales from 100K to **1
 | Core merge() | | Stable 39–42K rows/s up to 10M rows |
 | Strategies | | 42–44K rows/s, zero memory overhead |
 | merge_stream (batched) | | Works but degrades — throughput halves at 5M |
-| merge_sorted_stream | 🏆 | **Crown jewel**: 10.8 MB at 100M rows |
+| merge_sorted_stream | | **Crown jewel**: 10.8 MB at 100M rows |
 | Batch tuning | | Sweet spot at bs=500 (27K rows/s) |
 | Delta sync | | Apply is 7.5× faster than compute |
 | CRDT verification | | All 18 property checks pass (6,000 trials) |
@@ -93,8 +93,7 @@ The "ultimate failure test" tried to break crdt-merge at scales from 100K to **1
 
 ---
 
-## Suite 3B: merge_sorted_stream — TRUE CONSTANT MEMORY 🏆
-
+## Suite 3B: merge_sorted_stream — TRUE CONSTANT MEMORY 
 **Test design**: Generators (not lists), batch_size=10,000, scales from 100K to 100M.
 
 | Scale | Throughput | Peak Memory |

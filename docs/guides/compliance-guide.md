@@ -10,8 +10,8 @@ crdt-merge ships a built-in compliance layer (`crdt_merge.compliance`) that inte
 │  record_merge_data()    ← raw output for PHI / field checks      │
 │  record_unmerge()       ← GDPR Art.17 erasure events             │
 │  record_access(granted) ← SOX / HIPAA access logs                │
-│                                              ▼                    │
-│  validate() ──────────────────────► ComplianceReport             │
+│                                                                 │
+│  validate() ──────────────────────ComplianceReport             │
 │                                     .to_text()                    │
 │                                     .sign(key) / .verify(key,sig) │
 └──────────────────────────────────────────────────────────────────┘

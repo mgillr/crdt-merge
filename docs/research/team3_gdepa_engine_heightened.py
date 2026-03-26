@@ -208,7 +208,7 @@ def runtime_inspect_module(module_path, module_name, package_root):
             try:
                 if hasattr(obj, '__module__'):
                     source_module = obj.__module__
-            except:
+            except Exception:
                 pass
             
             results['runtime_symbols'][name] = {
@@ -532,7 +532,7 @@ def main():
                     try:
                         with open(os.path.join(root, fname)) as f:
                             doc_content += f.read() + "\n"
-                    except:
+                    except Exception:
                         pass
         
         # Check inherited methods

@@ -101,7 +101,7 @@ Single-developer patch — no parallel work needed. Total effort: <15 minutes.
 ## Execution Order
 
 ```
-Phase 1 (pyproject.toml edit) ──► verify install ──► commit ──► push ──► PyPI publish
+Phase 1 (pyproject.toml edit) ──verify install ──commit ──push ──PyPI publish
 ```
 
 ---

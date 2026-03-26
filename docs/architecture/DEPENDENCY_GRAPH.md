@@ -7,24 +7,24 @@ Import-level dependencies between modules, verified by AST analysis (2026-03-31)
 ## High-Level Layer Dependencies
 
 ```
-Layer 6 (Compliance)   ──►  Layer 5 (Enterprise)
-                       ──►  Layer 4 (AI/Model)  [for model unmerge]
-                       ──►  Layer 1 (Core)       [for audit chain]
+Layer 6 (Compliance)   ── Layer 5 (Enterprise)
+                       ── Layer 4 (AI/Model)  [for model unmerge]
+                       ── Layer 1 (Core)       [for audit chain]
 
-Layer 5 (Enterprise)   ──►  Layer 4 (AI/Model)  [for model unmerge]
-                       ──►  Layer 2 (Engines)    [wraps merge()]
-                       ──►  Layer 1 (Core)       [for CRDT primitives]
+Layer 5 (Enterprise)   ── Layer 4 (AI/Model)  [for model unmerge]
+                       ── Layer 2 (Engines)    [wraps merge()]
+                       ── Layer 1 (Core)       [for CRDT primitives]
 
-Layer 4 (AI/Model)     ──►  Layer 3 (Transport)  [wire, gossip]
-                       ──►  Layer 2 (Engines)    [for data merge]
-                       ──►  Layer 1 (Core)       [for CRDT primitives]
+Layer 4 (AI/Model)     ── Layer 3 (Transport)  [wire, gossip]
+                       ── Layer 2 (Engines)    [for data merge]
+                       ── Layer 1 (Core)       [for CRDT primitives]
 
-Layer 3 (Transport)    ──►  Layer 2 (Engines)
-                       ──►  Layer 1 (Core)
+Layer 3 (Transport)    ── Layer 2 (Engines)
+                       ── Layer 1 (Core)
 
-Layer 2 (Engines)      ──►  Layer 1 (Core)       [strategies, schema_evolution]
+Layer 2 (Engines)      ── Layer 1 (Core)       [strategies, schema_evolution]
 
-Layer 1 (Core)         ──►  Python stdlib only
+Layer 1 (Core)         ── Python stdlib only
 ```
 
 All dependencies are **downward only** — 0 circular dependencies confirmed by GDEPA runtime analysis.
