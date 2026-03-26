@@ -2,7 +2,7 @@
 
 **A Two-Layer Architecture Enabling CRDT-Compliant Model Merging Across 26 Strategies**
 
-📄 **[Read the Paper (PDF)](./CRDT_Merge_ArXiv.pdf)**  ·  💻 **[Library Code](../)**
+**[Read the Paper (PDF)](./CRDT_Merge_ArXiv.pdf)**  ·  **[Library Code](../)**
 
 ## Abstract
 

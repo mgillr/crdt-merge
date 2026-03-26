@@ -48,11 +48,11 @@
 
 | Type | Commutativity | Associativity | Idempotence | API |
 |------|:---:|:---:|:---:|-----|
-| GCounter | ✅ | ✅ | ✅ | `GCounter.merge()` |
-| PNCounter | ✅ | ✅ | ✅ | `PNCounter.merge()` |
-| LWWRegister | ✅ | ✅ | ✅ | `LWWRegister.merge()` |
+| GCounter | | | | `GCounter.merge()` |
+| PNCounter | | | | `PNCounter.merge()` |
+| LWWRegister | | | | `LWWRegister.merge()` |
 
-**Result: ✅ ALL PASSED**
+**Result: ALL PASSED**
 
 ## Model Merge — 25 Strategy Benchmark
 
@@ -178,12 +178,12 @@
 
 | Strategy | Commutativity | Associativity | Idempotence | API | Trials |
 |----------|:---:|:---:|:---:|-----|--------|
-| `weight_average` | ✅ | ❌ | ✅ | `ModelCRDT.verify()` | 50 |
-| `linear` | ✅ | ❌ | ✅ | `ModelCRDT.verify()` | 50 |
-| `slerp` | ✅ | ❌ | ✅ | `ModelCRDT.verify()` | 50 |
-| `ties` | ❌ | ❌ | ❌ | `ModelCRDT.verify()` | 50 |
-| `dare` | ❌ | ❌ | ❌ | `ModelCRDT.verify()` | 50 |
-| `task_arithmetic` | ❌ | ❌ | ❌ | `ModelCRDT.verify()` | 50 |
+| `weight_average` | | | | `ModelCRDT.verify()` | 50 |
+| `linear` | | | | `ModelCRDT.verify()` | 50 |
+| `slerp` | | | | `ModelCRDT.verify()` | 50 |
+| `ties` | | | | `ModelCRDT.verify()` | 50 |
+| `dare` | | | | `ModelCRDT.verify()` | 50 |
+| `task_arithmetic` | | | | `ModelCRDT.verify()` | 50 |
 
 ## JSON / Dict Merge
 
@@ -210,8 +210,7 @@
 ## Summary
 
 **Total measurements:** 85
-**All CRDT laws passed:** ✅
-**Platform:** Linux-6.12.54-x86_64-with
+**All CRDT laws passed:** **Platform:** Linux-6.12.54-x86_64-with
 **Python:** 3.12.13
 **Version:** 0.8.0
 **Timestamp:** 2026-03-29T16:25:11.818651+00:00

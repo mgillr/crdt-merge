@@ -50,7 +50,7 @@
 | duckdb_merge | throughput | 233,463 rows/s |
 | duckdb_merge | time | 2.142s |
 
-## CRDT Law Verification: ✅ ALL PASSED
+## CRDT Law Verification: ALL PASSED
 
 ---
 
