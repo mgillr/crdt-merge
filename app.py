@@ -111,7 +111,7 @@ THEME = gr.themes.Base(
     neutral_hue=gr.themes.colors.zinc,
 )
 
-NAV_MD = """**[🏠 Flagship](https://huggingface.co/spaces/optitransfer/crdt-merge) · [🔬 Data Playground](https://huggingface.co/spaces/optitransfer/crdt-merge-data) · [🌐 Federation](https://huggingface.co/spaces/optitransfer/crdt-merge-federation) · [GitHub ↗](https://github.com/mgillr/crdt-merge) · [⭐ Star Repo](https://github.com/mgillr/crdt-merge/stargazers) · [👁️ Watch](https://github.com/mgillr/crdt-merge/subscription) · [📐 Architecture Deep Dive](https://github.com/mgillr/crdt-merge/tree/main/docs/architecture) · [PyPI ↗](https://pypi.org/project/crdt-merge/)**"""
+NAV_MD = """**[Flagship](https://huggingface.co/spaces/optitransfer/crdt-merge) · [Data Playground](https://huggingface.co/spaces/optitransfer/crdt-merge-data) · [Federation](https://huggingface.co/spaces/optitransfer/crdt-merge-federation) · [GitHub ↗](https://github.com/mgillr/crdt-merge) · [Star Repo](https://github.com/mgillr/crdt-merge/stargazers) · [️ Watch](https://github.com/mgillr/crdt-merge/subscription) · [Architecture Deep Dive](https://github.com/mgillr/crdt-merge/tree/main/docs/architecture) · [PyPI ↗](https://pypi.org/project/crdt-merge/)**"""
 
 HERO_MD = """
 # crdt-merge
@@ -228,7 +228,7 @@ def run_the_proof():
             crdt_gap = float(np.linalg.norm(
                 np.array(g1, dtype=np.float32) - np.array(g2, dtype=np.float32)
             ))
-            compliant = "COMPLIANT ✓" if crdt_gap < 1e-5 else "VIOLATION ✗"
+            compliant = "COMPLIANT " if crdt_gap < 1e-5 else "VIOLATION "
         except Exception as e:
             crdt_gap  = -1.0
             compliant = f"ERROR: {str(e)[:40]}"
@@ -410,10 +410,10 @@ def run_strategy_matrix():
         all_pass = comm_pass and assoc_pass and idem_pass
         rows.append({
             "Strategy":     strat,
-            "Commutative":  "✓ PASS" if comm_pass else ("✗ " + error_msg[:20]),
-            "Associative":  "✓ PASS" if assoc_pass else ("✗ " + error_msg[:20]),
-            "Idempotent":   "✓ PASS" if idem_pass else ("✗ " + error_msg[:20]),
-            "CRDT Status":  "✅ COMPLIANT" if all_pass else "❌ VIOLATION",
+            "Commutative":  "PASS" if comm_pass else ("" + error_msg[:20]),
+            "Associative":  "PASS" if assoc_pass else ("" + error_msg[:20]),
+            "Idempotent":   "PASS" if idem_pass else ("" + error_msg[:20]),
+            "CRDT Status":  "COMPLIANT" if all_pass else "VIOLATION",
             "Description":  description,
             "Comm Norm":    f"{comm_norm:.2e}"  if comm_norm >= 0 else "err",
             "Assoc Norm":   f"{assoc_norm:.2e}" if assoc_norm >= 0 else "err",
@@ -427,7 +427,7 @@ def run_strategy_matrix():
         x=[r["Strategy"] for r in rows],
         y=[1.0 for _ in rows],
         marker_color=["#16a34a" if "COMPLIANT" in r["CRDT Status"] else "#dc2626" for r in rows],
-        text=["✓ CRDT" if "COMPLIANT" in r["CRDT Status"] else "✗ FAIL" for r in rows],
+        text=["CRDT" if "COMPLIANT" in r["CRDT Status"] else "FAIL" for r in rows],
         textposition="inside",
         textfont=dict(color="#fff", size=10),
     )
@@ -904,7 +904,7 @@ def run_agentic_demo():
             "Fact Key":      key,
             "Value (Order 1)": v1,
             "Value (Order 2)": v2,
-            "Convergent":    "✅ SAME" if match else "❌ DIFFER",
+            "Convergent":    "SAME" if match else "DIFFER",
             "Winning Agent": (f1.source_agent if f1 else "?") + f" (conf={f1.confidence:.2f})" if f1 else "?",
         })
 
@@ -1272,10 +1272,10 @@ def run_merkle_wire_demo():
                 "state_with_4_contribs",
                 s1.state_hash[:24] + "...",
                 s2.state_hash[:24] + "...",
-                "✅ PASS" if match else "❌ FAIL",
+                "PASS" if match else "FAIL",
             ])
         except Exception as e:
-            rt_rows.append(["error", str(e)[:30], "", "❌ ERROR"])
+            rt_rows.append(["error", str(e)[:30], "", "ERROR"])
         break  # one round-trip check is enough
 
     # ── MerkleTree demo ───────────────────────────────────────────────────────
@@ -1316,7 +1316,7 @@ def run_merkle_wire_demo():
             ["node_B clock", str(vc_b.to_dict()["clocks"])],
             ["node_C clock", str(vc_c.to_dict()["clocks"])],
             ["merged clock", str(merged_vc.to_dict()["clocks"])],
-            ["Merged = max per-node", "✅ merge(A,B,C) = {node_A:2, node_B:3, node_C:1}"],
+            ["Merged = max per-node", "merge(A,B,C) = {node_A:2, node_B:3, node_C:1}"],
         ]
     except Exception as e:
         vc_rows = [["error", str(e)]]
@@ -1944,13 +1944,13 @@ The merge process is covered under BUSL-1.1 (converts to Apache 2.0 on 2028-03-2
     family_b = _get_model_family(source_b_label) if 'source_b_label' in dir() else None
     compat_note = ""
     if family_a and family_b and family_a == family_b:
-        compat_note = f"✅ Both models from **{family_a}** family — full layer compatibility"
+        compat_note = f"Both models from **{family_a}** family — full layer compatibility"
     elif family_a and family_b and family_a != family_b:
-        compat_note = f"⚠️ Cross-family merge ({family_a} × {family_b}) — some layers may be skipped"
+        compat_note = f"️ Cross-family merge ({family_a} × {family_b}) — some layers may be skipped"
     elif len(skipped) > len(compatible):
-        compat_note = "⚠️ High skip rate — models may be from different architectures"
+        compat_note = "️ High skip rate — models may be from different architectures"
 
-    summary = f"""## ✅ Merge Complete
+    summary = f"""## Merge Complete
 
 | Metric | Value |
 |--------|-------|
@@ -1964,7 +1964,7 @@ The merge process is covered under BUSL-1.1 (converts to Apache 2.0 on 2028-03-2
 
 {compat_note}
 
-### 📊 Performance Analytics
+### Performance Analytics
 
 | Metric | Value |
 |--------|-------|
@@ -1972,7 +1972,7 @@ The merge process is covered under BUSL-1.1 (converts to Apache 2.0 on 2028-03-2
 | **Throughput** | {throughput:,.0f} params/sec |
 | **Avg conflict score** | {avg_conflict:.4f} |
 
-### 🔬 Model Similarity Analysis
+### Model Similarity Analysis
 
 | Metric | Value |
 |--------|-------|
@@ -1981,7 +1981,7 @@ The merge process is covered under BUSL-1.1 (converts to Apache 2.0 on 2028-03-2
 | **Max cosine similarity** | {max_cosine:.4f} |
 | **Interpretation** | {"High agreement — models are closely related" if avg_cosine > 0.8 else "Significant divergence — models learned different representations" if avg_cosine > 0.5 else "Low similarity — very different model specializations"} |
 
-### 📈 Merged Weight Distribution
+### Merged Weight Distribution
 
 | Statistic | Value |
 |-----------|-------|
@@ -1990,7 +1990,7 @@ The merge process is covered under BUSL-1.1 (converts to Apache 2.0 on 2028-03-2
 | **Range** | [{weight_min:.4f}, {weight_max:.4f}] |
 | **Health** | {"✅ Normal" if abs(weight_mean) < 10 and weight_std < 100 else "⚠️ Check for numerical issues"} |
 
-### 🔐 CRDT Verification
+### CRDT Verification
 
 | Property | Status |
 |----------|--------|
@@ -1998,7 +1998,7 @@ The merge process is covered under BUSL-1.1 (converts to Apache 2.0 on 2028-03-2
 | **NaN check** | {"✅ Clean" if not any(np.isnan(v).any() for v in list(merged_weights.values())[:20]) else "❌ NaN detected"} |
 | **Inf check** | {"✅ Clean" if not any(np.isinf(v).any() for v in list(merged_weights.values())[:20]) else "❌ Inf detected"} |
 
-### 📥 Downloads Available Below
+### Downloads Available Below
 - **Merged Model (.npz)** — Load with `np.load()`, compatible with any ML framework
 - **Audit Trail (.json)** — Full provenance, hashes, and compliance report
 - **Model Card (.md)** — Ready to upload to HuggingFace Hub
@@ -2104,8 +2104,8 @@ the erased contributor *never participated* — satisfying GDPR Art. 17's "right
 """
         summary_md = erasure_md
 
-    elif action == "📋 Generate Compliance Report":
-        summary_md = f"""### 📋 Compliance Report — crdt-merge v0.9.4
+    elif action == "Generate Compliance Report":
+        summary_md = f"""### Compliance Report — crdt-merge v0.9.4
 
 **Generated:** {time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())}
 **Patent:** UK Application No. 2607132.4
@@ -2158,7 +2158,7 @@ For production use, verify against your specific regulatory requirements.*
 """
 
     else:  # Full Audit Trail
-        summary_md = f"""### 🔍 Audit Trail — Full Merge Provenance
+        summary_md = f"""### Audit Trail — Full Merge Provenance
 
 **Merge of {len(contributors)} contributors:** {', '.join(f'`{c}`' for c in contributors)}
 
@@ -2216,19 +2216,19 @@ from itertools import permutations as _perms
 COMPARISON_DATA = {
     "features": [
         ["Merge Strategies", "26 (all CRDT-compliant)", "~8 (no convergence guarantee)", "1 (weighted average)"],
-        ["Commutativity", "✅ Proven (all strategies)", "❌ Not guaranteed", "❌ Order-dependent"],
-        ["Associativity", "✅ Proven (all strategies)", "❌ Not guaranteed", "⚠️ Empirical only"],
-        ["Idempotency", "✅ Proven (all strategies)", "❌ Not guaranteed", "❌ Not addressed"],
-        ["Deterministic Result", "✅ Always (any merge order)", "❌ Varies with order", "❌ Varies with client selection"],
-        ["Audit Trail", "✅ Built-in provenance chain", "❌ None", "❌ None"],
-        ["GDPR Compliance", "✅ Art. 17 erasure built-in", "❌ No support", "❌ No support"],
-        ["HIPAA / SOX", "✅ Field-level encryption + RBAC", "❌ No support", "❌ No support"],
+        ["Commutativity", "Proven (all strategies)", "Not guaranteed", "Order-dependent"],
+        ["Associativity", "Proven (all strategies)", "Not guaranteed", "️ Empirical only"],
+        ["Idempotency", "Proven (all strategies)", "Not guaranteed", "Not addressed"],
+        ["Deterministic Result", "Always (any merge order)", "Varies with order", "Varies with client selection"],
+        ["Audit Trail", "Built-in provenance chain", "None", "None"],
+        ["GDPR Compliance", "Art. 17 erasure built-in", "No support", "No support"],
+        ["HIPAA / SOX", "Field-level encryption + RBAC", "No support", "No support"],
         ["Architecture", "Decentralized (gossip/P2P)", "Client-side only", "Centralized (parameter server)"],
-        ["Network Partitions", "✅ Handles gracefully", "N/A (not distributed)", "❌ Requires coordinator"],
-        ["Transport Layer", "✅ Wire protocol + Merkle sync", "❌ None", "⚠️ gRPC (centralized)"],
+        ["Network Partitions", "Handles gracefully", "N/A (not distributed)", "Requires coordinator"],
+        ["Transport Layer", "Wire protocol + Merkle sync", "None", "️ gRPC (centralized)"],
         ["Dependencies (core)", "Zero", "PyTorch, safetensors", "PyTorch, gRPC, NumPy"],
-        ["LoRA Support", "✅ Rank harmonization", "✅ Basic support", "❌ Not native"],
-        ["MergeQL (query DSL)", "✅ SQL-like merge queries", "❌ None", "❌ None"],
+        ["LoRA Support", "Rank harmonization", "Basic support", "Not native"],
+        ["MergeQL (query DSL)", "SQL-like merge queries", "None", "None"],
         ["License", "BUSL-1.1 → Apache 2.0 (2028)", "Apache 2.0", "Apache 2.0"],
     ]
 }
@@ -2522,7 +2522,7 @@ with gr.Blocks(theme=THEME, css=CSS, title="crdt-merge — Deterministic Model M
 
 
         # ═══════════════════════════════════════════════════════════════════════
-        # TAB 0 — 🤗 MODEL MERGE LAB (Real HuggingFace Models)
+        # TAB 0 — MODEL MERGE LAB (Real HuggingFace Models)
         # ═══════════════════════════════════════════════════════════════════════
         with gr.Tab("🤗 Model Merge Lab"):
             gr.Markdown("""## 🤗 Real Model Merge Lab
@@ -2540,15 +2540,15 @@ The merged model is downloadable as `.npz` (load with `np.load()` in any framewo
                     gr.Markdown("### Model A")
                     lab_model_a = gr.Dropdown(
                         choices=[
-                            ("🟢 MiniLM-L6-v2 — Semantic Search (22M)", "sentence-transformers/all-MiniLM-L6-v2"),
-                            ("🟢 MiniLM-L6-v2 — Paraphrase (22M)", "sentence-transformers/paraphrase-MiniLM-L6-v2"),
-                            ("🟢 MiniLM-L6-v1 — Semantic Search (22M)", "sentence-transformers/all-MiniLM-L6-v1"),
-                            ("🟡 Pythia-70m (70M)", "EleutherAI/pythia-70m"),
-                            ("🟡 Pythia-160m (160M)", "EleutherAI/pythia-160m"),
-                            ("🟠 BERT Base Uncased (110M)", "google-bert/bert-base-uncased"),
-                            ("🟠 BERT Base Cased (110M)", "google-bert/bert-base-cased"),
-                            ("🟡 DistilBERT Uncased (66M)", "distilbert/distilbert-base-uncased"),
-                            ("🟡 DistilBERT Cased (66M)", "distilbert/distilbert-base-cased"),
+                            ("MiniLM-L6-v2 — Semantic Search (22M)", "sentence-transformers/all-MiniLM-L6-v2"),
+                            ("MiniLM-L6-v2 — Paraphrase (22M)", "sentence-transformers/paraphrase-MiniLM-L6-v2"),
+                            ("MiniLM-L6-v1 — Semantic Search (22M)", "sentence-transformers/all-MiniLM-L6-v1"),
+                            ("Pythia-70m (70M)", "EleutherAI/pythia-70m"),
+                            ("Pythia-160m (160M)", "EleutherAI/pythia-160m"),
+                            ("BERT Base Uncased (110M)", "google-bert/bert-base-uncased"),
+                            ("BERT Base Cased (110M)", "google-bert/bert-base-cased"),
+                            ("DistilBERT Uncased (66M)", "distilbert/distilbert-base-uncased"),
+                            ("DistilBERT Cased (66M)", "distilbert/distilbert-base-cased"),
                         ],
                         value="sentence-transformers/all-MiniLM-L6-v2",
                         label="Select Model A",
@@ -2569,15 +2569,15 @@ The merged model is downloadable as `.npz` (load with `np.load()` in any framewo
                     gr.Markdown("### Model B")
                     lab_model_b = gr.Dropdown(
                         choices=[
-                            ("🟢 MiniLM-L6-v2 — Semantic Search (22M)", "sentence-transformers/all-MiniLM-L6-v2"),
-                            ("🟢 MiniLM-L6-v2 — Paraphrase (22M)", "sentence-transformers/paraphrase-MiniLM-L6-v2"),
-                            ("🟢 MiniLM-L6-v1 — Semantic Search (22M)", "sentence-transformers/all-MiniLM-L6-v1"),
-                            ("🟡 Pythia-70m (70M)", "EleutherAI/pythia-70m"),
-                            ("🟡 Pythia-160m (160M)", "EleutherAI/pythia-160m"),
-                            ("🟠 BERT Base Uncased (110M)", "google-bert/bert-base-uncased"),
-                            ("🟠 BERT Base Cased (110M)", "google-bert/bert-base-cased"),
-                            ("🟡 DistilBERT Uncased (66M)", "distilbert/distilbert-base-uncased"),
-                            ("🟡 DistilBERT Cased (66M)", "distilbert/distilbert-base-cased"),
+                            ("MiniLM-L6-v2 — Semantic Search (22M)", "sentence-transformers/all-MiniLM-L6-v2"),
+                            ("MiniLM-L6-v2 — Paraphrase (22M)", "sentence-transformers/paraphrase-MiniLM-L6-v2"),
+                            ("MiniLM-L6-v1 — Semantic Search (22M)", "sentence-transformers/all-MiniLM-L6-v1"),
+                            ("Pythia-70m (70M)", "EleutherAI/pythia-70m"),
+                            ("Pythia-160m (160M)", "EleutherAI/pythia-160m"),
+                            ("BERT Base Uncased (110M)", "google-bert/bert-base-uncased"),
+                            ("BERT Base Cased (110M)", "google-bert/bert-base-cased"),
+                            ("DistilBERT Uncased (66M)", "distilbert/distilbert-base-uncased"),
+                            ("DistilBERT Cased (66M)", "distilbert/distilbert-base-cased"),
                         ],
                         value="sentence-transformers/paraphrase-MiniLM-L6-v2",
                         label="Select Model B",
@@ -2606,7 +2606,7 @@ The merged model is downloadable as `.npz` (load with `np.load()` in any framewo
                     label="Model A Weight (B = 1 − A)",
                     scale=1,
                 )
-                lab_merge_btn = gr.Button("🔀  Merge Models", variant="primary", scale=1)
+                lab_merge_btn = gr.Button(" Merge Models", variant="primary", scale=1)
 
             lab_summary = gr.Markdown()
             lab_heatmap = gr.Plot(label="Weight Heatmap — Model A | Model B | Merged")
@@ -2615,11 +2615,11 @@ The merged model is downloadable as `.npz` (load with `np.load()` in any framewo
                 label="Per-Layer Provenance & Analysis",
             )
 
-            gr.Markdown("### 📥 Download Merged Artifacts")
+            gr.Markdown("### Download Merged Artifacts")
             with gr.Row():
-                lab_dl_model = gr.File(label="📦 Merged Model (.npz)", interactive=False)
-                lab_dl_audit = gr.File(label="📋 Audit Trail (.json)", interactive=False)
-                lab_dl_card  = gr.File(label="📄 Model Card (.md)", interactive=False)
+                lab_dl_model = gr.File(label="Merged Model (.npz)", interactive=False)
+                lab_dl_audit = gr.File(label="Audit Trail (.json)", interactive=False)
+                lab_dl_card  = gr.File(label="Model Card (.md)", interactive=False)
 
             def _run_lab(ma, mb, ca, cb, strat, w, ua, ub):
                 summary, heatmap, prov, model_path, audit_path, card_path = run_model_merge_lab(
@@ -2917,7 +2917,7 @@ Click **Run Live Benchmark** to see the proof, or scroll down for the feature co
 
             # ── MergeQL ───────────────────────────────────────────────────────
             with gr.Accordion("🔍 MergeQL — SQL-Like Distributed Merge", open=False):
-                gr.Markdown("""Express CRDT merges as SQL statements. `MergeQL` compiles to `CRDTMergeState` operations under the hood.
+                gr.Markdown("""Express CRDT merges as SQL statements. `MergeQL` compiles to `CRDTMergeState` operations internally.
 
 **How to read MergeQL results:**
 - **Result Table:** The merged output rows after executing your query. Conflicts between overlapping records are auto-resolved by the specified strategy (default: LWW).
@@ -3071,7 +3071,7 @@ crdt-merge is the **only model merging library** with built-in compliance capabi
 
         with gr.Tab("🚀 Partner With Us"):
             gr.Markdown("""
-# 🚀 The Open Invitation: Let's Build What Nobody Else Can
+# The Open Invitation: Let's Build What Nobody Else Can
 
 <center>
 <h2 style="color: #FF6B35; font-size: 1.6em;">crdt-merge is the first mathematically proven convergent merge system<br/>for models, data, and agents. It exists. It works. The question is: who builds with it first?</h2>
@@ -3081,7 +3081,7 @@ crdt-merge is the **only model merging library** with built-in compliance capabi
 
 ---
 
-## 🔥 The State of Play: A Problem Hiding in Plain Sight
+## The State of Play: A Problem Hiding in Plain Sight
 
 Every major AI system today has the same dirty secret: **merging is ad-hoc**. Fine-tuned variants are averaged and hoped for the best. Federated models rely on central coordinators that become single points of failure. Agent memories are siloed. Data reconciliation is manual.
 
@@ -3100,7 +3100,7 @@ crdt-merge solves it with mathematics — not heuristics, not hope.
 
 ---
 
-## 🧠 The Competitive Landscape — And Where You Sit
+## The Competitive Landscape — And Where You Sit
 
 > *The organizations that integrate convergent merging first will define the next era. The rest will license it from them.*
 
@@ -3128,7 +3128,7 @@ crdt-merge solves it with mathematics — not heuristics, not hope.
 
 ---
 
-## 🎓 The Researchers Who Laid the Groundwork — And What Comes Next
+## The Researchers Who Laid the Groundwork — And What Comes Next
 
 The science beneath crdt-merge didn't appear from nowhere. It stands on the shoulders of specific, brilliant work. We've built the bridge between these research threads — and we'd love the architects to walk across it.
 
@@ -3235,7 +3235,7 @@ Your work on model compression and the "Lottery Ticket Hypothesis" explores what
 
 ---
 
-## 🧠 Foundation Model Labs — The Models Are Yours. The Merge Layer Is Missing.
+## Foundation Model Labs — The Models Are Yours. The Merge Layer Is Missing.
 
 ### [@openai](https://github.com/openai) — [@sama](https://github.com/sama) · [@gdb](https://github.com/gdb) · [@maboroshi](https://github.com/jasonwei20)
 Enterprise customers fine-tune GPT for legal, medical, finance. They ask: *"Can we merge our domain models?"* Today the answer is manual averaging. **With crdt-merge: `gpt.merge(legal_variant, medical_variant, strategy="dare_ties")` — convergent, auditable, compliant.** Your enterprise tier needs this. Your competitors will offer it if you don't build it first.
@@ -3265,11 +3265,11 @@ Stable Diffusion's community produces thousands of LoRA fine-tunes. crdt-merge e
 Yi's community is exploding with fine-tunes across languages and domains. crdt-merge enables **permissionless model evolution** where community contributions merge convergently. First-mover advantage in Chinese-language convergent merging.
 
 ### [@AlephAlpha](https://github.com/Aleph-Alpha) — Jonas Andrulis
-European AI sovereignty requires **EU-hosted, convergent model merging** with EU AI Act compliance. crdt-merge is the only system that offers this out of the box. Aleph Alpha + crdt-merge = the sovereign AI stack Europe is looking for.
+European AI sovereignty requires **EU-hosted, convergent model merging** with EU AI Act compliance. crdt-merge is the only system that offers this by default. Aleph Alpha + crdt-merge = the sovereign AI stack Europe is looking for.
 
 ---
 
-## 🤖 Agent Framework Builders — Your Agents Have Amnesia. We Have the Cure.
+## Agent Framework Builders — Your Agents Have Amnesia. We Have the Cure.
 
 Every agent framework today stores memory in isolated silos. When agents collaborate, they don't truly share knowledge — they pass messages. **crdt-merge enables convergent shared memory**: agents merge their learned state, observations, and beliefs with mathematical guarantees.
 
@@ -3296,7 +3296,7 @@ DSPy optimizes prompts and weights programmatically. crdt-merge optimizes **how 
 
 ---
 
-## ⚙️ MLOps & Infrastructure — The Merge Primitive Belongs in Your Stack
+## ️ MLOps & Infrastructure — The Merge Primitive Belongs in Your Stack
 
 ### [@huggingface](https://github.com/huggingface) · [@julien-c](https://github.com/julien-c) · [@Narsil](https://github.com/Narsil) · [@claboroshi](https://github.com/clefourrier)
 The Hub hosts 500K+ models. Thousands are fine-tune variants of the same base. **"Merge these two models" should be a Hub button**, not a manual process. `huggingface_hub.merge(model_a, model_b, strategy="slerp", verify_convergence=True)`. You're already the home of model merging culture (Open LLM Leaderboard). crdt-merge makes it **production-grade**.
@@ -3330,7 +3330,7 @@ W&B tracks experiments. crdt-merge tracks **convergent merges**. Every merge log
 
 ---
 
-## 🌐 Distributed Systems & Databases — Convergence Is Your Missing Primitive
+## Distributed Systems & Databases — Convergence Is Your Missing Primitive
 
 > *You've solved consensus. You've solved replication. You've solved sharding. But you haven't solved **model merging across distributed nodes**. Every database that replicates data could replicate **trained models**. Every conflict resolution system could resolve **parameter conflicts**. crdt-merge is the bridge between your infrastructure and the AI era.*
 
@@ -3407,7 +3407,7 @@ W&B tracks experiments. crdt-merge tracks **convergent merges**. Every merge log
 
 ---
 
-## 📱 Edge, On-Device & Hardware — Convergence Without Connectivity
+## Edge, On-Device & Hardware — Convergence Without Connectivity
 
 ### [@qualcomm](https://github.com/qualcomm) · Cristiano Amon
 3B+ Snapdragon devices running on-device AI. Models fine-tune locally for personalization. **crdt-merge enables peer-to-peer model sync between devices** — convergent personalization without cloud dependency. WiFi Direct, Bluetooth mesh, or intermittent connectivity — the math works on any transport.
@@ -3432,7 +3432,7 @@ ARM's AI ecosystem spans phones to servers. crdt-merge optimized for NEON/SVE = 
 
 ---
 
-## 🚗 Autonomous Systems & Robotics — Safety-Critical Convergence
+## Autonomous Systems & Robotics — Safety-Critical Convergence
 
 ### Tesla · [@karpathy](https://github.com/karpathy) · Elon Musk
 Millions of vehicles learning from different driving conditions. crdt-merge enables **fleet learning without a central server** — vehicles merge driving models peer-to-peer at charging stations. Convergence guaranteed. Audit trail for NHTSA. The FSD training pipeline that doesn't need Dojo as a single point of failure.
@@ -3451,25 +3451,25 @@ Offline RL and real-world robot learning produce models across diverse environme
 
 ---
 
-## 📡 Telecommunications — Edge AI at Network Scale
+## Telecommunications — Edge AI at Network Scale
 
 ### Ericsson · [@Ericsson](https://github.com/Ericsson) · Nokia · [@nokia](https://github.com/nokia) · Vodafone · [@Vodafone](https://github.com/Vodafone)
 5G edge nodes running AI workloads. crdt-merge enables **convergent model sync across cell towers** — each tower's model learns local traffic patterns, converges network-wide via gossip. No central orchestrator. The self-organizing network, realized. Vodafone's pan-European operations get **GDPR-compliant convergent merging** across national boundaries — models merge, data stays sovereign.
 
 ---
 
-## 🛡️ Defense & Sovereign AI — Convergence in Contested Environments
+## ️ Defense & Sovereign AI — Convergence in Contested Environments
 
 ### DARPA · NATO ACT · Five Eyes Alliance
 Tactical edge AI with classification constraints. crdt-merge enables **convergent model merging across security boundaries** — field-level encryption ensures need-to-know. Models converge, secrets don't leak. In contested environments, **no coordinator means no single point of failure to target**. Coalition AI interoperability with per-nation data sovereignty. crdt-merge's cryptographic `remove()` and audit trails satisfy the most demanding operational requirements.
 
 ---
 
-## 🏭 Industry Verticals — Every Sector. Every Use Case. One Primitive.
+## Industry Verticals — Every Sector. Every Use Case. One Primitive.
 
 > *If your industry uses AI models, your industry has the merge problem. The only question is whether you solve it with mathematics or with hope.*
 
-### 🏥 Healthcare & Life Sciences
+### Healthcare & Life Sciences
 | Who | What crdt-merge Adds |
 |:-|:-|
 | **Epic Systems** · **Cerner** (Oracle) | Merge hospital AI models across facilities — **provable HIPAA compliance** for every merge operation |
@@ -3477,7 +3477,7 @@ Tactical edge AI with classification constraints. crdt-merge enables **convergen
 | **Tempus** · [@EricLefkofsky](https://github.com/EricLefkofsky) | Cancer genomics AI across institutions — convergent precision medicine models |
 | **Isomorphic Labs** (DeepMind) | AlphaFold + convergent protein model merging across research labs |
 
-### 💰 Financial Services
+### Financial Services
 | Who | What crdt-merge Adds |
 |:-|:-|
 | **JPMorgan** · [@jpmorganchase](https://github.com/jpmorganchase) | **SOX-compliant model merging** — every merge auditable, every strategy verified |
@@ -3487,49 +3487,49 @@ Tactical edge AI with classification constraints. crdt-merge enables **convergen
 | **Stripe** · [@stripe](https://github.com/stripe) · **Plaid** · [@plaid](https://github.com/plaid) | Fraud detection model merging — convergent across payment channels and institutions |
 | **Swiss Re** · **Munich Re** · **AXA** | Actuarial model convergence across business lines and geographies |
 
-### ⚡ Energy & Climate
+### Energy & Climate
 | Who | What crdt-merge Adds |
 |:-|:-|
 | **Shell** · **BP** · **TotalEnergies** · **Equinor** | Cross-site predictive maintenance — convergent equipment models across global operations |
 | **Siemens Energy** · [@siemens](https://github.com/siemens) | Turbine fleet AI — convergent optimization across thousands of installations |
 | **Tesla Energy** · **Enphase** | Grid-scale battery optimization — convergent models across distributed storage |
 
-### 🏭 Manufacturing & Industry 4.0
+### Manufacturing & Industry 4.0
 | Who | What crdt-merge Adds |
 |:-|:-|
 | **Siemens** · **Bosch** · [@bosch-ai](https://github.com/bosch-ai) | Digital twin convergence — merge factory models across global manufacturing sites |
 | **FANUC** · **KUKA** · **ABB** | Robot arm skill merging — convergent learned behaviors across production lines |
 | **John Deere** · [@JohnDeere](https://github.com/JohnDeere) · **Caterpillar** | Precision agriculture & heavy equipment — convergent fleet learning |
 
-### 🛒 Retail & E-commerce
+### Retail & E-commerce
 | Who | What crdt-merge Adds |
 |:-|:-|
 | **Amazon** · [@aws](https://github.com/aws) | SageMaker + crdt-merge = **convergent model composition as a managed service** |
 | **Shopify** · [@Shopify](https://github.com/Shopify) | Merchant AI models — convergent across 4M+ shops |
 | **Walmart** · **Target** | Supply chain optimization — convergent demand models across distribution network |
 
-### 🎮 Gaming & Entertainment
+### Gaming & Entertainment
 | Who | What crdt-merge Adds |
 |:-|:-|
 | **Unity** · [@Unity-Technologies](https://github.com/Unity-Technologies) | ML-Agents convergence — merge NPC behaviors across game instances |
 | **Epic Games** · **Roblox** · [@Roblox](https://github.com/Roblox) | Live multiplayer AI — convergent NPC learning across millions of concurrent players |
 | **Spotify** · [@spotify](https://github.com/spotify) · **Netflix** · [@Netflix](https://github.com/Netflix) | Recommendation model convergence across 600M+ users, regions, and content types |
 
-### ⚖️ Legal & Professional Services
+### ️ Legal & Professional Services
 | Who | What crdt-merge Adds |
 |:-|:-|
 | **Thomson Reuters** (Westlaw AI) · **LexisNexis** | Legal research model merging — convergent across jurisdictions and practice areas |
 | **Harvey AI** | Legal AI fine-tuned per firm — merge expertise without sharing client data |
 | **McKinsey** · **BCG** · **Deloitte** | Consulting AI — convergent knowledge models across global engagements |
 
-### 🎓 Education
+### Education
 | Who | What crdt-merge Adds |
 |:-|:-|
 | **Khan Academy** · [@Khan](https://github.com/Khan) | Khanmigo AI tutoring — convergent pedagogical models across subjects |
 | **Duolingo** · [@duolingo](https://github.com/duolingo) | Language model convergence across 40+ languages |
 | **Coursera** · [@coursera](https://github.com/coursera) | Adaptive learning — convergent student models across courses |
 
-### 🔐 Cybersecurity
+### Cybersecurity
 | Who | What crdt-merge Adds |
 |:-|:-|
 | **CrowdStrike** · [@CrowdStrike](https://github.com/CrowdStrike) | Threat detection — convergent models across endpoints globally, no central target |
@@ -3538,7 +3538,7 @@ Tactical edge AI with classification constraints. crdt-merge enables **convergen
 
 ---
 
-## 🌍 International AI Initiatives — Sovereign Convergence
+## International AI Initiatives — Sovereign Convergence
 
 | Initiative | What crdt-merge Enables |
 |:-|:-|
@@ -3552,7 +3552,7 @@ Tactical edge AI with classification constraints. crdt-merge enables **convergen
 
 ---
 
-## 📊 The Arithmetic
+## The Arithmetic
 
 <center>
 
@@ -3572,7 +3572,7 @@ Tactical edge AI with classification constraints. crdt-merge enables **convergen
 
 ---
 
-## 💬 The Invitation
+## The Invitation
 
 <center>
 <div style="font-size: 1.3em; line-height: 2;">
@@ -3607,7 +3607,7 @@ Tactical edge AI with classification constraints. crdt-merge enables **convergen
 
 <br/>
 
-### 🌟 300+ organizations. 150+ individuals. 18 verticals. 7 distributed systems categories. One unsolved problem. One mathematical solution.
+### 300+ organizations. 150+ individuals. 18 verticals. 7 distributed systems categories. One unsolved problem. One mathematical solution.
 
 *The merge problem is universal. The solution is convergent. The question is: who builds with it first?*
 
@@ -3618,7 +3618,7 @@ Tactical edge AI with classification constraints. crdt-merge enables **convergen
 **[⭐ Star](https://github.com/mgillr/crdt-merge/stargazers)** · **[👁️ Watch](https://github.com/mgillr/crdt-merge/subscription)** · **[💬 Discuss](https://github.com/mgillr/crdt-merge/discussions)** · **[📖 Docs](https://github.com/mgillr/crdt-merge/tree/main/docs)** · **[📐 Architecture](https://github.com/mgillr/crdt-merge/tree/main/docs/architecture)** · **[🚀 Demo](https://huggingface.co/spaces/optitransfer/crdt-merge)**
 """)
 
-        with gr.Tab("📚 Use Cases & Guides"):
+        with gr.Tab("Use Cases & Guides"):
             gr.Markdown("""
 ## Why crdt-merge Is Novel & Disruptive
 
@@ -3637,12 +3637,12 @@ No other framework provides all three of these guarantees:
 1. **No Parameter Server** — Federated model merging without a central coordinator. Teams merge fine-tuned models peer-to-peer with mathematically guaranteed convergence.
 2. **26 Merge Strategies** — From simple weighted average to DARE-TIES, Fisher-weighted, and novel spectral methods like STAR and SVD Knot Tying — all wrapped in CRDT-compliant OR-Set semantics.
 3. **Cross-Domain Unification** — The same `merge()` primitive works for DataFrames, ML tensors, agent memory, and knowledge graphs. One theory, one API.
-4. **Provenance & Compliance Built In** — Every merge is auditable, reversible (via CRDT `remove()`), and GDPR/HIPAA/SOX/EU AI Act compliant out of the box.
+4. **Provenance & Compliance Built In** — Every merge is auditable, reversible (via CRDT `remove()`), and GDPR/HIPAA/SOX/EU AI Act compliant by default.
 5. **Patent Pending (UK 2607132.4)** — The mathematical framework for deterministic model merging via CRDTs is a genuine invention, not incremental improvement.
 
 ---
 
-## 🧠 AI & ML Model Merging
+## AI & ML Model Merging
 
 > *Merge fine-tuned models from independent teams — no central server, guaranteed convergence.*
 
@@ -3656,7 +3656,7 @@ No other framework provides all three of these guarantees:
 
 ---
 
-## 📊 Data & Records
+## Data & Records
 
 > *Merge distributed DataFrames, resolve conflicts deterministically, query merged data with SQL.*
 
@@ -3673,7 +3673,7 @@ No other framework provides all three of these guarantees:
 
 ---
 
-## 🌐 Transport & Sync
+## Transport & Sync
 
 > *Move states between nodes efficiently — gossip, delta sync, Merkle verification.*
 
@@ -3685,7 +3685,7 @@ No other framework provides all three of these guarantees:
 
 ---
 
-## 🤖 Agentic & Context
+## Agentic & Context
 
 > *Multi-agent AI systems with convergent shared memory — no message ordering required.*
 
@@ -3696,7 +3696,7 @@ No other framework provides all three of these guarantees:
 
 ---
 
-## 🔒 Privacy, Provenance & Compliance
+## Privacy, Provenance & Compliance
 
 > *Every merge is auditable, reversible, and regulation-compliant.*
 
@@ -3711,7 +3711,7 @@ No other framework provides all three of these guarantees:
 
 ---
 
-## 🏗️ Architecture & Research
+## ️ Architecture & Research
 
 | Resource | Link | Description |
 |----------|------|-------------|
@@ -3725,7 +3725,7 @@ No other framework provides all three of these guarantees:
 
 ---
 
-## 🎓 Learning Path
+## Learning Path
 
 | Step | What | Time |
 |------|------|------|
