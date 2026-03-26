@@ -12,6 +12,7 @@ Tabular data. Neural network weights. Distributed agents. One unified CRDT layer
 [![Tests](https://img.shields.io/badge/tests-4%2C498%20passing-brightgreen)](TEST_RESULTS.md)
 [![CRDT Compliance](https://img.shields.io/badge/CRDT%20compliance-26%2F26%20strategies-blue)](docs/CRDT_ARCHITECTURE.md)
 [![License: BSL 1.1](https://img.shields.io/badge/license-BSL%201.1%20%E2%86%92%20Apache%202.0-orange)](LICENSE)
+[![📄 Research Paper](https://img.shields.io/badge/📄%20Research-Paper-red)](paper/CRDT_Merge_ArXiv.pdf)
 
 [![🤗 Live Demo](https://img.shields.io/badge/%F0%9F%A4%97%20Live%20Demo-crdt--merge-yellow)](https://huggingface.co/spaces/optitransfer/crdt-merge)
 [![🤗 Data Merge](https://img.shields.io/badge/%F0%9F%A4%97%20Data%20Merge-crdt--merge--data-yellow)](https://huggingface.co/spaces/optitransfer/crdt-merge-data)
@@ -25,6 +26,12 @@ pip install crdt-merge
 **[Documentation](docs/README.md)** · **[Quick Start](docs/getting-started/quickstart.md)** · **[API Reference](docs/api-reference/README.md)** · **[Architecture](docs/CRDT_ARCHITECTURE.md)** · **[Changelog](CHANGELOG.md)**
 
 </div>
+
+---
+
+> 📄 **Research Paper** — *Conflict-Free Replicated Data Types for Neural Network Model Merging*
+> We prove that 25/26 merge strategies are structurally incompatible with CRDTs, then present the two-layer architecture that fixes all 26.
+> **[Read the paper →](paper/CRDT_Merge_ArXiv.pdf)** · **[LaTeX source](paper/)**
 
 ---
 
@@ -164,7 +171,7 @@ Copyright 2026 Ryan Gillespie. Commercial licensing: rgillespie83@icloud.com · 
 
 <div align="center">
 
-**[Documentation](docs/README.md)** · **[Architecture](docs/CRDT_ARCHITECTURE.md)** · **[API Reference](docs/api-reference/README.md)** · **[Guides](docs/guides/README.md)** · **[Changelog](CHANGELOG.md)** · **[License](LICENSE)**
+**[Documentation](docs/README.md)** · **[Architecture](docs/CRDT_ARCHITECTURE.md)** · **[API Reference](docs/api-reference/README.md)** · **[Research Paper](paper/)** · **[Guides](docs/guides/README.md)** · **[Changelog](CHANGELOG.md)** · **[License](LICENSE)**
 
 *Built by [Ryan Gillespie / Optitransfer](https://optitransfer.ch)*
 
