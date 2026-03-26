@@ -181,7 +181,7 @@ class TestAES256GCMBackend:
         assert self.backend.decrypt(self.key, ct, nonce, tag) == pt
 
     def test_unicode_plaintext(self):
-        pt = "café ☕ 日本語 ".encode("utf-8")
+        pt = "café 日本語 ".encode("utf-8")
         ct, nonce, tag = self.backend.encrypt(self.key, pt)
         assert self.backend.decrypt(self.key, ct, nonce, tag) == pt
 

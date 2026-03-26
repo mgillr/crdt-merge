@@ -514,9 +514,9 @@ def main():
     
     # VALIDATION GATE
     if total_inherited_methods == 0 and total_runtime_only == 0 and imported_count > 5:
-        print("\n  ⚠️  WARNING: Zero runtime-only symbols detected!")
-        print("  ⚠️  This likely means runtime inspection failed or package couldn't import.")
-        print("  ⚠️  GDEPA analysis may be INCOMPLETE.")
+        print("\n  ️  WARNING: Zero runtime-only symbols detected!")
+        print("  ️  This likely means runtime inspection failed or package couldn't import.")
+        print("  ️  GDEPA analysis may be INCOMPLETE.")
     
     # ---- Phase 5: Cross-reference with documentation ----
     print("\n[Phase 5] Cross-referencing with documentation...")
@@ -610,7 +610,7 @@ def main():
     print("\n" + "=" * 70)
     print("GDEPA ANALYSIS COMPLETE")
     print("=" * 70)
-    print(f"\n  📊 Key Metrics:")
+    print(f"\n  Key Metrics:")
     print(f"     Modules analyzed: {len(all_modules)}")
     print(f"     Successfully imported: {imported_count}")
     print(f"     Import graph edges: {total_edges}")
@@ -621,9 +621,9 @@ def main():
     print(f"     Undocumented inherited: {len(undocumented)}")
     
     if report['validation']['analysis_complete']:
-        print(f"\n  ✅ VALIDATION: Analysis complete (runtime symbols found)")
+        print(f"\n  VALIDATION: Analysis complete (runtime symbols found)")
     else:
-        print(f"\n  ❌ VALIDATION: Analysis may be INCOMPLETE")
+        print(f"\n  VALIDATION: Analysis may be INCOMPLETE")
         if imported_count == 0:
             print(f"     → No modules could be imported — check dependencies")
         if total_runtime_only == 0 and total_inherited_methods == 0:

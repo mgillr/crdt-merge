@@ -72,7 +72,7 @@ class TestRoundTrip:
             [],
             {"nested": "dict", "num": 99},
             {},
-            "café ☕ 日本語",
+            "café 日本語",
             "a" * 10000,
         ],
         ids=[

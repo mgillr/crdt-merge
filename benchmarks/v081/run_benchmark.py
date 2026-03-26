@@ -109,9 +109,9 @@ def benchmark_strategy_registry():
     for name in strategies:
         try:
             s = get_strategy(name)
-            print(f"  ✓ {name} ({s.category})")
+            print(f"  {name} ({s.category})")
         except Exception as e:
-            print(f"  ✗ {name}: {e}")
+            print(f"  {name}: {e}")
             all_ok = False
 
     return {
@@ -204,7 +204,7 @@ def benchmark_crdt_laws(strategies, trials=10, tensor_size=50):
             assoc_state_ok, assoc_resolve_ok,
             idemp_state_ok, idemp_resolve_ok,
         ])
-        status = "✓ PASS" if all_pass else "✗ FAIL"
+        status = "PASS" if all_pass else "FAIL"
         total_tests += 3
         if comm_state_ok and comm_resolve_ok:
             total_pass += 1
@@ -426,10 +426,10 @@ def benchmark_integration():
             "crdt_guaranteed": True,
             "layers": len(result.tensor),
         }
-        print(f"  ✓ crdt_merge() passed — {len(result.tensor)} layers, {elapsed_ms:.2f} ms")
+        print(f"  crdt_merge() passed — {len(result.tensor)} layers, {elapsed_ms:.2f} ms")
 
     except Exception as e:
-        print(f"  ✗ crdt_merge() FAILED: {e}")
+        print(f"  crdt_merge() FAILED: {e}")
         traceback.print_exc()
         result_info["error"] = str(e)
 
@@ -462,11 +462,11 @@ def benchmark_or_set():
         resolved = state.resolve()
         assert np.allclose(resolved, t * 2)
         details["add_remove_readd"] = True
-        print("  ✓ add + remove + re-add (add-wins)")
+        print("  add + remove + re-add (add-wins)")
     except Exception as e:
         details["add_remove_readd"] = False
         all_passed = False
-        print(f"  ✗ add + remove + re-add: {e}")
+        print(f"  add + remove + re-add: {e}")
 
     # Test 2: concurrent adds from different replicas
     try:
@@ -479,11 +479,11 @@ def benchmark_or_set():
         assert merged_1 == merged_2, "Concurrent adds: merge not commutative"
         assert merged_1.size == 2, f"Expected 2 contributions, got {merged_1.size}"
         details["concurrent_adds"] = True
-        print("  ✓ concurrent adds from different replicas")
+        print("  concurrent adds from different replicas")
     except Exception as e:
         details["concurrent_adds"] = False
         all_passed = False
-        print(f"  ✗ concurrent adds: {e}")
+        print(f"  concurrent adds: {e}")
 
     # Test 3: merge after remove
     try:
@@ -497,11 +497,11 @@ def benchmark_or_set():
         # After remove on s1 and merge, the tombstone should propagate
         assert merged.size == 0, f"Expected 0 after remove+merge, got {merged.size}"
         details["merge_after_remove"] = True
-        print("  ✓ merge after remove")
+        print("  merge after remove")
     except Exception as e:
         details["merge_after_remove"] = False
         all_passed = False
-        print(f"  ✗ merge after remove: {e}")
+        print(f"  merge after remove: {e}")
 
     print(f"\n  OR-Set Overall: {'PASS' if all_passed else 'FAIL'}")
     return {"passed": all_passed, "details": details}
@@ -540,7 +540,7 @@ def benchmark_memory():
             "min_expected_bytes": min_expected,
             "ok": ok,
         }
-        print(f"  {n_contribs:>3d} contribs: estimated={est:>10d} B, min_expected={min_expected:>10d} B — {'✓' if ok else '✗'}")
+        print(f"  {n_contribs:>3d} contribs: estimated={est:>10d} B, min_expected={min_expected:>10d} B — {'' if ok else ''}")
 
     print(f"\n  Memory Estimation: {'PASS' if passed else 'FAIL'}")
     return {"passed": passed, "details": details}
@@ -565,11 +565,11 @@ def benchmark_edge_cases():
         merged = s1.merge(s2)
         assert merged.is_empty
         details["empty_merge"] = True
-        print("  ✓ Empty state merge")
+        print("  Empty state merge")
     except Exception as e:
         details["empty_merge"] = False
         all_passed = False
-        print(f"  ✗ Empty state merge: {e}")
+        print(f"  Empty state merge: {e}")
 
     # Test 2: Single contribution resolve
     try:
@@ -579,11 +579,11 @@ def benchmark_edge_cases():
         resolved = state.resolve()
         assert np.allclose(resolved, t)
         details["single_resolve"] = True
-        print("  ✓ Single contribution resolve")
+        print("  Single contribution resolve")
     except Exception as e:
         details["single_resolve"] = False
         all_passed = False
-        print(f"  ✗ Single contribution resolve: {e}")
+        print(f"  Single contribution resolve: {e}")
 
     # Test 3: Duplicate model_id add (should update, not duplicate) with HIGHEST_VERSION
     try:
@@ -597,11 +597,11 @@ def benchmark_edge_cases():
         resolved = state.resolve()
         assert np.allclose(resolved, t2), "Duplicate add should keep higher version"
         details["duplicate_model_id"] = True
-        print("  ✓ Duplicate model_id (higher version wins)")
+        print("  Duplicate model_id (higher version wins)")
     except Exception as e:
         details["duplicate_model_id"] = False
         all_passed = False
-        print(f"  ✗ Duplicate model_id: {e}")
+        print(f"  Duplicate model_id: {e}")
 
     # Test 4: from_dict(to_dict(state)) roundtrip preserves equality
     try:
@@ -615,11 +615,11 @@ def benchmark_edge_cases():
         assert restored == state, "Roundtrip equality failed"
         assert np.allclose(restored.resolve(), state.resolve()), "Roundtrip resolve mismatch"
         details["serialization_roundtrip"] = True
-        print("  ✓ from_dict(to_dict()) roundtrip preserves equality")
+        print("  from_dict(to_dict()) roundtrip preserves equality")
     except Exception as e:
         details["serialization_roundtrip"] = False
         all_passed = False
-        print(f"  ✗ Serialization roundtrip: {e}")
+        print(f"  Serialization roundtrip: {e}")
 
     # Test 5: Base-required strategy without base raises ValueError
     try:
@@ -629,14 +629,14 @@ def benchmark_edge_cases():
             state.resolve()
             details["base_required_error"] = False
             all_passed = False
-            print("  ✗ Base-required strategy should raise ValueError")
+            print("  Base-required strategy should raise ValueError")
         except ValueError:
             details["base_required_error"] = True
-            print("  ✓ Base-required strategy raises ValueError without base")
+            print("  Base-required strategy raises ValueError without base")
     except Exception as e:
         details["base_required_error"] = False
         all_passed = False
-        print(f"  ✗ Base-required error test: {e}")
+        print(f"  Base-required error test: {e}")
 
     # Test 6: merge_many with single state
     try:
@@ -645,11 +645,11 @@ def benchmark_edge_cases():
         result = CRDTMergeState.merge_many([state])
         assert result == state
         details["merge_many_single"] = True
-        print("  ✓ merge_many with single state")
+        print("  merge_many with single state")
     except Exception as e:
         details["merge_many_single"] = False
         all_passed = False
-        print(f"  ✗ merge_many single: {e}")
+        print(f"  merge_many single: {e}")
 
     print(f"\n  Edge Cases: {'PASS' if all_passed else 'FAIL'}")
     return {"passed": all_passed, "details": details}
