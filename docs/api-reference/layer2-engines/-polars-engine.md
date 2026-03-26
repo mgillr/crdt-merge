@@ -1,6 +1,6 @@
 # `crdt_merge/_polars_engine.py`
 
-> **⚠️ Internal Module** — This module is prefixed with `_`, indicating it is a **private implementation detail**. Do not import directly. The public API is exposed through `crdt_merge.dataframe` (Polars backend).
+> **Internal Module** — This module is prefixed with `_`, indicating it is a **private implementation detail**. Do not import directly. The public API is exposed through `crdt_merge.dataframe` (Polars backend).
 
 > Shared Polars merge kernel — zero-copy, Rust-compiled strategy resolution.
 

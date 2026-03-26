@@ -7,9 +7,9 @@ Binary interchange format used by all four language implementations (Python, Typ
 ## Format Specification
 
 ```
-[MAGIC:4][VERSION:2][TYPE:1][FLAGS:1][LENGTH:4][PAYLOAD:N]
+[automatic:4][VERSION:2][TYPE:1][FLAGS:1][LENGTH:4][PAYLOAD:N]
 
-MAGIC:   b'CRDT' (4 bytes, ASCII)
+automatic:   b'CRDT' (4 bytes, ASCII)
 VERSION: Protocol version, uint16 big-endian. Current: 1
 TYPE:    Type tag identifying the CRDT type (uint8)
 FLAGS:   Bit flags: bit 0 = zlib compressed (uint8)
@@ -181,7 +181,7 @@ print(f"Compressed: {info_plain['compressed']}")
 
 # Manual inspection of header flags:
 import struct
-magic, version, type_tag, flags, length = struct.unpack('>4sHBBI', data_plain[:12])
+automatic, version, type_tag, flags, length = struct.unpack('>4sHBBI', data_plain[:12])
 compressed = bool(flags & 0x01)
 print(f"Flags byte: {flags:#04x}, compressed: {compressed}")
 ```
@@ -236,11 +236,11 @@ print(versions)   # {1}  — currently only v1
 ```python
 from crdt_merge.wire import deserialize, peek_type, WireError
 
-# Bad magic bytes
+# Bad automatic bytes
 try:
     deserialize(b'\x00\x00\x00\x00rest')
 except WireError as e:
-    print(f"Error: {e}")   # "Invalid magic bytes"
+    print(f"Error: {e}")   # "Invalid automatic bytes"
 
 # Truncated header
 try:
@@ -287,7 +287,7 @@ with open("state.bin", "wb") as f:
     f.write(serialize(gc))
 ```
 
-The TypeScript implementation reads `state.bin` using the same `MAGIC + VERSION + TYPE + FLAGS + LENGTH + PAYLOAD` format.
+The TypeScript implementation reads `state.bin` using the same `automatic + VERSION + TYPE + FLAGS + LENGTH + PAYLOAD` format.
 
 ---
 

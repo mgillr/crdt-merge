@@ -393,12 +393,12 @@ Duration: ~52s
 
 | Suite | Tests | Status |
 |-------|-------|--------|
-| Existing regression suite | 1,858 | ✅ All pass |
-| New: Compliance (Phase 5) | 57 | ✅ All pass |
-| New: Observability extensions (Phase 3) | 23 | ✅ All pass |
-| New: Flower plugin (Phase 3) | 49 | ✅ All pass |
-| New: Cross-module integration (Phase 1) | 84 | ✅ All pass |
-| **Total executed** | **1,942** | ✅ **0 failures** |
+| Existing regression suite | 1,858 | All pass |
+| New: Compliance (Phase 5) | 57 | All pass |
+| New: Observability extensions (Phase 3) | 23 | All pass |
+| New: Flower plugin (Phase 3) | 49 | All pass |
+| New: Cross-module integration (Phase 1) | 84 | All pass |
+| **Total executed** | **1,942** | **0 failures** |
 
 *15 collection errors are expected — those test files require optional dependencies (numpy, hypothesis, torch, flwr) not installed in the test environment. They pass in CI where all optional deps are available.*
 

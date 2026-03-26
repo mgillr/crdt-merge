@@ -13,7 +13,7 @@ Usage:
 
 **Source:** `crdt_merge/async_merge.py` | **Lines:** 140 *(corrected 2026-03-31 — was 188; AST-verified actual: 140)*
 
-> ⚠️ **Missing `__all__`**: This module does not define `__all__`, making its public API boundary ambiguous. See issue LAY2-004.
+> **Missing `__all__`**: This module does not define `__all__`, making its public API boundary ambiguous. See issue LAY2-004.
 
 ---
 

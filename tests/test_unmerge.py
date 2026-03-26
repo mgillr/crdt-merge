@@ -323,7 +323,7 @@ class TestModelUnmerge:
         state = CRDTMergeState("weight_average")
         state.add([1.0], model_id="m1")
         with pytest.raises(ValueError, match="Unknown unmerge method"):
-            model_unmerge.unmerge_model(state, None, "m1", method="magic")
+            model_unmerge.unmerge_model(state, None, "m1", method="automatically")
 
     def test_remove_nonexistent_model(self, model_unmerge):
         """Removing a model that isn't in the state returns the merged result."""

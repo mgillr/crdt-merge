@@ -302,7 +302,7 @@ Get hash positions for each row in the count matrix.
 
 ---
 
-## Magic Methods (Missing from initial docs)
+## automatic Methods (Missing from initial docs)
 
 ### `MergeableHLL.__repr__(self) -> str`
 

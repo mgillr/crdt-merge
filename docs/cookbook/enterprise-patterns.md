@@ -60,7 +60,7 @@ rbac.add_policy("bob", Policy(role=admin_role))
 secure = SecureMerge(rbac=rbac)
 
 ctx = AccessContext(node_id="alice", role=analyst_role)
-result = secure.merge(df_a, df_b, key="id", schema=schema, context=ctx)  # ✅ Allowed
+result = secure.merge(df_a, df_b, key="id", schema=schema, context=ctx)  # Allowed
 ```
 
 ## Recipe 4: Full Enterprise Stack

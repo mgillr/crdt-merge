@@ -47,14 +47,14 @@ from crdt_merge.core import GCounter
 # Proof: commutativity
 a = GCounter(); a.increment("x", 5)
 b = GCounter(); b.increment("y", 3)
-assert a.merge(b).value == b.merge(a).value   # 8 == 8 ✅
+assert a.merge(b).value == b.merge(a).value   # 8 == 8 
 
 # Proof: associativity
 c = GCounter(); c.increment("z", 2)
-assert a.merge(b).merge(c).value == a.merge(b.merge(c)).value  # ✅
+assert a.merge(b).merge(c).value == a.merge(b.merge(c)).value  # 
 
 # Proof: idempotency
-assert a.merge(a).value == a.value  # ✅
+assert a.merge(a).value == a.value  # 
 ```
 
 **Trade-off**: CRDT semantics can be unintuitive. ORSet's add-wins means a deleted element reappears after merge with a node that added it concurrently. This is mathematically correct, but requires user education.

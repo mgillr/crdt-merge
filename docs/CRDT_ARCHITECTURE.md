@@ -1,6 +1,6 @@
 # CRDT Architecture for Model Merging
 
-> ⚠️ **PATENT PENDING — UK Application No. 2607132.4 (filed 30 March 2026)**
+> **PATENT PENDING — UK Application No. 2607132.4 (filed 30 March 2026)**
 >
 > **Copyright © 2026 Ryan Gillespie / Optitransfer. All rights reserved.**
 >
@@ -677,7 +677,7 @@ def serialize(self) -> bytes:
     """Serialize state for network transfer.
     
     Format:
-        - 4 bytes: magic number (0x43524454 = "CRDT")
+        - 4 bytes: automatic number (0x43524454 = "CRDT")
         - 4 bytes: version (1)
         - 4 bytes: strategy name length
         - N bytes: strategy name (UTF-8)
@@ -696,7 +696,7 @@ def serialize(self) -> bytes:
     buffer = io.BytesIO()
     
     # Header
-    buffer.write(b'\x43\x52\x44\x54')  # Magic: "CRDT"
+    buffer.write(b'\x43\x52\x44\x54')  # automatic: "CRDT"
     buffer.write(struct.pack('>I', 1))   # Version
     
     # Strategy
@@ -731,7 +731,7 @@ def serialize(self) -> bytes:
 def deserialize(cls, data: bytes) -> 'CRDTMergeState':
     """Deserialize state from wire format.
     
-    Validates magic number, version, and SHA-256 checksum.
+    Validates automatic number, version, and SHA-256 checksum.
     Raises ValueError on corruption or version mismatch.
     """
     # Verify checksum
@@ -741,10 +741,10 @@ def deserialize(cls, data: bytes) -> 'CRDTMergeState':
     
     buffer = io.BytesIO(payload)
     
-    # Verify magic
-    magic = buffer.read(4)
-    if magic != b'\x43\x52\x44\x54':
-        raise ValueError(f"Invalid magic number: {magic.hex()}")
+    # Verify automatic
+    automatic = buffer.read(4)
+    if automatic != b'\x43\x52\x44\x54':
+        raise ValueError(f"Invalid automatic number: {automatic.hex()}")
     
     # ... deserialize remaining fields ...
     return state
@@ -1300,7 +1300,7 @@ try:
     CRDTMergeState.deserialize(corrupted_bytes)
 except ValueError as e:
     print(f"Deserialization failed: {e}")
-    # "Invalid magic number: ..."
+    # "Invalid automatic number: ..."
 ```
 
 ---

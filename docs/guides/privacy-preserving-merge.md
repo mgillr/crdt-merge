@@ -107,7 +107,7 @@ val = {"patient_id": "P001", "diagnosis": ["A01", "B12"], "age": 34}
 assert em.decrypt_field(em.encrypt_field(val, "f")) == val
 
 # Unicode
-assert em.decrypt_field(em.encrypt_field("日本語 العربية 🎉", "f")) == "日本語 العربية 🎉"
+assert em.decrypt_field(em.encrypt_field("日本語 العربية ", "f")) == "日本語 العربية "
 
 # Large payloads
 large = "x" * 100_000

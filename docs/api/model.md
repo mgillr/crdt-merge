@@ -548,7 +548,7 @@ GPU-accelerated model merging.
 
 ## `crdt_merge.model.heatmap`
 
-> Conflict heatmaps for model merge analysis (🦄 Unicorn Feature #4).
+> Conflict heatmaps for model merge analysis (Unicorn Feature #4).
 
 **Module:** `crdt_merge.model.heatmap`
 
@@ -738,7 +738,7 @@ Return an object to identify dataclass fields.
 
 ## `crdt_merge.model.provenance`
 
-> Per-parameter provenance tracking for model merges (🦄 Unicorn Feature #3).
+> Per-parameter provenance tracking for model merges (Unicorn Feature #3).
 
 **Module:** `crdt_merge.model.provenance`
 

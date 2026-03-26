@@ -75,5 +75,5 @@ result_2 = merge(east, west, key="user_id", schema=schema, timestamp_col="update
 # merge() doesn't guarantee row order, so sort by key before comparing
 r1 = result_1.sort_values("user_id").reset_index(drop=True)
 r2 = result_2.sort_values("user_id").reset_index(drop=True)
-assert r1.equals(r2)  # ✅ Commutative!
+assert r1.equals(r2)  # Commutative!
 ```

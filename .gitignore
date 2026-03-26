@@ -35,4 +35,3 @@ Thumbs.db
 secrets/
 .secrets
 dist_*/
-.claude/

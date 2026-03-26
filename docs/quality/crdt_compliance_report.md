@@ -21,14 +21,14 @@ commutativity, associativity, idempotency, and convergence.
 
 | Strategy | Commutativity | Associativity | Idempotency | Convergence | Tie-Breaking |
 |----------|:---:|:---:|:---:|:---:|:---:|
-| LWW (default) | ✅ | ✅ | ✅ | ✅ | ✅ |
-| LWW (schema) | ✅ | — | ✅ | — | — |
-| MaxWins | ✅ | ✅ | ✅ | ✅ | — |
-| MinWins | ✅ | ✅ | ✅ | — | — |
-| Priority | ✅ | ✅ | ✅ | — | — |
-| Concat | ✅ | — | ✅ | — | — |
-| LongestWins | ✅ | ✅ | ✅ | — | — |
-| UnionSet | ✅ | ✅ | ✅ | — | — |
+| LWW (default) | | | | | |
+| LWW (schema) | | — | | — | — |
+| MaxWins | | | | | — |
+| MinWins | | | | — | — |
+| Priority | | | | — | — |
+| Concat | | — | | — | — |
+| LongestWins | | | | — | — |
+| UnionSet | | | | — | — |
 
 *26 tabular tests total. "—" = property covered by other tests or not separately tested for this strategy.*
 
@@ -36,32 +36,32 @@ commutativity, associativity, idempotency, and convergence.
 
 | Strategy | Commutativity | Idempotency | Convergence | Seeded Repro | Notes |
 |----------|:---:|:---:|:---:|:---:|-------|
-| ada_merging | ✅ | ✅ | ✅ | ✅ | Deterministic |
-| adarank | ✅ | ✅ | ✅ | ✅ | Deterministic, requires base |
-| dam | ✅ | ✅ | ✅ | ✅ | Deterministic |
-| dare | ✅ | ✅ | ✅ | ✅ | Stochastic, requires base |
-| dare_ties | ✅ | ✅ | ✅ | ✅ | Stochastic, requires base |
-| della | ✅ | ✅ | ✅ | ✅ | Stochastic, requires base |
-| dual_projection | ✅ | ✅ | ✅ | ✅ | Deterministic |
-| emr | ✅ | ✅ | ✅ | ✅ | Deterministic, requires base |
-| evolutionary_merge | ✅ | ✅ | ✅ | ✅ | Stochastic |
-| fisher_merge | ✅ | ✅ | ✅ | ✅ | Deterministic |
-| genetic_merge | ✅ | ✅ | ✅ | ✅ | Stochastic |
-| led_merge | ✅ | ✅ | ✅ | ✅ | Deterministic |
-| linear | ✅ | ✅ | ✅ | ✅ | Deterministic |
-| model_breadcrumbs | ✅ | ✅ | ✅ | ✅ | Deterministic, requires base |
-| negative_merge | ✅ | ✅ | ✅ | ✅ | Deterministic, requires base |
-| regression_mean | ✅ | ✅ | ✅ | ✅ | Deterministic |
-| representation_surgery | ✅ | ✅ | ✅ | ✅ | Deterministic |
-| safe_merge | ✅ | ✅ | ✅ | ✅ | Deterministic, requires base |
-| slerp | ✅ | ✅ | ✅ | ✅ | Deterministic |
-| split_unlearn_merge | ✅ | ✅ | ✅ | ✅ | Deterministic, requires base |
-| star | ✅ | ✅ | ✅ | ✅ | Deterministic, requires base |
-| svd_knot_tying | ✅ | ✅ | ✅ | ✅ | Deterministic, requires base |
-| task_arithmetic | ✅ | ✅ | ✅ | ✅ | Deterministic, requires base |
-| ties | ✅ | ✅ | ✅ | ✅ | Deterministic, requires base |
-| weight_average | ✅ | ✅ | ✅ | ✅ | Deterministic |
-| weight_scope_alignment | ✅ | ✅ | ✅ | ✅ | Deterministic |
+| ada_merging | | | | | Deterministic |
+| adarank | | | | | Deterministic, requires base |
+| dam | | | | | Deterministic |
+| dare | | | | | Stochastic, requires base |
+| dare_ties | | | | | Stochastic, requires base |
+| della | | | | | Stochastic, requires base |
+| dual_projection | | | | | Deterministic |
+| emr | | | | | Deterministic, requires base |
+| evolutionary_merge | | | | | Stochastic |
+| fisher_merge | | | | | Deterministic |
+| genetic_merge | | | | | Stochastic |
+| led_merge | | | | | Deterministic |
+| linear | | | | | Deterministic |
+| model_breadcrumbs | | | | | Deterministic, requires base |
+| negative_merge | | | | | Deterministic, requires base |
+| regression_mean | | | | | Deterministic |
+| representation_surgery | | | | | Deterministic |
+| safe_merge | | | | | Deterministic, requires base |
+| slerp | | | | | Deterministic |
+| split_unlearn_merge | | | | | Deterministic, requires base |
+| star | | | | | Deterministic, requires base |
+| svd_knot_tying | | | | | Deterministic, requires base |
+| task_arithmetic | | | | | Deterministic, requires base |
+| ties | | | | | Deterministic, requires base |
+| weight_average | | | | | Deterministic |
+| weight_scope_alignment | | | | | Deterministic |
 
 *106 model-layer tests total (26 commutativity + 26 idempotency + 26 convergence + 5 stochastic seed + 21 deterministic no-seed + 2 state merge/merge_many).*
 

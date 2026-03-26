@@ -258,11 +258,11 @@ class StreamlitMergeUI:
         conflicts, all_cols = _detect_conflicts(left_recs, right_recs, key)
 
         if conflicts:
-            st.warning(f"⚠️ {len(conflicts)} conflicts detected across "
+            st.warning(f"{len(conflicts)} conflicts detected across "
                         f"{len(set(c['field'] for c in conflicts))} fields")
             self.render_conflicts(conflicts)
         else:
-            st.success("✅ No conflicts detected.")
+            st.success("No conflicts detected.")
 
         # Strategy selectors
         st.subheader("Strategy Overrides")
@@ -288,7 +288,7 @@ class StreamlitMergeUI:
             merged_data = _resolve_merge(left_recs, right_recs, key, schema)
             st.subheader("Merged Result")
             st.dataframe(merged_data)
-            st.success(f"✅ Merged {len(merged_data)} records.")
+            st.success(f"Merged {len(merged_data)} records.")
 
         return merged_data
 
@@ -343,7 +343,7 @@ class StreamlitMergeUI:
             buf = pa.BufferOutputStream()
             pq.write_table(table, buf)
             st.download_button(
-                "⬇️ Download Parquet",
+                "⬇Download Parquet",
                 data=buf.getvalue().to_pybytes(),
                 file_name=filename,
                 mime="application/octet-stream",
@@ -358,7 +358,7 @@ class StreamlitMergeUI:
                 writer.writeheader()
                 writer.writerows(data)
             st.download_button(
-                "⬇️ Download CSV (Parquet unavailable)",
+                "⬇Download CSV (Parquet unavailable)",
                 data=buf_str.getvalue(),
                 file_name=filename.replace(".parquet", ".csv"),
                 mime="text/csv",

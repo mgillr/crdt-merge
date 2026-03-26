@@ -98,7 +98,7 @@ Returns `True` if all CRDT properties (commutativity, associativity, idempotency
 
 ### `CRDTVerification.summary(self) → str`
 
-Returns a human-readable multi-line verification report. Includes results for each CRDT property, a final ✅/❌ status line, and total trial count with duration in milliseconds.
+Returns a human-readable multi-line verification report. Includes results for each CRDT property, a final /status line, and total trial count with duration in milliseconds.
 
 **Returns:** `str`
 
@@ -185,7 +185,7 @@ Deep equality check that handles CRDT objects, DataFrames, dicts, floats (with e
 
 ---
 
-## Magic Methods (Missing from initial docs)
+## automatic Methods (Missing from initial docs)
 
 ### `VerificationResult.__repr__(self)`
 
@@ -212,7 +212,7 @@ Returns string representation showing all four verification results and total du
 | `CRDTVerificationError` | SPECIALIZED | — | Error type |
 | `_are_equal` | SHADOW | — | **Core equality logic**, used by ALL verify functions |
 
-> ⚠️ **CRITICAL CHOKEPOINT:** `VerificationResult` has the highest entropy (0.5186) and reachability (11.6) of ANY symbol in Layer 1. It is the convergence point for all verification operations and should have comprehensive documentation and testing.
+> **CRITICAL CHOKEPOINT:** `VerificationResult` has the highest entropy (0.5186) and reachability (11.6) of ANY symbol in Layer 1. It is the convergence point for all verification operations and should have comprehensive documentation and testing.
 
 ---
 

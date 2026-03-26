@@ -53,7 +53,7 @@ paths = [
 ]
 
 # All converge to 10
-assert all(p.value == 10 for p in paths)   # ✅
+assert all(p.value == 10 for p in paths)   # 
 ```
 
 ---
@@ -68,9 +68,9 @@ Merge = element-wise maximum per node slot.
 merge({a:5, b:3}, {a:3, b:7}) = {a:max(5,3), b:max(3,7)} = {a:5, b:7}
 ```
 
-- **Commutative**: `max(a, b) = max(b, a)` ✅
-- **Associative**: `max(max(a, b), c) = max(a, max(b, c))` ✅
-- **Idempotent**: `max(a, a) = a` ✅
+- **Commutative**: `max(a, b) = max(b, a)` 
+- **Associative**: `max(max(a, b), c) = max(a, max(b, c))` 
+- **Idempotent**: `max(a, a) = a` 
 
 ```python
 from crdt_merge.core import GCounter
@@ -78,17 +78,17 @@ from crdt_merge.core import GCounter
 a = GCounter(); a.increment("x", 5)
 b = GCounter(); b.increment("x", 3); b.increment("y", 7)
 
-assert a.merge(b).value == b.merge(a).value   # commutative ✅
-assert a.merge(a).value == a.value             # idempotent ✅
+assert a.merge(b).value == b.merge(a).value   # commutative 
+assert a.merge(a).value == a.value             # idempotent 
 ```
 
 ### LWWRegister
 
 Merge = take value with higher timestamp. Equal timestamps: lexicographic `node_id` comparison.
 
-- **Commutative**: Timestamp comparison `ts_a > ts_b` is antisymmetric; lexicographic node_id is a total order, so `resolve(A, B) = resolve(B, A)` ✅
-- **Associative**: Transitivity of total timestamp + node_id order ✅
-- **Idempotent**: Merging register with itself returns same value (same timestamp, same node_id) ✅
+- **Commutative**: Timestamp comparison `ts_a > ts_b` is antisymmetric; lexicographic node_id is a total order, so `resolve(A, B) = resolve(B, A)` 
+- **Associative**: Transitivity of total timestamp + node_id order 
+- **Idempotent**: Merging register with itself returns same value (same timestamp, same node_id) 
 
 ```python
 from crdt_merge.core import LWWRegister
@@ -96,17 +96,17 @@ from crdt_merge.core import LWWRegister
 r1 = LWWRegister(value="v1", timestamp=1000.0, node_id="node_a")
 r2 = LWWRegister(value="v2", timestamp=1001.0, node_id="node_b")
 
-assert r1.merge(r2).value == r2.merge(r1).value   # commutative ✅
-assert r1.merge(r1).value == r1.value              # idempotent ✅
+assert r1.merge(r2).value == r2.merge(r1).value   # commutative 
+assert r1.merge(r1).value == r1.value              # idempotent 
 ```
 
 ### ORSet
 
 Merge = union of tag sets per element. An element is live if it has at least one tag.
 
-- **Commutative**: Set union is commutative (`A ∪ B = B ∪ A`) ✅
-- **Associative**: Set union is associative (`(A ∪ B) ∪ C = A ∪ (B ∪ C)`) ✅
-- **Idempotent**: Set union is idempotent (`A ∪ A = A`) ✅
+- **Commutative**: Set union is commutative (`A ∪ B = B ∪ A`) 
+- **Associative**: Set union is associative (`(A ∪ B) ∪ C = A ∪ (B ∪ C)`) 
+- **Idempotent**: Set union is idempotent (`A ∪ A = A`) 
 
 ```python
 from crdt_merge.core import ORSet
@@ -116,10 +116,10 @@ b = ORSet(); b.add("y"); b.add("z")
 
 m1 = a.merge(b)
 m2 = b.merge(a)
-assert m1.value == m2.value   # commutative ✅
+assert m1.value == m2.value   # commutative 
 
 m3 = a.merge(a)
-assert m3.value == a.value    # idempotent ✅
+assert m3.value == a.value    # idempotent 
 ```
 
 **Add-wins**: A concurrent add and remove resolve in favour of the add:
@@ -128,7 +128,7 @@ a = ORSet(); tag = a.add("x")      # A adds with unique tag
 b = ORSet(); b.add("x"); b.remove("x")  # B adds then removes
 
 merged = a.merge(b)
-assert "x" in merged.value   # A's tag survives ✅ — add-wins
+assert "x" in merged.value   # A's tag survives — add-wins
 ```
 
 ### MergeSchema Strategies
@@ -137,14 +137,14 @@ All eight built-in strategies satisfy the semilattice properties:
 
 | Strategy | Commutativity | Associativity | Idempotency | Proof |
 |---|---|---|---|---|
-| `LWW` | ✅ | ✅ | ✅ | Timestamp order is total; tie-break is symmetric |
-| `MaxWins` | ✅ | ✅ | ✅ | `max(a,b)=max(b,a)`, max is associative, `max(a,a)=a` |
-| `MinWins` | ✅ | ✅ | ✅ | Same as MaxWins with min |
-| `UnionSet` | ✅ | ✅ | ✅ | Set union is a join-semilattice |
-| `Concat` | ✅ | ✅ | ✅ | Sort + dedup makes order-independent |
-| `Priority` | ✅ | ✅ | ✅ | Total order on priority list; lex tiebreak |
-| `LongestWins` | ✅ | ✅ | ✅ | Length comparison total; LWW fallback |
-| `Custom` | ⚠️ | ⚠️ | ⚠️ | User must verify — use `verify_crdt()` |
+| `LWW` | | | | Timestamp order is total; tie-break is symmetric |
+| `MaxWins` | | | | `max(a,b)=max(b,a)`, max is associative, `max(a,a)=a` |
+| `MinWins` | | | | Same as MaxWins with min |
+| `UnionSet` | | | | Set union is a join-semilattice |
+| `Concat` | | | | Sort + dedup makes order-independent |
+| `Priority` | | | | Total order on priority list; lex tiebreak |
+| `LongestWins` | | | | Length comparison total; LWW fallback |
+| `Custom` | | | | User must verify — use `verify_crdt()` |
 
 ---
 
@@ -172,7 +172,7 @@ from crdt_merge.core import LWWRegister
 
 # Your merge function must be commutative
 def my_merge(a, b):
-    return max(str(a), str(b))   # symmetric ✅
+    return max(str(a), str(b))   # symmetric 
 
 result = verify_crdt(LWWRegister, strategy=Custom(fn=my_merge))
 assert result.commutativity.passed   # Will fail if fn(a,b) ≠ fn(b,a)

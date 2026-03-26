@@ -23,10 +23,10 @@ Each method has a specific implementation that handles edge cases. **Do NOT writ
 
 | # | Method | Team | File | Status |
 |---|--------|------|------|--------|
-| 1 | **AST Analysis** | Team 1 | (standard tooling) | ✅ Validated |
-| 2 | **Regex Pattern Analysis** | Team 2 | (standard tooling) | ✅ Validated |
-| 3 | **GDEPA** — Graph-Theoretic Dependency & Execution Path Analysis | Team 3 | [GDEPA_METHOD.md](GDEPA_METHOD.md) + [team3_gdepa_engine.py](team3_gdepa_engine.py) | ✅ Validated |
-| 4 | **RREA** — Reverse Reachability Entropy Analysis | Team 4 | [RREA_METHOD.md](RREA_METHOD.md) + [team4_rrea_engine.py](team4_rrea_engine.py) | 🔄 Re-running with full engine |
+| 1 | **AST Analysis** | Team 1 | (standard tooling) | Validated |
+| 2 | **Regex Pattern Analysis** | Team 2 | (standard tooling) | Validated |
+| 3 | **GDEPA** — Graph-Theoretic Dependency & Execution Path Analysis | Team 3 | [GDEPA_METHOD.md](GDEPA_METHOD.md) + [team3_gdepa_engine.py](team3_gdepa_engine.py) | Validated |
+| 4 | **RREA** — Reverse Reachability Entropy Analysis | Team 4 | [RREA_METHOD.md](RREA_METHOD.md) + [team4_rrea_engine.py](team4_rrea_engine.py) | Re-running with full engine |
 
 ## How They Work Together
 
@@ -51,9 +51,9 @@ Layer N source code
    │  Method: Import/inheritance graph + RUNTIME inspect             │
    │  Catches: everything invisible to static analysis               │
    │                                                                 │
-   │  ⚠️ MUST use runtime inspect (import + inspect.getmembers())   │
-   │  ⚠️ Static-only graph analysis is NOT GDEPA                    │
-   │  ⚠️ If runtime-only symbols = 0, analysis is INCOMPLETE        │
+   │  MUST use runtime inspect (import + inspect.getmembers())   │
+   │  Static-only graph analysis is NOT GDEPA                    │
+   │  If runtime-only symbols = 0, analysis is INCOMPLETE        │
    └────┬────────────────────────────────────────────────────────────┘
         │
         ▼
@@ -62,10 +62,10 @@ Layer N source code
    │  Method: Reverse call graph + Shannon entropy + Ping entropy    │
    │  Catches: dead code, critical chokepoints, shadow deps          │
    │                                                                 │
-   │  ⚠️ MUST use team4_rrea_engine.py (556 lines)                  │
-   │  ⚠️ ALL 8 phases required (especially 7 + 8)                   │
-   │  ⚠️ Both Shannon AND Ping entropy required                     │
-   │  ⚠️ Do NOT write a simplified inline script                    │
+   │  MUST use team4_rrea_engine.py (556 lines)                  │
+   │  ALL 8 phases required (especially 7 + 8)                   │
+   │  Both Shannon AND Ping entropy required                     │
+   │  Do NOT write a simplified inline script                    │
    └────┬────────────────────────────────────────────────────────────┘
         │
         ▼
@@ -84,21 +84,21 @@ Understanding what each method uniquely catches is critical to understanding why
 
 | Finding | Only Team 1? | Only Team 2? | Only Team 3? | Only Team 4? |
 |---------|-------------|-------------|-------------|-------------|
-| Function signatures | ✅ | | | |
-| Decorator analysis | ✅ | | | |
-| Code smell counts | | ✅ | | |
-| `type:ignore`/`noqa` pragmas | | ✅ | | |
-| Docstring coverage % | | ✅ | | |
-| **Inherited methods** | | | ✅ | |
-| **Runtime properties** | | | ✅ | |
-| **Metaclass-generated methods** | | | ✅ | |
-| Circular dependencies | | | ✅ | |
-| Layer boundary violations | | | ✅ | |
-| **Dead code (unreachable)** | | | | ✅ |
-| **Critical chokepoints** | | | | ✅ |
-| **Shadow dependencies** | | | | ✅ |
-| **Documentation priority** | | | | ✅ |
-| **Propagation path issues** | | | | ✅ |
+| Function signatures | | | | |
+| Decorator analysis | | | | |
+| Code smell counts | | | | |
+| `type:ignore`/`noqa` pragmas | | | | |
+| Docstring coverage % | | | | |
+| **Inherited methods** | | | | |
+| **Runtime properties** | | | | |
+| **Metaclass-generated methods** | | | | |
+| Circular dependencies | | | | |
+| Layer boundary violations | | | | |
+| **Dead code (unreachable)** | | | | |
+| **Critical chokepoints** | | | | |
+| **Shadow dependencies** | | | | |
+| **Documentation priority** | | | | |
+| **Propagation path issues** | | | | |
 
 ## Cumulative Results (Layer 1)
 
@@ -107,7 +107,7 @@ Understanding what each method uniquely catches is critical to understanding why
 | Team 1 (AST) | ~640 | #1–#17 | Base inventory |
 | Team 2 (Regex) | +549 | #18–#24 | Code smells, missing __all__, docstring gaps |
 | Team 3 (GDEPA) | +409 properties, +1,244 inherited | #25–#31 | Circular deps, layer violations, runtime symbols |
-| Team 4 (RREA) | 🔄 Re-running | 🔄 Re-running | Dead code, chokepoints, priority ordering |
+| Team 4 (RREA) | Re-running | Re-running | Dead code, chokepoints, priority ordering |
 
 ## Applying to New Codebases
 

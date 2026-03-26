@@ -14,7 +14,7 @@
 | ✅ True CRDT | 0 | — |
 | ⚠️ Partial CRDT | 12 | ada_merging, dam, fisher_merge, led_merge, linear, regression_mean, representation_surgery, safe_merge, slerp, svd_knot_tying, weight_average, weight_scope_alignment |
 | ❌ Not CRDT | 13 | adarank, dare, dare_ties, della, emr, evolutionary_merge, genetic_merge, model_breadcrumbs, negative_merge, split_unlearn_merge, star, task_arithmetic, ties |
-| 🔧 Untestable (harness bug) | 0 | — |
+| Untestable (harness bug) | 0 | — |
 
 ## Confirmed Bugs
 

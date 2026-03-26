@@ -10,14 +10,14 @@
 ## ⛔ CRITICAL: What GDEPA Is and Is NOT
 
 ```
-❌ GDEPA is NOT just building import graphs from AST
-❌ GDEPA is NOT just building inheritance graphs from AST
-❌ GDEPA is NOT any analysis that only reads source code files
+GDEPA is NOT just building import graphs from AST
+GDEPA is NOT just building inheritance graphs from AST
+GDEPA is NOT any analysis that only reads source code files
    ↳ That's just an extension of Team 1's work, not a separate method
 
-✅ GDEPA IS import graph + inheritance graph + RUNTIME INSPECT
-✅ GDEPA IS the comparison between what AST sees and what Python runtime sees
-✅ GDEPA IS the only method that catches inherited methods, runtime properties,
+GDEPA IS import graph + inheritance graph + RUNTIME INSPECT
+GDEPA IS the comparison between what AST sees and what Python runtime sees
+GDEPA IS the only method that catches inherited methods, runtime properties,
    metaclass-generated methods, descriptor-based attributes, and dynamic __init_subclass__ hooks
 ```
 
@@ -61,15 +61,15 @@ Then it **cross-validates** this static graph against **runtime introspection** 
 
 | Finding Type | AST | Regex | GDEPA |
 |-------------|-----|-------|-------|
-| Declared functions | ✅ | ✅ | ✅ |
-| Inherited methods | ❌ | ❌ | ✅ |
-| Dynamic properties | ❌ | ❌ | ✅ |
-| Metaclass-generated methods | ❌ | ❌ | ✅ |
-| Circular dependencies | ❌ | ❌ | ✅ |
-| Layer boundary violations | ❌ | ❌ | ✅ |
-| Runtime-only attributes | ❌ | ❌ | ✅ |
-| Code smells (bare except) | ❌ | ✅ | ❌ |
-| Type annotations in comments | ❌ | ✅ | ❌ |
+| Declared functions | | | |
+| Inherited methods | | | |
+| Dynamic properties | | | |
+| Metaclass-generated methods | | | |
+| Circular dependencies | | | |
+| Layer boundary violations | | | |
+| Runtime-only attributes | | | |
+| Code smells (bare except) | | | |
+| Type annotations in comments | | | |
 
 ## 3. Algorithm
 
@@ -89,7 +89,7 @@ For each class C in the codebase:
     Record: which methods C inherits from B
 ```
 
-### Phase 3: Runtime Introspection ⚠️ KEY PHASE — CANNOT BE SKIPPED
+### Phase 3: Runtime Introspection KEY PHASE — CANNOT BE SKIPPED
 ```
 For each module M:
   import M                                    ← MUST actually import

@@ -86,11 +86,11 @@ s = LWW()
 
 # Normal case: later timestamp wins
 print(s.resolve("old", "new", ts_a=1000, ts_b=1001))  # → "new"
-print(s.resolve("new", "old", ts_a=1001, ts_b=1000))  # → "new" (commutative ✅)
+print(s.resolve("new", "old", ts_a=1001, ts_b=1000))  # → "new" (commutative )
 
 # Tie: deterministic value comparison
 print(s.resolve("alpha", "beta", ts_a=1000, ts_b=1000))  # → "beta" (b > a)
-print(s.resolve("beta", "alpha", ts_a=1000, ts_b=1000))  # → "beta" (commutative ✅)
+print(s.resolve("beta", "alpha", ts_a=1000, ts_b=1000))  # → "beta" (commutative )
 
 # Numeric ordering
 print(s.resolve(100, 200, ts_a=1000, ts_b=1000))   # → "200" (str comparison)
@@ -126,9 +126,9 @@ from crdt_merge.strategies import MaxWins
 s = MaxWins()
 
 print(s.resolve(90, 95))      # 95
-print(s.resolve(95, 90))      # 95 (commutative ✅)
+print(s.resolve(95, 90))      # 95 (commutative )
 print(s.resolve(None, 80))    # 80 (None loses)
-print(s.resolve(80, None))    # 80 (commutative ✅)
+print(s.resolve(80, None))    # 80 (commutative )
 print(s.resolve(None, None))  # None
 
 # Works with any comparable type
@@ -160,7 +160,7 @@ from crdt_merge.strategies import MinWins
 s = MinWins()
 
 print(s.resolve(100, 50))    # 50
-print(s.resolve(50, 100))    # 50 (commutative ✅)
+print(s.resolve(50, 100))    # 50 (commutative )
 print(s.resolve(None, 50))   # 50 (None loses)
 ```
 
@@ -190,9 +190,9 @@ print(s.resolve("", "x,y"))                   # "x,y" (empty string → empty se
 print(s.resolve(None, "x"))                   # "x" (None → empty set)
 
 # Commutativity: order doesn't matter
-assert s.resolve("x,y", "y,z") == s.resolve("y,z", "x,y")   # ✅
+assert s.resolve("x,y", "y,z") == s.resolve("y,z", "x,y")   # 
 # Idempotency: merge with self gives same result
-assert s.resolve("x,y", "x,y") == "x,y"                      # ✅
+assert s.resolve("x,y", "x,y") == "x,y"                      # 
 ```
 
 **Custom separator**:
@@ -225,7 +225,7 @@ from crdt_merge.strategies import Concat
 s = Concat(separator=" | ", dedup=True)   # defaults
 
 print(s.resolve("First note", "Second note"))    # "First note | Second note"
-print(s.resolve("Second note", "First note"))    # "First note | Second note" (sorted ✅)
+print(s.resolve("Second note", "First note"))    # "First note | Second note" (sorted )
 
 # Deduplication (exact match only)
 print(s.resolve("Note A", "Note A"))             # "Note A" (deduped)
@@ -247,7 +247,7 @@ print(history)
 ```python
 s = Concat()
 val = "note text"
-assert s.resolve(val, val) == val   # ✅
+assert s.resolve(val, val) == val   # 
 ```
 
 ---
@@ -262,7 +262,7 @@ from crdt_merge.strategies import Priority
 s = Priority(["draft", "review", "approved", "published"])
 
 print(s.resolve("draft", "published"))   # "published" (index 3 > 0)
-print(s.resolve("published", "draft"))   # "published" (commutative ✅)
+print(s.resolve("published", "draft"))   # "published" (commutative )
 print(s.resolve("review", "approved"))   # "approved"
 print(s.resolve("unknown", "draft"))     # "draft" (unknown gets -1)
 print(s.resolve("unknown1", "unknown2")) # "unknown2" (lexicographic tiebreak)
@@ -300,7 +300,7 @@ from crdt_merge.strategies import LongestWins
 s = LongestWins()
 
 print(s.resolve("hi", "hello"))              # "hello" (5 > 2)
-print(s.resolve("hello", "hi"))              # "hello" (commutative ✅)
+print(s.resolve("hello", "hi"))              # "hello" (commutative )
 print(s.resolve("ab", "cd", ts_a=1, ts_b=2)) # "cd" (equal length → LWW, ts_b wins)
 print(s.resolve(None, "text"))               # "text" (None length = 0)
 ```

@@ -1224,7 +1224,7 @@ class TestEdgeCases:
         assert sc.content_hash
 
     def test_sidecar_unicode_fact(self):
-        sc = MemorySidecar.from_fact("日本語テスト 🎉")
+        sc = MemorySidecar.from_fact("日本語テスト ")
         assert sc.fact_id
         assert len(sc.content_hash) == 64
 

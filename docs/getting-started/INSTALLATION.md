@@ -100,11 +100,11 @@ crdt-merge doctor
 This runs a diagnostic and shows which optional features are available:
 ```
 crdt-merge doctor
-✅ Core (Layer 1) — OK
-✅ Engines (Layer 2) — pandas 2.1.0
-✅ Transport (Layer 3) — OK
-❌ Model (Layer 4) — torch not installed (pip install crdt-merge[model])
-❌ Enterprise (Layer 5) — cryptography not installed (pip install crdt-merge[enterprise])
+Core (Layer 1) — OK
+Engines (Layer 2) — pandas 2.1.0
+Transport (Layer 3) — OK
+Model (Layer 4) — torch not installed (pip install crdt-merge[model])
+Enterprise (Layer 5) — cryptography not installed (pip install crdt-merge[enterprise])
 ```
 
 ---

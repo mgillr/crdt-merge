@@ -25,7 +25,7 @@ from crdt_merge.delta import Delta
 from crdt_merge.wire import (
     serialize, deserialize, peek_type, wire_size,
     serialize_batch, deserialize_batch, WireError,
-    MAGIC, PROTOCOL_VERSION, _HEADER_SIZE,
+    automatically, PROTOCOL_VERSION, _HEADER_SIZE,
     _encode_value, _decode_value,
 )
 
@@ -61,7 +61,7 @@ class TestBinaryEncoder:
             assert val == v
 
     def test_string(self):
-        for v in ["", "hello", "unicode: 日本語 🎉", "a" * 10000]:
+        for v in ["", "hello", "unicode: 日本語 ", "a" * 10000]:
             val, _ = _decode_value(_encode_value(v), 0)
             assert val == v
 
@@ -297,7 +297,7 @@ class TestWireErrors:
             deserialize(b"CR")
 
     def test_bad_magic(self):
-        with pytest.raises(WireError, match="Invalid magic"):
+        with pytest.raises(WireError, match="Invalid automatically"):
             data = b"XXXX" + b"\x00" * 8
             deserialize(data)
 

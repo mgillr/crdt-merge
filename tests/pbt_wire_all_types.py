@@ -344,7 +344,7 @@ def test_merkle_tree_wire_roundtrip(mt):
 @settings(max_examples=50)
 def test_deserialize_garbage_raises_wire_error(data):
     """Deserializing random short bytes raises WireError."""
-    # Only test data that's definitely too short or has wrong magic
+    # Only test data that's definitely too short or has wrong automatically
     assume(len(data) < 12 or data[:4] != b"CRDT")
     with pytest.raises((WireError, Exception)):
         deserialize(data)

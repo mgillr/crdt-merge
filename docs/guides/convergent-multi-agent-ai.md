@@ -277,13 +277,13 @@ By the CRDT composition theorem (Shapiro et al. 2011): a composition of CRDTs wh
 
 | Property | LangChain | AutoGen | CrewAI | LangGraph | **crdt-merge** |
 |---|:---:|:---:|:---:|:---:|:---:|
-| Convergence guarantee | ❌ | ❌ | ❌ | ❌ | ✅ **Proven** |
-| Works without coordinator | ❌ | ❌ | ❌ | ❌ | ✅ |
-| Partition-tolerant | ❌ | ❌ | ❌ | ❌ | ✅ |
-| Confidence-weighted facts | ❌ | ❌ | ❌ | ❌ | ✅ |
-| Per-fact provenance | ❌ | ⚠️ partial | ⚠️ partial | ⚠️ partial | ✅ |
-| Federation without data sharing | ❌ | ❌ | ❌ | ❌ | ✅ |
-| EU AI Act audit trail | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Convergence guarantee | | | | | **Proven** |
+| Works without coordinator | | | | | |
+| Partition-tolerant | | | | | |
+| Confidence-weighted facts | | | | | |
+| Per-fact provenance | | partial | partial | partial | |
+| Federation without data sharing | | | | | |
+| EU AI Act audit trail | | | | | |
 
 ---
 

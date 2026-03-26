@@ -146,7 +146,7 @@ The following undocumented private symbols were identified as chokepoints by RRE
 | `_from_records` | 0.5982 | Reconstruct DataFrame from merged records |
 | `merge` | 0.3853 | Public entry point — high fan-in from upper layers |
 
-> ⚠️ **5 private helpers** (`_to_records`, `_validate_key_columns`, `_make_composite_key`, `_normalize_key`, `_from_records`) form a critical internal pipeline. All have H=0.5982, indicating they are convergence points for multiple call paths.
+> **5 private helpers** (`_to_records`, `_validate_key_columns`, `_make_composite_key`, `_normalize_key`, `_from_records`) form a critical internal pipeline. All have H=0.5982, indicating they are convergence points for multiple call paths.
 
 ---
 

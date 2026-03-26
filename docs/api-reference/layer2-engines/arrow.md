@@ -165,9 +165,9 @@ Return a dict mapping column names to Arrow type strings.
 | `ArrowMerge.schema` | 0.4547 | Property — merge schema configuration |
 | `_has_pyarrow` | 0.396 | Boolean flag — pyarrow availability check |
 
-> ⚠️ **`_ensure_table` (H=0.6232) is the single highest-entropy chokepoint in Layer 2.** It is the convergence point for all Arrow merge operations — every path through `arrow.py` flows through this function. It needs thorough documentation covering input validation, type coercion, and error handling.
+> **`_ensure_table` (H=0.6232) is the single highest-entropy chokepoint in Layer 2.** It is the convergence point for all Arrow merge operations — every path through `arrow.py` flows through this function. It needs thorough documentation covering input validation, type coercion, and error handling.
 
-> ⚠️ **`ArrowMerge` class** and its properties (`timestamp_col`, `schema`) are partially documented above but were flagged as chokepoints (H=0.4547) due to high fan-in from parquet.py and upper layers.
+> **`ArrowMerge` class** and its properties (`timestamp_col`, `schema`) are partially documented above but were flagged as chokepoints (H=0.4547) due to high fan-in from parquet.py and upper layers.
 
 ---
 

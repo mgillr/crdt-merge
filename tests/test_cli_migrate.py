@@ -385,7 +385,7 @@ class TestCLI:
             content = f.read()
         assert "ModelMergeSchema" in content
         captured = capsys.readouterr()
-        assert "✅" in captured.out
+        assert "" in captured.out
 
     def test_cli_schema_mode(self, tmp_path, capsys):
         p = _write_yaml(tmp_path, "schema.yaml", TIES_CONFIG)

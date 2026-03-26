@@ -51,12 +51,12 @@ print(merged.value)              # 10 (7 + 3)
 
 # Idempotent: merging same state twice gives same result
 merged2 = merged.merge(node_a)
-assert merged2.value == merged.value   # ✅
+assert merged2.value == merged.value   # 
 
 # Commutative: order doesn't matter
 m1 = node_a.merge(node_b)
 m2 = node_b.merge(node_a)
-assert m1.value == m2.value            # ✅
+assert m1.value == m2.value            # 
 ```
 
 **Why `max` works**: Each node only increments its own slot, so the true count for that node is monotonically increasing. `max` correctly identifies the most recent known count.
@@ -130,7 +130,7 @@ merged_cd = reg_c.merge(reg_d)
 print(merged_cd.value)   # "v2" — "node_b" > "node_a" lexicographically
 
 # Commutativity check
-assert reg_a.merge(reg_b).value == reg_b.merge(reg_a).value   # ✅
+assert reg_a.merge(reg_b).value == reg_b.merge(reg_a).value   # 
 ```
 
 **Tie-breaking gotcha**: `"node9" > "node10"` because `"9" > "1"` lexicographically. Use zero-padded IDs: `"node09"`, `"node10"`.
@@ -240,7 +240,7 @@ path1 = r1.merge(r2).merge(r3)
 path2 = r3.merge(r1).merge(r2)
 path3 = r2.merge(r3).merge(r1)
 
-assert path1.value == path2.value == path3.value   # ✅ Always converge
+assert path1.value == path2.value == path3.value   # Always converge
 print(path1.value)  # 6 (1 + 2 + 3)
 ```
 

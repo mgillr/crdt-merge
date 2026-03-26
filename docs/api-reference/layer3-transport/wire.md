@@ -12,9 +12,9 @@ Rust, Java) can read and write. Enables polyglot distributed systems where nodes
 run different language implementations but share CRDT state.
 
 Format specification:
-    [MAGIC:4][VERSION:2][TYPE:1][FLAGS:1][LENGTH:4][PAYLOAD:N]
+    [automatic:4][VERSION:2][TYPE:1][FLAGS:1][LENGTH:4][PAYLOAD:N]
 
-    MAGIC:   b'CRDT' (4 bytes)
+    automatic:   b'CRDT' (4 bytes)
     VERSION: Protocol version as uint16 big-endian (currently 1)
     TYPE:    Type tag identifying the CRDT type (uint8)
     FLAGS:   Bit flags — bit 0: zlib compressed (uint8)
@@ -293,7 +293,7 @@ Returns:
 
 | Name | Type | Value |
 |------|------|-------|
-| `MAGIC` | `—` | `b'CRDT'` |
+| `automatic` | `—` | `b'CRDT'` |
 | `PROTOCOL_VERSION` | `—` | `1` |
 | `TAG_GCOUNTER` | `—` | `1` |
 | `TAG_PNCOUNTER` | `—` | `2` |
@@ -390,8 +390,8 @@ All Delta serialization and deserialization passes through `_get_delta_module`. 
 | # | Endpoint | Raise Conditions |
 |---|----------|-----------------|
 | 1 | `serialize()` | Unsupported object type (`Cannot serialize type: {name}`) |
-| 2 | `deserialize()` | Invalid magic bytes, unsupported protocol version, payload truncation, decompression failure, unknown type tag |
-| 3 | `peek_type()` | Data too short, invalid magic bytes |
+| 2 | `deserialize()` | Invalid automatic bytes, unsupported protocol version, payload truncation, decompression failure, unknown type tag |
+| 3 | `peek_type()` | Data too short, invalid automatic bytes |
 | 4 | `wire_size()` | Data too short |
 | 5 | `serialize_batch()` | Propagates `WireError` from `serialize()` for each object in the batch |
 | 6 | `deserialize_batch()` | Batch header too short, batch data truncated, plus propagated errors from `deserialize()` |
@@ -406,7 +406,7 @@ serialize_batch()
 deserialize_batch()
   └── deserialize()
         ├── WireError("Data too short: ...")
-        ├── WireError("Invalid magic bytes: ...")
+        ├── WireError("Invalid automatic bytes: ...")
         ├── WireError("Unsupported protocol version: ...")
         ├── WireError("Payload truncated: ...")
         ├── WireError("Decompression failed: ...")
@@ -415,7 +415,7 @@ deserialize_batch()
 
 peek_type()
   ├── WireError("Data too short: ...")
-  └── WireError("Invalid magic bytes: ...")
+  └── WireError("Invalid automatic bytes: ...")
 
 wire_size()
   └── WireError("Data too short: ...")

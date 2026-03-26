@@ -110,11 +110,11 @@ Phase 1 (pyproject.toml edit) ──► verify install ──► commit ──�
 
 | Gate | Requirement | Result |
 |------|-------------|--------|
-| `pip install crdt-merge[crypto]` resolves | Installs `cryptography>=41` | ✅ |
-| `pip install crdt-merge[all]` includes crypto | No warnings | ✅ |
-| Existing encryption tests | 51 backend tests pass | ✅ |
-| Existing full suite | 3,041 tests, 0 failures | ✅ |
-| Zero functional changes | Only pyproject.toml modified | ✅ |
+| `pip install crdt-merge[crypto]` resolves | Installs `cryptography>=41` | |
+| `pip install crdt-merge[all]` includes crypto | No warnings | |
+| Existing encryption tests | 51 backend tests pass | |
+| Existing full suite | 3,041 tests, 0 failures | |
+| Zero functional changes | Only pyproject.toml modified | |
 
 ---
 

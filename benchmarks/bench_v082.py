@@ -412,7 +412,7 @@ def bench_crdt_law_verification():
         result = verify_crdt(merge_fn, gen_fn, trials=trials)
         elapsed = time.perf_counter() - t0
 
-        status = "✅ PASS" if result.passed else "❌ FAIL"
+        status = "PASS" if result.passed else "FAIL"
         row(f"verify_crdt({name}, {trials} trials)", f"{status}", f"({fmt_time(elapsed)})")
 
 

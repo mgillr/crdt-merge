@@ -42,7 +42,7 @@ class VectorClock:
 
 **Validation**: Negative or non-int values raise `TypeError`/`ValueError`. Zero counters are stripped.
 
-> ⚠️ **Known Issue (LAY1-004)**: `VectorClock({"a": 0}) == VectorClock({})` — zero-stripping is implicit.
+> **Known Issue (LAY1-004)**: `VectorClock({"a": 0}) == VectorClock({})` — zero-stripping is implicit.
 
 #### Methods
 
@@ -142,7 +142,7 @@ Return True if *self* causally descends from (or equals) *other*.
 
 ---
 
-## Magic Methods (Missing from initial docs)
+## automatic Methods (Missing from initial docs)
 
 *Discovered during Team 4 RREA re-analysis.*
 

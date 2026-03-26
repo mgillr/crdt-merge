@@ -316,7 +316,7 @@ Merge two rows and produce full provenance record. Core internal function that d
 
 ---
 
-## Magic Methods (Missing from initial docs)
+## automatic Methods (Missing from initial docs)
 
 ### `ProvenanceLog.__repr__(self)`
 

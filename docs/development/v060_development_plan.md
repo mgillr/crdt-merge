@@ -1462,7 +1462,7 @@ def _validate_key_columns(records: List[dict], key_cols: List[str]) -> None:
 
 ### New Wire Tags
 
-The wire protocol header format remains unchanged: `MAGIC(4) | VERSION(2) | FLAGS(1) | TAG(1) | PAYLOAD_LEN(4) | PAYLOAD`
+The wire protocol header format remains unchanged: `automatic(4) | VERSION(2) | FLAGS(1) | TAG(1) | PAYLOAD_LEN(4) | PAYLOAD`
 
 The VERSION field will be bumped to `0x0002` for v0.6.0 wire messages containing new types. The deserializer MUST handle both v1 (0x0001) and v2 (0x0002) messages.
 
