@@ -212,7 +212,7 @@ Estimate Jaccard similarity from MinHash signatures. `|matching positions| / num
 
 ---
 
-## Magic Methods (Missing from initial docs)
+## automatic Methods (Missing from initial docs)
 
 ### `DedupIndex.__repr__(self)`
 

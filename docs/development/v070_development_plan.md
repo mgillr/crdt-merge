@@ -1482,14 +1482,13 @@ Total: 13 weeks (+ 1 week buffer)
                     └──────┬──────┘
                            │ read-only
               ┌────────────┼────────────┬────────────────────┐
-              ▼            ▼            ▼                    ▼
-        ┌──────────┐ ┌──────────┐ ┌──────────┐     ┌──────────────────┐
+                                                               ┌──────────┐ ┌──────────┐ ┌──────────┐     ┌──────────────────┐
         │mergeql.py│ │parquet.py│ │  viz.py  │     │ accelerators/    │
         │  Dev A   │ │  Dev B   │ │  Dev C   │     │  __init__.py     │
         │ Phase 1  │ │ Phase 1  │ │ Phase 2  │     │  (base protocol) │
         └────┬─────┘ └──────────┘ └────┬─────┘     └────────┬─────────┘
              │ read-only               │                     │
-        ┌────▼──────────┐        ┌─────▼────────┐           │
+        ┌──────────────┐        ┌─────────────┐           │
         │duckdb_udf.py  │        │streamlit_ui  │           │
         │ACC-1 (Phase 2)│        │ACC-8 (Phs 1) │           │
         └───────────────┘        └──────────────┘           │
@@ -1779,4 +1778,4 @@ This must be explicitly approved by project lead before implementation.
 
 *Document generated: March 2026*
 *Synchronized Development Plan — v0.7.0 "The Integration Release"*
-*Previous plan: v0.6.0 dev plan (71 KB, 1,841 lines) — fully executed ✅*
+*Previous plan: v0.6.0 dev plan (71 KB, 1,841 lines) — fully executed *

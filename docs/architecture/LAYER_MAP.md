@@ -94,9 +94,9 @@ from crdt_merge.schema_evolution import evolve_schema
 ### Wire Protocol Format
 
 ```
-[MAGIC:4][VERSION:2][TYPE:1][FLAGS:1][LENGTH:4][PAYLOAD:N]
+[automatic:4][VERSION:2][TYPE:1][FLAGS:1][LENGTH:4][PAYLOAD:N]
 
-MAGIC:   b'CRDT'
+automatic:   b'CRDT'
 VERSION: uint16 big-endian (currently 1)
 TYPE:    0x01=GCounter, 0x02=PNCounter, 0x03=LWWRegister,
          0x04=ORSet, 0x05=LWWMap, 0x10=Delta, 0x20=Generic

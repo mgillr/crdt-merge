@@ -46,16 +46,16 @@ Three workstreams:
 ```
 Existing v0.9.0/v0.9.1 (foundations)          New v0.9.2 (reporting/export layer)
 ─────────────────────────────────────          ──────────────────────────────────
-AuditLog, AuditedMerge ──────────────────────► ComplianceAuditor
-ProvenanceLog, MergeRecord ──────────────────► ComplianceReport, EUAIActReport
+AuditLog, AuditedMerge ──────────────────────ComplianceAuditor
+ProvenanceLog, MergeRecord ──────────────────ComplianceReport, EUAIActReport
                                                 ComplianceFinding
 
-MetricsCollector, ObservedMerge ─────────────► MergeTracer (OTel-compatible)
-HealthCheck ─────────────────────────────────► DriftDetector, DriftReport
+MetricsCollector, ObservedMerge ─────────────MergeTracer (OTel-compatible)
+HealthCheck ─────────────────────────────────DriftDetector, DriftReport
                                                 PrometheusExporter
                                                 GrafanaDashboard
 
-FederatedMerge (v0.8.2) ────────────────────► CRDTStrategy
+FederatedMerge (v0.8.2) ────────────────────CRDTStrategy
                                                 FlowerCRDTClient
                                                 FlowerAggregator
 ```
@@ -329,14 +329,14 @@ tests/
 ## Execution Order
 
 ```
-Phase 5 (Compliance)       ──► commit ──┐
-Phase 3 (Observability)    ──► commit ──┤ (parallel — no file conflicts)
+Phase 5 (Compliance)       ──commit ──┐
+Phase 3 (Observability)    ──commit ──┤ (parallel — no file conflicts)
                                       │
-Phase 3 (Flower Plugin)    ◄────────────┘ (depends on federated.py — already exists)
-  └──► commit ──┐
+Phase 3 (Flower Plugin)    ────────────┘ (depends on federated.py — already exists)
+  └──commit ──┐
                  │
-Phase 1 (Integration)      ◄┘ (depends on all modules)
-  └──► commit ──► FULL TEST SWEEP ──► v0.9.2 TAG ──► PyPI PUBLISH
+Phase 1 (Integration)      ┘ (depends on all modules)
+  └──commit ──FULL TEST SWEEP ──v0.9.2 TAG ──PyPI PUBLISH
 ```
 
 **Sequential execution order (conservative):**
@@ -393,12 +393,12 @@ Duration: ~52s
 
 | Suite | Tests | Status |
 |-------|-------|--------|
-| Existing regression suite | 1,858 | ✅ All pass |
-| New: Compliance (Phase 5) | 57 | ✅ All pass |
-| New: Observability extensions (Phase 3) | 23 | ✅ All pass |
-| New: Flower plugin (Phase 3) | 49 | ✅ All pass |
-| New: Cross-module integration (Phase 1) | 84 | ✅ All pass |
-| **Total executed** | **1,942** | ✅ **0 failures** |
+| Existing regression suite | 1,858 | All pass |
+| New: Compliance (Phase 5) | 57 | All pass |
+| New: Observability extensions (Phase 3) | 23 | All pass |
+| New: Flower plugin (Phase 3) | 49 | All pass |
+| New: Cross-module integration (Phase 1) | 84 | All pass |
+| **Total executed** | **1,942** | **0 failures** |
 
 *15 collection errors are expected — those test files require optional dependencies (numpy, hypothesis, torch, flwr) not installed in the test environment. They pass in CI where all optional deps are available.*
 

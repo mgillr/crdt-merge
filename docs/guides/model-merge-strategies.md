@@ -8,32 +8,32 @@
 
 | # | Registry Name | Class | Category | Commutative | Associative | Idempotent |
 |---|--------------|-------|----------|:-----------:|:-----------:|:----------:|
-| 1 | `linear` | LinearInterpolation | Basic | conditional | ✗ | ✓ |
-| 2 | `slerp` | SphericalLinearInterpolation | Basic | conditional | ✗ | ✓ |
-| 3 | `weight_average` | WeightAverage | Basic | ✓ | ✗ | ✓ |
-| 4 | `task_arithmetic` | TaskArithmetic | Basic | ✓ | ✓ | ✗ |
-| 5 | `ties` | TIESMerge | Subspace | ✓ | ✗ | ✗ |
-| 6 | `dare` | DareDropAndRescale | Subspace | ✗ | ✗ | ✗ |
-| 7 | `dare_ties` | DareTiesHybrid | Subspace | ✗ | ✗ | ✗ |
-| 8 | `della` | DellaDropElectLowRank | Subspace | ✗ | ✗ | ✗ |
-| 9 | `emr` | EMRMerge | Subspace | ✓ | ✗ | ✗ |
-| 10 | `model_breadcrumbs` | ModelBreadcrumbs | Subspace | ✓ | ✗ | ✗ |
-| 11 | `adarank` | AdaptiveRankPruning | Subspace | ✓ | ✗ | ✗ |
-| 12 | `star` | SpectralTruncationAdaptiveRescaling | Subspace | ✓ | ✗ | ✗ |
-| 13 | `svd_knot_tying` | SVDKnotTying | Subspace | ✓ | ✗ | ✓ |
-| 14 | `fisher_merge` | FisherMerge | Weighted | ✓ | ✗ | ✓ |
-| 15 | `ada_merging` | AdaptiveMerging | Weighted | conditional | conditional | ✓ |
-| 16 | `dam` | DifferentiableAdaptiveMerging | Weighted | conditional | conditional | ✓ |
-| 17 | `regression_mean` | RegressionMean | Weighted | ✓ | ✗ | ✓ |
-| 18 | `evolutionary_merge` | EvolutionaryMerge | Evolutionary | ✗ | ✗ | ✗ |
-| 19 | `genetic_merge` | GeneticMerge | Evolutionary | ✗ | ✗ | ✓ |
-| 20 | `safe_merge` | SafeMerge | Safety | ✓ | ✗ | ✓ |
-| 21 | `led_merge` | LEDMerge | Safety | ✓ | ✗ | ✓ |
-| 22 | `negative_merge` | NegativeMerge | Unlearning | ✓ | ✗ | ✗ |
-| 23 | `split_unlearn_merge` | SplitUnlearnMerge | Unlearning | ✓ | ✗ | ✗ |
-| 24 | `representation_surgery` | RepresentationSurgery | Calibration | ✓ | ✗ | ✓ |
-| 25 | `weight_scope_alignment` | WeightScopeAlignment | Calibration | ✓ | ✗ | ✓ |
-| 26 | `dual_projection` | DualProjectionMerge | Continual | ✓ | ✓ | ✓ |
+| 1 | `linear` | LinearInterpolation | Basic | conditional | | |
+| 2 | `slerp` | SphericalLinearInterpolation | Basic | conditional | | |
+| 3 | `weight_average` | WeightAverage | Basic | | | |
+| 4 | `task_arithmetic` | TaskArithmetic | Basic | | | |
+| 5 | `ties` | TIESMerge | Subspace | | | |
+| 6 | `dare` | DareDropAndRescale | Subspace | | | |
+| 7 | `dare_ties` | DareTiesHybrid | Subspace | | | |
+| 8 | `della` | DellaDropElectLowRank | Subspace | | | |
+| 9 | `emr` | EMRMerge | Subspace | | | |
+| 10 | `model_breadcrumbs` | ModelBreadcrumbs | Subspace | | | |
+| 11 | `adarank` | AdaptiveRankPruning | Subspace | | | |
+| 12 | `star` | SpectralTruncationAdaptiveRescaling | Subspace | | | |
+| 13 | `svd_knot_tying` | SVDKnotTying | Subspace | | | |
+| 14 | `fisher_merge` | FisherMerge | Weighted | | | |
+| 15 | `ada_merging` | AdaptiveMerging | Weighted | conditional | conditional | |
+| 16 | `dam` | DifferentiableAdaptiveMerging | Weighted | conditional | conditional | |
+| 17 | `regression_mean` | RegressionMean | Weighted | | | |
+| 18 | `evolutionary_merge` | EvolutionaryMerge | Evolutionary | | | |
+| 19 | `genetic_merge` | GeneticMerge | Evolutionary | | | |
+| 20 | `safe_merge` | SafeMerge | Safety | | | |
+| 21 | `led_merge` | LEDMerge | Safety | | | |
+| 22 | `negative_merge` | NegativeMerge | Unlearning | | | |
+| 23 | `split_unlearn_merge` | SplitUnlearnMerge | Unlearning | | | |
+| 24 | `representation_surgery` | RepresentationSurgery | Calibration | | | |
+| 25 | `weight_scope_alignment` | WeightScopeAlignment | Calibration | | | |
+| 26 | `dual_projection` | DualProjectionMerge | Continual | | | |
 
 ---
 
@@ -45,8 +45,7 @@ Element-wise linear interpolation between two or more model weight tensors.
 
 - **Module**: `crdt_merge.model.strategies.basic`
 - **Paper**: Wortsman et al., 2022 — *Model soups: averaging weights of multiple fine-tuned models improves accuracy without increasing inference time*
-- **CRDT**: commutative (conditional) · associative ✗ · idempotent ✓
-
+- **CRDT**: commutative (conditional) · associative · idempotent 
 ```python
 from crdt_merge.model.strategies import get_strategy
 
@@ -62,8 +61,7 @@ Spherical linear interpolation (SLERP) — interpolates along the great circle o
 
 - **Module**: `crdt_merge.model.strategies.basic`
 - **Paper**: Shoemake, 1985 — *Animating Rotation with Quaternion Curves*
-- **CRDT**: commutative (conditional) · associative ✗ · idempotent ✓
-
+- **CRDT**: commutative (conditional) · associative · idempotent 
 ```python
 from crdt_merge.model.strategies import get_strategy
 
@@ -79,8 +77,7 @@ Weighted element-wise average of model parameters. The foundational strategy beh
 
 - **Module**: `crdt_merge.model.strategies.basic`
 - **Paper**: McMahan et al., 2017 — *Communication-Efficient Learning of Deep Networks from Decentralized Data*
-- **CRDT**: commutative ✓ · associative ✗ · idempotent ✓
-
+- **CRDT**: commutative · associative · idempotent 
 ```python
 from crdt_merge.model.strategies import get_strategy
 
@@ -96,8 +93,7 @@ Computes task vectors (difference from a shared base model) and additively combi
 
 - **Module**: `crdt_merge.model.strategies.basic`
 - **Paper**: Ilharco et al., 2023 — *Editing Models with Task Arithmetic*
-- **CRDT**: commutative ✓ · associative ✓ · idempotent ✗
-
+- **CRDT**: commutative · associative · idempotent 
 ```python
 from crdt_merge.model.strategies import get_strategy
 
@@ -115,8 +111,7 @@ Trim low-magnitude values, Elect a consensus sign, and merge only agreeing compo
 
 - **Module**: `crdt_merge.model.strategies.subspace`
 - **Paper**: Yadav et al., NeurIPS 2023 — *Resolving Interference When Merging Models (TIES-Merging)*
-- **CRDT**: commutative ✓ · associative ✗ · idempotent ✗
-
+- **CRDT**: commutative · associative · idempotent 
 ```python
 from crdt_merge.model.strategies import get_strategy
 
@@ -132,8 +127,7 @@ Randomly drops delta parameters with a given probability and rescales the surviv
 
 - **Module**: `crdt_merge.model.strategies.subspace`
 - **Paper**: Yu et al., 2024 — *Language Models are Super Mario*
-- **CRDT**: commutative ✗ · associative ✗ · idempotent ✗
-
+- **CRDT**: commutative · associative · idempotent 
 ```python
 from crdt_merge.model.strategies import get_strategy
 
@@ -149,8 +143,7 @@ Combines DARE's stochastic dropout with TIES' sign-election consensus for a best
 
 - **Module**: `crdt_merge.model.strategies.subspace`
 - **Paper**: Community hybrid, 2024 — *DARE-TIES*
-- **CRDT**: commutative ✗ · associative ✗ · idempotent ✗
-
+- **CRDT**: commutative · associative · idempotent 
 ```python
 from crdt_merge.model.strategies import get_strategy
 
@@ -166,8 +159,7 @@ Drop, Elect, and Low-Rank Approximate — extends DARE-TIES with a low-rank reco
 
 - **Module**: `crdt_merge.model.strategies.subspace`
 - **Paper**: Bansal, 2024 — *DELLA-Merging*
-- **CRDT**: commutative ✗ · associative ✗ · idempotent ✗
-
+- **CRDT**: commutative · associative · idempotent 
 ```python
 from crdt_merge.model.strategies import get_strategy
 
@@ -183,8 +175,7 @@ Elect, Mask, and Rescale — partitions parameters into shared and task-specific
 
 - **Module**: `crdt_merge.model.strategies.subspace`
 - **Paper**: Huang et al., 2024 — *EMR-Merging*
-- **CRDT**: commutative ✓ · associative ✗ · idempotent ✗
-
+- **CRDT**: commutative · associative · idempotent 
 ```python
 from crdt_merge.model.strategies import get_strategy
 
@@ -200,8 +191,7 @@ Identifies and retains only the most important "breadcrumb" parameters that move
 
 - **Module**: `crdt_merge.model.strategies.subspace`
 - **Paper**: Davari & Belilovsky, 2023 — *Model Breadcrumbs*
-- **CRDT**: commutative ✓ · associative ✗ · idempotent ✗
-
+- **CRDT**: commutative · associative · idempotent 
 ```python
 from crdt_merge.model.strategies import get_strategy
 
@@ -217,8 +207,7 @@ Adaptively selects the rank for each weight matrix during merging, pruning low-i
 
 - **Module**: `crdt_merge.model.strategies.subspace`
 - **Paper**: ICLR 2026 — *AdaRank: Adaptive Rank Pruning for Model Merging*
-- **CRDT**: commutative ✓ · associative ✗ · idempotent ✗
-
+- **CRDT**: commutative · associative · idempotent 
 ```python
 from crdt_merge.model.strategies import get_strategy
 
@@ -234,8 +223,7 @@ Truncates the spectrum (singular values) of task vectors and adaptively rescales
 
 - **Module**: `crdt_merge.model.strategies.subspace`
 - **Paper**: 2025 — *Spectral Truncation Adaptive Rescaling (STAR)*
-- **CRDT**: commutative ✓ · associative ✗ · idempotent ✗
-
+- **CRDT**: commutative · associative · idempotent 
 ```python
 from crdt_merge.model.strategies import get_strategy
 
@@ -251,8 +239,7 @@ Aligns the SVD subspaces of task vectors before merging by tying singular-vector
 
 - **Module**: `crdt_merge.model.strategies.subspace`
 - **Paper**: 2024 — *SVD Knot Tying: Aligning Merge Subspaces*
-- **CRDT**: commutative ✓ · associative ✗ · idempotent ✓
-
+- **CRDT**: commutative · associative · idempotent 
 ```python
 from crdt_merge.model.strategies import get_strategy
 
@@ -270,8 +257,7 @@ Weights each parameter by its Fisher information (diagonal approximation), givin
 
 - **Module**: `crdt_merge.model.strategies.weighted`
 - **Paper**: Matena & Raffel, 2022 — *Merging Models with Fisher-Weighted Averaging*
-- **CRDT**: commutative ✓ · associative ✗ · idempotent ✓
-
+- **CRDT**: commutative · associative · idempotent 
 ```python
 from crdt_merge.model.strategies import get_strategy
 
@@ -287,8 +273,7 @@ Learns per-layer or per-task merging coefficients automatically using entropy mi
 
 - **Module**: `crdt_merge.model.strategies.weighted`
 - **Paper**: Yang et al., 2024 — *AdaMerging: Adaptive Model Merging*
-- **CRDT**: commutative (conditional) · associative (conditional) · idempotent ✓
-
+- **CRDT**: commutative (conditional) · associative (conditional) · idempotent 
 ```python
 from crdt_merge.model.strategies import get_strategy
 
@@ -304,8 +289,7 @@ End-to-end differentiable merging that jointly optimizes merge coefficients via 
 
 - **Module**: `crdt_merge.model.strategies.weighted`
 - **Paper**: 2024 — *Differentiable Adaptive Merging (DAM)*
-- **CRDT**: commutative (conditional) · associative (conditional) · idempotent ✓
-
+- **CRDT**: commutative (conditional) · associative (conditional) · idempotent 
 ```python
 from crdt_merge.model.strategies import get_strategy
 
@@ -321,8 +305,7 @@ Computes the merge as a regression-optimal mean that minimizes expected predicti
 
 - **Module**: `crdt_merge.model.strategies.weighted`
 - **Paper**: Jin et al., 2023 — *Dataless Knowledge Fusion by Merging Weights*
-- **CRDT**: commutative ✓ · associative ✗ · idempotent ✓
-
+- **CRDT**: commutative · associative · idempotent 
 ```python
 from crdt_merge.model.strategies import get_strategy
 
@@ -340,8 +323,7 @@ Uses CMA-ES or similar evolutionary optimization to search for layer-wise merge 
 
 - **Module**: `crdt_merge.model.strategies.evolutionary`
 - **Paper**: Sakana AI, 2024; M2N2 (GECCO 2025)
-- **CRDT**: commutative ✗ · associative ✗ · idempotent ✗
-
+- **CRDT**: commutative · associative · idempotent 
 ```python
 from crdt_merge.model.strategies import get_strategy
 
@@ -357,8 +339,7 @@ Applies genetic-algorithm-based crossover and mutation to evolve merge recipes, 
 
 - **Module**: `crdt_merge.model.strategies.evolutionary`
 - **Paper**: Mergenetic library, 2025
-- **CRDT**: commutative ✗ · associative ✗ · idempotent ✓
-
+- **CRDT**: commutative · associative · idempotent 
 ```python
 from crdt_merge.model.strategies import get_strategy
 
@@ -376,8 +357,7 @@ Preserves safety-critical layers (e.g., RLHF alignment heads) by detecting and p
 
 - **Module**: `crdt_merge.model.strategies.safety`
 - **Paper**: 2025 — *Safety-Preserving Model Merging*
-- **CRDT**: commutative ✓ · associative ✗ · idempotent ✓
-
+- **CRDT**: commutative · associative · idempotent 
 ```python
 from crdt_merge.model.strategies import get_strategy
 
@@ -393,8 +373,7 @@ Layer-wise Evaluation-Driven merging — evaluates each layer independently agai
 
 - **Module**: `crdt_merge.model.strategies.safety`
 - **Paper**: 2025 — *Layer-wise Evaluation-Driven Merging (LED)*
-- **CRDT**: commutative ✓ · associative ✗ · idempotent ✓
-
+- **CRDT**: commutative · associative · idempotent 
 ```python
 from crdt_merge.model.strategies import get_strategy
 
@@ -412,8 +391,7 @@ Negates (subtracts) the task vector of an undesirable capability from the base m
 
 - **Module**: `crdt_merge.model.strategies.unlearning`
 - **Paper**: ICML 2025 — *NegMerge: Weight Negation for Unlearning*
-- **CRDT**: commutative ✓ · associative ✗ · idempotent ✗
-
+- **CRDT**: commutative · associative · idempotent 
 ```python
 from crdt_merge.model.strategies import get_strategy
 
@@ -429,8 +407,7 @@ Splits the model into retain/forget partitions, applies targeted unlearning to t
 
 - **Module**: `crdt_merge.model.strategies.unlearning`
 - **Paper**: 2025 — *Sequential Split-Unlearn-Merge*
-- **CRDT**: commutative ✓ · associative ✗ · idempotent ✗
-
+- **CRDT**: commutative · associative · idempotent 
 ```python
 from crdt_merge.model.strategies import get_strategy
 
@@ -448,8 +425,7 @@ Post-merge calibration that corrects representation drift by aligning the merged
 
 - **Module**: `crdt_merge.model.strategies.calibration`
 - **Paper**: 2024 — *Post-Merge Representation Surgery*
-- **CRDT**: commutative ✓ · associative ✗ · idempotent ✓
-
+- **CRDT**: commutative · associative · idempotent 
 ```python
 from crdt_merge.model.strategies import get_strategy
 
@@ -465,8 +441,7 @@ Aligns the scope (distribution range) of merged weights to match the expected we
 
 - **Module**: `crdt_merge.model.strategies.calibration`
 - **Paper**: 2024 — *Weight Distribution Scope Alignment*
-- **CRDT**: commutative ✓ · associative ✗ · idempotent ✓
-
+- **CRDT**: commutative · associative · idempotent 
 ```python
 from crdt_merge.model.strategies import get_strategy
 
@@ -484,7 +459,7 @@ Projects task vectors onto dual subspaces (stable vs. plastic) to merge new know
 
 - **Module**: `crdt_merge.model.strategies.continual`
 - **Paper**: Yuan et al., NeurIPS 2025
-- **CRDT**: commutative ✓ · associative ✓ · idempotent ✓ · **TRUE_CRDT**
+- **CRDT**: commutative · associative · idempotent · **TRUE_CRDT**
 
 ```python
 from crdt_merge.model.strategies import get_strategy

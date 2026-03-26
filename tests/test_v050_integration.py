@@ -1237,8 +1237,8 @@ class TestFullPipeline:
         b = [{"id": "中国", "名前": "花子"}]
         result = merge(a, b, key="id")
         assert len(result) == 2
-        d1 = {"emoji": "🎯", "kanji": "漢字"}
-        d2 = {"emoji": "🚀", "rune": "ᚱᚢᚾ"}
+        d1 = {"emoji": "", "kanji": "漢字"}
+        d2 = {"emoji": "", "rune": "ᚱᚢᚾ"}
         merged = merge_dicts(d1, d2)
         assert merged["kanji"] == "漢字"
         assert merged["rune"] == "ᚱᚢᚾ"

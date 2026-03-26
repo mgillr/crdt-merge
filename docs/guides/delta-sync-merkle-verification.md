@@ -39,8 +39,7 @@ Together these properties enable **bandwidth-efficient distributed sync with mat
 │  delta(v1→v2) ⊕ delta(v2→v3) ≡ delta(v1→v3)               │
 └──────────────────────┬──────────────────────────────────────┘
                        │ apply_delta(records, delta)
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
+                       ┌─────────────────────────────────────────────────────────────┐
 │  MerkleTree — convergence verification                       │
 │                                                              │
 │  root_hash = SHA-256 of all (key, content_hash) pairs       │

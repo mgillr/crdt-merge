@@ -9,8 +9,7 @@ How data moves through the six layers for each major operation.
 ```
 Input: Two DataFrames (pandas, polars, or Arrow)
          │
-         ▼
-┌────────────────────────────────┐
+         ┌────────────────────────────────┐
 │ merge() [Layer 2: dataframe.py]│
 │                                │
 │  1. Detect engine              │
@@ -32,8 +31,7 @@ Input: Two DataFrames (pandas, polars, or Arrow)
 │  6. Return merged DataFrame    │
 └────────────────────────────────┘
          │
-         ▼
-Output: Merged DataFrame (same engine as input)
+         Output: Merged DataFrame (same engine as input)
 ```
 
 **Code**:
@@ -51,15 +49,14 @@ result = merge(df_a, df_b, key="id", schema=schema, timestamp_col="updated_at")
 
 ```
 Stream A ──┐
-           ├──► merge_stream() [Layer 2: streaming.py]
+           ├──merge_stream() [Layer 2: streaming.py]
 Stream B ──┘         │
                      │  For each record pair (matched by key):
-                     │  ┌─► MergeSchema.resolve_row()
+                     │  ┌─MergeSchema.resolve_row()
                      │  │   (Layer 1 — per-field strategy)
-                     │  └─► yield merged_record
+                     │  └─yield merged_record
                      │
-                     ▼
-              Merged Record Stream (generator)
+                                   Merged Record Stream (generator)
 ```
 
 **Code**:
@@ -87,7 +84,7 @@ for merged_record in merge_sorted_stream(sorted_a, sorted_b, key="id", schema=sc
 Large DataFrame A ──┐
 Large DataFrame B ──┘
          │
-         ▼ (if total rows > 10,000)
+         (if total rows > 10,000)
 ┌────────────────────────────────────┐
 │ parallel_merge() [Layer 2]         │
 │                                    │
@@ -104,8 +101,7 @@ Large DataFrame B ──┘
 │  3. Concatenate chunk results      │
 └────────────────────────────────────┘
          │
-         ▼
-Output: Merged DataFrame
+         Output: Merged DataFrame
 ```
 
 **Code**:
@@ -130,7 +126,7 @@ Note: Falls back to sequential `merge()` for datasets under 10,000 rows.
 ```
 Node A                           Node B
   │                                │
-  ├── GossipState [Layer 3]  ◄───► ├── GossipState [Layer 3]
+  ├── GossipState [Layer 3]  ───├── GossipState [Layer 3]
   │   gossip.py                    │   gossip.py
   │                                │
   │   Round 1:                     │
@@ -144,7 +140,7 @@ Node A                           Node B
   │   8. apply_delta()             │
   │   9. merge() locally           │
   │                                │
-  └── Converged State ◄──────────► └── Converged State
+  └── Converged State ──────────└── Converged State
 ```
 
 **Code**:
@@ -172,8 +168,7 @@ node_a.merge_remote(state_b_serialized)
 Model A (state_dict / weights)
 Model B (state_dict / weights)
         │
-        ▼
-┌──────────────────────────────────┐
+        ┌──────────────────────────────────┐
 │ CRDTMergeState [Layer 4]         │
 │ model/crdt_state.py              │
 │                                  │
@@ -193,8 +188,7 @@ Model B (state_dict / weights)
 │     → Return merged state_dict   │
 └──────────────────────────────────┘
          │
-         ▼
-Merged Model (state_dict or HF model)
+         Merged Model (state_dict or HF model)
 ```
 
 **Code**:
@@ -221,8 +215,7 @@ Each enterprise feature is a wrapper that decorates the core merge call:
 ```
 User calls: am.merge(df_a, df_b, key="id")
                  │
-                 ▼
-┌──────────────────────────────┐
+                 ┌──────────────────────────────┐
 │ AuditedMerge [audit.py]      │
 │                              │
 │  1. Hash inputs              │
@@ -236,10 +229,10 @@ User calls: am.merge(df_a, df_b, key="id")
 **Stacking wrappers** (recommended order):
 ```
 SecureMerge (RBAC check)
-    └─► AuditedMerge (record in audit chain)
-            └─► EncryptedMerge (field encryption/decryption)
-                    └─► ObservedMerge (metrics/tracing)
-                            └─► core merge() [Layer 2]
+    └─AuditedMerge (record in audit chain)
+            └─EncryptedMerge (field encryption/decryption)
+                    └─ObservedMerge (metrics/tracing)
+                            └─core merge() [Layer 2]
 ```
 
 **Code**:
@@ -267,8 +260,7 @@ assert audit.verify_chain()   # tamper-evident verification
 Production merge system
          │
          │  ComplianceAuditor.record_merge()
-         ▼
-┌──────────────────────────────────────┐
+         ┌──────────────────────────────────────┐
 │ ComplianceAuditor [Layer 6]          │
 │ compliance.py                        │
 │                                      │
@@ -290,8 +282,7 @@ Production merge system
 │     .sign(key) / .verify(key, sig)   │
 └──────────────────────────────────────┘
          │
-         ▼
-ComplianceReport (signed or unsigned)
+         ComplianceReport (signed or unsigned)
 ```
 
 **Code**:

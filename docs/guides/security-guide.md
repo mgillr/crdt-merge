@@ -23,20 +23,17 @@ merge.
 ```
   Plaintext value
         │
-        ▼
-  ┌─────────────┐      ┌──────────────┐
-  │ KeyProvider  │─────▶│ Per-field key │  (HMAC-SHA256 derivation)
+          ┌─────────────┐      ┌──────────────┐
+  │ KeyProvider  │─────│ Per-field key │  (HMAC-SHA256 derivation)
   └─────────────┘      └──────┬───────┘
                               │
                ┌──────────────┼──────────────┐
-               ▼              ▼              ▼
-        ┌────────────┐ ┌────────────┐ ┌───────────┐
+                                                 ┌────────────┐ ┌────────────┐ ┌───────────┐
         │ Encrypt    │ │ Auth tag   │ │ Order tag │
         │ (backend)  │ │ (backend)  │ │ HMAC(val) │
         └────────────┘ └────────────┘ └───────────┘
                │              │              │
-               ▼              ▼              ▼
-           EncryptedValue { ciphertext, nonce, tag, order_tag, field_name }
+                                                    EncryptedValue { ciphertext, nonce, tag, order_tag, field_name }
 ```
 
 ### Available Backends
@@ -412,7 +409,7 @@ forming a verifiable chain similar to a blockchain.
 
 ```
  ┌──────────┐     ┌──────────┐     ┌──────────┐
- │ Entry #0 │────▶│ Entry #1 │────▶│ Entry #2 │
+ │ Entry #0 │────│ Entry #1 │────│ Entry #2 │
  │ prev:    │     │ prev:    │     │ prev:    │
  │ "genesis"│     │ hash(#0) │     │ hash(#1) │
  │ hash: H0 │     │ hash: H1 │     │ hash: H2 │

@@ -35,11 +35,10 @@ crdt-merge solves all four problems through the same two-layer architecture that
 │  messages → append-only + content-hash dedup         │
 │                                                      │
 │  merge() = set union / lattice join                  │
-│  CRDT laws: commutative ✓  associative ✓  idem ✓    │
+│  CRDT laws: commutative  associative  idem    │
 └──────────────────────┬──────────────────────────────┘
                        │ convergent set
-                       ▼
-┌─────────────────────────────────────────────────────┐
+                       ┌─────────────────────────────────────────────────────┐
 │  Layer 2: ContextMerge (deterministic resolution)    │
 │                                                      │
 │  strategies: lww / max_confidence / priority / union │
@@ -277,13 +276,13 @@ By the CRDT composition theorem (Shapiro et al. 2011): a composition of CRDTs wh
 
 | Property | LangChain | AutoGen | CrewAI | LangGraph | **crdt-merge** |
 |---|:---:|:---:|:---:|:---:|:---:|
-| Convergence guarantee | ❌ | ❌ | ❌ | ❌ | ✅ **Proven** |
-| Works without coordinator | ❌ | ❌ | ❌ | ❌ | ✅ |
-| Partition-tolerant | ❌ | ❌ | ❌ | ❌ | ✅ |
-| Confidence-weighted facts | ❌ | ❌ | ❌ | ❌ | ✅ |
-| Per-fact provenance | ❌ | ⚠️ partial | ⚠️ partial | ⚠️ partial | ✅ |
-| Federation without data sharing | ❌ | ❌ | ❌ | ❌ | ✅ |
-| EU AI Act audit trail | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Convergence guarantee | | | | | **Proven** |
+| Works without coordinator | | | | | |
+| Partition-tolerant | | | | | |
+| Confidence-weighted facts | | | | | |
+| Per-fact provenance | | partial | partial | partial | |
+| Federation without data sharing | | | | | |
+| EU AI Act audit trail | | | | | |
 
 ---
 

@@ -112,7 +112,7 @@ result_b = cm_crdt_b.export()
 # Identical output regardless of order
 import numpy as np
 np.testing.assert_array_almost_equal(result_a["w"], result_b["w"])
-print("CRDT mode: order-independent ✓")
+print("CRDT mode: order-independent ")
 
 # Default mode — order matters (earlier contributions decay more)
 cm_default_a = ContinualMerge(base, strategy="weight_average", convergence="default", memory_budget=0.8)

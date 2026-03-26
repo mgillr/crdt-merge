@@ -17,14 +17,14 @@ a = GCounter(); a.increment("node_a", 5)
 b = GCounter(); b.increment("node_b", 3)
 
 # 1. Commutative: merge(A, B) == merge(B, A)
-assert a.merge(b).value == b.merge(a).value   # ✅ order doesn't matter
+assert a.merge(b).value == b.merge(a).value   # order doesn't matter
 
 # 2. Associative: merge(merge(A, B), C) == merge(A, merge(B, C))
 c = GCounter(); c.increment("node_c", 2)
-assert a.merge(b).merge(c).value == a.merge(b.merge(c)).value  # ✅ grouping OK
+assert a.merge(b).merge(c).value == a.merge(b.merge(c)).value  # grouping OK
 
 # 3. Idempotent: merge(A, A) == A
-assert a.merge(a).value == a.value   # ✅ duplicate messages harmless
+assert a.merge(a).value == a.value   # duplicate messages harmless
 ```
 
 **Why this matters**: In distributed systems, you can't guarantee message delivery order, or that messages aren't delivered twice. CRDTs make all three irrelevant.
@@ -92,7 +92,7 @@ replica_a = ORSet(); replica_a.add("feature_x")  # A enables feature
 replica_b = ORSet(); replica_b.add("feature_x"); replica_b.remove("feature_x")  # B disables
 
 merged = replica_a.merge(replica_b)
-print(merged.value)   # {"feature_x"} — A's add wins ✅
+print(merged.value)   # {"feature_x"} — A's add wins 
 ```
 
 **Use for**: Permission sets, feature flags, tag lists, membership lists.

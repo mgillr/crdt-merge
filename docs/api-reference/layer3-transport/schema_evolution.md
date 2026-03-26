@@ -152,7 +152,7 @@ SchemaEvolutionResult
 - Chokepoint status: No chokepoints — standalone schema utility with no upstream dependents
 
 ### Code Quality (Team 2)
-- Docstring coverage: 100% ✅
+- Docstring coverage: 100% 
 - `__all__` defined: no — **public API is ambiguous** (should export `SchemaPolicy`, `SchemaChange`, `SchemaEvolutionResult`, `evolve_schema`, `check_compatibility`, `widen_type`)
 - Code smells: None
 

@@ -87,7 +87,7 @@ class XORLegacyBackend(CryptoBackend):
     name = "xor-legacy"
 ```
 
-> ⚠️ This is a non-standard construction. For production systems with sensitive data, use an AEAD backend (requires the `cryptography` package).
+> This is a non-standard construction. For production systems with sensitive data, use an AEAD backend (requires the `cryptography` package).
 
 ---
 

@@ -101,7 +101,7 @@ crdt_merge/
    - `generate_report(format="json", include_provenance=True, include_data_lineage=True)` → str
    - `check_retention(provenance, max_age_days)` → RetentionReport
 
-2. **`EUAIActReport`** (`eu_ai_act.py`) — 🚨 Time-critical (Aug 2, 2026)
+2. **`EUAIActReport`** (`eu_ai_act.py`) — Time-critical (Aug 2, 2026)
    - `__init__(model_provenance, training_data_provenance=None, context_manifests=None)`
    - `generate(format="json", include_data_lineage=True, include_model_cards=True, include_merge_attestations=True)` → str
    - `validate()` → ValidationResult (checks Article 13 coverage)
@@ -261,15 +261,15 @@ crdt_merge/
 ## Execution Order
 
 ```
-Phase 1 (UnmergeEngine)    ──► commit + push ──┐
-Phase 3 (Encryption)       ──► commit + push ──┤
-Phase 4 (RBAC+Observ.)     ──► commit + push ──┤ (parallel — no conflicts)
+Phase 1 (UnmergeEngine)    ──commit + push ──┐
+Phase 3 (Encryption)       ──commit + push ──┤
+Phase 4 (RBAC+Observ.)     ──commit + push ──┤ (parallel — no conflicts)
                                               │
-Phase 2 (Compliance)       ◄────────────────────┘ (depends on Phase 1 for unmerge)
-  └──► commit + push ──┐
+Phase 2 (Compliance)       ────────────────────┘ (depends on Phase 1 for unmerge)
+  └──commit + push ──┐
                         │
-Phase 5 (Integration)     ◄┘ (depends on all)
-  └──► commit + push ──► FINAL TEST SWEEP ──► v0.9.0 TAG
+Phase 5 (Integration)     ┘ (depends on all)
+  └──commit + push ──FINAL TEST SWEEP ──v0.9.0 TAG
 ```
 
 **Sequential execution order (conservative):**

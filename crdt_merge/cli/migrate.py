@@ -405,7 +405,7 @@ def _generate_code(config: dict) -> str:
         lines.append(
             f"print(f'Models: {', '.join(model_paths)}')"
         )
-    lines.append("print('Migration complete ✅')")
+    lines.append("print('Migration complete ')")
     lines.append("")
 
     return "\n".join(lines)
@@ -503,6 +503,6 @@ def cli_migrate(args: list) -> None:
     if output_path:
         with open(output_path, "w") as f:
             f.write(code)
-        print(f"✅ Generated: {output_path}")
+        print(f"Generated: {output_path}")
     else:
         print(code)

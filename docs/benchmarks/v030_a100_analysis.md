@@ -15,14 +15,14 @@ The "ultimate failure test" tried to break crdt-merge at scales from 100K to **1
 
 | Suite | Result | Headline |
 |-------|:------:|----------|
-| Core merge() | ✅ | Stable 39–42K rows/s up to 10M rows |
-| Strategies | ✅ | 42–44K rows/s, zero memory overhead |
-| merge_stream (batched) | ⚠️ | Works but degrades — throughput halves at 5M |
-| merge_sorted_stream | 🏆 | **Crown jewel**: 10.8 MB at 100M rows |
-| Batch tuning | ✅ | Sweet spot at bs=500 (27K rows/s) |
-| Delta sync | ✅ | Apply is 7.5× faster than compute |
-| CRDT verification | ✅ | All 18 property checks pass (6,000 trials) |
-| Multi-node convergence | ✅ | 5 replicas × 10 orderings converge perfectly |
+| Core merge() | | Stable 39–42K rows/s up to 10M rows |
+| Strategies | | 42–44K rows/s, zero memory overhead |
+| merge_stream (batched) | | Works but degrades — throughput halves at 5M |
+| merge_sorted_stream | | **Crown jewel**: 10.8 MB at 100M rows |
+| Batch tuning | | Sweet spot at bs=500 (27K rows/s) |
+| Delta sync | | Apply is 7.5× faster than compute |
+| CRDT verification | | All 18 property checks pass (6,000 trials) |
+| Multi-node convergence | | 5 replicas × 10 orderings converge perfectly |
 
 ---
 
@@ -82,7 +82,7 @@ The "ultimate failure test" tried to break crdt-merge at scales from 100K to **1
 | 2M | 14,372/s | 2,220.0 MB |
 | 5M | 9,717/s | 5,517.8 MB |
 
-### Analysis — ⚠️ Performance Issue Confirmed
+### Analysis — Performance Issue Confirmed
 
 - **Throughput degrades 54%**: From 21K/s at 100K to 9.7K/s at 5M. This is NOT constant-time behavior — likely O(n log n) or worse internally.
 - **Memory grows linearly**: 111 MB → 5.5 GB. Despite "batch_size=10000", it loads source_b entirely into RAM (confirmed by code review).
@@ -93,8 +93,7 @@ The "ultimate failure test" tried to break crdt-merge at scales from 100K to **1
 
 ---
 
-## Suite 3B: merge_sorted_stream — TRUE CONSTANT MEMORY 🏆
-
+## Suite 3B: merge_sorted_stream — TRUE CONSTANT MEMORY 
 **Test design**: Generators (not lists), batch_size=10,000, scales from 100K to 100M.
 
 | Scale | Throughput | Peak Memory |
@@ -173,17 +172,17 @@ The "ultimate failure test" tried to break crdt-merge at scales from 100K to **1
 
 | Trials | Commutativity | Associativity | Idempotency |
 |-------:|:------------:|:------------:|:-----------:|
-| 100 | ✅ | ✅ | ✅ |
-| 500 | ✅ | ✅ | ✅ |
-| 1,000 | ✅ | ✅ | ✅ |
+| 100 | | | |
+| 500 | | | |
+| 1,000 | | | |
 
 ### 6B: LWW Strategy with FULL VALUE equality
 
 | Trials | Commutativity | Associativity | Idempotency |
 |-------:|:------------:|:------------:|:-----------:|
-| 100 | ✅ | ✅ | ✅ |
-| 500 | ✅ | ✅ | ✅ |
-| 1,000 | ✅ | ✅ | ✅ |
+| 100 | | | |
+| 500 | | | |
+| 1,000 | | | |
 
 ### Analysis
 
@@ -201,11 +200,11 @@ The "ultimate failure test" tried to break crdt-merge at scales from 100K to **1
 
 | Scale | Replicas | Permutations | Converged |
 |------:|:--------:|:------------:|:---------:|
-| 1K | 5 | 10 | ✅ |
-| 10K | 5 | 10 | ✅ |
-| 50K | 5 | 10 | ✅ |
-| 100K | 5 | 10 | ✅ |
-| 500K | 5 | 10 | ✅ |
+| 1K | 5 | 10 | |
+| 10K | 5 | 10 | |
+| 50K | 5 | 10 | |
+| 100K | 5 | 10 | |
+| 500K | 5 | 10 | |
 
 ### Analysis
 
@@ -257,7 +256,7 @@ Strategies          ████████████████████
 Core merge()        ███████████████████            40K/s
 Batch tune (bs=500) █████████████                  27K/s
 sorted_stream       ████████████                   25K/s
-merge_stream        ███████████                    21K/s → 10K/s ⚠️
+merge_stream        ███████████                    21K/s → 10K/s 
 Delta compute       ████████████                   26K/s
 ```
 

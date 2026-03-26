@@ -388,7 +388,7 @@ def test_verify_crdt_base_bug() -> Dict[str, Any]:
 
 def test_summary_ignores_model_laws() -> Dict[str, Any]:
     """
-    BUG-002: Benchmark summary reports "All CRDT laws passed: ✅" but only
+    BUG-002: Benchmark summary reports "All CRDT laws passed: " but only
     checks primitive CRDT results, completely ignoring model_law_verification.
     """
     # Load the actual benchmark results
@@ -416,7 +416,7 @@ def test_summary_ignores_model_laws() -> Dict[str, Any]:
         "summary_claims_all_passed": summary_claims_all_passed,
         "bug_confirmed": summary_claims_all_passed and len(model_failures) > 0,
         "diagnosis": (
-            "BUG CONFIRMED: Summary says '✅ ALL PASSED' but model strategies have "
+            "BUG CONFIRMED: Summary says 'ALL PASSED' but model strategies have "
             f"{len(model_failures)} failing strategies: {list(model_failures.keys())}. "
             "The summary only checks results['law_verification']['all_passed'] (primitives) "
             "and ignores results['model_law_verification'] entirely."
@@ -624,10 +624,10 @@ def run_full_diagnostic() -> dict:
         else:
             diag.overall_verdict = "NOT_CRDT"
         
-        c = "✅" if diag.commutativity.passed else "❌"
-        a = "✅" if diag.associativity.passed else "❌"
-        i = "✅" if diag.idempotency.passed else "❌"
-        d = "✅" if diag.determinism.passed else "❌"
+        c = "" if diag.commutativity.passed else ""
+        a = "" if diag.associativity.passed else ""
+        i = "" if diag.idempotency.passed else ""
+        d = "" if diag.determinism.passed else ""
         print(f"C{c} A{a} I{i} D{d}  ({elapsed:.2f}s)  [{diag.overall_verdict}]")
         
         diagnostics[name] = asdict(diag)
@@ -742,10 +742,10 @@ def generate_markdown_report(report: dict) -> str:
     
     lines.append(f"| Category | Count | Strategies |")
     lines.append(f"|----------|-------|------------|")
-    lines.append(f"| ✅ True CRDT | {len(true_crdts)} | {', '.join(true_crdts) or '—'} |")
-    lines.append(f"| ⚠️ Partial CRDT | {len(partial)} | {', '.join(partial) or '—'} |")
-    lines.append(f"| ❌ Not CRDT | {len(not_crdts)} | {', '.join(not_crdts) or '—'} |")
-    lines.append(f"| 🔧 Untestable (harness bug) | {len(untestable)} | {', '.join(untestable) or '—'} |")
+    lines.append(f"| True CRDT | {len(true_crdts)} | {', '.join(true_crdts) or '—'} |")
+    lines.append(f"| Partial CRDT | {len(partial)} | {', '.join(partial) or '—'} |")
+    lines.append(f"| Not CRDT | {len(not_crdts)} | {', '.join(not_crdts) or '—'} |")
+    lines.append(f"| Untestable (harness bug) | {len(untestable)} | {', '.join(untestable) or '—'} |")
     lines.append("")
     
     # Bugs found
@@ -798,10 +798,10 @@ def generate_markdown_report(report: dict) -> str:
     
     for idx, (name, d) in enumerate(sorted(diags.items()), 1):
         cat = d["category"]
-        c = "✅" if d["commutativity"]["passed"] else "❌"
-        a = "✅" if d["associativity"]["passed"] else "❌"
-        i = "✅" if d["idempotency"]["passed"] else "❌"
-        det = "✅" if d["determinism"]["passed"] else "❌"
+        c = "" if d["commutativity"]["passed"] else ""
+        a = "" if d["associativity"]["passed"] else ""
+        i = "" if d["idempotency"]["passed"] else ""
+        det = "" if d["determinism"]["passed"] else ""
         verdict = d["overall_verdict"]
         
         causes = set()
@@ -839,7 +839,7 @@ def generate_markdown_report(report: dict) -> str:
             pd = d[prop]
             if pd["passed"]:
                 continue
-            lines.append(f"- **{prop}:** ❌ FAIL — {pd['failures']}/{pd['trials_run']} trials failed")
+            lines.append(f"- **{prop}:** FAIL — {pd['failures']}/{pd['trials_run']} trials failed")
             if pd["error_type"]:
                 lines.append(f"  - Exception: `{pd['error_type']}: {pd['error_msg']}`")
             if pd["max_deviation"] > 0:
@@ -852,7 +852,7 @@ def generate_markdown_report(report: dict) -> str:
         if d.get("declaration_mismatches"):
             lines.append("**Declaration mismatches:**")
             for mm in d["declaration_mismatches"]:
-                lines.append(f"- ⚠️ {mm}")
+                lines.append(f"- {mm}")
             lines.append("")
     
     # Root cause classification
@@ -915,14 +915,14 @@ if __name__ == "__main__":
     json_path = os.path.join(outdir, "crdt_law_diagnostics.json")
     with open(json_path, "w") as f:
         json.dump(report, f, indent=2, default=str)
-    print(f"\n✅ JSON → {json_path}")
+    print(f"\nJSON → {json_path}")
     
     # Markdown report
     md = generate_markdown_report(report)
     md_path = os.path.join(outdir, "CRDT_LAW_DIAGNOSTICS.md")
     with open(md_path, "w") as f:
         f.write(md)
-    print(f"✅ Report → {md_path}")
+    print(f"Report → {md_path}")
     
     # Exit code: non-zero if any bugs confirmed
     bugs = report.get("bug_regression_tests", {})

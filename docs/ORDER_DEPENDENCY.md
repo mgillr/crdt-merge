@@ -30,7 +30,7 @@ It is **not** idempotent: ``merge(A, A) = 2A − base ≠ A``.
 
 | Strategy | Commutative | Associative | Idempotent | Notes |
 |:---------|:-----------:|:-----------:|:----------:|:------|
-| `task_arithmetic` | ✅ | ✅ | ❌ | Additive — `base + Σ(θᵢ - base)` is grouping-invariant |
+| `task_arithmetic` | | | | Additive — `base + Σ(θᵢ - base)` is grouping-invariant |
 
 ### PARTIAL_CRDT — Commutative + Idempotent (17 strategies)
 
@@ -40,30 +40,30 @@ grouping matters: `merge(merge(A,B), C) ≠ merge(A, merge(B,C))`.
 
 | Strategy | Commutative | Associative | Idempotent | Notes |
 |:---------|:-----------:|:-----------:|:----------:|:------|
-| `weight_average` | ✅ | ❌ | ✅ | Pairwise averaging weights later inputs more |
-| `fisher_merge` | ✅ | ❌ | ✅ | Fisher proxy `|θ|²` changes on intermediates |
-| `regression_mean` | ✅ | ❌ | ✅ | Self-weights `θᵢ² + λ` change on intermediates |
-| `ties` | ✅ | ❌ | ❌ | Threshold/sign election differs on intermediates |
-| `model_breadcrumbs` | ✅ | ❌ | ❌ | Binary mask differs on intermediate results |
-| `emr` | ✅ | ❌ | ❌ | Elect-mask-rescale changes on intermediates |
-| `star` | ✅ | ❌ | ❌ | Spectral truncation path-dependent |
-| `svd_knot_tying` | ✅ | ❌ | ❌ | SVD bases change on intermediate merges |
-| `adarank` | ✅ | ❌ | ❌ | Rank pruning decisions are path-dependent |
-| `negative_merge` | ✅ | ❌ | ❌ | Task vector negation is path-dependent |
-| `split_unlearn_merge` | ✅ | ❌ | ❌ | Unlearn mask differs on intermediates |
-| `weight_scope_alignment` | ✅ | ❌ | ✅ | Normalization stats change on intermediates |
-| `representation_surgery` | ✅ | ❌ | ✅ | Correction statistics path-dependent |
-| `safe_merge` | ✅ | ❌ | ✅ | Safety mask computed per pair |
-| `led_merge` | ✅ | ❌ | ✅ | Best-source selection is path-dependent |
-| `ada_merging` | ~✅ | ~❌ | ✅ | Conditional — entropy coefficients are input-dependent |
-| `dam` | ~✅ | ~❌ | ✅ | Conditional — iterative optimization is input-dependent |
+| `weight_average` | | | | Pairwise averaging weights later inputs more |
+| `fisher_merge` | | | | Fisher proxy `|θ|²` changes on intermediates |
+| `regression_mean` | | | | Self-weights `θᵢ² + λ` change on intermediates |
+| `ties` | | | | Threshold/sign election differs on intermediates |
+| `model_breadcrumbs` | | | | Binary mask differs on intermediate results |
+| `emr` | | | | Elect-mask-rescale changes on intermediates |
+| `star` | | | | Spectral truncation path-dependent |
+| `svd_knot_tying` | | | | SVD bases change on intermediate merges |
+| `adarank` | | | | Rank pruning decisions are path-dependent |
+| `negative_merge` | | | | Task vector negation is path-dependent |
+| `split_unlearn_merge` | | | | Unlearn mask differs on intermediates |
+| `weight_scope_alignment` | | | | Normalization stats change on intermediates |
+| `representation_surgery` | | | | Correction statistics path-dependent |
+| `safe_merge` | | | | Safety mask computed per pair |
+| `led_merge` | | | | Best-source selection is path-dependent |
+| `ada_merging` | ~| ~| | Conditional — entropy coefficients are input-dependent |
+| `dam` | ~| ~| | Conditional — iterative optimization is input-dependent |
 
 ### PARTIAL_CRDT — Commutative Only (2 strategies)
 
 | Strategy | Commutative | Associative | Idempotent | Notes |
 |:---------|:-----------:|:-----------:|:----------:|:------|
-| `slerp` | ~✅ | ❌ | ✅ | Conditional commutativity (t=0.5 only) |
-| `linear` | ~✅ | ❌ | ✅ | Conditional commutativity (t=0.5 only) |
+| `slerp` | ~| | | Conditional commutativity (t=0.5 only) |
+| `linear` | ~| | | Conditional commutativity (t=0.5 only) |
 
 ### NOT_CRDT — Stochastic (5 strategies)
 
@@ -72,11 +72,11 @@ non-deterministic across different merge orderings.
 
 | Strategy | Commutative | Associative | Idempotent | Notes |
 |:---------|:-----------:|:-----------:|:----------:|:------|
-| `dare` | ❌ | ❌ | ❌ | Random drop masks |
-| `della` | ❌ | ❌ | ❌ | Random low-rank masks |
-| `dare_ties` | ❌ | ❌ | ❌ | Hybrid DARE + TIES random masks |
-| `evolutionary_merge` | ❌ | ❌ | ❌ | CMA-ES population is seed-dependent |
-| `genetic_merge` | ❌ | ❌ | ❌ | Genetic crossover/mutation is seed-dependent |
+| `dare` | | | | Random drop masks |
+| `della` | | | | Random low-rank masks |
+| `dare_ties` | | | | Hybrid DARE + TIES random masks |
+| `evolutionary_merge` | | | | CMA-ES population is seed-dependent |
+| `genetic_merge` | | | | Genetic crossover/mutation is seed-dependent |
 
 ## Guidance for Distributed Systems
 

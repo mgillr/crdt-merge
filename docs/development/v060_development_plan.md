@@ -116,23 +116,23 @@ This section lists EVERY existing file in the codebase with its GitHub blob SHA.
 ### Internal Dependency Graph (new modules)
 
 ```
-clocks.py ──────────► core.py (CRDT pattern: merge, to_dict, from_dict)
+clocks.py ──────────core.py (CRDT pattern: merge, to_dict, from_dict)
 
-schema_evolution.py ─► (no internal deps, stdlib only)
+schema_evolution.py ─(no internal deps, stdlib only)
 
-merkle.py ──────────► hashlib (stdlib only)
+merkle.py ──────────hashlib (stdlib only)
 
-arrow.py ───────────► strategies.py (existing), core.py (existing)
-                    ► schema_evolution.py (NEW — Phase 1)
-                    ► pyarrow (LAZY import, optional)
+arrow.py ───────────strategies.py (existing), core.py (existing)
+                    schema_evolution.py (NEW — Phase 1)
+                    pyarrow (LAZY import, optional)
 
-gossip.py ──────────► core.py (existing), clocks.py (NEW — Phase 1)
+gossip.py ──────────core.py (existing), clocks.py (NEW — Phase 1)
 
-async_merge.py ─────► dataframe.py (existing), streaming.py (existing)
-                    ► asyncio (stdlib)
+async_merge.py ─────dataframe.py (existing), streaming.py (existing)
+                    asyncio (stdlib)
 
-parallel.py ────────► dataframe.py (existing)
-                    ► concurrent.futures (stdlib)
+parallel.py ────────dataframe.py (existing)
+                    concurrent.futures (stdlib)
 ```
 
 ---
@@ -188,10 +188,10 @@ These are thin wrappers that depend on stable Phase 2 APIs.
 ### Critical Path
 
 ```
-Phase 1a (clocks) ──► Phase 2b (gossip) ──┐
-Phase 1b (schema) ──► Phase 2a (arrow)  ──┤
+Phase 1a (clocks) ──Phase 2b (gossip) ──┐
+Phase 1b (schema) ──Phase 2a (arrow)  ──┤
 Phase 1c (merkle) ────────────────────────┤
-                    Phase 2c (multi-key) ──┼──► Phase 3 (wrappers) ──► Phase 4 (integration)
+                    Phase 2c (multi-key) ──┼──Phase 3 (wrappers) ──Phase 4 (integration)
 ```
 
 ---
@@ -1462,7 +1462,7 @@ def _validate_key_columns(records: List[dict], key_cols: List[str]) -> None:
 
 ### New Wire Tags
 
-The wire protocol header format remains unchanged: `MAGIC(4) | VERSION(2) | FLAGS(1) | TAG(1) | PAYLOAD_LEN(4) | PAYLOAD`
+The wire protocol header format remains unchanged: `automatic(4) | VERSION(2) | FLAGS(1) | TAG(1) | PAYLOAD_LEN(4) | PAYLOAD`
 
 The VERSION field will be bumped to `0x0002` for v0.6.0 wire messages containing new types. The deserializer MUST handle both v1 (0x0001) and v2 (0x0002) messages.
 

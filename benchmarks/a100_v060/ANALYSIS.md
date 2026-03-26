@@ -29,21 +29,21 @@ Sorted by peak ops/s, showing scaling behavior:
 
 | # | Operation | Peak ops/s | Scale Range | Scaling Behavior |
 |---|-----------|-----------|-------------|-----------------|
-| 1 | GCounter increment | **4.14M** | 10K → 500K | ✅ Flat — zero degradation |
-| 2 | VectorClock ops | **1.06M** | 100K → 2M | ✅ Flat — zero degradation |
-| 3 | Stream merge | **594K** | 50K → 1M | 🟡 17% degradation (memory pressure) |
-| 4 | Merge dicts | **530K** | 10K → 500K | 🟡 41% degradation (hash table growth) |
-| 5 | Gossip updates | **474K** | 10K → 200K | 🟡 47% degradation (state growth) |
-| 6 | JSON lines merge | **456K** | 10K → 200K | ✅ 7% degradation — nearly flat |
-| 7 | HLL add | **433K** | 100K → 2M | ✅ Flat — zero degradation |
-| 8 | Schema evolution | **443K** | 1K → 20K cols | 🟡 14% degradation |
-| 9 | Dedup strings | **333K** | 100K → 2M | 🟡 18% degradation |
-| 10 | Bloom add | **178K** | 100K → 2M | ✅ Flat — zero degradation |
-| 11 | Serialize batch | **170K** | 1K → 50K | ✅ Flat — zero degradation |
-| 12 | MergeSchema merge | **149K** | 10K → 200K | ✅ **Improves** 83K→149K (amortized overhead) |
-| 13 | Merkle tree build | **138K** | 50K → 1M | 🟡 22% degradation |
-| 14 | Provenance merge | **81K** | 50K → 500K | ✅ **Improves** 71K→81K (amortized overhead) |
-| 15 | DataFrame merge | **77K** | 100K → 10M | ✅ 2% degradation — rock stable |
+| 1 | GCounter increment | **4.14M** | 10K → 500K | Flat — zero degradation |
+| 2 | VectorClock ops | **1.06M** | 100K → 2M | Flat — zero degradation |
+| 3 | Stream merge | **594K** | 50K → 1M | 17% degradation (memory pressure) |
+| 4 | Merge dicts | **530K** | 10K → 500K | 41% degradation (hash table growth) |
+| 5 | Gossip updates | **474K** | 10K → 200K | 47% degradation (state growth) |
+| 6 | JSON lines merge | **456K** | 10K → 200K | 7% degradation — nearly flat |
+| 7 | HLL add | **433K** | 100K → 2M | Flat — zero degradation |
+| 8 | Schema evolution | **443K** | 1K → 20K cols | 14% degradation |
+| 9 | Dedup strings | **333K** | 100K → 2M | 18% degradation |
+| 10 | Bloom add | **178K** | 100K → 2M | Flat — zero degradation |
+| 11 | Serialize batch | **170K** | 1K → 50K | Flat — zero degradation |
+| 12 | MergeSchema merge | **149K** | 10K → 200K | **Improves** 83K→149K (amortized overhead) |
+| 13 | Merkle tree build | **138K** | 50K → 1M | 22% degradation |
+| 14 | Provenance merge | **81K** | 50K → 500K | **Improves** 71K→81K (amortized overhead) |
+| 15 | DataFrame merge | **77K** | 100K → 10M | 2% degradation — rock stable |
 
 ### Scaling Analysis
 
@@ -107,11 +107,11 @@ All 5 tested types pass all 3 CRDT laws:
 
 | Type | Commutative | Associative | Idempotent |
 |------|:-----------:|:-----------:|:----------:|
-| GCounter | ✅ | ✅ | ✅ |
-| PNCounter | ✅ | ✅ | ✅ |
-| LWWRegister | ✅ | ✅ | ✅ |
-| ORSet | ✅ | ✅ | ✅ |
-| VectorClock | ✅ | ✅ | ✅ |
+| GCounter | | | |
+| PNCounter | | | |
+| LWWRegister | | | |
+| ORSet | | | |
+| VectorClock | | | |
 
 ---
 

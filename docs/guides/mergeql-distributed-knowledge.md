@@ -34,8 +34,7 @@ The current answer is ETL: extract data from all sources, load it into a central
 │  LIMIT 10000                                                 │
 └──────────────────────┬──────────────────────────────────────┘
                        │ parsed to MergeAST
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
+                       ┌─────────────────────────────────────────────────────────────┐
 │  MergeQL Engine                                              │
 │                                                              │
 │  1. Parse → MergeAST (sources, key, strategies, filters)     │
@@ -442,14 +441,14 @@ if result.provenance:
 
 | Situation | Use SQL | Use MergeQL |
 |---|---|---|
-| Single database, one source of truth | ✅ | — |
-| Multi-source merge with known conflict resolution | — | ✅ |
-| Convergence guarantees required | — | ✅ |
-| Data from multiple organisations | — | ✅ |
-| Need provenance per-row | — | ✅ |
-| CRDT compliance required | — | ✅ |
-| Complex joins (foreign keys, GROUP BY) | ✅ | — |
-| Simple key-based reconciliation | — | ✅ |
+| Single database, one source of truth | | — |
+| Multi-source merge with known conflict resolution | — | |
+| Convergence guarantees required | — | |
+| Data from multiple organisations | — | |
+| Need provenance per-row | — | |
+| CRDT compliance required | — | |
+| Complex joins (foreign keys, GROUP BY) | | — |
+| Simple key-based reconciliation | — | |
 
 MergeQL is not a general-purpose query language — it is specifically designed for **key-based record reconciliation across multiple sources** with CRDT correctness.
 

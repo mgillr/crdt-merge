@@ -132,7 +132,7 @@ class Custom(MergeStrategy):
 ```
 **Signatures supported**: `fn(val_a, val_b)` or `fn(val_a, val_b, ts_a, ts_b, node_a, node_b)`
 
-> ⚠️ **Known Issue (LAY1-003)**: Custom strategies cannot be serialized. `to_dict()` emits UserWarning; `from_dict()` deserializes as LWW.
+> **Known Issue (LAY1-003)**: Custom strategies cannot be serialized. `to_dict()` emits UserWarning; `from_dict()` deserializes as LWW.
 
 ---
 
@@ -144,7 +144,7 @@ def _safe_parse_ts(value: Any) -> float
 ```
 Robustly parse timestamps. Handles: int, float, numeric strings, ISO-8601 strings, objects with `.timestamp()`. Returns `0.0` for unparseable values.
 
-> ⚠️ **Known Issue (LAY1-005)**: Silent fallback to 0.0 — invalid timestamps never raise.
+> **Known Issue (LAY1-005)**: Silent fallback to 0.0 — invalid timestamps never raise.
 
 ---
 
@@ -175,7 +175,7 @@ class MergeSchema:
 - `default` → `MergeStrategy`
 - `fields` → `Dict[str, MergeStrategy]` (copy)
 
-> ⚠️ **Known Issue (LAY1-006)**: `resolve_row()` doesn't handle nested dicts.
+> **Known Issue (LAY1-006)**: `resolve_row()` doesn't handle nested dicts.
 
 **Example**:
 ```python
@@ -216,7 +216,7 @@ Converts a value to a set for union operations. Handles comma-separated strings,
 
 ---
 
-## Magic Methods (Missing from initial docs)
+## automatic Methods (Missing from initial docs)
 
 ### `MergeSchema.__repr__(self) -> str`
 

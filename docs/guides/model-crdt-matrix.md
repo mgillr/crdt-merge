@@ -45,9 +45,9 @@ depending on the pairing order.
 
 | Symbol | Meaning |
 |--------|---------|
-| ✅ | Property holds unconditionally |
-| ❌ | Property does not hold |
-| ⚠️ | Conditional — holds under specific assumptions (see Notes column) |
+| | Property holds unconditionally |
+| | Property does not hold |
+| | Conditional — holds under specific assumptions (see Notes column) |
 | N/A | Not applicable |
 
 ---
@@ -56,42 +56,42 @@ depending on the pairing order.
 
 | Strategy | Registry Name | Commutative | Associative | Idempotent | N-Way Safe | Notes |
 |----------|--------------|:-----------:|:-----------:|:----------:|:----------:|-------|
-| **WeightAverage** | `weight_average` | ✅ | ❌ | ✅ | ✅ | Pass all tensors in one call. Pairwise averaging assigns progressively less weight to earlier inputs. Single-call N-way result is order-independent. |
-| **LinearInterpolation** | `linear` | ⚠️ | ❌ | ✅ | ⚠️ | Commutative only when `t=0.5`. Pairwise sequential for N>2; result depends on pairing order. Prefer `weight_average` for true N-way. |
-| **SLERP** | `slerp` | ⚠️ | ❌ | ✅ | ⚠️ | Commutative at `t=0.5`; not in general. Pairwise sequential for N>2 introduces order dependence. Use for two-model merges only. |
-| **TaskArithmetic** | `task_arithmetic` | ✅ | ✅ | ❌ | ✅ | Fully commutative and associative — task vectors add independently. Not idempotent: applying the same model twice doubles its task vector. Requires a base model. |
-| **TIES** | `ties` | ✅ | ❌ | ✅ | ✅ | Sign election is commutative (majority vote). Not associative under pairwise composition because sign masks change when computed on intermediate results. Pass all models together. |
-| **DARE** | `dare` | ✅ | ❌ | ❌ | ⚠️ | Random dropout is seeded per-call; results vary between runs without a fixed seed. Not idempotent. Best applied once with all models. |
-| **DELLA** | `della` | ✅ | ❌ | ❌ | ⚠️ | Magnitude-aware DARE variant. Same caveats as DARE regarding idempotency and ordering. |
-| **DARETies** | `dare_ties` | ✅ | ❌ | ❌ | ⚠️ | Hybrid combining DARE dropout and TIES sign election. TIES component is commutative; DARE component is not idempotent. Pass all models in one call. |
-| **ModelBreadcrumbs** | `breadcrumbs` | ✅ | ❌ | ✅ | ✅ | Binary sparse masks are commutative (OR-union). Not associative: mask density depends on which models are included in a given call. |
-| **EMRMerge** | `emr` | ✅ | ❌ | ✅ | ✅ | Elect-Mask-Rescale. Commutative and idempotent but not associative under pairwise application due to rescaling on intermediate results. |
-| **STAR** | `star` | ✅ | ❌ | ✅ | ⚠️ | Spectral truncation changes with the set of models provided. Non-associative. Idempotent. |
-| **SVDKnotTying** | `svd_knot_tying` | ⚠️ | ❌ | ✅ | ⚠️ | SVD alignment is not commutative in general; order affects which basis is treated as reference. Pairwise only. |
-| **AdaptiveRankPruning** | `ada_rank` | ✅ | ❌ | ✅ | ⚠️ | Rank pruning thresholds are computed globally; commutative. Not associative. |
-| **FisherMerge** | `fisher_merge` | ✅ | ❌ | ✅ | ✅ | Fisher information proxy `|θ|²` changes on intermediate merges. Pass all models in one call for correct N-way result. |
-| **RegressionMean** | `regression_mean` | ✅ | ❌ | ✅ | ✅ | Self-weighted by `θ²+λ`. Non-associative under pairwise composition; single N-way call is correct. |
-| **AdaptiveMerging** | `ada_merging` | ⚠️ | ⚠️ | ✅ | ⚠️ | Entropy-based iterative refinement converges to the same fixed point only when inputs have identical entropy distributions. Treat as conditionally commutative and associative. |
-| **DifferentiableAdaptiveMerging** | `dam` | ⚠️ | ⚠️ | ✅ | ⚠️ | Gradient-free optimisation; convergence point depends on initialization order for asymmetric inputs. Idempotent. |
-| **EvolutionaryMerge** | `evolutionary` | ❌ | ❌ | ❌ | ❌ | CMA-ES population search uses random seeds. Results are non-deterministic without a fixed seed. Not suitable for CRDT-safe distributed merging. |
-| **GeneticMerge** | `genetic` | ❌ | ❌ | ❌ | ❌ | Genetic algorithm with crossover/mutation. Same caveats as EvolutionaryMerge. Use only in offline/experimental pipelines. |
-| **Passthrough** | `passthrough` | ✅ | ✅ | ✅ | ✅ | Returns the first tensor unchanged. Trivially satisfies all CRDT properties. Used as a no-op placeholder. |
-| **DualProjection** | `dual_projection` | ✅ | ❌ | ✅ | ✅ | Shared subspace (GCounter semantics) is commutative and idempotent. Task-specific subspace (OR-Set semantics) is commutative but not associative under pairwise composition. |
-| **UniformAverage** | `uniform_average` | ✅ | ❌ | ✅ | ✅ | Special case of `weight_average` with equal weights. Same pairwise non-associativity; use single N-way call. |
-| **MagnitudePrune** | `magnitude_prune` | ✅ | ❌ | ✅ | ⚠️ | Pruning threshold is computed from the merged tensor; different when applied pairwise vs. jointly. |
-| **RandPrune** | `rand_prune` | ✅ | ❌ | ❌ | ❌ | Random pruning is not idempotent (each call may drop different parameters). Use for one-shot model compression only. |
-| **LoRAMerge** | `lora_merge` | ✅ | ❌ | ✅ | ⚠️ | Low-rank adapter averaging. Non-associative because rank selection changes with the set of adapters provided. |
-| **KnowledgeDistillation** | `knowledge_distillation` | ⚠️ | ❌ | ✅ | ❌ | Requires forward-pass evaluation data; result depends on dataset ordering. Primarily a training-time operation. |
-| **SER** | `ser` | ✅ | ❌ | ✅ | ⚠️ | Spectral Entropy Regularization. Commutative and idempotent. Non-associative due to spectral decomposition on intermediate results. |
-| **HessianWeighted** | `hessian_weighted` | ✅ | ❌ | ✅ | ✅ | Fisher approximation via Hessian diagonal. Commutative and idempotent. Non-associative under pairwise composition; pass all models together. |
-| **GradientWeighted** | `gradient_weighted` | ✅ | ❌ | ✅ | ✅ | Weight by gradient magnitude. Commutative and idempotent. Non-associative. |
-| **ConsensusVoting** | `consensus_voting` | ✅ | ❌ | ✅ | ✅ | Majority-vote sign selection. Commutative and idempotent. Non-associative because vote counts depend on which models are included. |
-| **MoEExpert** | `moe_expert` | ✅ | ❌ | ✅ | ⚠️ | Mixture-of-Experts router merging. Commutative. Not idempotent if expert routing changes. |
-| **KnowledgeGraph** | `knowledge_graph` | ⚠️ | ❌ | ✅ | ❌ | Graph-topology-aware merging; commutativity depends on edge symmetry. Not suitable for fully automated distributed merging. |
-| **EnsembleDistillation** | `ensemble_distillation` | ⚠️ | ❌ | ✅ | ❌ | Logit ensembling with distillation; requires consistent token vocabularies across models. |
-| **ActivationAware** | `activation_aware` | ✅ | ❌ | ✅ | ⚠️ | Weighted by activation statistics. Commutative given identical calibration data. |
-| **LayerWiseLearningRate** | `layer_wise_lr` | ✅ | ❌ | ✅ | ⚠️ | Layer-specific coefficients; commutative but non-associative under pairwise composition. |
-| **SparseAttention** | `sparse_attention` | ✅ | ❌ | ✅ | ⚠️ | Attention-head sparsification. Commutative and idempotent. Non-associative. |
+| **WeightAverage** | `weight_average` | | | | | Pass all tensors in one call. Pairwise averaging assigns progressively less weight to earlier inputs. Single-call N-way result is order-independent. |
+| **LinearInterpolation** | `linear` | | | | | Commutative only when `t=0.5`. Pairwise sequential for N>2; result depends on pairing order. Prefer `weight_average` for true N-way. |
+| **SLERP** | `slerp` | | | | | Commutative at `t=0.5`; not in general. Pairwise sequential for N>2 introduces order dependence. Use for two-model merges only. |
+| **TaskArithmetic** | `task_arithmetic` | | | | | Fully commutative and associative — task vectors add independently. Not idempotent: applying the same model twice doubles its task vector. Requires a base model. |
+| **TIES** | `ties` | | | | | Sign election is commutative (majority vote). Not associative under pairwise composition because sign masks change when computed on intermediate results. Pass all models together. |
+| **DARE** | `dare` | | | | | Random dropout is seeded per-call; results vary between runs without a fixed seed. Not idempotent. Best applied once with all models. |
+| **DELLA** | `della` | | | | | Magnitude-aware DARE variant. Same caveats as DARE regarding idempotency and ordering. |
+| **DARETies** | `dare_ties` | | | | | Hybrid combining DARE dropout and TIES sign election. TIES component is commutative; DARE component is not idempotent. Pass all models in one call. |
+| **ModelBreadcrumbs** | `breadcrumbs` | | | | | Binary sparse masks are commutative (OR-union). Not associative: mask density depends on which models are included in a given call. |
+| **EMRMerge** | `emr` | | | | | Elect-Mask-Rescale. Commutative and idempotent but not associative under pairwise application due to rescaling on intermediate results. |
+| **STAR** | `star` | | | | | Spectral truncation changes with the set of models provided. Non-associative. Idempotent. |
+| **SVDKnotTying** | `svd_knot_tying` | | | | | SVD alignment is not commutative in general; order affects which basis is treated as reference. Pairwise only. |
+| **AdaptiveRankPruning** | `ada_rank` | | | | | Rank pruning thresholds are computed globally; commutative. Not associative. |
+| **FisherMerge** | `fisher_merge` | | | | | Fisher information proxy `|θ|²` changes on intermediate merges. Pass all models in one call for correct N-way result. |
+| **RegressionMean** | `regression_mean` | | | | | Self-weighted by `θ²+λ`. Non-associative under pairwise composition; single N-way call is correct. |
+| **AdaptiveMerging** | `ada_merging` | | | | | Entropy-based iterative refinement converges to the same fixed point only when inputs have identical entropy distributions. Treat as conditionally commutative and associative. |
+| **DifferentiableAdaptiveMerging** | `dam` | | | | | Gradient-free optimisation; convergence point depends on initialization order for asymmetric inputs. Idempotent. |
+| **EvolutionaryMerge** | `evolutionary` | | | | | CMA-ES population search uses random seeds. Results are non-deterministic without a fixed seed. Not suitable for CRDT-safe distributed merging. |
+| **GeneticMerge** | `genetic` | | | | | Genetic algorithm with crossover/mutation. Same caveats as EvolutionaryMerge. Use only in offline/experimental pipelines. |
+| **Passthrough** | `passthrough` | | | | | Returns the first tensor unchanged. Trivially satisfies all CRDT properties. Used as a no-op placeholder. |
+| **DualProjection** | `dual_projection` | | | | | Shared subspace (GCounter semantics) is commutative and idempotent. Task-specific subspace (OR-Set semantics) is commutative but not associative under pairwise composition. |
+| **UniformAverage** | `uniform_average` | | | | | Special case of `weight_average` with equal weights. Same pairwise non-associativity; use single N-way call. |
+| **MagnitudePrune** | `magnitude_prune` | | | | | Pruning threshold is computed from the merged tensor; different when applied pairwise vs. jointly. |
+| **RandPrune** | `rand_prune` | | | | | Random pruning is not idempotent (each call may drop different parameters). Use for one-shot model compression only. |
+| **LoRAMerge** | `lora_merge` | | | | | Low-rank adapter averaging. Non-associative because rank selection changes with the set of adapters provided. |
+| **KnowledgeDistillation** | `knowledge_distillation` | | | | | Requires forward-pass evaluation data; result depends on dataset ordering. Primarily a training-time operation. |
+| **SER** | `ser` | | | | | Spectral Entropy Regularization. Commutative and idempotent. Non-associative due to spectral decomposition on intermediate results. |
+| **HessianWeighted** | `hessian_weighted` | | | | | Fisher approximation via Hessian diagonal. Commutative and idempotent. Non-associative under pairwise composition; pass all models together. |
+| **GradientWeighted** | `gradient_weighted` | | | | | Weight by gradient magnitude. Commutative and idempotent. Non-associative. |
+| **ConsensusVoting** | `consensus_voting` | | | | | Majority-vote sign selection. Commutative and idempotent. Non-associative because vote counts depend on which models are included. |
+| **MoEExpert** | `moe_expert` | | | | | Mixture-of-Experts router merging. Commutative. Not idempotent if expert routing changes. |
+| **KnowledgeGraph** | `knowledge_graph` | | | | | Graph-topology-aware merging; commutativity depends on edge symmetry. Not suitable for fully automated distributed merging. |
+| **EnsembleDistillation** | `ensemble_distillation` | | | | | Logit ensembling with distillation; requires consistent token vocabularies across models. |
+| **ActivationAware** | `activation_aware` | | | | | Weighted by activation statistics. Commutative given identical calibration data. |
+| **LayerWiseLearningRate** | `layer_wise_lr` | | | | | Layer-specific coefficients; commutative but non-associative under pairwise composition. |
+| **SparseAttention** | `sparse_attention` | | | | | Attention-head sparsification. Commutative and idempotent. Non-associative. |
 
 ---
 
@@ -234,7 +234,7 @@ state_b.add_contribution(tensor_b, model_id="node_b", weight=1.0)
 # CRDT guarantee: any merge order converges to the same state
 merged_1 = state_a.merge(state_b)   # merge is in-place on state_a, returns self
 merged_2 = state_b.merge(state_a)   # different order
-assert merged_1.state_hash == merged_2.state_hash  # same content ✅
+assert merged_1.state_hash == merged_2.state_hash  # same content 
 
 # resolve() applies the strategy to all contributions
 result = merged_1.resolve()
@@ -251,7 +251,7 @@ state.add_contribution(model_a, model_id="hospital_a", weight=0.4)
 state.add_contribution(model_b, model_id="hospital_b", weight=0.3)
 state.add_contribution(model_c, model_id="hospital_c", weight=0.3)
 
-merged = state.resolve()   # Weighted average of all three — order-independent ✅
+merged = state.resolve()   # Weighted average of all three — order-independent 
 ```
 
 ### Strategies Requiring a Base Model (TIES, DARE, TaskArithmetic)
@@ -307,12 +307,12 @@ state_y.add_contribution(model_b, model_id="b")
 # Commutativity: merge order doesn't matter
 m1 = CRDTMergeState("weight_average").merge(state_x).merge(state_y)
 m2 = CRDTMergeState("weight_average").merge(state_y).merge(state_x)
-assert m1.state_hash == m2.state_hash   # ✅
+assert m1.state_hash == m2.state_hash   # 
 
 # Idempotency: merging same state twice
 m3 = CRDTMergeState("weight_average").merge(state_x).merge(state_x)
 m4 = CRDTMergeState("weight_average").merge(state_x)
-assert m3.state_hash == m4.state_hash   # ✅ (OR-Set deduplicates by model_id)
+assert m3.state_hash == m4.state_hash   # (OR-Set deduplicates by model_id)
 ```
 
 ### LoRA Adapter Merging

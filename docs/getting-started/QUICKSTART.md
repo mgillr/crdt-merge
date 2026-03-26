@@ -75,7 +75,7 @@ merged = counter_a.merge(counter_b)
 print(merged.value)   # 237 — sum of both nodes
 
 # CRDT guarantee: merge order doesn't matter
-assert counter_a.merge(counter_b).value == counter_b.merge(counter_a).value   # ✅
+assert counter_a.merge(counter_b).value == counter_b.merge(counter_a).value   # 
 
 # Observed-Remove Set — membership lists, tags
 roles = ORSet()

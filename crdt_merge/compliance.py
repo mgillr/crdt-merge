@@ -260,7 +260,7 @@ class ComplianceReport:
         ]
 
         for finding in self.findings:
-            icon = {"pass": "✓", "fail": "✗", "not_applicable": "—"}.get(
+            icon = {"pass": "", "fail": "", "not_applicable": "—"}.get(
                 finding.status, "?"
             )
             lines.append(

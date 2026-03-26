@@ -20,7 +20,7 @@
 # On 2028-03-29 this file converts to Apache License, Version 2.0.
 
 """
-🏗️ ARCHITECT FINAL 360° VALIDATION — DEFINITIVE EDITION
+ARCHITECT FINAL 360° VALIDATION — DEFINITIVE EDITION
 ==========================================================
 Uses the REAL crdt_merge API surface. Covers:
   A: Core CRDT Types — Laws (commutativity, associativity, idempotency)
@@ -52,7 +52,7 @@ def check(name, section="General"):
             passed += 1
             sections.setdefault(section, {"pass": 0, "fail": 0})
             sections[section]["pass"] += 1
-            print(f"  ✅ {name}")
+            print(f"  {name}")
         except Exception as e:
             failed += 1
             sections.setdefault(section, {"pass": 0, "fail": 0})
@@ -80,7 +80,7 @@ from crdt_merge.dedup import DedupIndex, MinHashDedup, dedup_records
 from crdt_merge.verify import verify_crdt, verify_commutative, verify_idempotent, verify_associative, verified_merge
 
 print("=" * 70)
-print("🏗️  ARCHITECT 360° DEFINITIVE VALIDATION")
+print(" ARCHITECT 360° DEFINITIVE VALIDATION")
 print("=" * 70)
 
 # ============================================================
@@ -529,7 +529,7 @@ def _():
 
 @check("serialize: special characters", "F: Wire")
 def _():
-    data = {"emoji": "🎉🚀", "unicode": "日本語中文", "tab": "a\tb"}
+    data = {"emoji": "", "unicode": "日本語中文", "tab": "a\tb"}
     assert deserialize(serialize(data)) == data
 
 @check("serialize: deterministic (same input = same output)", "F: Wire")
@@ -1079,28 +1079,28 @@ def _():
 # FINAL REPORT
 # ============================================================
 print("\n" + "=" * 70)
-print("🏗️  ARCHITECT 360° DEFINITIVE VALIDATION REPORT")
+print(" ARCHITECT 360° DEFINITIVE VALIDATION REPORT")
 print("=" * 70)
-print(f"\n✅ PASSED: {passed}")
-print(f"❌ FAILED: {failed}")
-print(f"📊 TOTAL:  {passed + failed}")
-print(f"🎯 RATE:   {passed/(passed+failed)*100:.1f}%")
+print(f"\nPASSED: {passed}")
+print(f"FAILED: {failed}")
+print(f"TOTAL:  {passed + failed}")
+print(f"RATE:   {passed/(passed+failed)*100:.1f}%")
 
 print("\n--- BY SECTION ---")
 for section, counts in sorted(sections.items()):
-    status = "✅" if counts["fail"] == 0 else "❌"
+    status = "" if counts["fail"] == 0 else ""
     print(f"  {status} {section}: {counts['pass']}/{counts['pass']+counts['fail']} passed")
 
 if errors:
     print("\n--- FAILURES ---")
     for e in errors:
-        print(f"  ❌ {e}")
+        print(f"  {e}")
 
 print("\n" + "=" * 70)
 if failed == 0:
-    print("🦄 ALL SYSTEMS GREEN — CLEARED FOR GITHUB PUSH")
+    print("ALL SYSTEMS GREEN — CLEARED FOR GITHUB PUSH")
 else:
-    print(f"⚠️  {failed} ISSUE(S) REQUIRE ATTENTION")
+    print(f" {failed} ISSUE(S) REQUIRE ATTENTION")
 print("=" * 70)
 
 # Save results

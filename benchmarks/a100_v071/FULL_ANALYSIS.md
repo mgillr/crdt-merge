@@ -16,13 +16,13 @@ The Polars engine delivers a **measured 38.8× peak speedup** over the Python en
 
 | Scale | Python Engine | Polars Engine | Speedup | Verdict |
 |------:|:-------------|:-------------|:-------:|:--------|
-| 10K | 219K rows/s (0.046s) | 42K rows/s (0.238s) | **0.2×** | ❌ Polars SLOWER — lazy plan compilation overhead dominates |
-| 50K | 207K rows/s (0.242s) | 6.8M rows/s (0.007s) | **32.8×** | ✅ Polars takes off |
-| 100K | 225K rows/s (0.445s) | 8.3M rows/s (0.012s) | **37.0×** | ✅ Near peak |
-| **500K** | **217K rows/s (2.3s)** | **8.4M rows/s (0.060s)** | **38.8×** | **🏆 PEAK SPEEDUP** |
-| 1M | 225K rows/s (4.5s) | 7.9M rows/s (0.127s) | **35.2×** | ✅ Still dominant |
-| 5M | 223K rows/s (22.4s) | 5.0M rows/s (1.0s) | **22.5×** | ⚠️ Memory pressure begins |
-| 10M | 225K rows/s (44.5s) | 4.8M rows/s (2.1s) | **21.4×** | ⚠️ A100 RAM limits throughput |
+| 10K | 219K rows/s (0.046s) | 42K rows/s (0.238s) | **0.2×** | Polars SLOWER — lazy plan compilation overhead dominates |
+| 50K | 207K rows/s (0.242s) | 6.8M rows/s (0.007s) | **32.8×** | Polars takes off |
+| 100K | 225K rows/s (0.445s) | 8.3M rows/s (0.012s) | **37.0×** | Near peak |
+| **500K** | **217K rows/s (2.3s)** | **8.4M rows/s (0.060s)** | **38.8×** | **PEAK SPEEDUP** |
+| 1M | 225K rows/s (4.5s) | 7.9M rows/s (0.127s) | **35.2×** | Still dominant |
+| 5M | 223K rows/s (22.4s) | 5.0M rows/s (1.0s) | **22.5×** | Memory pressure begins |
+| 10M | 225K rows/s (44.5s) | 4.8M rows/s (2.1s) | **21.4×** | A100 RAM limits throughput |
 
 ### Key Insights:
 
@@ -65,7 +65,7 @@ The Polars engine delivers a **measured 38.8× peak speedup** over the Python en
 | LWWRegister.merge | **708K/s** | 200,000 |
 | ORSet.add+merge | **135K/s** | 100,000 |
 
-These are pure Python — no C extensions, no Rust, no tricks. GCounter and PNCounter are essentially dict increment operations. VectorClock is ~3× slower due to vector comparison. ORSet is the most complex (set operations + tombstone tracking).
+These are pure Python — no C extensions, no Rust, no tricks. GCounter and PNCounter are effectively dict increment operations. VectorClock is ~3× slower due to vector comparison. ORSet is the most complex (set operations + tombstone tracking).
 
 ---
 

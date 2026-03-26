@@ -44,8 +44,7 @@ crdt-merge's `LoRAMerge` solves both.
 │  Result: all adapters have the same rank → comparable        │
 └──────────────────────┬──────────────────────────────────────┘
                        │ harmonized adapters (same rank)
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
+                       ┌─────────────────────────────────────────────────────────────┐
 │  Layer 2: Per-Module Strategy (deterministic pure function)  │
 │                                                              │
 │  LoRAMergeSchema maps module name → strategy:               │

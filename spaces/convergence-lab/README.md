@@ -1,7 +1,6 @@
 ---
 title: CRDT-Merge Convergence Lab
-emoji: 🔬
-colorFrom: gray
+emoji: colorFrom: gray
 colorTo: blue
 sdk: gradio
 sdk_version: 5.29.0
@@ -50,9 +49,9 @@ Measures gossip and resolve overhead from 2 to 100 nodes. Confirms that the CRDT
 | Max nodes tested | 100 |
 | Strategies verified | 13/13 (no-base) |
 | Convergence rate | 100% across all orderings |
-| Partition healing | ✓ Always converges |
+| Partition healing | Always converges |
 | CRDT merge overhead | < 0.5ms |
-| Bitwise reproducibility | ✓ Guaranteed |
+| Bitwise reproducibility | Guaranteed |
 
 ## How It Works
 

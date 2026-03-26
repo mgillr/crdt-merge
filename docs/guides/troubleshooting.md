@@ -96,7 +96,7 @@ b.remove("x")        # B removes x (but B never observed A's add)
 
 # Merge — A's add-tag survives
 merged = a.merge(b)
-assert "x" in merged.elements()   # ✅ add-wins is by design
+assert "x" in merged.elements()   # add-wins is by design
 ```
 
 **To force a remove after merge**, remove from the merged state:
@@ -139,7 +139,7 @@ schema.set_strategy("my_field", Custom(fn=my_resolver))  # Re-attach
 from crdt_merge.strategies import Priority
 
 s = Priority(["draft", "review", "approved", "published"])
-print(s.resolve("draft", "published"))   # → "published" (index 3 > 0) ✅
+print(s.resolve("draft", "published"))   # → "published" (index 3 > 0) 
 print(s.resolve("draft", "unknown"))     # → "draft" (unknown gets index -1)
 print(s.resolve("DRAFT", "published"))  # → "published" (case-sensitive!)
 ```
@@ -161,7 +161,7 @@ from crdt_merge.strategies import UnionSet
 
 # Default separator is ","
 s = UnionSet(separator=",")
-print(s.resolve("a,b", "b,c"))   # → "a,b,c" (sorted, deduped) ✅
+print(s.resolve("a,b", "b,c"))   # → "a,b,c" (sorted, deduped) 
 
 # Wrong separator — entire string treated as single element
 s_bad = UnionSet(separator=";")
@@ -215,7 +215,7 @@ result = merge(df_a, df_b, key="id", schema=schema)
 
 ## Serialization Issues
 
-### Q: `WireError: Invalid magic bytes` on deserialization
+### Q: `WireError: Invalid automatic bytes` on deserialization
 
 **Symptom**: `deserialize()` raises `WireError`.
 
@@ -254,8 +254,8 @@ from crdt_merge.core import GCounter
 counter = GCounter()
 counter.increment("node1", 5)
 
-data = serialize(counter)          # ✅ type tag = 0x01 (GCounter)
-data_bad = serialize(counter.to_dict())  # ⚠️  type tag = 0x20 (Generic dict)
+data = serialize(counter)          # type tag = 0x01 (GCounter)
+data_bad = serialize(counter.to_dict())  #  type tag = 0x20 (Generic dict)
 
 restored = deserialize(data)
 print(type(restored))              # <class 'crdt_merge.core.GCounter'>

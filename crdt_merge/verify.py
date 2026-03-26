@@ -61,7 +61,7 @@ class VerificationResult:
     error: Optional[str] = None
 
     def __repr__(self):
-        status = "✅ PASS" if self.passed else f"❌ FAIL ({self.failures}/{self.trials})"
+        status = "PASS" if self.passed else f"FAIL ({self.failures}/{self.trials})"
         return f"Verify({self.property_name}): {status} in {self.duration_ms:.1f}ms"
 
 @dataclass
@@ -86,7 +86,7 @@ class CRDTVerification:
         for r in [self.commutativity, self.associativity, self.idempotency, self.convergence]:
             if r:
                 lines.append(str(r))
-        status = "✅ ALL PROPERTIES VERIFIED" if self.passed else "❌ VERIFICATION FAILED"
+        status = "ALL PROPERTIES VERIFIED" if self.passed else "VERIFICATION FAILED"
         lines.append(f"\n{status} ({self.total_trials} total trials, {self.total_duration_ms:.1f}ms)")
         return "\n".join(lines)
 

@@ -14,7 +14,7 @@
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
 
-"""Conflict heatmaps for model merge analysis (🦄 Unicorn Feature #4).
+"""Conflict heatmaps for model merge analysis (Unicorn Feature #4).
 
 Visualize parameter-level conflict across models, compatible with
 D3.js / Plotly for interactive exploration.

@@ -5,7 +5,7 @@
 **LOC**: 175 *(corrected 2026-03-31 — was 251 from inventory; AST-verified actual: 175)*
 **Dependencies**: `crdt_merge.dataframe`, `multiprocessing`
 
-> ⚠️ **Missing `__all__`**: This module does not define `__all__`, making its public API boundary ambiguous. See issue LAY2-004.
+> **Missing `__all__`**: This module does not define `__all__`, making its public API boundary ambiguous. See issue LAY2-004.
 
 ---
 

@@ -6,18 +6,18 @@
 
 ---
 
-## ⛔ CRITICAL: ENGINE MANDATE
+## CRITICAL: ENGINE MANDATE
 
 ```
-❌ WRONG: Writing a new ~100-line "simplified RREA" inline script
-❌ WRONG: Implementing only Phases 1-6 and skipping Phases 7-8
-❌ WRONG: Using basic Shannon entropy without Ping Entropy
+WRONG: Writing a new ~100-line "simplified RREA" inline script
+WRONG: Implementing only Phases 1-6 and skipping Phases 7-8
+WRONG: Using basic Shannon entropy without Ping Entropy
 
-✅ RIGHT: Running the actual engine:
+RIGHT: Running the actual engine:
    python3 research/team4_rrea_engine.py /path/to/source /path/to/docs
 
-✅ RIGHT: All 8 phases complete with non-empty outputs
-✅ RIGHT: Both Shannon entropy AND Ping entropy computed
+RIGHT: All 8 phases complete with non-empty outputs
+RIGHT: Both Shannon entropy AND Ping entropy computed
 ```
 
 ### Why You Cannot Write a Simplified Version
@@ -69,13 +69,13 @@ This produces a **documentation priority map** — symbols ranked by how much us
 
 | Finding Type | AST | Regex | GDEPA | RREA |
 |-------------|-----|-------|-------|------|
-| Dead code (unreachable from API) | ❌ | ❌ | Partial | ✅ |
-| Critical chokepoints | ❌ | ❌ | ❌ | ✅ |
-| Shadow dependencies | ❌ | ❌ | ❌ | ✅ |
-| Documentation priority order | ❌ | ❌ | ❌ | ✅ |
-| Missing error handling paths | ❌ | ❌ | ❌ | ✅ |
-| Argument-conditional code paths | ❌ | ❌ | ❌ | ✅ |
-| Propagation completeness | ❌ | ❌ | ❌ | ✅ |
+| Dead code (unreachable from API) | | | Partial | |
+| Critical chokepoints | | | | |
+| Shadow dependencies | | | | |
+| Documentation priority order | | | | |
+| Missing error handling paths | | | | |
+| Argument-conditional code paths | | | | |
+| Propagation completeness | | | | |
 
 ## 3. Algorithm — ALL 8 PHASES MANDATORY
 
@@ -148,7 +148,7 @@ TIERS:
   SHADOW      = only reachable through specific arg patterns → document the conditions
 ```
 
-### Phase 7: Propagation Path Validation ⚠️ COMMONLY SKIPPED — DO NOT SKIP
+### Phase 7: Propagation Path Validation COMMONLY SKIPPED — DO NOT SKIP
 ```
 For each public endpoint E:
   trace full propagation path: E → f1 → f2 → ... → leaf
@@ -163,7 +163,7 @@ For each public endpoint E:
     - Documentation claims differ from code behavior
 ```
 
-### Phase 8: Cross-Validate Against Existing Documentation ⚠️ COMMONLY SKIPPED — DO NOT SKIP
+### Phase 8: Cross-Validate Against Existing Documentation COMMONLY SKIPPED — DO NOT SKIP
 ```
 For each CRITICAL or IMPORTANT symbol:
   Check: does API doc exist?

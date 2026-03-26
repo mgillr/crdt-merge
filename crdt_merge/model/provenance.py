@@ -14,7 +14,7 @@
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
 
-"""Per-parameter provenance tracking for model merges (🦄 Unicorn Feature #3).
+"""Per-parameter provenance tracking for model merges (Unicorn Feature #3).
 
 Tracks which source model contributed most to each layer of a merged model,
 computes conflict scores, and exports provenance reports in JSON/CSV.

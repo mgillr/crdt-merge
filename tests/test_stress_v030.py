@@ -83,7 +83,7 @@ def test_core_merge():
                 record("core", "merge", n, "status", 0, "ERROR", str(e)[:120]); break
         del a, b
         try: del result
-        except: pass
+        except Exception: pass
         gc.collect()
         if mb > 1024: break
 

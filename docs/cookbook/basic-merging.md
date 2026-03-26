@@ -326,5 +326,5 @@ for cls in [GCounter, PNCounter, LWWRegister, ORSet]:
     passed = (result.commutativity.passed and
               result.associativity.passed and
               result.idempotency.passed)
-    print(f"{cls.__name__}: {'✅ PASS' if passed else '❌ FAIL'}")
+    print(f"{cls.__name__}: {'PASS' if passed else 'FAIL'}")
 ```

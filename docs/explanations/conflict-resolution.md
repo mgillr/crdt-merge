@@ -154,7 +154,7 @@ merged_reverse = reg_b.merge(reg_a)
 print(merged_reverse.value)  # "value_from_B"
 ```
 
-**⚠️ Gotcha — lexicographic ordering is NOT numeric ordering:**
+**Gotcha — lexicographic ordering is NOT numeric ordering:**
 
 ```python
 from crdt_merge.core import LWWRegister

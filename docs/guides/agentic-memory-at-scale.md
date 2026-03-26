@@ -65,8 +65,7 @@ crdt-merge introduces three components that together eliminate each of these pro
 │  merge(): bitwise-OR across all 64 shards — O(shards)       │
 └──────────────────────┬──────────────────────────────────────┘
                        │ O(1) "seen before?" check
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
+                       ┌─────────────────────────────────────────────────────────────┐
 │  MemorySidecar — pre-computed metadata per chunk             │
 │                                                              │
 │  confidence: float         source_agent: str                │
@@ -78,8 +77,7 @@ crdt-merge introduces three components that together eliminate each of these pro
 │  For 100K memories: eliminates 99%+ of content reads        │
 └──────────────────────┬──────────────────────────────────────┘
                        │ only sidecar-passing chunks read
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
+                       ┌─────────────────────────────────────────────────────────────┐
 │  ContextMerge — budget-bounded deterministic resolution      │
 │                                                              │
 │  strategies: lww / max_confidence / priority / union        │

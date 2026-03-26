@@ -382,7 +382,7 @@ def check_doc_coverage(symbol, doc_root):
                 with open(os.path.join(root, fname)) as f:
                     if sym_name in f.read():
                         return True
-            except:
+            except Exception:
                 pass
     return False
 
@@ -529,23 +529,23 @@ def main():
     print("\n" + "=" * 70)
     print("RREA ANALYSIS COMPLETE")
     print("=" * 70)
-    print(f"\n  📊 Shannon Entropy Distribution:")
+    print(f"\n  Shannon Entropy Distribution:")
     for band, count in report["entropy_distribution"]["shannon"].items():
         print(f"     {band}: {count}")
-    print(f"\n  📊 Ping Entropy Distribution:")
+    print(f"\n  Ping Entropy Distribution:")
     for band, count in report["entropy_distribution"]["ping"].items():
         print(f"     {band}: {count}")
-    print(f"\n  🔴 CRITICAL FINDINGS:")
+    print(f"\n  CRITICAL FINDINGS:")
     print(f"     Dead code (unreachable): {len(dead)}")
     print(f"     Undocumented chokepoints: {len(undoc_chokepoints)}")
     print(f"     Shadow dependencies: {len(shadow)}")
     if undoc_chokepoints:
-        print(f"\n  ⚠️  TOP UNDOCUMENTED CHOKEPOINTS:")
+        print(f"\n  ️  TOP UNDOCUMENTED CHOKEPOINTS:")
         for item in undoc_chokepoints[:10]:
             print(f"     {item['symbol']} (combined H={item['combined_entropy']}, "
                   f"shannon={item['shannon_entropy']}, ping={item['ping_entropy']})")
     if dead:
-        print(f"\n  💀 DEAD CODE SAMPLES:")
+        print(f"\n  DEAD CODE SAMPLES:")
         for sym in sorted(dead)[:10]:
             print(f"     {sym}")
     

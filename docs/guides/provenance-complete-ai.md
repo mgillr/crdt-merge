@@ -43,8 +43,7 @@ crdt-merge's provenance and audit system provides **mathematically verifiable li
 │    alternative: the losing value (preserved, not discarded)  │
 └──────────────────────┬──────────────────────────────────────┘
                        │ immutable audit chain
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
+                       ┌─────────────────────────────────────────────────────────────┐
 │  AuditLog — SHA-256 hash chain                               │
 │                                                              │
 │  AuditEntry {                                               │

@@ -165,7 +165,7 @@ class LWWRegister:
 
 **Tie-Breaking**: When timestamps are equal, `node_id` strings are compared lexicographically. `"node_b" > "node_a"` → node_b's value wins.
 
-> ⚠️ **Known Issue (LAY1-001)**: Lexicographic comparison means `"node9" > "node10"`. This can be unintuitive.
+> **Known Issue (LAY1-001)**: Lexicographic comparison means `"node9" > "node10"`. This can be unintuitive.
 
 **Example**:
 ```python
@@ -211,7 +211,7 @@ class ORSet:
 | `to_dict()` | `to_dict() -> dict` | Serialize. Non-string keys stored in `element_types` map. |
 | `from_dict()` | `@classmethod from_dict(cls, d: dict) -> ORSet` | Deserialize |
 
-> ⚠️ **Known Issue (LAY1-002)**: `remove()` clears ALL tags. No selective tag removal API.
+> **Known Issue (LAY1-002)**: `remove()` clears ALL tags. No selective tag removal API.
 
 **Concurrent Add/Remove — Add Wins**:
 ```python

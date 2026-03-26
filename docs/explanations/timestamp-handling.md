@@ -11,9 +11,9 @@ The `_safe_parse_ts()` function handles diverse timestamp formats:
 | Numeric string | `"1000"` | `1000.0` |
 | ISO-8601 | `"2024-01-15T10:30:00Z"` | epoch float |
 | Object with `.timestamp()` | `datetime.now()` | epoch float |
-| Invalid | `"not a date"` | `0.0` ⚠️ |
+| Invalid | `"not a date"` | `0.0` |
 
-## ⚠️ Silent Fallback
+## Silent Fallback
 
 Invalid timestamps silently become `0.0`. This means they will lose to any valid timestamp in LWW resolution.
 
@@ -158,14 +158,14 @@ return val_a
 
 This ensures `resolve(A, B) == resolve(B, A)` without needing node identity information.
 
-### ⚠️ Lexicographic Ordering Gotcha
+### Lexicographic Ordering Gotcha
 
 Lexicographic ordering does **not** match numeric ordering:
 
 | Comparison | Lexicographic Result | Numeric Result |
 |------------|---------------------|----------------|
-| `"node9" > "node10"` | `True` ✓ | `False` |
-| `"node2" > "node11"` | `True` ✓ | `False` |
+| `"node9" > "node10"` | `True` | `False` |
+| `"node2" > "node11"` | `True` | `False` |
 | `"abc" > "abd"` | `False` | N/A |
 
 **Recommendation:** Use zero-padded identifiers (`node01`, `node02`, …, `node10`) or UUIDs to ensure lexicographic order aligns with logical expectations.

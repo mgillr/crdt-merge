@@ -135,7 +135,7 @@ crdt-merge is a **6-layer architecture** with orthogonal Accelerator and CLI sub
 
 **Dependencies**: All lower layers
 
-**Documentation Status**: 🔴 **ZERO existing docs** — fully documented in this repo for the first time.
+**Documentation Status**: **ZERO existing docs** — fully documented in this repo for the first time.
 
 ---
 
@@ -148,7 +148,7 @@ crdt-merge is a **6-layer architecture** with orthogonal Accelerator and CLI sub
 
 **Dependencies**: Layer 5 (audit, encryption), Layer 4 (model)
 
-**Documentation Status**: 🔴 **ZERO existing docs** — fully documented in this repo for the first time.
+**Documentation Status**: **ZERO existing docs** — fully documented in this repo for the first time.
 
 ---
 
@@ -184,7 +184,7 @@ crdt-merge is a **6-layer architecture** with orthogonal Accelerator and CLI sub
                     │   ML Models, Agent State)     │
                     └──────────────┬────────────────┘
                                    │
-                    ┌──────────────▼────────────────┐
+                    ┌──────────────────────────────┐
                     │  Layer 2: Merge Engines        │
                     │  merge(), merge_stream(),      │
                     │  arrow_merge(), etc.           │
@@ -198,7 +198,7 @@ crdt-merge is a **6-layer architecture** with orthogonal Accelerator and CLI sub
                                    │
               ┌────────────────────┼────────────────────┐
               │                    │                     │
-    ┌─────────▼──────────┐  ┌─────▼──────────┐  ┌──────▼──────────┐
+    ┌───────────────────┐  ┌───────────────┐  ┌────────────────┐
     │ Layer 3: Transport │  │ Layer 4: AI    │  │ Layer 5:        │
     │ serialize()        │  │ ModelMerge()   │  │ Enterprise      │
     │ gossip sync        │  │ AgentState()   │  │ AuditedMerge()  │
@@ -206,7 +206,7 @@ crdt-merge is a **6-layer architecture** with orthogonal Accelerator and CLI sub
     └────────────────────┘  └────────────────┘  │ SecureMerge()   │
                                                  └────────┬────────┘
                                                           │
-                                                 ┌────────▼────────┐
+                                                 ┌────────────────┐
                                                  │ Layer 6:        │
                                                  │ Compliance      │
                                                  │ ComplianceAudit │

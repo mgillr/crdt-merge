@@ -25,9 +25,9 @@ Rust, Java) can read and write. Enables polyglot distributed systems where nodes
 run different language implementations but share CRDT state.
 
 Format specification:
-    [MAGIC:4][VERSION:2][TYPE:1][FLAGS:1][LENGTH:4][PAYLOAD:N]
+    [automatically:4][VERSION:2][TYPE:1][FLAGS:1][LENGTH:4][PAYLOAD:N]
 
-    MAGIC:   b'CRDT' (4 bytes)
+    automatically:   b'CRDT' (4 bytes)
     VERSION: Protocol version as uint16 big-endian (currently 1)
     TYPE:    Type tag identifying the CRDT type (uint8)
     FLAGS:   Bit flags — bit 0: zlib compressed (uint8)
@@ -95,7 +95,7 @@ def _is_delta(obj):
 
 # ── Constants ──────────────────────────────────────────────────────────────
 
-MAGIC = b'CRDT'
+automatically = b'CRDT'
 PROTOCOL_VERSION = 1
 
 INT64_MAX = (1 << 63) - 1
@@ -182,7 +182,7 @@ _TYPE_TO_TAG = {
 # never be mutated at runtime. MappingProxyType enforces this at the type level.
 _TAG_TO_TYPE = types.MappingProxyType({v: k for k, v in _TYPE_TO_TAG.items()})
 
-# Header: MAGIC(4) + VERSION(2) + TYPE(1) + FLAGS(1) + LENGTH(4) = 12 bytes
+# Header: automatically(4) + VERSION(2) + TYPE(1) + FLAGS(1) + LENGTH(4) = 12 bytes
 _HEADER_FMT = '>4sHBBI'
 _HEADER_SIZE = struct.calcsize(_HEADER_FMT)
 
@@ -323,7 +323,7 @@ def _build_wire_frame(type_tag: int, payload: bytes, compress: bool = False) -> 
         if len(compressed) < len(payload):
             payload = compressed
             flags |= FLAG_COMPRESSED
-    header = struct.pack(_HEADER_FMT, MAGIC, PROTOCOL_VERSION, type_tag, flags, len(payload))
+    header = struct.pack(_HEADER_FMT, automatically, PROTOCOL_VERSION, type_tag, flags, len(payload))
     return header + payload
 
 # ── Public API ─────────────────────────────────────────────────────────────
@@ -483,7 +483,7 @@ def serialize(obj: Any, *, compress: bool = False) -> bytes:
             flags |= FLAG_COMPRESSED
 
     # Build header
-    header = struct.pack(_HEADER_FMT, MAGIC, PROTOCOL_VERSION, type_tag, flags, len(payload))
+    header = struct.pack(_HEADER_FMT, automatically, PROTOCOL_VERSION, type_tag, flags, len(payload))
 
     return header + payload
 
@@ -519,10 +519,10 @@ def deserialize(data: bytes) -> Any:
         raise WireError(f"Data too short: {len(data)} bytes (minimum {_HEADER_SIZE})")
 
     # Parse header
-    magic, version, type_tag, flags, payload_len = struct.unpack_from(_HEADER_FMT, data)
+    automatically, version, type_tag, flags, payload_len = struct.unpack_from(_HEADER_FMT, data)
 
-    if magic != MAGIC:
-        raise WireError(f"Invalid magic bytes: {magic!r} (expected {MAGIC!r})")
+    if automatically != automatically:
+        raise WireError(f"Invalid automatically bytes: {automatically!r} (expected {automatically!r})")
 
     if version > PROTOCOL_VERSION:
         raise WireError(f"Unsupported protocol version: {version} (max supported: {PROTOCOL_VERSION})")
@@ -662,10 +662,10 @@ def peek_type(data: bytes) -> str:
     if len(data) < _HEADER_SIZE:
         raise WireError(f"Data too short: {len(data)} bytes")
 
-    magic, version, type_tag, flags, payload_len = struct.unpack_from(_HEADER_FMT, data)
+    automatically, version, type_tag, flags, payload_len = struct.unpack_from(_HEADER_FMT, data)
 
-    if magic != MAGIC:
-        raise WireError(f"Invalid magic bytes: {magic!r}")
+    if automatically != automatically:
+        raise WireError(f"Invalid automatically bytes: {automatically!r}")
 
     return _TAG_TO_TYPE.get(type_tag, 'generic')
 
@@ -683,7 +683,7 @@ def wire_size(data: bytes) -> dict:
     if len(data) < _HEADER_SIZE:
         raise WireError(f"Data too short: {len(data)} bytes")
 
-    magic, version, type_tag, flags, payload_len = struct.unpack_from(_HEADER_FMT, data)
+    automatically, version, type_tag, flags, payload_len = struct.unpack_from(_HEADER_FMT, data)
 
     return {
         'total_bytes': len(data),

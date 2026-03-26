@@ -41,7 +41,7 @@ path1 = node_a.merge(node_b).merge(node_c)
 path2 = node_c.merge(node_a).merge(node_b)
 path3 = node_b.merge(node_c).merge(node_a)
 
-assert path1.value == path2.value == path3.value == 10   # ✅ Always 10
+assert path1.value == path2.value == path3.value == 10   # Always 10
 ```
 
 ---
@@ -77,7 +77,7 @@ result = s.resolve(user_a_tags, user_b_tags)   # "ai,ml,python" — nothing lost
 # CRDT Priority: "approved" wins regardless
 from crdt_merge.strategies import Priority
 s = Priority(["draft", "review", "approved", "published"])
-print(s.resolve("approved", "draft", ts_a=1000, ts_b=1001))  # "approved" ✅
+print(s.resolve("approved", "draft", ts_a=1000, ts_b=1001))  # "approved" 
 ```
 
 **Problem 3 — Numeric aggregates require both values**
@@ -91,7 +91,7 @@ print(s.resolve("approved", "draft", ts_a=1000, ts_b=1001))  # "approved" ✅
 from crdt_merge.core import GCounter
 a = GCounter(); a.increment("node_a", 45)
 b = GCounter(); b.increment("node_b", 52)
-print(a.merge(b).value)  # 97 ✅
+print(a.merge(b).value)  # 97 
 ```
 
 ---

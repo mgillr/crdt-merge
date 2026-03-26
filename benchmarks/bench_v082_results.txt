@@ -102,10 +102,10 @@
 ================================================================================
   Core — CRDT Law Verification
 ================================================================================
-  verify_crdt(GCounter, 1000 trials)                          ✅ PASS (81.62 ms)
-  verify_crdt(PNCounter, 1000 trials)                        ✅ PASS (142.50 ms)
-  verify_crdt(LWWRegister, 1000 trials)                       ✅ PASS (17.59 ms)
-  verify_crdt(ORSet, 1000 trials)                            ✅ PASS (178.45 ms)
+  verify_crdt(GCounter, 1000 trials)                          PASS (81.62 ms)
+  verify_crdt(PNCounter, 1000 trials)                        PASS (142.50 ms)
+  verify_crdt(LWWRegister, 1000 trials)                       PASS (17.59 ms)
+  verify_crdt(ORSet, 1000 trials)                            PASS (178.45 ms)
 
 ================================================================================
   Core — Wire Serialization Roundtrip

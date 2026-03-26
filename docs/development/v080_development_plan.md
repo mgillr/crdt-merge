@@ -38,8 +38,8 @@ crdt_merge/
 │   ├── lora.py                      # LoRA/adapter first-class support
 │   ├── pipeline.py                  # Multi-stage merge pipelines (DAG-based)
 │   ├── evolutionary.py              # CMA-ES/genetic optimizer orchestration
-│   ├── provenance.py                # Per-parameter provenance tracking 🦄
-│   ├── heatmap.py                   # Conflict heatmaps + layer disagreement 🦄
+│   ├── provenance.py                # Per-parameter provenance tracking 
+│   ├── heatmap.py                   # Conflict heatmaps + layer disagreement 
 │   ├── safety.py                    # Safety-critical layer detection
 │   ├── continual.py                 # Continual/sequential merge
 │   ├── federated.py                 # FedAvg/FedProx as CRDT operations
@@ -85,10 +85,10 @@ crdt_merge/
 
 | # | Strategy | Class | Operation | CRDT |
 |---|----------|-------|-----------|------|
-| 1 | Weight Averaging | `WeightAverage` | θ = Σ(αᵢ·θᵢ) | ✅✅✅ |
-| 2 | SLERP | `SphericalLinearInterpolation` | Spherical interp | ✅⚠️⚠️ |
-| 3 | Task Arithmetic | `TaskArithmetic` | θ = θ_base + Σ(αᵢ·τᵢ) | ✅✅ |
-| 4 | Linear Interpolation | `LinearInterpolation` | θ = (1-t)·θ₁ + t·θ₂ | ✅⚠️ |
+| 1 | Weight Averaging | `WeightAverage` | θ = Σ(αᵢ·θᵢ) | |
+| 2 | SLERP | `SphericalLinearInterpolation` | Spherical interp | |
+| 3 | Task Arithmetic | `TaskArithmetic` | θ = θ_base + Σ(αᵢ·τᵢ) | |
+| 4 | Linear Interpolation | `LinearInterpolation` | θ = (1-t)·θ₁ + t·θ₂ | |
 
 **Academic citations required for each strategy.**
 **Dependencies:** Phase 1 (base.py ABC)
@@ -103,15 +103,15 @@ crdt_merge/
 
 | # | Strategy | Class | Paper | CRDT |
 |---|----------|-------|-------|------|
-| 5 | TIES-Merging | `TIESMerge` | Yadav, NeurIPS 2023 | ✅✅ |
-| 6 | DARE | `DareDropAndRescale` | Yu, 2024 | ⚠️ stochastic |
-| 7 | DELLA | `DellaDropElectLowRank` | Bansal, 2024 | ⚠️ stochastic |
-| 8 | DARE-TIES | `DareTiesHybrid` | Community, 2024 | ⚠️+✅ |
-| 9 | Model Breadcrumbs | `ModelBreadcrumbs` | Davari, 2023 | ✅ |
-| 10 | EMR-Merging | `EMRMerge` | Huang, 2024 | ✅✅ |
-| 11 | STAR | `SpectralTruncationAdaptiveRescaling` | 2025 | ✅ |
-| 12 | SVD Knot-Tying | `SVDKnotTying` | 2024 | ✅ |
-| 13 | AdaRank | `AdaptiveRankPruning` | ICLR 2026 | ✅✅ |
+| 5 | TIES-Merging | `TIESMerge` | Yadav, NeurIPS 2023 | |
+| 6 | DARE | `DareDropAndRescale` | Yu, 2024 | stochastic |
+| 7 | DELLA | `DellaDropElectLowRank` | Bansal, 2024 | stochastic |
+| 8 | DARE-TIES | `DareTiesHybrid` | Community, 2024 | +|
+| 9 | Model Breadcrumbs | `ModelBreadcrumbs` | Davari, 2023 | |
+| 10 | EMR-Merging | `EMRMerge` | Huang, 2024 | |
+| 11 | STAR | `SpectralTruncationAdaptiveRescaling` | 2025 | |
+| 12 | SVD Knot-Tying | `SVDKnotTying` | 2024 | |
+| 13 | AdaRank | `AdaptiveRankPruning` | ICLR 2026 | |
 
 **Dependencies:** Phase 1 (base.py ABC), numpy
 **Tests:** Each strategy with varying tensor sizes, sparsity levels, reproducibility (seed-deterministic)
@@ -125,18 +125,18 @@ crdt_merge/
 
 | # | Strategy | File | Paper | CRDT |
 |---|----------|------|-------|------|
-| 14 | Fisher-Weighted | weighted.py | Matena, 2022 | ✅✅ |
-| 15 | RegMean | weighted.py | Jin, 2023 | ✅✅ |
-| 16 | AdaMerging | weighted.py | Yang, 2024 | ⚠️ adaptive |
-| 17 | DAM | weighted.py | 2024 | ⚠️ adaptive |
-| 18 | CMA-ES Evolutionary | evolutionary.py | Sakana AI, 2024 | ✅ (meta) |
-| 19 | Genetic Merge | evolutionary.py | Mergenetic, 2025 | ✅ (meta) |
-| 20 | NegMerge | unlearning.py | ICML 2025 | ✅ |
-| 21 | Split-Unlearn-Merge | unlearning.py | 2025 | ✅ |
-| 22 | Weight Scope Alignment | calibration.py | 2024 | ✅ |
+| 14 | Fisher-Weighted | weighted.py | Matena, 2022 | |
+| 15 | RegMean | weighted.py | Jin, 2023 | |
+| 16 | AdaMerging | weighted.py | Yang, 2024 | adaptive |
+| 17 | DAM | weighted.py | 2024 | adaptive |
+| 18 | CMA-ES Evolutionary | evolutionary.py | Sakana AI, 2024 | (meta) |
+| 19 | Genetic Merge | evolutionary.py | Mergenetic, 2025 | (meta) |
+| 20 | NegMerge | unlearning.py | ICML 2025 | |
+| 21 | Split-Unlearn-Merge | unlearning.py | 2025 | |
+| 22 | Weight Scope Alignment | calibration.py | 2024 | |
 | 23 | Representation Surgery | calibration.py | 2024 | post-proc |
-| 24 | SafeMERGE | safety.py | 2025 | ✅ |
-| 25 | LED-Merging | safety.py | 2025 | ✅ |
+| 24 | SafeMERGE | safety.py | 2025 | |
+| 25 | LED-Merging | safety.py | 2025 | |
 
 **Dependencies:** Phase 1 (base.py ABC), numpy
 **Tests:** Strategy-specific verification, fitness function interface, unlearning correctness
@@ -161,13 +161,13 @@ crdt_merge/
 - Checkpoint/resume, pipeline-level provenance
 - Pipeline templates for common patterns
 
-**Provenance Module (🦄 Unicorn Feature #3):**
+**Provenance Module (Unicorn Feature #3):**
 - Per-parameter provenance tracking
 - `dominant_source`, `contribution_map`, `conflict_score`
 - Aggregate provenance summaries
 - Export to JSON/CSV
 
-**Heatmap Module (🦄 Unicorn Feature #4):**
+**Heatmap Module (Unicorn Feature #4):**
 - `ConflictHeatmap.from_merge(result)`
 - Layer-level and parameter-level conflict maps
 - Sign agreement maps, magnitude distribution
@@ -263,10 +263,10 @@ Push: Final integration tests, version bump, PyPI publish
 | 8 | **Total** | **25** | — |
 
 CRDT Properties:
-- ✅ Full CRDT (commutative + associative): 15 strategies
-- ⚠️ Stochastic (seed-deterministic): 3 strategies (DARE, DELLA, DARE-TIES)
-- ⚠️ Adaptive (learned coefficients, final merge commutative): 2 strategies
-- ⚠️ Pairwise only (commutative at t=0.5): 2 strategies
+- Full CRDT (commutative + associative): 15 strategies
+- Stochastic (seed-deterministic): 3 strategies (DARE, DELLA, DARE-TIES)
+- Adaptive (learned coefficients, final merge commutative): 2 strategies
+- Pairwise only (commutative at t=0.5): 2 strategies
 - Post-processing: 1 strategy (RepresentationSurgery)
 
 ---
@@ -275,9 +275,9 @@ CRDT Properties:
 
 | # | Feature | Status |
 |---|---------|--------|
-| 0 | Per-field merge strategies | ✅ v0.5.1 |
-| 1 | Formal CRDT verification | ✅ v0.5.1 |
-| 2 | SQL-based merge (MergeQL) | ✅ v0.7.0 |
+| 0 | Per-field merge strategies | v0.5.1 |
+| 1 | Formal CRDT verification | v0.5.1 |
+| 2 | SQL-based merge (MergeQL) | v0.7.0 |
 | 3 | Per-parameter provenance for model merges | 🆕 v0.8.0 |
 | 4 | Conflict heatmaps / layer disagreement | 🆕 v0.8.0 |
 | 5 | CRDT-verified model merging (26 strategies) | 🆕 v0.8.0 |
@@ -288,21 +288,21 @@ CRDT Properties:
 
 ## Competitive Position at v0.8.0
 
-| Capability | crdt-merge v0.8 | MergeKit (6.9K ⭐) | FusionBench | Mergenetic |
+| Capability | crdt-merge v0.8 | MergeKit (6.9K ) | FusionBench | Mergenetic |
 |-----------|-----------------|-------------------|-------------|------------|
 | Merge strategies | 25 | ~10 | Eval only | Evolutionary only |
-| CRDT verification | ✅ | ❌ | ❌ | ❌ |
-| Per-param provenance | ✅ | ❌ | ❌ | ❌ |
-| Conflict heatmaps | ✅ | ❌ | ❌ | ❌ |
-| LoRA first-class | ✅ | ✅ | ❌ | ❌ |
-| Evolutionary merge | ✅ | ❌ | ❌ | ✅ |
-| Safety-aware merge | ✅ | ❌ | ❌ | ❌ |
-| Continual merge | ✅ | ❌ | ❌ | ❌ |
-| Federated bridge | ✅ | ❌ | ❌ | ❌ |
-| Plugin architecture | ✅ | ❌ | ❌ | ❌ |
-| MergeKit compat | ✅ (import/export) | Native | ❌ | ❌ |
-| License | BSL-1.1 → Apache-2.0 | LGPL-3.0 ⚠️ | Apache-2.0 | MIT |
-| Tabular + Model | ✅ | ❌ (model only) | ❌ (eval only) | ❌ (model only) |
+| CRDT verification | | | | |
+| Per-param provenance | | | | |
+| Conflict heatmaps | | | | |
+| LoRA first-class | | | | |
+| Evolutionary merge | | | | |
+| Safety-aware merge | | | | |
+| Continual merge | | | | |
+| Federated bridge | | | | |
+| Plugin architecture | | | | |
+| MergeKit compat | (import/export) | Native | | |
+| License | BSL-1.1 → Apache-2.0 | LGPL-3.0 | Apache-2.0 | MIT |
+| Tabular + Model | | (model only) | (eval only) | (model only) |
 
 ---
 

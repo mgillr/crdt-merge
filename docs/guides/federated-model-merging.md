@@ -37,13 +37,12 @@ crdt-merge solves the merge convergence problem through the same two-layer patte
 │  • remove(model_id) → tombstone all current tags         │
 │  • merge(other) = set union on adds + removes            │
 │                                                          │
-│  merge() is commutative ✓  associative ✓  idempotent ✓  │
+│  merge() is commutative  associative  idempotent  │
 │  Merkle root for content-addressable integrity           │
 │  Version vector for causal ordering                      │
 └──────────────────────┬──────────────────────────────────┘
                        │ visible set (sorted by canonical_key)
-                       ▼
-┌─────────────────────────────────────────────────────────┐
+                       ┌─────────────────────────────────────────────────────────┐
 │  Layer 2: Strategy (pure deterministic function)         │
 │                                                          │
 │  • Applied over the FULL visible set — never pairwise    │
