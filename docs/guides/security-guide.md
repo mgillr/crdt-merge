@@ -526,6 +526,32 @@ that extends audit trails with framework-specific controls:
 See the [Compliance Guide](compliance-guide.md) for full details on configuring
 compliance policies and generating audit reports.
 
+## E4 Security Model
+
+v0.9.5 extends the security architecture with the E4 trust layer, providing four interlocking defence mechanisms against Byzantine and Sybil attacks in distributed merge networks.
+
+**Byzantine defence.** The SLT (Statistical Lattice Trust) protocol tolerates up to 34% Byzantine participants in any merge federation. Participants whose behaviour diverges from the lattice consensus are automatically excluded, and the exclusion is cryptographically logged.
+
+**Sybil detection.** The resilience subsystem detects coordinated identity fabrication by correlating trust evidence patterns across peers. New identities start at a baseline trust level and must accumulate genuine evidence before gaining merge influence.
+
+**Longcon detection.** Peers that maintain good behaviour over extended periods before a coordinated attack (long-confidence attacks) are identified through statistical divergence analysis on the trust lattice.
+
+**Epoch rotation.** Trust evidence is segmented into epochs. Historical evidence decays according to a configurable half-life, preventing stale trust from masking recent misbehaviour.
+
+```python
+from crdt_merge.e4.resilience import SybilDetector, LongconDetector
+from crdt_merge.e4.delta_trust_lattice import DeltaTrustLattice
+
+lattice = DeltaTrustLattice(peer_id="security-monitor")
+sybil = SybilDetector(trust_lattice=lattice)
+longcon = LongconDetector(trust_lattice=lattice, epoch_half_life=7)
+
+# Continuous monitoring -- returns suspect peer IDs
+suspects = sybil.scan_network(peer_ids=active_peers)
+```
+
+See [E4 Architecture](../e4/E4-MASTER-ARCHITECTURE.md) for the complete security model specification.
+
 ---
 
 ## Best Practices

@@ -1,6 +1,6 @@
 # LoRA Adapter Merging: Per-Module Strategy With Rank Harmonization
 
-> **Patent Pending — UK Application No. 2607132.4**
+> **Patent — UK Application No. 2607132.4, GB2608127.3**
 > Architecture described herein is protected under BSL-1.1 until 2028-03-29, then Apache 2.0.
 
 ---
@@ -333,6 +333,10 @@ Loss is uniform (random)      Loss is minimal (removes least informative compone
 ```
 
 In practice, SVD truncation retains 85–95% of the adapter's representational capacity even when cutting rank by 4×, compared to ~40–60% for naive truncation.
+
+### E4 Trust Layer
+
+LoRA adapter merges now carry trust scores from the E4 layer. Trust-weighted averaging respects adapter provenance, giving higher influence weight to adapters from trusted training runs. Adapters from sources with low or declining trust scores are proportionally downweighted during merge, reducing the risk of poisoned adapter injection. See [E4 Architecture](../e4/E4-MASTER-ARCHITECTURE.md) for details.
 
 ---
 

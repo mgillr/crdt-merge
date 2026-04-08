@@ -20,7 +20,7 @@ tags:
 
 # crdt-merge Federation
 
-Distributed gossip convergence simulation powered by [crdt-merge v0.9.4](https://github.com/mgillr/crdt-merge).
+Distributed gossip convergence simulation powered by [crdt-merge v0.9.5](https://github.com/mgillr/crdt-merge).
 
 ## Tabs
 
@@ -34,16 +34,17 @@ Distributed gossip convergence simulation powered by [crdt-merge v0.9.4](https:/
 - All nodes reach identical state_hash
 - Wire protocol is compact and self-describing (JSON with Merkle hashes)
 - Round-trip serialization preserves exact state identity
+- E4 trust-delta metadata propagates with every gossip exchange (v0.9.5+)
 
 ## Installation
 
 ```
-pip install crdt-merge>=0.9.4
+pip install crdt-merge>=0.9.5
 ```
 
 ## License
 
 Business Source License 1.1. Converts to Apache 2.0 on 2028-03-29.
-Patent Pending UK 2607132.4.
+Patent UK 2607132.4, GB2608127.3.
 
-crdt-merge v0.9.4 · [github.com/mgillr/crdt-merge](https://github.com/mgillr/crdt-merge)
+crdt-merge v0.9.5 · [github.com/mgillr/crdt-merge](https://github.com/mgillr/crdt-merge)

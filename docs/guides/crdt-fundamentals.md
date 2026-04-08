@@ -266,6 +266,10 @@ for cls in [GCounter, LWWRegister, ORSet]:
 
 See [CRDT Verification Toolkit](crdt-verification-toolkit.md) for custom strategy verification and property-based testing patterns.
 
+### E4 Trust Layer
+
+Trust is now a first-class CRDT dimension in v0.9.5. `TypedTrustScore` uses GCounter evidence accumulation, ensuring trust values converge monotonically across all replicas. The E4 architecture defines a product lattice T x D x E (Trust x Data x Evidence) that composes with all existing CRDT primitives. See [E4 Architecture](../e4/E4-MASTER-ARCHITECTURE.md) for details.
+
 ---
 
 ## Choosing the Right Primitive

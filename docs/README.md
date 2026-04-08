@@ -4,8 +4,8 @@
 
 | | |
 |---|---|
-| **Version** | 0.9.4 |
-| **Architecture** | 6-layer + Accelerators + CLI |
+| **Version** | 0.9.5 |
+| **Architecture** | 7-layer + Accelerators + CLI |
 | **Codebase** | 44,304 LOC · 104 modules · 212 classes · 1,586 functions |
 | **Guide tests** | 309 tests across 7 guide test suites — all passing |
 | **License** | BUSL-1.1 → Apache 2.0 (2028-03-29) |
@@ -65,6 +65,38 @@
 | [Security Hardening](guides/security-hardening.md) | Threat model, key rotation, audit integration |
 | [Security Guide](guides/security-guide.md) | Encryption backends, `StaticKeyProvider`, RBAC policies |
 | [Compliance Guide](guides/compliance-guide.md) | GDPR Art.5, HIPAA PHI, SOX, EU AI Act |
+
+### E4 Trust-Delta Architecture
+
+The E4 subsystem adds recursive trust as a native CRDT dimension. Every merge carries proof, every delta carries trust.
+
+- **[Overview](e4/README.md)** -- value proposition, quick start, benchmark summary
+- **[Architecture](e4/E4-MASTER-ARCHITECTURE.md)** -- full technical specification (product lattice, trust algebra, wire format)
+- **[Developer Guide](e4/E4-DEVELOPER-GUIDE.md)** -- building with E4 trust scoring
+- **[Integration Guide](e4/E4-INTEGRATION-GUIDE.md)** -- wiring E4 into existing systems
+- **[API Reference](e4/E4-API-REFERENCE.md)** -- complete module and class reference
+- **[Security Model](e4/E4-SECURITY-MODEL.md)** -- threat model, Byzantine defence, resilience
+- **[Peer Review](e4/E4-PEER-REVIEW-ANALYSIS.md)** -- expert evaluation (9.0/10)
+- **[Computational Evidence](e4/E4-COMPUTATIONAL-EVIDENCE.md)** -- H100 validation results
+- **[Changelog](e4/E4-CHANGELOG.md)** -- E4-specific release history
+
+#### E4 API Reference (detailed)
+
+| Document | Scope |
+|----------|-------|
+| [E4 Core Modules](e4.md) | TypedTrustScore, PCO, ProjectionDelta, TrustBoundMerkle, CausalTrustClock, and more |
+| [E4 Integration Bridges](e4_integration.md) | GossipBridge, StreamBridge, AgentBridge, E4Config, bootstrap |
+| [E4 Resilience Subsystem](e4_resilience.md) | 18 hardening modules: Sybil defence, post-quantum sigs, epoch rotation, partition reconciliation |
+
+### Cookbooks
+
+Runnable tutorials covering common E4 workflows end-to-end.
+
+| Cookbook | What it covers |
+|---------|----------------|
+| [E4 Trust Quickstart](cookbooks/e4-trust-quickstart.md) | Trust scoring, PCO, projection deltas, adaptive verification, disabling E4 |
+| [Federated Trust with Byzantine Tolerance](cookbooks/e4-federated-trust.md) | Multi-peer lattice, gossip bridge, Byzantine detection, circuit breaker, 5-node demo |
+| [Trust-Weighted Agent Memory Synchronisation](cookbooks/e4-agent-memory-trust.md) | Agent bridge, trust-weighted conflict resolution, multi-agent convergence, stream validation |
 
 ---
 
@@ -131,7 +163,11 @@ docs/
 ├── api-reference/           ← Complete API reference (layers 1–6, accelerators, CLI)
 ├── architecture/            ← System overview, layer map, data flow, design decisions
 ├── getting-started/         ← Installation, quickstart, core concepts
-├── cookbook/                ← Practical recipes and patterns
+├── cookbook/                 ← Practical recipes and patterns
+├── cookbooks/               ← E4 trust-delta runnable tutorials
+├── e4.md                    ← E4 core modules API reference
+├── e4_integration.md        ← E4 integration bridges API reference
+├── e4_resilience.md         ← E4 resilience subsystem API reference
 ├── CRDT_ARCHITECTURE.md     ← Full mathematical proof of CRDT compliance
 ├── ARCHITECTURE_MAP.md      ← Annotated codebase map
 └── benchmarks/              ← A100 GPU performance, stress test reports
@@ -141,7 +177,7 @@ docs/
 
 ## Architecture
 
-crdt-merge uses a strict **6-layer architecture** — each layer is independently testable and composable:
+crdt-merge uses a strict **7-layer architecture** — each layer is independently testable and composable:
 
 | Layer | Module | Responsibility |
 |---|---|---|
@@ -151,6 +187,7 @@ crdt-merge uses a strict **6-layer architecture** — each layer is independentl
 | 4 | `crdt_merge.model` | ML model merging, CRDTMergeState, 26 strategies |
 | 5 | `crdt_merge.encryption` / `.rbac` / `.metrics` | Security, access control, observability |
 | 6 | `crdt_merge.compliance` | GDPR, HIPAA, SOX, EU AI Act |
+| 7 | `crdt_merge.e4` | Trust-delta protocol, PCO, Byzantine resilience, adaptive verification |
 | + | `crdt_merge.context` / `.agentic` | Agent memory, ContextBloom, ContextManifest |
 | + | Accelerators | DuckDB, dbt, Polars, Airbyte, Spark |
 
@@ -171,4 +208,4 @@ Full proof: [CRDT_ARCHITECTURE.md](CRDT_ARCHITECTURE.md)
 
 ---
 
-*crdt-merge v0.9.4 · April 2026*
+*crdt-merge v0.9.5 · April 2026*

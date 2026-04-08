@@ -1,6 +1,6 @@
 # The Right to Forget in Trained AI Models
 
-> **Patent Pending — UK Application No. 2607132.4**
+> **Patent — UK Application No. 2607132.4, GB2608127.3**
 > Architecture described herein is protected under BSL-1.1 until 2028-03-29, then Apache 2.0.
 
 ---

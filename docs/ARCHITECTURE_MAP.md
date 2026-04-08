@@ -1,8 +1,8 @@
-# crdt-merge v0.9.2 — Architecture Map
+# crdt-merge v0.9.5 — Architecture Map
 
 ## System Overview
 
-crdt-merge is a **6-layer architecture** with orthogonal Accelerator and CLI subsystems. Each layer builds on the one below, providing increasing levels of abstraction from raw CRDT primitives up to regulatory compliance.
+crdt-merge is a **7-layer architecture** with orthogonal Accelerator and CLI subsystems. Each layer builds on the one below, providing increasing levels of abstraction from raw CRDT primitives up to trust-entangled distributed convergence.
 
 ---
 
@@ -10,6 +10,11 @@ crdt-merge is a **6-layer architecture** with orthogonal Accelerator and CLI sub
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
+│  LAYER 7: TRUST & ENTANGLEMENT — E4 (35 modules, 1,681 tests)         │
+│  e4/ → TypedTrustScore, PCO, ProjectionDelta, CausalTrustClock,       │
+│        AdaptiveVerification, TrustBoundMerkle, SLT Byzantine,          │
+│        Resilience (18 modules), Integration bridges                    │
+├─────────────────────────────────────────────────────────────────────────┤
 │  LAYER 6: VERIFICATION & COMPLIANCE (932 LOC)                          │
 │  compliance.py → ComplianceAuditor, EUAIActReport, GDPR/HIPAA/SOX     │
 ├─────────────────────────────────────────────────────────────────────────┤
@@ -234,4 +239,25 @@ crdt-merge is a **6-layer architecture** with orthogonal Accelerator and CLI sub
 
 ---
 
-*Architecture Map v1.0 — crdt-merge v0.9.2*
+### Layer 7: Trust and Entanglement (E4)
+**Purpose**: Recursive trust-delta protocol -- every merge operation carries cryptographic proof of provenance, every delta propagates trust as a first-class CRDT dimension.
+
+| Component | Key Exports |
+|-----------|-------------|
+| `crdt_merge.e4.trust_bound_merkle` | Trust-bound Merkle verification (256-ary, depth 4 at 1B leaves) |
+| `crdt_merge.e4.pco` | Proof-carrying operations (128-byte fixed wire format) |
+| `crdt_merge.e4.projection_delta` | Projection delta encoding for billion-parameter spaces |
+| `crdt_merge.e4.typed_trust` | Typed multi-dimensional trust scores with GCounter evidence |
+| `crdt_merge.e4.causal_trust_clock` | Causal trust clocks (2.93M ops/s) |
+| `crdt_merge.e4.adaptive_verification` | Adaptive verification controller (97K-109K ops/s) |
+| `crdt_merge.e4.trust_weighted_strategy` | Trust-weighted conflict resolution strategies |
+| `crdt_merge.e4.resilience` | Resilience subsystem -- 18 modules (Sybil, longcon, epoch, partition, PQ sigs, TLA+) |
+| `crdt_merge.e4.integration` | Integration bridges -- gossip, stream, agent, config |
+
+**Dependencies**: Layers 1-6 (composes with all existing subsystems)
+
+**Validation**: 78/78 CRDT axioms, 156/156 large-model tests, 34% Byzantine fault tolerance, 328 computational proofs
+
+---
+
+*Architecture Map v2.0 -- crdt-merge v0.9.5*

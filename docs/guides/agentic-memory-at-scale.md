@@ -1,6 +1,6 @@
 # Agentic Memory at Scale: The Context Window Is Not the Limit
 
-> **Patent Pending — UK Application No. 2607132.4**
+> **Patent — UK Application No. 2607132.4, GB2608127.3**
 > Architecture described herein is protected under BSL-1.1 until 2028-03-29, then Apache 2.0.
 
 ---
@@ -393,6 +393,22 @@ crdt-merge reframes agent memory as a CRDT:
 When memory is a CRDT, the context window is no longer a hard limit — it is a **retrieval budget**. MemorySidecar makes retrieval O(1). ContextBloom makes deduplication O(1). ContextMerge makes multi-agent synthesis automatic.
 
 The result: agents that scale to millions of memories, survive crashes, collaborate without coordinators, and produce provenance-complete outputs — all within a fixed token budget.
+
+## E4 Trust-Weighted Agent Memory
+
+v0.9.5 binds trust directly into agent memory synchronisation. Each memory fragment carries a TypedTrustScore across four dimensions (accuracy, consistency, recency, provenance), and conflict resolution respects trust weight rather than arbitrary ordering.
+
+```python
+from crdt_merge.e4.integration.agent_bridge import TrustAgentState
+from crdt_merge.e4.delta_trust_lattice import DeltaTrustLattice
+
+lattice = DeltaTrustLattice(peer_id="agent-alpha")
+agent = TrustAgentState(trust_lattice=lattice, trust_weight_context=True)
+```
+
+Validated with 3 agents, 4 models, full convergence proven on H100. Trust ensures that a compromised agent's memory fragments receive proportionally lower influence during merge -- the system self-corrects without coordinator intervention.
+
+See [E4 Architecture](../e4/E4-MASTER-ARCHITECTURE.md) for the full trust algebra.
 
 ---
 

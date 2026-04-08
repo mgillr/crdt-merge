@@ -442,6 +442,10 @@ with open("migration_audit.json", "w") as f:
     json.dump(result.to_dict(), f, indent=2)
 ```
 
+### E4 Trust Layer
+
+Dual-hash compatibility mode via `CompatibilityController` manages migration from pre-E4 to E4 hash schemes during schema evolution. Three modes are supported: `E4_ONLY` (new deployments), `DUAL_HASH` (rolling migration), and `LEGACY_ONLY` (backward compatibility). The controller ensures that schema evolution across hash scheme boundaries remains CRDT-compliant. See [E4 Architecture](../e4/E4-MASTER-ARCHITECTURE.md) for details.
+
 ---
 
 ## Cross-References

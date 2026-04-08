@@ -16,7 +16,7 @@
 # On 2028-03-29 this file converts to Apache License, Version 2.0.
 
 """
-crdt-merge v0.9.4 — Data Playground HuggingFace Space
+crdt-merge v0.9.5 — Data Playground HuggingFace Space
 Tabular CRDT merge, conflict analysis, and core primitive demonstrations.
 """
 
@@ -67,7 +67,7 @@ HERO_MD = """
 
 Tabular CRDT merge for DataFrames and datasets. Conflict-free record merge, deduplication, and provenance tracking.
 
-`pip install crdt-merge` · [GitHub](https://github.com/mgillr/crdt-merge) · [PyPI](https://pypi.org/project/crdt-merge/) · Patent Pending UK 2607132.4
+`pip install crdt-merge` · [GitHub](https://github.com/mgillr/crdt-merge) · [PyPI](https://pypi.org/project/crdt-merge/) · Patent UK 2607132.4, GB2608127.3 · E4 Trust-Delta Architecture
 """
 
 STRATEGIES_DF = ["LWW", "MaxWins", "MinWins", "Union"]
@@ -386,6 +386,8 @@ with gr.Blocks(theme=THEME, css=CSS, title="crdt-merge — Data Playground") as 
 Loads glue/sst2 from HuggingFace datasets (first 200 rows) or uses synthetic fallback.
 Splits into two node partitions with 50 overlapping records.
 Demonstrates conflict-free merge with configurable strategy.
+
+> **E4 Trust Scoring Active (v0.9.5+):** All merge operations now carry typed trust scores by default. Every record merge accumulates accuracy, consistency, recency, and provenance trust dimensions via GCounter-backed convergent accumulators. Trust propagation adds zero API overhead -- it activates transparently on `import crdt_merge`.
 """)
 
             with gr.Row():
@@ -495,7 +497,7 @@ Commutativity is verified: merge(A,B) must equal merge(B,A).
     gr.Markdown("""
 ---
 
-**crdt-merge v0.9.4** · Patent Pending UK 2607132.4 · BUSL-1.1 → Apache 2.0 (2028-03-29)
+**crdt-merge v0.9.5** · Patent UK 2607132.4, GB2608127.3 · E4 Trust-Delta · BUSL-1.1 → Apache 2.0 (2028-03-29)
 
 [🏠 Flagship](https://huggingface.co/spaces/optitransfer/crdt-merge) · [🔬 Data Playground](https://huggingface.co/spaces/optitransfer/crdt-merge-data) · [🌐 Federation](https://huggingface.co/spaces/optitransfer/crdt-merge-federation) · [GitHub](https://github.com/mgillr/crdt-merge) · [⭐ Star Repo](https://github.com/mgillr/crdt-merge/stargazers) · [👁️ Watch](https://github.com/mgillr/crdt-merge/subscription) · [📐 Architecture Deep Dive](https://github.com/mgillr/crdt-merge/tree/main/docs/architecture) · [PyPI](https://pypi.org/project/crdt-merge/) · `pip install crdt-merge`
 """)

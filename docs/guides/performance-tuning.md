@@ -276,6 +276,10 @@ result = parallel_merge(df_a, df_b, key="id", max_workers=8, chunk_size=125_000)
 result = parallel_merge(df_a, df_b, key="id", max_workers=8, chunk_size=10_000)
 ```
 
+### E4 Trust Layer
+
+E4 trust evaluation adds less than 0.5ms overhead per operation. To disable for latency-critical paths, set `CRDT_MERGE_E4=0`. Adaptive verification scales verification depth by peer trust: untrusted peers receive full property checks, while trusted peers use a fast-path that yields a 12% throughput gain. See [E4 Architecture](../e4/E4-MASTER-ARCHITECTURE.md) for details.
+
 ---
 
 ## Performance Tips Summary

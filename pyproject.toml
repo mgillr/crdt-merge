@@ -4,19 +4,22 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "crdt-merge"
-version = "0.9.4"
-description = "Mathematically proven conflict-free merge for AI model weights, datasets, and agent memory. Zero dependencies. Patent pending."
+version = "0.9.5"
+description = "Mathematically proven conflict-free merge for AI model weights, datasets, and agent memory with recursive trust-delta entanglement. Zero dependencies. Patent protected."
 readme = "README.md"
 license = {text = "BUSL-1.1"}
 requires-python = ">=3.9"
 authors = [{name = "Ryan Gillespie", email = "rgillespie83@icloud.com"}]
 keywords = [
+    "trust", "byzantine", "entanglement", "delta-state",
     "crdt", "merge", "model-merging", "llm", "neural-network",
     "conflict-free", "deterministic", "federated-learning",
     "huggingface", "safetensors", "agent-memory", "datasets",
     "streaming", "distributed-systems", "dedup", "dataframe",
 ]
 classifiers = [
+    "Topic :: Security :: Cryptography",
+    "Topic :: System :: Distributed Computing",
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
@@ -59,6 +62,8 @@ Documentation = "https://github.com/mgillr/crdt-merge#readme"
 Changelog = "https://github.com/mgillr/crdt-merge/blob/main/CHANGELOG.md"
 
 [tool.pytest.ini_options]
+pythonpath = ["tests/e4"]
+importmode = "importlib"
 testpaths = ["tests"]
 asyncio_mode = "strict"
 

@@ -1,6 +1,6 @@
 # Provenance-Complete AI: Full Lineage from Data to Decision
 
-> **Patent Pending — UK Application No. 2607132.4**
+> **Patent — UK Application No. 2607132.4, GB2608127.3**
 > Architecture described herein is protected under BSL-1.1 until 2028-03-29, then Apache 2.0.
 
 ---
@@ -505,6 +505,33 @@ Provenance isn't just a regulatory checkbox. It enables:
 **Self-correcting systems.** When a source is found to be unreliable, you can retroactively reduce its influence through `remove()` and re-resolve. The provenance log shows you which decisions were based on that source's data.
 
 **Federation without central trust.** When organisations share AI-derived knowledge without sharing raw data, the provenance layer is what makes the exchange auditable. Each party can verify what contributed to the shared knowledge without having access to the underlying data.
+
+## E4 Proof-Carrying Operations
+
+v0.9.5 introduces proof-carrying operations (PCOs) that bind cryptographic provenance to every delta in the system. Each PCO is a fixed 128-byte structure containing the originator ID, signing function binding, Merkle root, clock snapshot, trust vector hash, and delta bounds.
+
+```python
+from crdt_merge.e4.pco import ProofCarryingOperation
+from crdt_merge.e4.delta_trust_lattice import DeltaTrustLattice
+
+lattice = DeltaTrustLattice(peer_id="provenance-node")
+
+# Build a PCO for a merge operation
+pco = ProofCarryingOperation.build(
+    originator="provenance-node",
+    delta=merge_delta,
+    trust_lattice=lattice,
+)
+
+assert len(pco.to_bytes()) == 128  # fixed-size wire format
+
+# Verify: checks signature, Merkle inclusion, trust vector consistency
+valid = pco.verify(trust_lattice=lattice)
+```
+
+PCO construction throughput reaches 167K ops/s and verification throughput reaches 101K ops/s on commodity hardware. Every merge decision in the system is traceable to its originator with signed evidence, providing a cryptographic audit trail that satisfies both compliance requirements and debugging workflows. PCOs compose with the existing `ProvenanceLog` and `AuditLog` systems, adding a cryptographic binding layer without replacing the human-readable provenance records.
+
+See [E4 Architecture](../e4/E4-MASTER-ARCHITECTURE.md) for the full PCO specification.
 
 ---
 

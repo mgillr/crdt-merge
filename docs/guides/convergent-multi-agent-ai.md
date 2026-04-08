@@ -1,6 +1,6 @@
 # Convergent Multi-Agent AI Systems
 
-> **Patent Pending — UK Application No. 2607132.4**
+> **Patent — UK Application No. 2607132.4, GB2608127.3**
 > Architecture described herein is protected under BSL-1.1 until 2028-03-29, then Apache 2.0.
 
 ---
@@ -310,6 +310,33 @@ final_knowledge = SharedKnowledge.merge(*[agent.crdt_state for agent in crew.age
 ```
 
 Works with LangGraph, AutoGen, and LangChain memory systems identically — crdt-merge provides the convergent state layer underneath.
+
+## E4 Trust Convergence for Multi-Agent Systems
+
+v0.9.5 provides formal trust convergence guarantees for multi-agent scenarios. Agent-to-agent trust scoring resolves conflicts based on accumulated evidence rather than timestamps, achieving 3.84ms convergence latency and 0.0 maximum divergence across all participating agents.
+
+```python
+from crdt_merge.e4.integration.agent_bridge import TrustAgentState
+from crdt_merge.e4.delta_trust_lattice import DeltaTrustLattice
+
+lattice = DeltaTrustLattice(peer_id="coordinator")
+
+agents = [
+    TrustAgentState(trust_lattice=lattice, agent_id=f"agent-{i}")
+    for i in range(4)
+]
+
+# Each agent accumulates trust evidence from interactions
+agents[0].record_evidence("agent-1", dimension="accuracy", positive=True)
+agents[1].record_evidence("agent-0", dimension="consistency", positive=True)
+
+# Trust-weighted merge: higher-trust agents have proportionally more influence
+merged = TrustAgentState.merge_all(agents, trust_weighted=True)
+```
+
+When an agent produces incorrect outputs, trust erosion reduces its influence on subsequent merges automatically. The trust lattice tracks four independent dimensions -- accuracy, consistency, recency, and provenance -- allowing fine-grained assessment rather than a single binary trusted/untrusted flag. All trust state is itself a CRDT, so trust convergence is guaranteed even under concurrent updates from multiple agents.
+
+See [E4 Architecture](../e4/E4-MASTER-ARCHITECTURE.md) for the multi-agent trust convergence proofs.
 
 ---
 
