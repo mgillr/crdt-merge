@@ -93,7 +93,7 @@ def _load_dataset_records():
         records_b = []
         for r in all_records[100:]:
             rid = r["id"]
-            if rid < 150:  # overlapping region — simulate a different node's edits
+            if rid < 150:  # overlapping region -- simulate a different node's edits
                 records_b.append({
                     "id": rid,
                     "sentence": r["sentence"].strip() + " [node-B edit]",
@@ -128,7 +128,7 @@ def _load_dataset_records():
 
 
 # ─────────────────────────────────────────────────────────────────
-# TAB 1 — Dataset Merge
+# TAB 1 -- Dataset Merge
 # ─────────────────────────────────────────────────────────────────
 
 def run_dataset_merge(strategy_name: str):
@@ -189,7 +189,7 @@ def run_dataset_merge(strategy_name: str):
 
 
 # ─────────────────────────────────────────────────────────────────
-# TAB 2 — Conflict Analysis
+# TAB 2 -- Conflict Analysis
 # ─────────────────────────────────────────────────────────────────
 
 def run_conflict_analysis():
@@ -279,7 +279,7 @@ def run_conflict_analysis():
 
 
 # ─────────────────────────────────────────────────────────────────
-# TAB 3 — Core CRDT Primitives
+# TAB 3 -- Core CRDT Primitives
 # ─────────────────────────────────────────────────────────────────
 
 def run_primitives_demo():

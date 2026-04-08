@@ -158,7 +158,7 @@ Layer 2 guarantees the same set → same output. Together: full CRDT convergence
 """
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TAB 1 — THE PROOF: Mathematical impossibility + crdt-merge solution
+# TAB 1 -- THE PROOF: Mathematical impossibility + crdt-merge solution
 # ─────────────────────────────────────────────────────────────────────────────
 
 def run_the_proof():
@@ -207,7 +207,7 @@ def run_the_proof():
         compliant = "COMPLIANT"
         try:
             # Use a fixed random base (not the mean) so task-vector strategies
-            # produce visibly distinct outputs — audit issue #6.
+            # produce visibly distinct outputs -- audit issue #6.
             _base_rng = np.random.RandomState(0)
             base_t = _base_rng.randn(*A.shape).astype(np.float32) * 0.1 if needs_base else None
             def make_state(name):
@@ -312,7 +312,7 @@ def run_the_proof():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TAB 2 — STRATEGY MATRIX: All 26 strategies × 3 CRDT laws
+# TAB 2 -- STRATEGY MATRIX: All 26 strategies × 3 CRDT laws
 # ─────────────────────────────────────────────────────────────────────────────
 
 ALL_STRATEGIES_INFO = [
@@ -362,7 +362,7 @@ def run_strategy_matrix():
     B = rng.randn(16, 16).astype(np.float32)
     C = rng.randn(16, 16).astype(np.float32)
     _base_rng = np.random.RandomState(0)
-    base = _base_rng.randn(*A.shape).astype(np.float32) * 0.1  # fixed random base (not mean) for task-vector strategies — audit #6
+    base = _base_rng.randn(*A.shape).astype(np.float32) * 0.1  # fixed random base (not mean) for task-vector strategies -- audit #6
 
     rows = []
 
@@ -460,7 +460,7 @@ A non-zero norm would indicate a **CRDT violation** — meaning replicas could p
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TAB 3 — LIVE MODEL MERGE: HF Hub or synthetic bert-tiny
+# TAB 3 -- LIVE MODEL MERGE: HF Hub or synthetic bert-tiny
 # ─────────────────────────────────────────────────────────────────────────────
 
 BERT_SHAPES = {
@@ -521,18 +521,18 @@ LIVE_ALL_STRATEGIES = LIVE_STRATEGIES_NO_BASE + LIVE_STRATEGIES_WITH_BASE
 # ── Popular HF Models for Model Merge Lab ──────────────────────────────────
 POPULAR_HF_MODELS = [
     # ── MiniLM Family (100% compatible, ~22M, fast) ──────────────────────
-    "sentence-transformers/all-MiniLM-L6-v2",       # 22M — semantic search
-    "sentence-transformers/paraphrase-MiniLM-L6-v2", # 22M — paraphrase
-    "sentence-transformers/all-MiniLM-L6-v1",       # 22M — v1 semantic search
+    "sentence-transformers/all-MiniLM-L6-v2",       # 22M -- semantic search
+    "sentence-transformers/paraphrase-MiniLM-L6-v2", # 22M -- paraphrase
+    "sentence-transformers/all-MiniLM-L6-v1",       # 22M -- v1 semantic search
     # ── Pythia Family (shared layers compatible) ─────────────────────────
-    "EleutherAI/pythia-70m",                         # 70M — small GPT-NeoX
-    "EleutherAI/pythia-160m",                        # 160M — medium GPT-NeoX
+    "EleutherAI/pythia-70m",                         # 70M -- small GPT-NeoX
+    "EleutherAI/pythia-160m",                        # 160M -- medium GPT-NeoX
     # ── BERT Family (100% compatible, ~110M) ─────────────────────────────
-    "google-bert/bert-base-uncased",                 # 110M — standard BERT
-    "google-bert/bert-base-cased",                   # 110M — cased BERT
+    "google-bert/bert-base-uncased",                 # 110M -- standard BERT
+    "google-bert/bert-base-cased",                   # 110M -- cased BERT
     # ── DistilBERT Family ────────────────────────────────────────────────
-    "distilbert/distilbert-base-uncased",            # 66M — distilled BERT
-    "distilbert/distilbert-base-cased",              # 66M — cased distilBERT
+    "distilbert/distilbert-base-uncased",            # 66M -- distilled BERT
+    "distilbert/distilbert-base-cased",              # 66M -- cased distilBERT
 ]
 
 # Compatibility guide for the UI
@@ -692,7 +692,7 @@ def run_live_model_merge(strategy: str, weight_a: float):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TAB 4 — FEDERATED GOSSIP: distributed convergence simulation
+# TAB 4 -- FEDERATED GOSSIP: distributed convergence simulation
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _build_gossip_topology(n_nodes, topology, seed=42):
@@ -844,7 +844,7 @@ def run_gossip_simulation(n_nodes, n_rounds, topology, strategy, late_joiner, pa
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TAB 5 — AGENTIC AI: multi-agent knowledge convergence
+# TAB 5 -- AGENTIC AI: multi-agent knowledge convergence
 # ─────────────────────────────────────────────────────────────────────────────
 
 def run_agentic_demo():
@@ -950,7 +950,7 @@ regardless of merge order — proving CRDT commutativity + associativity.
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TAB 6 — MERGEQL: SQL-like distributed merge DSL
+# TAB 6 -- MERGEQL: SQL-like distributed merge DSL
 # ─────────────────────────────────────────────────────────────────────────────
 
 MERGEQL_EXAMPLES = {
@@ -1077,7 +1077,7 @@ def run_mergeql(query: str):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TAB 7 — DATA MERGE: DataFrame / Dataset CRDT merge
+# TAB 7 -- DATA MERGE: DataFrame / Dataset CRDT merge
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _load_dataset_records():
@@ -1096,7 +1096,7 @@ def _load_dataset_records():
         records_b = []
         for r in all_r[100:]:
             rid = r["id"]
-            if rid < 150:  # overlapping region — simulate a different node's edits
+            if rid < 150:  # overlapping region -- simulate a different node's edits
                 records_b.append({
                     "id": rid,
                     "sentence": r["sentence"].strip() + " [node-B edit]",
@@ -1226,7 +1226,7 @@ def run_strategy_comparison():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TAB 8 — MERKLE + WIRE: transport layer proof
+# TAB 8 -- MERKLE + WIRE: transport layer proof
 # ─────────────────────────────────────────────────────────────────────────────
 
 def run_merkle_wire_demo():
@@ -1360,7 +1360,7 @@ enabling bandwidth-efficient delta sync instead of full state transfer.
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TAB 9 — BENCHMARK: A100 performance dashboard (real numbers)
+# TAB 9 -- BENCHMARK: A100 performance dashboard (real numbers)
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Real A100 benchmark data (from benchmarks/a100_v071/FULL_ANALYSIS.md)
@@ -1478,7 +1478,7 @@ For repeated large-scale merges the Polars engine delivers up to **38.8× faster
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# GRADIO UI — 4-Tab Redesign with Progressive Disclosure
+# GRADIO UI -- 4-Tab Redesign with Progressive Disclosure
 # ─────────────────────────────────────────────────────────────────────────────
 
 
@@ -1510,7 +1510,7 @@ def generate_merge_artifact(strategy, weight_a):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# MODEL MERGE LAB — Real HuggingFace Model Merging
+# MODEL MERGE LAB -- Real HuggingFace Model Merging
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _load_pytorch_bin_pure(bin_files):
@@ -1636,7 +1636,7 @@ def _pull_hf_weights(model_id):
         except ImportError:
             pass
 
-    # Fallback: pytorch .bin files — try torch first, then pure-python loader
+    # Fallback: pytorch .bin files -- try torch first, then pure-python loader
     bin_files = sorted(local_path.glob("*.bin"))
     if bin_files:
         # Option A: torch available
@@ -2153,7 +2153,7 @@ the erased contributor *never participated* — satisfying GDPR Art. 17's "right
 
 ---
 
-*This compliance report is auto-generated from crdt-merge's built-in provenance and audit capabilities.
+*This compliance report is produced from crdt-merge's built-in provenance and audit capabilities.
 For production use, verify against your specific regulatory requirements.*
 """
 
@@ -2208,7 +2208,7 @@ Each entry in the audit log below shows:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# FedAvg / MERGEKIT COMPARISON DATA — LIVE BENCHMARK
+# FedAvg / MERGEKIT COMPARISON DATA -- LIVE BENCHMARK
 # ─────────────────────────────────────────────────────────────────────────────
 
 from itertools import permutations as _perms
@@ -2276,9 +2276,9 @@ def run_live_fedavg_benchmark():
     t0 = time.time()
 
     np.random.seed(42)
-    shape = (64, 64)  # 4,096 parameters — sufficient for meaningful statistics
+    shape = (64, 64)  # 4,096 parameters -- sufficient for meaningful statistics
 
-    # Three synthetic "model weights" — deliberately different to maximize divergence
+    # Three synthetic "model weights" -- deliberately different to maximize divergence
     W = {
         "A": np.random.randn(*shape).astype(np.float32) * 0.10,
         "B": np.random.randn(*shape).astype(np.float32) * 0.10 + 0.05,
@@ -2522,7 +2522,7 @@ with gr.Blocks(theme=THEME, css=CSS, title="crdt-merge — Deterministic Model M
 
 
         # ═══════════════════════════════════════════════════════════════════════
-        # TAB 0 — MODEL MERGE LAB (Real HuggingFace Models)
+        # TAB 0 -- MODEL MERGE LAB (Real HuggingFace Models)
         # ═══════════════════════════════════════════════════════════════════════
         with gr.Tab("🤗 Model Merge Lab"):
             gr.Markdown("""## 🤗 Real Model Merge Lab
@@ -2530,7 +2530,7 @@ with gr.Blocks(theme=THEME, css=CSS, title="crdt-merge — Deterministic Model M
 Merge **actual HuggingFace models** using any of 26 CRDT-verified strategies.
 Select popular models from the dropdown, enter any public HF model ID, or **upload your own weights**.
 
-The merged model is downloadable as `.npz` (load with `np.load()` in any framework) with a full provenance audit trail and auto-generated model card.
+The merged model is downloadable as `.npz` (load with `np.load()` in any framework) with a full provenance audit trail and produced model card.
 
 > 🟢 = <50MB  🟡 = 50-200MB  🟠 = 200-500MB  🔴 = >500MB  — Larger models take longer to load.
 """)
@@ -2641,7 +2641,7 @@ The merged model is downloadable as `.npz` (load with `np.load()` in any framewo
 
 
         # ═══════════════════════════════════════════════════════════════════════
-        # TAB 1 — TRY IT  (the money shot — first thing users see)
+        # TAB 1 -- TRY IT  (the money shot -- first thing users see)
         # ═══════════════════════════════════════════════════════════════════════
         with gr.Tab("▶ Try It"):
             gr.Markdown("""Pick a strategy. Merge two models. See the mathematical proof that `merge(A,B) == merge(B,A)`.
@@ -2699,7 +2699,7 @@ Uses real **prajjwal1/bert-tiny** weights from HuggingFace Hub when available, o
 
 
         # ═══════════════════════════════════════════════════════════════════════
-        # TAB 2 — ALL 26 STRATEGIES
+        # TAB 2 -- ALL 26 STRATEGIES
         # ═══════════════════════════════════════════════════════════════════════
         with gr.Tab("26 Strategies"):
             gr.Markdown("""Every strategy tested live against all three CRDT laws — **commutativity**, **associativity**, **idempotency**.
@@ -2772,7 +2772,7 @@ crdt-merge's OR-Set layer absorbs this — the gap drops to exactly **0.0** for 
 
 
         # ═══════════════════════════════════════════════════════════════════════
-        # TAB 3 — BENCHMARKS
+        # TAB 3 -- BENCHMARKS
         # ═══════════════════════════════════════════════════════════════════════
         with gr.Tab("Benchmarks"):
             gr.Markdown("""Real benchmark results from **NVIDIA A100-SXM4-40GB** · v0.7.1 · Python 3.12.
@@ -2855,7 +2855,7 @@ Click **Run Live Benchmark** to see the proof, or scroll down for the feature co
 
 
         # ═══════════════════════════════════════════════════════════════════════
-        # TAB 4 — DEEP DIVE  (progressive disclosure via accordions)
+        # TAB 4 -- DEEP DIVE  (progressive disclosure via accordions)
         # ═══════════════════════════════════════════════════════════════════════
         with gr.Tab("Deep Dive"):
             gr.Markdown("""Explore the architecture layers, distributed protocols, and domain-specific merge capabilities.""")
@@ -3022,10 +3022,10 @@ Click **Run Live Benchmark** to see the proof, or scroll down for the feature co
     # ── Footer ────────────────────────────────────────────────────────────────
 
         # ═══════════════════════════════════════════════════════════════════════
-        # TAB 5 — USE CASES, GUIDES & WHY IT'S NOVEL
+        # TAB 5 -- USE CASES, GUIDES & WHY IT'S NOVEL
         # ═══════════════════════════════════════════════════════════════════════
         # ═══════════════════════════════════════════════════════════════════════
-        # TAB — COMPLIANCE & AUDIT
+        # TAB -- COMPLIANCE & AUDIT
         # ═══════════════════════════════════════════════════════════════════════
         with gr.Tab("🔒 Compliance & Audit"):
             gr.Markdown("""### Regulatory Compliance & Audit Trail Demonstration

@@ -137,7 +137,7 @@ def _build_topology(n_nodes: int, topology: str, rng_seed: int = 42):
 
 
 # ─────────────────────────────────────────────────────────────────
-# TAB 1 — Gossip Convergence Simulation
+# TAB 1 -- Gossip Convergence Simulation
 # ─────────────────────────────────────────────────────────────────
 
 def run_gossip_simulation(
@@ -157,7 +157,7 @@ def run_gossip_simulation(
     node_weights, source = _load_initial_weights(n_nodes)
     adj = _build_topology(n_nodes, topology)
 
-    # Initialize CRDT states — each node starts with its own weights
+    # Initialize CRDT states -- each node starts with its own weights
     states = []
     for i in range(n_nodes):
         s = CRDTMergeState(strategy)
@@ -341,7 +341,7 @@ def run_gossip_simulation(
 
 
 # ─────────────────────────────────────────────────────────────────
-# TAB 2 — OR-Set State Trace
+# TAB 2 -- OR-Set State Trace
 # ─────────────────────────────────────────────────────────────────
 
 def run_orset_state_trace(n_nodes: int, n_rounds: int, strategy: str):
