@@ -2375,15 +2375,15 @@ def run_live_fedavg_benchmark():
 
     # ── Build Chart 1: Order Variance (main proof) ───────────────────────
     fig = make_subplots(
-        rows=1, cols=2,
+        rows=2, cols=1,
         subplot_titles=(
-            "Max L2 Distance Across 6 Merge Orders<br><sub>(lower = more deterministic)</sub>",
-            "Unique Outcomes From 6 Orders<br><sub>(1 = perfectly order-independent)</sub>",
+            "Max L2 Distance Across 6 Merge Orders  (lower = more deterministic)",
+            "Unique Outcomes From 6 Orders  (1 = perfectly order-independent)",
         ),
-        column_widths=[0.55, 0.45],
+        vertical_spacing=0.22,
     )
 
-    methods = ["crdt-merge<br>SLERP", "crdt-merge<br>Average", "Naive<br>SLERP", "Naive<br>Average<br>(FedAvg)"]
+    methods = ["crdt-merge SLERP", "crdt-merge Avg", "Naive SLERP", "Naive FedAvg"]
     l2_vals = [metrics["crdt_slerp"]["l2"], metrics["crdt_avg"]["l2"],
                metrics["naive_slerp"]["l2"], metrics["naive_avg"]["l2"]]
     unique_vals = [metrics["crdt_slerp"]["unique"], metrics["crdt_avg"]["unique"],
@@ -2392,51 +2392,61 @@ def run_live_fedavg_benchmark():
 
     fig.add_trace(go.Bar(
         x=methods, y=l2_vals, marker_color=colors,
-        text=[f"{v:.6f}" if v < 0.001 else f"{v:.4f}" for v in l2_vals],
+        text=[f"{v:.2e}" if v < 0.001 else f"{v:.4f}" for v in l2_vals],
         textposition="outside", showlegend=False,
+        textfont=dict(size=13, color="#f4f4f5"),
     ), row=1, col=1)
 
     fig.add_trace(go.Bar(
         x=methods, y=unique_vals, marker_color=colors,
         text=[str(int(v)) for v in unique_vals],
         textposition="outside", showlegend=False,
-    ), row=1, col=2)
+        textfont=dict(size=14, color="#f4f4f5"),
+    ), row=2, col=1)
 
     fig.update_layout(
         template="plotly_dark",
         paper_bgcolor="#09090b", plot_bgcolor="#09090b",
-        height=420,
-        margin=dict(t=60, b=40),
+        height=620,
+        margin=dict(t=50, b=30, l=60, r=30),
     )
     fig.update_yaxes(title_text="Max L2 Distance", row=1, col=1)
-    fig.update_yaxes(title_text="Unique Merge Results", row=1, col=2)
+    fig.update_yaxes(title_text="Unique Results", range=[0, max(unique_vals) * 1.35], row=2, col=1)
+    fig.update_yaxes(range=[0, max(l2_vals) * 1.35], row=1, col=1)
 
     # ── Build Chart 2: Per-order L2 from reference ───────────────────────
     ref_crdt = list(crdt_slerp.values())[0]
     ref_naive = list(naive_slerp.values())[0]
 
-    order_labels = [f"{'→'.join(o)}" for o in orders]
+    order_labels = [" > ".join(o) for o in orders]
     crdt_dists = [float(np.linalg.norm(crdt_slerp[o] - ref_crdt)) for o in orders]
     naive_dists = [float(np.linalg.norm(naive_slerp[o] - ref_naive)) for o in orders]
 
     fig2 = go.Figure()
-    fig2.add_trace(go.Scatter(
-        x=order_labels, y=crdt_dists, mode="lines+markers",
-        name="crdt-merge SLERP", line=dict(color="#22c55e", width=3),
-        marker=dict(size=10),
+    fig2.add_trace(go.Bar(
+        x=order_labels, y=crdt_dists,
+        name="crdt-merge SLERP", marker_color="#22c55e",
+        text=[f"{v:.2e}" for v in crdt_dists],
+        textposition="outside", textfont=dict(size=11, color="#86efac"),
     ))
-    fig2.add_trace(go.Scatter(
-        x=order_labels, y=naive_dists, mode="lines+markers",
-        name="Naive pairwise SLERP", line=dict(color="#ef4444", width=3),
-        marker=dict(size=10),
+    fig2.add_trace(go.Bar(
+        x=order_labels, y=naive_dists,
+        name="Naive pairwise SLERP", marker_color="#ef4444",
+        text=[f"{v:.4f}" for v in naive_dists],
+        textposition="outside", textfont=dict(size=11, color="#fca5a5"),
     ))
     fig2.update_layout(
         template="plotly_dark",
         paper_bgcolor="#09090b", plot_bgcolor="#09090b",
-        title="L2 Distance From First Order's Result (per merge order)",
-        xaxis_title="Merge Order", yaxis_title="L2 Distance",
-        height=350,
-        legend=dict(orientation="h", y=1.12),
+        title=dict(text="L2 Distance From First Order's Result", font=dict(size=15)),
+        xaxis=dict(title="Merge Order", tickangle=-30, tickfont=dict(size=11)),
+        yaxis=dict(title="L2 Distance"),
+        height=450,
+        barmode="group",
+        bargap=0.25,
+        margin=dict(t=50, b=80, l=60, r=30),
+        legend=dict(orientation="h", y=1.08, x=0.5, xanchor="center",
+                    font=dict(size=12)),
     )
 
     # ── Summary markdown ─────────────────────────────────────────────────
@@ -2472,27 +2482,32 @@ crdt-merge is the **only** system that provides mathematically proven order-inde
 
 def build_comparison_figure():
     """Legacy wrapper — returns static chart for backward compat on load."""
-    categories = ["Strategies", "CRDT\\nProperties", "Compliance\\nFrameworks",
-                   "Transport\\nFeatures", "Audit\\nCapabilities"]
+    categories = ["Strategies", "CRDT Props", "Compliance", "Transport", "Audit"]
     crdt_vals = [26, 3, 4, 3, 3]
     mergekit_vals = [8, 0, 0, 0, 0]
     fedavg_vals = [1, 0, 0, 1, 0]
 
     fig = go.Figure()
     fig.add_trace(go.Bar(name="crdt-merge", x=categories, y=crdt_vals,
-                         marker_color="#22c55e", text=crdt_vals, textposition="outside"))
+                         marker_color="#22c55e", text=crdt_vals, textposition="outside",
+                         textfont=dict(size=12, color="#86efac")))
     fig.add_trace(go.Bar(name="mergekit", x=categories, y=mergekit_vals,
-                         marker_color="#f59e0b", text=mergekit_vals, textposition="outside"))
+                         marker_color="#f59e0b", text=mergekit_vals, textposition="outside",
+                         textfont=dict(size=12, color="#fde68a")))
     fig.add_trace(go.Bar(name="FedAvg (Flower)", x=categories, y=fedavg_vals,
-                         marker_color="#ef4444", text=fedavg_vals, textposition="outside"))
+                         marker_color="#ef4444", text=fedavg_vals, textposition="outside",
+                         textfont=dict(size=12, color="#fca5a5")))
     fig.update_layout(
         template="plotly_dark",
         paper_bgcolor="#09090b", plot_bgcolor="#09090b",
-        height=350, barmode="group",
-        showlegend=True, legend=dict(orientation="h", y=1.12),
-        title="Feature Coverage — crdt-merge vs mergekit vs FedAvg",
+        height=420, barmode="group",
+        bargap=0.25,
+        showlegend=True, legend=dict(orientation="h", y=1.08, x=0.5, xanchor="center",
+                                      font=dict(size=12)),
+        title=dict(text="Feature Coverage -- crdt-merge vs mergekit vs FedAvg", font=dict(size=14)),
+        margin=dict(t=50, b=40, l=60, r=30),
     )
-    fig.update_yaxes(title_text="Count")
+    fig.update_yaxes(title_text="Count", range=[0, 30])
 
     summary = """**Feature Coverage:** Counts of capabilities in each category. crdt-merge has 26 merge strategies (all CRDT-compliant),
 3 proven CRDT properties, 4 compliance frameworks, 3 transport features, and 3 audit capabilities."""
