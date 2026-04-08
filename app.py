@@ -2268,11 +2268,12 @@ def run_live_fedavg_benchmark():
     3. Even naive averaging gives unequal weights depending on order
 
     References:
-    - McMahan et al. 2017 — FedAvg: Communication-Efficient Learning of Deep Networks
-    - SimMerge (Bolton et al. 2026) — confirms SLERP/TIES are non-associative
-    - Yadav et al. 2023 — TIES-Merging: sign election depends on observation order
+    - McMahan et al. 2017 -- FedAvg: Communication-Efficient Learning of Deep Networks
+    - SimMerge (Bolton et al. 2026) -- confirms SLERP/TIES are non-associative
+    - Yadav et al. 2023 -- TIES-Merging: sign election depends on observation order
     """
     import time
+    from crdt_merge.model.crdt_state import CRDTMergeState
     t0 = time.time()
 
     np.random.seed(42)
