@@ -37,13 +37,29 @@ pip install crdt-merge
 
 ## Every merge algorithm you use is broken. This one isn't.
 
-Every standard merge strategy — weight averaging, SLERP, TIES, DARE, Fisher — fails at least one of the three algebraic laws required for distributed convergence. This isn't an implementation bug. It's mathematically provable. **crdt-merge is the fix:** a patented two-layer architecture that makes *any* merge strategy — including inherently stochastic and non-commutative ones — fully CRDT-compliant.
+Every standard merge strategy -- weight averaging, SLERP, TIES, DARE, Fisher -- fails at least one of the three algebraic laws required for distributed convergence. This is not an implementation bug. It is mathematically provable. **crdt-merge is the fix:** a patented two-layer architecture that makes *any* merge strategy -- including inherently stochastic and non-commutative ones -- fully CRDT-compliant.
 
 The result: 26 strategies, all guaranteed to produce identical output regardless of merge order, grouping, or duplication. No coordination. No locking. No central arbiter.
 
-> **Patent** — UK Application No. 2607132.4, GB2608127.3
+### E4 Recursive Trust-Delta Entanglement
 
-**[How it works — full architecture, mathematical proofs, and the 7 architectures we evaluated →](docs/CRDT_ARCHITECTURE.md)**
+v0.9.5 introduces E4 -- a recursive trust-delta protocol that makes trust a first-class CRDT dimension, entangled with data at the lattice level.
+
+In every existing distributed merge system, trust and data are separate concerns. Security is bolted on after the fact -- authentication gates sit in front of the merge, but the merge itself is trust-blind. E4 eliminates this separation entirely. Trust propagates through the same delta pipeline as data, using the same algebraic guarantees. When a peer's trust score changes, that change *is* a delta -- encoded, compressed, verified, and merged identically to any parameter update. The system's immune response is made of the same material as the system itself.
+
+**Six irreducible primitives form the architecture.** Change detection, encoding, and verification handle the delta pipeline. Trust assignment and trust-gated application handle Byzantine filtering. The sixth primitive -- recursive propagation -- is the novel contribution: trust changes flow as data changes through the same pipeline they govern. No existing literature combines all six into an irreducible algebraic whole.
+
+**What this means in practice:**
+
+- **Byzantine fault tolerance without coordination.** The Symbiotic Lattice Trust protocol detects and ejects malicious actors at 34% fault tolerance -- exceeding the classical BFT threshold -- with zero coordinator overhead. Trust scores converge deterministically across all honest peers through CRDT semantics alone.
+- **Proof-carrying operations at fixed cost.** Every merge operation carries cryptographic provenance in a 128-byte wire format. Verification is O(1) per operation. At high trust, adaptive verification reduces overhead further -- 12% throughput gain measured on production workloads.
+- **Billion-parameter scale.** Projection delta encoding with 256-ary Merkle differencing compresses state changes to the minimal diff. Validated on facebook/opt-6.7b (6.7 billion parameters) with full causal clock throughput of 2.93M operations per second.
+- **Zero API changes.** E4 activates transparently on `import crdt_merge`. Every existing function call works identically. Disable with `CRDT_MERGE_E4=0` if needed. The algebraic structure -- `E4State = Data x Trust x Clock x Hash` as a product of join-semilattices -- guarantees that enabling trust cannot break convergence.
+
+> **Patent** -- UK Application No. 2607132.4, GB2608127.3
+
+**[CRDT Architecture -- mathematical proofs and the 7 architectures we evaluated ->](docs/CRDT_ARCHITECTURE.md)**
+**[E4 Architecture -- six primitives, formal lattice structure, full protocol specification ->](docs/e4/E4-MASTER-ARCHITECTURE.md)**
 
 ---
 
@@ -90,27 +106,34 @@ O(1) dedup across 1M+ agent memories. Budget-aware context merge. Crash recovery
 
 ---
 
-## Trust is data. Data is trust.
+## Trust is data. Data is trust. The delta is the proof.
 
-v0.9.5 introduces the E4 Recursive Trust-Delta Protocol -- every merge operation now carries cryptographic proof of provenance, and every delta propagates trust as a first-class CRDT dimension.
+Every distributed system treats trust as a gate and data as the payload behind it. E4 rejects this separation. Trust, data, clock, and hash form a single product lattice -- `E4State = Data x Trust x Clock x Hash` -- where each dimension is a join-semilattice and the product inherits convergence algebraically. There is no trust layer sitting in front of the merge. Trust *is* the merge.
 
-Not a bolt-on security layer. Trust is entangled with data at the lattice level: the same algebraic guarantees that make merge deterministic also make trust convergent. Byzantine actors are detected and ejected through the Symbiotic Lattice Trust protocol, which achieves 34% fault tolerance without coordinator overhead.
+### Delta encoding at billion-parameter scale
 
-**What changes for you:** Nothing. Every existing API call works identically. E4 activates transparently on `import crdt_merge`. Disable with `CRDT_MERGE_E4=0` if needed.
+Projection delta encoding decomposes state differences through 256-ary Merkle tree differencing, extracts only the changed subtrees, and compresses them through parameter-aware encoding. The result is the minimal wire representation of any state transition. For a 6.7-billion-parameter model (facebook/opt-6.7b), the full causal pipeline sustains 2.93M operations per second. Deltas compose associatively -- chain any sequence and the result is identical to a single diff between endpoints. This is not an optimisation bolted onto the CRDT. It is the CRDT. Delta-state semantics (Almeida 2018) are the foundation, and projection encoding is the mechanism that makes billion-parameter delta-state practical.
 
-| Capability | Metric |
+### Byzantine fault tolerance without consensus
+
+The Symbiotic Lattice Trust (SLT) protocol replaces traditional BFT consensus with lattice-native Byzantine detection. Each peer maintains a multi-dimensional trust vector (integrity, causality, consistency, gossip, model) implemented as per-dimension GCounters with homeostatic budget normalisation. Malicious behaviour triggers monotonic trust decay -- and because trust changes propagate as deltas through the same pipeline as data, every honest peer converges on the same trust state without coordination. The protocol achieves 34% Byzantine fault tolerance, exceeding the classical one-third threshold, with zero coordinator overhead. Circuit breakers halt trust velocity spikes. Adaptive immune verification reduces cryptographic overhead at high trust levels -- 12% measured throughput gain on production workloads. End-to-end federation across 10 nodes with 2 actively Byzantine peers completes in 9.69ms.
+
+### Measured performance
+
+| Capability | Result |
 |-----------|--------|
-| CRDT axiom compliance | 78/78 (all 26 strategies) |
-| Byzantine fault tolerance | 34% (exceeds BFT threshold) |
+| CRDT axiom compliance | 78/78 (all 26 strategies, all 3 laws) |
+| Byzantine fault tolerance | 34% (exceeds classical BFT threshold) |
 | Proof-carrying operation wire size | 128 bytes fixed |
 | Causal clock throughput | 2.93M ops/s |
-| End-to-end federation pipeline | 9.69ms (10 nodes, 2 Byzantine) |
-| Large-model validation | 6.7B parameters (facebook/opt-6.7b) |
-| Merkle avalanche | 0.500 (cryptographically ideal) |
-| Adaptive verification speedup | 12% throughput gain at high trust |
+| End-to-end federation (10 nodes, 2 Byzantine) | 9.69ms |
+| Large-model delta validation | 6.7B parameters (facebook/opt-6.7b) |
+| Merkle avalanche coefficient | 0.500 (cryptographically ideal) |
+| Adaptive verification throughput gain | 12% at high trust |
+| Delta composition associativity | Verified to machine epsilon |
 | Total test functions | 6,179 passing |
 
-**[E4 Architecture](docs/e4/E4-MASTER-ARCHITECTURE.md)** -- **[Developer Guide](docs/e4/E4-DEVELOPER-GUIDE.md)** -- **[Integration Guide](docs/e4/E4-INTEGRATION-GUIDE.md)** -- **[Security Model](docs/e4/E4-SECURITY-MODEL.md)**
+**[E4 Architecture -- full protocol specification](docs/e4/E4-MASTER-ARCHITECTURE.md)** -- **[Developer Guide](docs/e4/E4-DEVELOPER-GUIDE.md)** -- **[Integration Guide](docs/e4/E4-INTEGRATION-GUIDE.md)** -- **[Security Model](docs/e4/E4-SECURITY-MODEL.md)**
 
 ---
 
