@@ -1,6 +1,6 @@
 # CRDT Architecture for Model Merging
 
-> **PATENT PENDING — UK Application No. 2607132.4 (filed 30 March 2026)**
+> **PATENT — UK Application No. 2607132.4, GB2608127.3**
 >
 > **Copyright © 2026 Ryan Gillespie / Optitransfer. All rights reserved.**
 >

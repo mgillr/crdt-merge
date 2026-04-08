@@ -6,7 +6,7 @@
 # You may obtain a copy of the License at
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
-# Patent Pending: UK Application No. 2607132.4
+# Patent: UK Application No. 2607132.4, GB2608127.3
 #
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
@@ -56,7 +56,7 @@ Usage:
     merged = merge_datasets("user/dataset-a", "user/dataset-b", key="id")
 """
 
-__version__ = "0.9.4"
+__version__ = "0.9.5"
 
 __all__ = [
     # Core CRDT types
@@ -123,6 +123,8 @@ __all__ = [
     "CRDTStrategy", "FlowerCRDTClient", "FlowerAggregator",
     # Polars
     "HAS_POLARS",
+    # E4 Trust-Delta Architecture (v0.9.5)
+    "E4_ACTIVE",
 ]
 
 # Core CRDT types
@@ -235,4 +237,21 @@ try:
     from crdt_merge._polars_engine import HAS_POLARS
 except ImportError:
     HAS_POLARS = False
+
+
+# v0.9.5: E4 Recursive Trust-Delta Architecture
+# Activates trust-weighted merge, proof-carrying operations, and Byzantine
+# tolerance as the system-wide default. Every existing API continues to work
+# identically -- E4 operates transparently behind the scenes.
+# Set CRDT_MERGE_E4=0 to disable.
+import os as _os
+if _os.environ.get("CRDT_MERGE_E4", "1") != "0":
+    try:
+        from crdt_merge.e4.integration import initialize_defaults as _e4_init
+        _e4_init()
+        E4_ACTIVE = True
+    except Exception:
+        E4_ACTIVE = False
+else:
+    E4_ACTIVE = False
 

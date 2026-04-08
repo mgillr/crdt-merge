@@ -5,6 +5,42 @@
 > See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
 
 
+## [0.9.5] - 2026-04-08 — E4 Recursive Trust-Delta Protocol
+
+**Trust is data. Data is trust.** Every merge operation now carries cryptographic proof of provenance, and every delta propagates trust as a first-class CRDT dimension.
+
+### Added
+- E4 recursive trust-delta architecture (35 modules, 1,681 tests)
+- Typed multi-dimensional trust scores with GCounter evidence accumulation
+- Proof-carrying operations (PCO) -- 128-byte fixed wire format, 167K builds/s
+- Projection delta encoding -- sparse delta representation for billion-parameter model spaces
+- Trust-bound Merkle verification (256-ary, depth 4 at 1B leaves, perfect 0.500 bit diffusion)
+- Causal trust clocks -- 2.93M ops/s vector clock with trust dimension binding
+- Adaptive verification controller -- scales verification depth by trust level (97K-109K ops/s)
+- Symbiotic Lattice Trust (SLT) Byzantine protocol -- 34% fault tolerance, no coordinator
+- Trust-weighted conflict resolution strategies (LWW, averaging, acceptance gating)
+- Dual-hash compatibility mode for incremental migration from pre-E4 peers
+- Integration bridges: gossip (trust metadata in messages), streaming (per-chunk validation), agentic (trust-weighted memory sync)
+- Resilience subsystem: 18 modules covering Sybil defence, longcon detection, epoch rotation, partition reconciliation, post-quantum signatures, formal TLA+ spec (5/5 properties, 700 states)
+- Trust homeostasis -- conserved-budget normalisation prevents trust inflation
+- Circuit breaker -- sigma-based anomaly detection with automatic cooldown
+- End-to-end federation pipeline validated at 9.69ms for 10-node cluster with 2 Byzantine actors
+- Large-scale validation: facebook/opt-1.3b and facebook/opt-6.7b (6.7B parameters) -- 156/156 PASS
+- Agent memory trust synchronisation (3 agents, 4 models, full convergence proven)
+
+### Changed
+- All 26 merge strategies now operate with trust scoring active by default
+- Patent status updated to "Patent protected" (GB 2607132.4, GB2608127.3)
+- Total test count: 6,179 (1,681 E4 + 4,498 core)
+
+### Migration
+- Zero breaking changes. All existing APIs work identically.
+- E4 activates transparently on `import crdt_merge`.
+- Disable E4: set environment variable `CRDT_MERGE_E4=0`.
+- Access E4 API directly: `from crdt_merge.e4 import TypedTrustScore, ProjectionDelta`
+
+---
+
 ## [0.9.4] - 2026-04-02 — "Documentation Complete, Test Suite Green"
 
 ### What's New

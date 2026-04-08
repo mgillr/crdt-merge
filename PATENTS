@@ -1,27 +1,15 @@
 Patent Grant for crdt-merge
 
-Ryan Gillespie / Optitransfer hereby grants to each recipient of the Licensed Work a
-perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-(except as stated below) patent license to make, have made, use, offer to
-sell, sell, import, and otherwise transfer the Licensed Work, where such
-license applies only to those patent claims licensable by the Licensor that
-are necessarily infringed by the Licensed Work.
-
-If you institute patent litigation against any entity (including a
-cross-claim or counterclaim in a lawsuit) alleging that the Licensed Work
-constitutes direct or contributory patent infringement, then any patent
-licenses granted to you under this Grant shall terminate as of the date
-such litigation is filed.
-
-This Grant is subject to the same terms and conditions as the Business
-Source License 1.1 under which the Licensed Work is distributed.
-
 Patent Applications:
 - UK Patent Application No. 2607132.4
-  Title: Method and System for Conflict-Free Merging of Neural Network
-         Model Parameters Using Convergent Replicated Data Types
-  Filed: 30 March 2026
-  Applicant: Ryan Gillespie
-  Status: Pending
+- UK Patent Application No. GB2608127.3
 
-Contact: rgillespie83@icloud.com | data@optitransfer.ch
+Subject to the terms and conditions of the BSL 1.1 License, each contributor
+hereby grants to you a perpetual, worldwide, non-exclusive, no-charge,
+royalty-free, irrevocable (except as stated in this section) patent license to
+make, have made, use, offer to sell, sell, import, transfer, and otherwise run,
+modify, and propagate the contents of this repository, where such license
+applies only to those patent claims, both currently owned or controlled by the
+contributor, that are necessarily infringed by their contribution(s) alone or by
+combination of their contribution(s) with the repository to which such
+contribution(s) was submitted.
