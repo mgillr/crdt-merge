@@ -24,9 +24,9 @@ short_description: "Multi-node CRDT convergence proof: 100 nodes, 26 strategies,
 
 **Empirical proof that the two-layer CRDTMergeState architecture guarantees identical merged models across distributed nodes — regardless of merge ordering, network partitions, or strategy choice.**
 
-> **Patent** — UK Application No. 2607132.4, GB2608127.3  
+> **Patent** — UK Application No. 2607132.4, GB2608127.3 | **E4 Trust-Delta Architecture**  
 > **Paper**: *Conflict-Free Replicated Data Types for Neural Network Model Merging*  
-> **Library**: [crdt-merge](https://pypi.org/project/crdt-merge/) v0.9.4
+> **Library**: [crdt-merge](https://pypi.org/project/crdt-merge/) v0.9.5
 
 ## Experiments
 
@@ -52,6 +52,8 @@ Measures gossip and resolve overhead from 2 to 100 nodes. Confirms that the CRDT
 | Partition healing | Always converges |
 | CRDT merge overhead | < 0.5ms |
 | Bitwise reproducibility | Guaranteed |
+| E4 trust convergence | 0.000 max divergence, 3.84ms |
+| E4 proof-carrying ops | 167K build/s, 101K verify/s |
 
 ## How It Works
 

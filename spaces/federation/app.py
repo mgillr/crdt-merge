@@ -16,7 +16,7 @@
 # On 2028-03-29 this file converts to Apache License, Version 2.0.
 
 """
-crdt-merge v0.9.4 — Federation HuggingFace Space
+crdt-merge v0.9.5 — Federation HuggingFace Space
 Distributed gossip convergence simulation with CRDT state verification.
 """
 
@@ -70,7 +70,7 @@ HERO_MD = """
 Distributed gossip convergence simulation. Every node maintains a CRDTMergeState.
 Nodes exchange states via merge() — no coordinator, no locking. Convergence is guaranteed.
 
-`pip install crdt-merge` · [GitHub](https://github.com/mgillr/crdt-merge) · [PyPI](https://pypi.org/project/crdt-merge/) · Patent UK 2607132.4, GB2608127.3
+`pip install crdt-merge` · [GitHub](https://github.com/mgillr/crdt-merge) · [PyPI](https://pypi.org/project/crdt-merge/) · Patent UK 2607132.4, GB2608127.3 · E4 Trust-Delta Architecture
 """
 
 LAYER_SHAPE = (16, 16)
@@ -483,6 +483,8 @@ This simulates real-world federated model merging where:
 - Nodes are geographically distributed (edge devices, data centers)
 - Network connectivity is unreliable (partitions, late joiners)
 - There is no central server dictating merge order
+
+> **New in v0.9.5 -- E4 Trust-Delta:** Federation now carries trust metadata via the Symbiotic Lattice Trust (SLT) protocol. Every gossip exchange propagates typed trust scores (accuracy, consistency, recency, provenance) as first-class CRDT dimensions. Byzantine peers are detected and isolated with 34% fault tolerance and zero coordinator overhead.
 """)
 
             with gr.Row():
@@ -586,7 +588,7 @@ Round-trip proof: `from_dict(to_dict(state)).state_hash == state.state_hash` mus
     gr.Markdown("""
 ---
 
-**crdt-merge v0.9.4** · Patent UK 2607132.4, GB2608127.3 · BUSL-1.1 → Apache 2.0 (2028-03-29)
+**crdt-merge v0.9.5** · Patent UK 2607132.4, GB2608127.3 · E4 Trust-Delta · BUSL-1.1 → Apache 2.0 (2028-03-29)
 
 [🏠 Flagship](https://huggingface.co/spaces/optitransfer/crdt-merge) · [🔬 Data Playground](https://huggingface.co/spaces/optitransfer/crdt-merge-data) · [🌐 Federation](https://huggingface.co/spaces/optitransfer/crdt-merge-federation) · [GitHub](https://github.com/mgillr/crdt-merge) · [⭐ Star Repo](https://github.com/mgillr/crdt-merge/stargazers) · [👁️ Watch](https://github.com/mgillr/crdt-merge/subscription) · [📐 Architecture Deep Dive](https://github.com/mgillr/crdt-merge/tree/main/docs/architecture) · [PyPI](https://pypi.org/project/crdt-merge/) · `pip install crdt-merge`
 """)
