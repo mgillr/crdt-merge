@@ -1,6 +1,6 @@
 # Privacy-Preserving Merge: Merge Without Seeing the Data
 
-> **Patent Pending — UK Application No. 2607132.4**
+> **Patent — UK Application No. 2607132.4, GB2608127.3**
 > Architecture described herein is protected under BSL-1.1 until 2028-03-29, then Apache 2.0.
 
 ---
@@ -556,6 +556,10 @@ records = em.encrypt_records([
 # To forget: decrypt, remove from dataset, re-encrypt remainder
 # See right-to-forget-in-ai.md for the full unmerge workflow
 ```
+
+### E4 Trust Layer
+
+Trust-gated acceptance filtering ensures that only peers above configurable trust thresholds can contribute to merge results. `TrustGatedAcceptanceFilter` enforces minimum trust per merge dimension, preventing untrusted peers from injecting data into encrypted merge operations regardless of whether they hold valid encryption keys. See [E4 Architecture](../e4/E4-MASTER-ARCHITECTURE.md) for details.
 
 ---
 

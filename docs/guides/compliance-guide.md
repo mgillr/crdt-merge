@@ -496,6 +496,10 @@ ai_report    = eu_ai_aud.validate()
 | SOX | US public company financial data | `ComplianceAuditor(framework="sox")`, `AuditedMerge` |
 | EU AI Act | High-risk AI systems (EU) | `ComplianceAuditor(framework="eu_ai_act")`, `EUAIActReport` |
 
+### E4 Trust Layer
+
+E4 provides a cryptographic audit trail via proof-carrying operations. Every merge decision is traceable to its originator with signed evidence, strengthening compliance posture for GDPR Art.30, HIPAA audit requirements, SOX controls, and EU AI Act traceability mandates. PCOs bind originator identity and trust state to each operation. See [E4 Architecture](../e4/E4-MASTER-ARCHITECTURE.md) for details.
+
 ---
 
 ## See Also

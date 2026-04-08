@@ -396,6 +396,10 @@ schema = MergeSchema(
 )
 ```
 
+### E4 Trust Layer
+
+v0.9.5 introduces trust-weighted strategy selection as the default merge behaviour. `TrustWeightedLWWResolver`, `TrustWeightedAveragingResolver`, and `TrustGatedAcceptanceFilter` are available as drop-in replacements for their non-trust counterparts. High-trust peers receive up to 55.9% influence weight during conflict resolution, proportional to their accumulated trust evidence. See [E4 Architecture](../e4/E4-MASTER-ARCHITECTURE.md) for details.
+
 ---
 
 ## Strategy Selection Guide

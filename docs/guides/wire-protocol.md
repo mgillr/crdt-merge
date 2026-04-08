@@ -310,6 +310,10 @@ from crdt_merge.streaming import merge_sorted_stream
 # Stream results directly to a socket or file instead of accumulating in memory
 ```
 
+### E4 Trust Layer
+
+The proof-carrying operation (PCO) wire format is a fixed 128 bytes containing originator ID, signing function binding, Merkle root, clock snapshot, trust vector hash, and delta bounds. PCO build throughput is 167K ops/s; verification throughput is 101K ops/s. PCOs are appended to existing wire messages with no changes to the base serialisation format. See [E4 Architecture](../e4/E4-MASTER-ARCHITECTURE.md) for details.
+
 ---
 
 ## Integration with Gossip Protocol

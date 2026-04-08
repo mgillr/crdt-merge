@@ -5,7 +5,7 @@ Demonstrates that the two-layer CRDTMergeState architecture guarantees
 identical merged models across N distributed nodes - regardless of
 merge ordering, network partitions, or strategy choice.
 
-Patent Pending: UK Application No. 2607132.4
+Patent: UK Application No. 2607132.4, GB2608127.3
 Copyright 2026 Ryan Gillespie / Optitransfer
 """
 
@@ -387,7 +387,7 @@ DESCRIPTION = """
 merged models across distributed nodes — regardless of merge ordering, network partitions, 
 or strategy choice.**
 
-> **Patent Pending**: UK Application No. 2607132.4 | **Library**: [crdt-merge](https://pypi.org/project/crdt-merge/) v0.9.4
+> **Patent**: UK Application No. 2607132.4, GB2608127.3 | **Library**: [crdt-merge](https://pypi.org/project/crdt-merge/) v0.9.4
 
 **Four experiments**: Multi-node convergence | Network partition & healing | All 26 strategies | Scalability benchmark
 """
@@ -471,7 +471,7 @@ with gr.Blocks(title="CRDT-Merge Convergence Lab", theme=gr.themes.Default(prima
                     sc_json = gr.Textbox(label="JSON", lines=8)
             sc_btn.click(run_scale_benchmark, [sc_m, sc_d, sc_s, sc_seed], [sc_log, sc_json])
 
-    gr.Markdown("---\n**crdt-merge** v0.9.4 | [GitHub](https://github.com/mgillr/crdt-merge) | [PyPI](https://pypi.org/project/crdt-merge/) | Built by Ryan Gillespie / Optitransfer | Patent Pending: UK 2607132.4")
+    gr.Markdown("---\n**crdt-merge** v0.9.4 | [GitHub](https://github.com/mgillr/crdt-merge) | [PyPI](https://pypi.org/project/crdt-merge/) | Built by Ryan Gillespie / Optitransfer | Patent: UK 2607132.4, GB2608127.3")
 
 if __name__ == "__main__":
     demo.launch()

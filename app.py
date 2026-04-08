@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: BUSL-1.1
 # Copyright 2026 Ryan Gillespie / Optitransfer
-# Patent Pending: UK Application No. 2607132.4
+# Patent: UK Application No. 2607132.4, GB2608127.3
 # Change Date: 2028-03-29 → Apache License, Version 2.0
 """
 crdt-merge v0.9.4 — Flagship HuggingFace Space Demo
@@ -121,7 +121,7 @@ HERO_MD = """
 The first merge library where `merge(A, B) == merge(B, A)` — always.
 26 strategies across 8 categories. All CRDT-compliant. Proven, not promised.
 
-`pip install crdt-merge` · [GitHub](https://github.com/mgillr/crdt-merge) · [PyPI](https://pypi.org/project/crdt-merge/) · Patent Pending UK 2607132.4
+`pip install crdt-merge` · [GitHub](https://github.com/mgillr/crdt-merge) · [PyPI](https://pypi.org/project/crdt-merge/) · Patent UK 2607132.4, GB2608127.3
 """
 
 ARCH_MD = """
@@ -1850,7 +1850,7 @@ library_name: crdt-merge
 
 # Merged Model — {strategy}
 
-**Created with [crdt-merge](https://github.com/mgillr/crdt-merge) v0.9.4** (Patent Pending: UK 2607132.4)
+**Created with [crdt-merge](https://github.com/mgillr/crdt-merge) v0.9.4** (Patent: UK 2607132.4, GB2608127.3)
 
 ## Merge Configuration
 
@@ -3091,7 +3091,7 @@ crdt-merge is the **only model merging library** with built-in compliance capabi
 
 <center>
 <h2 style="color: #FF6B35; font-size: 1.6em;">crdt-merge is the first mathematically proven convergent merge system<br/>for models, data, and agents. It exists. It works. The question is: who builds with it first?</h2>
-<h3>🏆 Patent Pending UK 2607132.4 · 26 Strategies · 6-Layer Architecture · 44,304 LOC · Zero Coordinator</h3>
+<h3>🏆 Patent UK 2607132.4, GB2608127.3 · 26 Strategies · 6-Layer Architecture · 44,304 LOC · Zero Coordinator</h3>
 <p style="font-size: 1.1em;">⭐ <a href="https://github.com/mgillr/crdt-merge/stargazers">Star</a> · 👁️ <a href="https://github.com/mgillr/crdt-merge/subscription">Watch</a> · 💬 <a href="https://github.com/mgillr/crdt-merge/discussions">Start a Discussion</a> · 📖 <a href="https://github.com/mgillr/crdt-merge/tree/main/docs">Read the Docs</a></p>
 </center>
 
@@ -3627,7 +3627,7 @@ Tactical edge AI with classification constraints. crdt-merge enables **convergen
 
 *The merge problem is universal. The solution is convergent. The question is: who builds with it first?*
 
-**Patent Pending UK 2607132.4** · **© 2024 Optitransfer** · **Built in Switzerland 🇨🇭**
+**Patent UK 2607132.4, GB2608127.3** · **© 2024 Optitransfer** · **Built in Switzerland 🇨🇭**
 
 </center>
 
@@ -3654,7 +3654,7 @@ No other framework provides all three of these guarantees:
 2. **26 Merge Strategies** — From simple weighted average to DARE-TIES, Fisher-weighted, and novel spectral methods like STAR and SVD Knot Tying — all wrapped in CRDT-compliant OR-Set semantics.
 3. **Cross-Domain Unification** — The same `merge()` primitive works for DataFrames, ML tensors, agent memory, and knowledge graphs. One theory, one API.
 4. **Provenance & Compliance Built In** — Every merge is auditable, reversible (via CRDT `remove()`), and GDPR/HIPAA/SOX/EU AI Act compliant by default.
-5. **Patent Pending (UK 2607132.4)** — The mathematical framework for deterministic model merging via CRDTs is a genuine invention, not incremental improvement.
+5. **Patent (UK 2607132.4, GB2608127.3)** — The mathematical framework for deterministic model merging via CRDTs is a genuine invention, not incremental improvement.
 
 ---
 
@@ -3762,7 +3762,7 @@ No other framework provides all three of these guarantees:
     gr.Markdown("""
 ---
 
-**crdt-merge v0.9.4** · Patent Pending UK 2607132.4 · BUSL-1.1 → Apache 2.0 (2028-03-29)
+**crdt-merge v0.9.4** · Patent UK 2607132.4, GB2608127.3 · BUSL-1.1 → Apache 2.0 (2028-03-29)
 
 [🏠 Flagship](https://huggingface.co/spaces/optitransfer/crdt-merge) · [🔬 Data Playground](https://huggingface.co/spaces/optitransfer/crdt-merge-data) · [🌐 Federation](https://huggingface.co/spaces/optitransfer/crdt-merge-federation) · [GitHub](https://github.com/mgillr/crdt-merge) · [⭐ Star Repo](https://github.com/mgillr/crdt-merge/stargazers) · [👁️ Watch](https://github.com/mgillr/crdt-merge/subscription) · [📐 Architecture Deep Dive](https://github.com/mgillr/crdt-merge/tree/main/docs/architecture) · [PyPI](https://pypi.org/project/crdt-merge/) · `pip install crdt-merge`
 """)

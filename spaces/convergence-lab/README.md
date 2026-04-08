@@ -24,7 +24,7 @@ short_description: "Multi-node CRDT convergence proof: 100 nodes, 26 strategies,
 
 **Empirical proof that the two-layer CRDTMergeState architecture guarantees identical merged models across distributed nodes — regardless of merge ordering, network partitions, or strategy choice.**
 
-> **Patent Pending** — UK Application No. 2607132.4  
+> **Patent** — UK Application No. 2607132.4, GB2608127.3  
 > **Paper**: *Conflict-Free Replicated Data Types for Neural Network Model Merging*  
 > **Library**: [crdt-merge](https://pypi.org/project/crdt-merge/) v0.9.4
 

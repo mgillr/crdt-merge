@@ -1,6 +1,6 @@
 # Gossip Protocol: Distributed Sync Without a Server
 
-> **Patent Pending — UK Application No. 2607132.4**
+> **Patent — UK Application No. 2607132.4, GB2608127.3**
 > Architecture described herein is protected under BSL-1.1 until 2028-03-29, then Apache 2.0.
 
 ---
@@ -475,6 +475,32 @@ wire_bytes = serialize(state.to_dict())
 received = GossipState.from_dict(deserialize(wire_bytes))
 print(received.get("config:key"))  # {"value": 42}
 ```
+
+## E4 Trust Gossip Bridge
+
+v0.9.5 introduces a trust gossip bridge that piggybacks E4 trust metadata on existing gossip messages, requiring zero additional round trips. Each gossip exchange now carries per-peer trust vectors alongside the CRDT state, enabling trust-aware conflict resolution at the point of merge.
+
+```python
+from crdt_merge.e4.integration.gossip_bridge import TrustGossipState
+from crdt_merge.e4.delta_trust_lattice import DeltaTrustLattice
+
+lattice = DeltaTrustLattice(peer_id="gossip-node-7")
+state = TrustGossipState(
+    node_id="gossip-node-7",
+    trust_lattice=lattice,
+)
+
+# Trust metadata is embedded in the gossip digest -- no extra messages
+state.update("config:feature-flag", {"enabled": True})
+digest = state.prepare_digest()  # includes trust vector hash
+
+# Receiving node validates trust before applying remote state
+state.merge_trusted(remote_digest)
+```
+
+The bridge maintains the O(log n) convergence property of the gossip protocol while adding trust-weighted merge resolution. Peers with declining trust scores have their state updates deprioritised during anti-entropy repair, reducing the impact of compromised nodes on cluster-wide convergence.
+
+See [E4 Architecture](../e4/E4-MASTER-ARCHITECTURE.md) for the trust gossip protocol details.
 
 ---
 

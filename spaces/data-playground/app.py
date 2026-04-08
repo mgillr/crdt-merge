@@ -67,7 +67,7 @@ HERO_MD = """
 
 Tabular CRDT merge for DataFrames and datasets. Conflict-free record merge, deduplication, and provenance tracking.
 
-`pip install crdt-merge` · [GitHub](https://github.com/mgillr/crdt-merge) · [PyPI](https://pypi.org/project/crdt-merge/) · Patent Pending UK 2607132.4
+`pip install crdt-merge` · [GitHub](https://github.com/mgillr/crdt-merge) · [PyPI](https://pypi.org/project/crdt-merge/) · Patent UK 2607132.4, GB2608127.3
 """
 
 STRATEGIES_DF = ["LWW", "MaxWins", "MinWins", "Union"]
@@ -495,7 +495,7 @@ Commutativity is verified: merge(A,B) must equal merge(B,A).
     gr.Markdown("""
 ---
 
-**crdt-merge v0.9.4** · Patent Pending UK 2607132.4 · BUSL-1.1 → Apache 2.0 (2028-03-29)
+**crdt-merge v0.9.4** · Patent UK 2607132.4, GB2608127.3 · BUSL-1.1 → Apache 2.0 (2028-03-29)
 
 [🏠 Flagship](https://huggingface.co/spaces/optitransfer/crdt-merge) · [🔬 Data Playground](https://huggingface.co/spaces/optitransfer/crdt-merge-data) · [🌐 Federation](https://huggingface.co/spaces/optitransfer/crdt-merge-federation) · [GitHub](https://github.com/mgillr/crdt-merge) · [⭐ Star Repo](https://github.com/mgillr/crdt-merge/stargazers) · [👁️ Watch](https://github.com/mgillr/crdt-merge/subscription) · [📐 Architecture Deep Dive](https://github.com/mgillr/crdt-merge/tree/main/docs/architecture) · [PyPI](https://pypi.org/project/crdt-merge/) · `pip install crdt-merge`
 """)

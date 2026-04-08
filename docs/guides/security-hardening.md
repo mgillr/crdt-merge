@@ -537,3 +537,40 @@ em = EncryptedMerge(key_provider=new_provider, backend="aes-256-gcm-siv")
 rotated = em.rotate_key(records=old_records, old_provider=old_provider, new_provider=new_provider)
 # All records now encrypted with AES-GCM-SIV, regardless of their original cipher
 ```
+---
+
+## E4 Resilience Subsystem
+
+v0.9.5 introduces an 18-module resilience subsystem that extends security hardening with trust-aware defences. The subsystem integrates directly with the existing encryption, RBAC, and audit layers.
+
+**Sybil defence.** Coordinated identity fabrication is detected through trust evidence correlation. The `SybilDetector` monitors peer registration patterns and flags clusters of identities with suspiciously correlated behaviour.
+
+**Longcon detection.** The `LongconDetector` identifies peers that build trust over extended periods before executing a coordinated attack. Statistical divergence analysis on sliding trust windows catches gradual behavioural shifts.
+
+**Epoch rotation.** Trust evidence is partitioned into configurable epochs with exponential decay, ensuring that historical good behaviour cannot indefinitely shield a compromised peer.
+
+**Partition reconciliation.** After network partitions heal, the `PartitionReconciler` resolves trust state divergence using the same CRDT merge semantics as data state, guaranteeing convergence.
+
+**Post-quantum signatures.** The resilience layer supports post-quantum signature schemes for trust evidence attestations, future-proofing against quantum-capable adversaries.
+
+**TLA+ formal specification.** The entire resilience subsystem has a TLA+ formal specification verifying safety and liveness properties under Byzantine conditions.
+
+```python
+from crdt_merge.e4.resilience import ResilienceMonitor
+from crdt_merge.e4.delta_trust_lattice import DeltaTrustLattice
+
+lattice = DeltaTrustLattice(peer_id="hardened-node")
+monitor = ResilienceMonitor(
+    trust_lattice=lattice,
+    enable_sybil_detection=True,
+    enable_longcon_detection=True,
+    epoch_rotation_days=7,
+)
+
+# Continuous resilience monitoring
+report = monitor.scan(peer_ids=active_peers)
+print(f"Sybil suspects: {report.sybil_suspects}")
+print(f"Longcon suspects: {report.longcon_suspects}")
+```
+
+See [E4 Architecture](../e4/E4-MASTER-ARCHITECTURE.md) for the full resilience subsystem specification.

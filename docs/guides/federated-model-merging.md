@@ -1,6 +1,6 @@
 # Federated Model Merging Without a Parameter Server
 
-> **Patent Pending — UK Application No. 2607132.4**
+> **Patent — UK Application No. 2607132.4, GB2608127.3**
 > Architecture described herein is protected under BSL-1.1 until 2028-03-29, then Apache 2.0.
 
 ---
@@ -268,6 +268,32 @@ The practical consequence of order-dependent merge algorithms is that the same s
 - Federated learning rounds produce results that depend on which clients happened to be synchronised
 
 crdt-merge eliminates all of these. The merged model is a pure function of the contributing models — not of the order in which they were processed, the network topology, or which node happened to act as aggregator.
+
+## E4 Trust-Weighted Federation
+
+v0.9.5 adds the SLT Byzantine protocol to federated model merging, tolerating up to 34% Byzantine participants in a federation round. Trust scores propagate alongside model deltas, and a 10-node federation pipeline completes in 9.69ms end-to-end.
+
+```python
+from crdt_merge.e4.integration.federation_bridge import TrustFederationRound
+from crdt_merge.e4.delta_trust_lattice import DeltaTrustLattice
+
+lattice = DeltaTrustLattice(peer_id="federation-coordinator")
+fed_round = TrustFederationRound(
+    trust_lattice=lattice,
+    byzantine_tolerance=0.34,
+)
+
+# Each participant's contribution is weighted by trust score
+for participant_state in participant_states:
+    fed_round.add_contribution(participant_state)
+
+# Resolve with trust convergence: 0.0 max divergence across all participants
+merged_model = fed_round.resolve_trusted()
+```
+
+Trust convergence guarantees that all honest participants arrive at an identical merged result regardless of submission order. Byzantine participants whose trust scores fall below the acceptance threshold are excluded from the merge automatically, with the exclusion decision recorded in the provenance log.
+
+See [E4 Architecture](../e4/E4-MASTER-ARCHITECTURE.md) for the SLT protocol specification.
 
 ---
 
