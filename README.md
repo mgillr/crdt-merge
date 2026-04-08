@@ -24,15 +24,18 @@ pip install crdt-merge
 </div>
 
 ```python
-from crdt_merge.model import CRDTMergeState
+from crdt_merge import merge
 
-state = CRDTMergeState()
-state.add("hospital-tokyo", weights_tokyo)
-state.add("hospital-london", weights_london)
-state.add("hospital-nyc", weights_nyc)
+# Two nodes recorded overlapping data independently
+node_a = [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]
+node_b = [{"id": 2, "name": "Bob"},   {"id": 3, "name": "Carol"}]
 
-merged = state.merge(strategy="slerp")
-# Same result regardless of add() order. Guaranteed.
+# Order does not matter. Result is identical either way.
+merged = merge(node_a, node_b, key="id")
+print(merged)
+# [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}, {"id": 3, "name": "Carol"}]
+
+assert merge(node_a, node_b, key="id") == merge(node_b, node_a, key="id")  # commutativity
 ```
 
 **[Documentation](docs/README.md)** -- **[Quick Start](docs/getting-started/quickstart.md)** -- **[API Reference](docs/api-reference/README.md)** -- **[Architecture](docs/CRDT_ARCHITECTURE.md)** -- **[Changelog](CHANGELOG.md)**
@@ -79,17 +82,15 @@ Each dimension is a join-semilattice. The product of join-semilattices is a join
 
 ### What makes this different
 
-**Six foundational primitives form the architecture.** Change detection, change encoding, and change verification handle the delta pipeline. Trust assignment and trust-gated application handle Byzantine filtering. The sixth -- recursive propagation -- is the contribution that binds them into an irreducible whole: trust changes propagate as data changes through the same delta pipeline they govern. The immune system is made of the same material as the system itself.
+**Six foundational primitives form the architecture.** Change detection, change encoding, and change verification handle the delta pipeline. Trust assignment and trust-gated application handle Byzantine filtering. The sixth -- recursive propagation -- is the contribution that binds them into a unified whole: trust changes propagate as data changes through the same delta pipeline they govern.
 
-No existing literature combines all six. Delta-state CRDTs handle P1-P2 (Almeida et al., 2018). Authenticated data structures handle P3 (Papamanthou et al., 2013). Byzantine filtering exists in consensus protocols but not as CRDT-native semantics. P6 -- recursive trust-delta propagation -- is novel. When a peer's trust score changes, that change *is* a delta, encoded through the same projection delta encoder, compressed through the same 256-ary Merkle differencing, verified by the same proof-carrying operation pipeline. Trust validates data integrity via Merkle. Data integrity validates trust evidence via proof verification. Both flow through a shared delta pipeline that governs both.
+No existing literature combines all six. Delta-state CRDTs handle P1-P2 (Almeida et al., 2018). Authenticated data structures handle P3 (Papamanthou et al., 2013). Byzantine filtering exists in consensus protocols but not as CRDT-native semantics. P6 -- recursive trust-delta propagation -- is novel. When a peer's trust score changes, that change *is* a delta, encoded and verified through the same pipeline as data. Trust validates data integrity via Merkle. Data integrity validates trust evidence via proof verification. Both converge through shared CRDT semantics.
 
 ### Byzantine fault tolerance without consensus
 
-The Symbiotic Lattice Trust (SLT) protocol replaces BFT consensus with lattice-native Byzantine detection. Each peer maintains a multi-dimensional trust vector across five dimensions (integrity, causality, consistency, gossip, model), implemented as per-dimension GCounters with homeostatic budget normalisation. Malicious behaviour triggers monotonic trust decay that propagates as CRDT deltas -- every honest peer converges on the same trust state without coordination.
+The Symbiotic Lattice Trust (SLT) protocol replaces BFT consensus with lattice-native Byzantine detection. Each peer maintains a five-dimensional trust vector (integrity, causality, consistency, gossip, model) as per-dimension GCounters with homeostatic budget normalisation. Malicious behaviour triggers monotonic trust decay that propagates as CRDT deltas -- every honest peer converges on the same trust state without coordination.
 
-The SLT threat model differs from classical BFT. Classical BFT (Castro and Liskov, 1999) guarantees safety and liveness below n/3 Byzantine nodes through coordinated voting rounds. SLT operates without voting rounds -- Byzantine detection emerges from trust score convergence across the lattice. The 34% tolerance threshold was measured empirically across federation topologies with actively Byzantine peers (data injection, trust inflation, selective withholding). The guarantee is CRDT convergence of trust state among honest peers, which then gates data application -- a different (and in many distributed ML settings, more practical) guarantee than BFT consensus.
-
-Circuit breakers halt trust velocity spikes. Adaptive immune verification reduces cryptographic overhead at high trust levels -- 12% measured throughput gain on production workloads. End-to-end federation across 10 nodes with 2 actively Byzantine peers completes in 9.69ms.
+SLT's threat model differs from classical BFT (Castro and Liskov, 1999). Classical BFT guarantees safety below n/3 through voting rounds. SLT operates without voting -- Byzantine detection emerges from trust score convergence across the lattice. The 34% tolerance threshold was measured empirically with actively Byzantine peers performing data injection, trust inflation, and selective withholding. The guarantee is CRDT convergence of trust state among honest peers, which then gates data application. End-to-end federation across 10 nodes with 2 Byzantine peers: 9.69ms.
 
 ### Delta encoding at scale
 
@@ -114,13 +115,19 @@ E4 activates transparently on `import crdt_merge`. Every existing function call 
 100 hospitals train locally, merge globally. No coordinator. No single point of failure. Any node can produce the final model. Late arrivals are absorbed automatically. With E4 enabled, each peer carries trust scores -- a compromised node's contributions are automatically down-weighted and eventually ejected.
 
 ```python
+import torch
 from crdt_merge.model import CRDTMergeState
 
-# Each hospital trains independently
+# Simulate independently trained model weights
+weights_a = {"layer.weight": torch.randn(128, 64)}
+weights_b = {"layer.weight": torch.randn(128, 64)}
+
 state = CRDTMergeState()
-state.add("hospital-a", weights_a, node_id="node-tokyo")
-state.add("hospital-b", weights_b, node_id="node-london")
+state.add("hospital-a", weights_a)
+state.add("hospital-b", weights_b)
 merged = state.merge(strategy="ties")  # order-independent, trust-gated
+
+print(merged["layer.weight"].shape)  # torch.Size([128, 64])
 ```
 
 **[Federated merging guide ->](docs/guides/federated-model-merging.md)**
@@ -130,9 +137,11 @@ merged = state.merge(strategy="ties")  # order-independent, trust-gated
 Mixed-rank adapters merged with per-module strategy selection and SVD rank harmonisation. CRDT semantics guarantee that merging adapter A into B produces the same result as merging B into A -- enabling asynchronous adapter development across teams.
 
 ```python
+from crdt_merge.model import CRDTMergeState
+
 state = CRDTMergeState()
-state.add("adapter-coding", lora_coding)
-state.add("adapter-medical", lora_medical)
+state.add("adapter-coding", {"lora_A": torch.randn(16, 768), "lora_B": torch.randn(768, 16)})
+state.add("adapter-medical", {"lora_A": torch.randn(16, 768), "lora_B": torch.randn(768, 16)})
 merged = state.merge(strategy="dare_ties")
 ```
 
@@ -143,11 +152,14 @@ merged = state.merge(strategy="dare_ties")
 DataFrames, JSON, CSV -- merged with CRDT guarantees. Conflict-free deduplication with O(1) per-record cost. Schema evolution handled automatically.
 
 ```python
-from crdt_merge import CRDTDataFrame
+from crdt_merge import merge
 
-merged = CRDTDataFrame(df_a, node_id="a").merge(
-    CRDTDataFrame(df_b, node_id="b")
-)
+# Two nodes independently recorded overlapping data
+node_a = [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]
+node_b = [{"id": 2, "name": "Bob"},   {"id": 3, "name": "Carol"}]
+
+merged = merge(node_a, node_b, key="id")
+# [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}, {"id": 3, "name": "Carol"}]
 ```
 
 **[Data merge guide ->](docs/guides/data-merge.md)**
