@@ -68,7 +68,7 @@
 **Branch:** `feature/0.9.5-e4-recursive-entanglement`
 **Tag:** `v0.9.5-e4`
 
-### ⚠️ Breaking Changes
+### Breaking Changes
 
 **NONE.**
 
@@ -120,7 +120,7 @@ E4 is a fully additive upgrade. All existing crdt-merge 0.9.4 code, protocols, a
 
 ---
 
-### 🔑 New Capabilities
+### New Capabilities
 
 #### Recursive Trust-Delta Architecture
 - Trust changes propagate as `ProjectionDelta`s through the same two-layer pipeline as application data
@@ -175,7 +175,7 @@ E4 is a fully additive upgrade. All existing crdt-merge 0.9.4 code, protocols, a
 
 ---
 
-### 📋 Migration Notes from 0.9.4
+### Migration Notes from 0.9.4
 
 #### Recommended Migration Path
 
@@ -210,7 +210,7 @@ from crdt_merge.e4.integration.config import E4Config, set_config
 
 ---
 
-### 📦 New Dependencies
+### New Dependencies
 
 **NONE.**
 
@@ -226,7 +226,7 @@ Ed25519 signing is injected as a callback — bring your own crypto library.
 
 ---
 
-### 🧪 Test Coverage
+### Test Coverage
 
 - 8 test modules covering all 15 E4 modules
 - Integration tests for full E4 stack wiring
@@ -238,7 +238,7 @@ Ed25519 signing is injected as a callback — bring your own crypto library.
 
 ---
 
-### 📚 Documentation
+### Documentation
 
 Five new documentation files (this release):
 
@@ -254,7 +254,7 @@ Master architecture document: [E4-MASTER-ARCHITECTURE.md](../E4-MASTER-ARCHITECT
 
 ---
 
-### 🔮 Future Work (Post-0.9.5)
+### Future Work (Post-0.9.5)
 
 - Key rotation protocol (new identity not required)
 - Differential privacy for trust observations

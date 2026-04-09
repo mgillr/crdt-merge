@@ -572,11 +572,11 @@ def monitor_trust_recovery(lattice, peer_id):
     level = trust.verification_level()
 
     if level == 2:
-        print(f"⚠️  {peer_id} at low trust: {trust.overall_trust():.3f}")
+        print(f"[WARNING]  {peer_id} at low trust: {trust.overall_trust():.3f}")
     elif level == 3:
-        print(f"🚫 {peer_id} quarantined: {trust.overall_trust():.3f}")
+        print(f"[BLOCKED] {peer_id} quarantined: {trust.overall_trust():.3f}")
     else:
-        print(f"✅ {peer_id} healthy: {trust.overall_trust():.3f}")
+        print(f"[OK] {peer_id} healthy: {trust.overall_trust():.3f}")
 
     return {
         "peer_id": peer_id,
@@ -607,7 +607,7 @@ combined = manager.compose_range("peer-alice")
 
 ## 10. Anti-Patterns
 
-### ❌ Bypassing Evidence Proofs
+### AVOID: Bypassing Evidence Proofs
 
 ```python
 # WRONG: fabricating evidence without proof
@@ -623,7 +623,7 @@ bad_evidence = TrustEvidence.create(
 
 **Why:** The whole point of E4 is that trust evidence must be independently verifiable. Fake proofs get caught and generate counter-evidence against the fabricator.
 
-### ❌ Forgetting to Recompute Merkle After Trust Changes
+### AVOID: Forgetting to Recompute Merkle After Trust Changes
 
 ```python
 # WRONG: trust changed but Merkle tree not recomputed
@@ -639,7 +639,7 @@ merkle.recompute()  # Rebuild with updated trust context
 print(merkle.root_hash)  # Now reflects new trust state
 ```
 
-### ❌ Creating Multiple Lattices for Same Peer
+### AVOID: Creating Multiple Lattices for Same Peer
 
 ```python
 # WRONG: two lattice instances for same peer_id
@@ -649,7 +649,7 @@ lattice_b = DeltaTrustLattice("peer-alice")  # Different state!
 
 **Fix:** One `DeltaTrustLattice` per peer identity. Share the instance across components.
 
-### ❌ Ignoring the Circuit Breaker
+### AVOID: Ignoring the Circuit Breaker
 
 ```python
 # WRONG: catching and suppressing CircuitBreakerTripped
@@ -670,7 +670,7 @@ except CircuitBreakerTripped:
     deferred_queue.append(evidence)
 ```
 
-### ❌ Hardcoding Verification Levels
+### AVOID: Hardcoding Verification Levels
 
 ```python
 # WRONG: always using Level 0 (trusting everyone)
@@ -731,7 +731,7 @@ for delta in lattice.drain_async_queue():
 ```python
 # Check if breaker is active
 if lattice._circuit_breaker.is_tripped():
-    print("⚡ Circuit breaker is TRIPPED — defensive mode active")
+    print("[ALERT] Circuit breaker is TRIPPED -- defensive mode active")
     print("All incoming deltas get Level 2 verification")
 ```
 
