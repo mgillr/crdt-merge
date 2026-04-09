@@ -1,6 +1,7 @@
 ---
 title: CRDT-Merge Convergence Lab
-emoji: colorFrom: gray
+emoji: 🔬
+colorFrom: gray
 colorTo: blue
 sdk: gradio
 sdk_version: 5.29.0
@@ -17,7 +18,7 @@ tags:
   - convergence
   - neural-network
   - federated-learning
-short_description: "Multi-node CRDT convergence proof: 100 nodes, 26 strategies, network partitions"
+short_description: "CRDT convergence proof: 100 nodes, 26 strategies"
 ---
 
 # CRDT-Merge Multi-Node Convergence Laboratory
