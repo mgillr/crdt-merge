@@ -178,7 +178,7 @@ _TYPE_TO_TAG = {
     'conflict_topology': TAG_CONFLICT_TOPOLOGY,
 }
 
-# Issue #46: Immutable mapping — this dict is a constant lookup table and should
+# Issue #46: Immutable mapping -- this dict is a constant lookup table and should
 # never be mutated at runtime. MappingProxyType enforces this at the type level.
 _TAG_TO_TYPE = types.MappingProxyType({v: k for k, v in _TYPE_TO_TAG.items()})
 

@@ -56,7 +56,7 @@ def _make_em(key: bytes = _KEY_32) -> EncryptedMerge:
 
 
 # ---------------------------------------------------------------------------
-# Roundtrip — encrypt_field / decrypt_field
+# Roundtrip -- encrypt_field / decrypt_field
 # ---------------------------------------------------------------------------
 
 
@@ -237,7 +237,7 @@ def test_encrypt_decrypt_records_roundtrip(names, scores):
 
 
 # ---------------------------------------------------------------------------
-# Backend — XORLegacyBackend direct property test
+# Backend -- XORLegacyBackend direct property test
 # ---------------------------------------------------------------------------
 
 

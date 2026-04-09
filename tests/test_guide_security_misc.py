@@ -15,7 +15,7 @@ import pytest
 
 
 # ===========================================================================
-# security-guide.md — Field-Level Encryption
+# security-guide.md -- Field-Level Encryption
 # ===========================================================================
 
 
@@ -212,7 +212,7 @@ def test_sg_key_rotation():
 
 
 # ===========================================================================
-# security-guide.md — RBAC
+# security-guide.md -- RBAC
 # ===========================================================================
 
 
@@ -334,7 +334,7 @@ def test_sg_secure_merge_no_context():
 
 
 # ===========================================================================
-# security-guide.md — Audit Trails
+# security-guide.md -- Audit Trails
 # ===========================================================================
 
 
@@ -470,7 +470,7 @@ def test_sg_defense_in_depth_composition():
 
 
 # ===========================================================================
-# security-hardening.md — import / API presence tests
+# security-hardening.md -- import / API presence tests
 # (text-heavy guide; verifies all referenced APIs are importable and functional)
 # ===========================================================================
 
@@ -570,7 +570,7 @@ def test_sh_hipaa_phi_encryption_pattern():
 
 
 # ===========================================================================
-# model-crdt-matrix.md — verify documented strategies are importable
+# model-crdt-matrix.md -- verify documented strategies are importable
 # ===========================================================================
 
 
@@ -706,7 +706,7 @@ def test_mcm_passthrough_registry_name():
 
 
 # ===========================================================================
-# model-merge-strategies.md — 26 strategies reference guide
+# model-merge-strategies.md -- 26 strategies reference guide
 # ===========================================================================
 
 
@@ -846,7 +846,7 @@ def test_mms_list_strategies_count():
 
 
 # ===========================================================================
-# troubleshooting.md — documented behaviors and import checks
+# troubleshooting.md -- documented behaviors and import checks
 # ===========================================================================
 
 

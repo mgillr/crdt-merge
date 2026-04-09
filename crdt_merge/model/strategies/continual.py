@@ -294,7 +294,7 @@ class DualProjectionMerge(ModelMergeStrategy):
             merged_delta = shared_merged + (1.0 - stability) * task_merged
 
         except np.linalg.LinAlgError:
-            # SVD failed — fall back to weighted average of deltas
+            # SVD failed -- fall back to weighted average of deltas
             merged_delta = np.zeros(d, dtype=np.float64)
             for i in range(n):
                 merged_delta += weights[i] * deltas[i]

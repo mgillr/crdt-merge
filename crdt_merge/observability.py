@@ -489,7 +489,7 @@ class HealthCheck:
 
 
 # ---------------------------------------------------------------------------
-# ObservedMerge — auto-instrumented merge wrapper
+# ObservedMerge -- auto-instrumented merge wrapper
 # ---------------------------------------------------------------------------
 
 

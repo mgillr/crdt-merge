@@ -117,7 +117,7 @@ def _to_array(tensor: Any) -> Any:
         except (TypeError, ValueError):
             return tensor
 
-    # Fallback: no numpy — work with plain lists
+    # Fallback: no numpy -- work with plain lists
     if isinstance(tensor, (list, tuple)):
         return list(tensor)
     return tensor

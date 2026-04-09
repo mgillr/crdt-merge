@@ -78,7 +78,7 @@ def index_by_key(records, key="id"):
 
 
 # ---------------------------------------------------------------------------
-# merge_stream — CRDT properties
+# merge_stream -- CRDT properties
 # ---------------------------------------------------------------------------
 
 class TestMergeStreamProperties:
@@ -163,7 +163,7 @@ class TestMergeStreamProperties:
 
 
 # ---------------------------------------------------------------------------
-# merge_sorted_stream — sorted merge-join properties
+# merge_sorted_stream -- sorted merge-join properties
 # ---------------------------------------------------------------------------
 
 class TestMergeSortedStreamProperties:
@@ -197,7 +197,7 @@ class TestMergeSortedStreamProperties:
 
 
 # ---------------------------------------------------------------------------
-# count_stream — counting accuracy
+# count_stream -- counting accuracy
 # ---------------------------------------------------------------------------
 
 class TestCountStreamProperties:
@@ -217,7 +217,7 @@ class TestCountStreamProperties:
 
 
 # ---------------------------------------------------------------------------
-# Delta — serialization, emptiness, sizing
+# Delta -- serialization, emptiness, sizing
 # ---------------------------------------------------------------------------
 
 class TestDeltaProperties:
@@ -273,7 +273,7 @@ class TestDeltaProperties:
 
 
 # ---------------------------------------------------------------------------
-# compute_delta + apply_delta — roundtrip correctness
+# compute_delta + apply_delta -- roundtrip correctness
 # ---------------------------------------------------------------------------
 
 class TestDeltaComputeApplyProperties:
@@ -321,7 +321,7 @@ class TestDeltaComputeApplyProperties:
 
 
 # ---------------------------------------------------------------------------
-# DeltaStore — stateful ingestion properties
+# DeltaStore -- stateful ingestion properties
 # ---------------------------------------------------------------------------
 
 class TestDeltaStoreProperties:

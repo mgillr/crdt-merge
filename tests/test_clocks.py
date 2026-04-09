@@ -264,7 +264,7 @@ class TestDVVSerialization:
         assert restored.base == dvv.base
 
 # ═════════════════════════════════════════════════════════════════════════════
-# 12. CRDT law verification (4 tests) — CRITICAL
+# 12. CRDT law verification (4 tests) -- CRITICAL
 # ═════════════════════════════════════════════════════════════════════════════
 
 def _gen_vector_clock():

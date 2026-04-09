@@ -104,7 +104,7 @@ def handle_diff(args: argparse.Namespace, formatter: OutputFormatter) -> None:
         formatter.error(f"Diff computation failed: {exc}")
         sys.exit(1)
 
-    # MerkleDiff is a dataclass, not a list — check is_identical property
+    # MerkleDiff is a dataclass, not a list -- check is_identical property
     is_identical = getattr(diffs, "is_identical", None)
     if is_identical is True or (hasattr(diffs, "num_differences") and diffs.num_differences == 0):
         formatter.success("Trees are identical -- no differences found.")

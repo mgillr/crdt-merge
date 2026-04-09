@@ -347,7 +347,7 @@ class TestMergeQLCustomStrategy:
         )
         assert len(result.data) == 1
         # BUG: MergeSchema.resolve_row bypasses per-field custom strategies
-        # when both values are dicts — it recurses into the dict instead of
+        # when both values are dicts -- it recurses into the dict instead of
         # calling the registered custom:trusted resolver.
         # Guide expects: result.data[0]["rating"] == 4.2 (verified source wins)
         # Actual result: {"value": 4.8, "verified": True} (nested dict merge)

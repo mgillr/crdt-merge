@@ -43,7 +43,7 @@ from crdt_merge.model.strategies.subspace import (
 )
 from crdt_merge.model.strategies import get_strategy, list_strategies
 
-# numpy — always available in test environment
+# numpy -- always available in test environment
 import numpy as np
 
 # ---------------------------------------------------------------------------

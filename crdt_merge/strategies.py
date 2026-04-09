@@ -73,7 +73,7 @@ def _safe_parse_ts(value: Any) -> float:
             return float(value.timestamp())
         except (TypeError, OSError):
             pass
-    # Parsing failed — fall back to epoch 0.0 for backward compatibility,
+    # Parsing failed -- fall back to epoch 0.0 for backward compatibility,
     # but emit a warning so the caller knows something unexpected happened.
     import warnings
     warnings.warn(
@@ -107,7 +107,7 @@ class LWW(MergeStrategy):
             return val_a
         # Timestamps equal: deterministic value-based tie-break for commutativity.
         # Using max(str(v)) ensures resolve(A,B) == resolve(B,A) regardless of
-        # argument position — critical for CRDT guarantee.
+        # argument position -- critical for CRDT guarantee.
         str_a, str_b = str(val_a), str(val_b)
         if str_a != str_b:
             return val_a if str_a >= str_b else val_b
@@ -408,7 +408,7 @@ class MergeSchema:
         for field, info in d.items():
             strat_cls = _STRATEGY_REGISTRY.get(info["strategy"], LWW)
             if strat_cls == Custom:
-                # DEF-011: Custom strategies can't be deserialized — use LWW
+                # DEF-011: Custom strategies can't be deserialized -- use LWW
                 # fallback but preserve the original strategy name so it
                 # survives further round-trips.  Warning is deferred until the
                 # strategy is actually invoked (not on deserialization).

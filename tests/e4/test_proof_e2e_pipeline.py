@@ -494,7 +494,7 @@ class TestTrustWeightedAgentMemory:
         # Give others large evidence (lower trust)
         for i in range(1, 5):
             for dim in TRUST_DIMENSIONS:
-                # 0.6, 0.7, 0.8, 0.9 — all result in trust < 0.5 per dim
+                # 0.6, 0.7, 0.8, 0.9 -- all result in trust < 0.5 per dim
                 ev = _make_evidence("obs", dim, 0.5 + 0.1 * i)
                 old = lattice._trust_scores.get(f"p{i}", TypedTrustScore.probationary())
                 lattice._trust_scores[f"p{i}"] = old.record_evidence("obs", dim, 0.5 + 0.1 * i, ev)
@@ -546,7 +546,7 @@ class TestTrustWeightedAgentMemory:
         # p0 trust ~0.99, p1 trust ~0.19 → p0 should win
         assert lattice.get_trust("p0").overall_trust() > lattice.get_trust("p1").overall_trust()
 
-        # Write to new key — now p0 has higher trust despite earlier timestamp
+        # Write to new key -- now p0 has higher trust despite earlier timestamp
         agent.put("key2", "val_p0", "p0", timestamp=1.0)
         agent.put("key2", "val_p1", "p1", timestamp=2.0)
         entry2 = agent.get("key2")
@@ -606,7 +606,7 @@ class TestE4RecursiveBindingProof:
         peers = ["peer_a", "peer_b", "peer_c"]
         node = PeerNode("peer_a", initial_peers=peers)
 
-        # Step 1: E4 — Record evidence against peer_b across ALL dimensions
+        # Step 1: E4 -- Record evidence against peer_b across ALL dimensions
         # With evidence in all dims, trust goes from probation (0.5) to known state
         initial_trust = node.lattice.get_trust("peer_b").overall_trust()
         assert initial_trust == pytest.approx(PROBATION_TRUST)
@@ -622,17 +622,17 @@ class TestE4RecursiveBindingProof:
         # 1 - 0.6 = 0.4 per dim, overall = 0.4 < 0.5 (probation)
         assert new_trust < initial_trust, "E4: Trust should decrease below probation"
 
-        # Step 2: E1 — Merkle root changes because trust context changed
+        # Step 2: E1 -- Merkle root changes because trust context changed
         node.merkle.insert_leaf("data1", b"content", "peer_b")
         root_after = node.merkle.recompute()
         assert root_after != "", "E1: Merkle root should exist"
 
-        # Step 3: E2 — Clock entries reflect trust
+        # Step 3: E2 -- Clock entries reflect trust
         clock1 = node.clock.increment()
         _, trust_in_clock = clock1.entries.get("peer_a", (0, 0.0))
         assert isinstance(trust_in_clock, float)
 
-        # Step 4: E3 — Strategy weights use trust
+        # Step 4: E3 -- Strategy weights use trust
         resolver = TrustWeightedLWWResolver(trust_weight_factor=2.0, min_trust=0.0)
         b_trust = node.lattice.get_trust("peer_b")
         c_trust = node.lattice.get_trust("peer_c")
@@ -670,7 +670,7 @@ class TestE4RecursiveBindingProof:
                 )
             trusts.append(node.lattice.get_trust("peer_b").overall_trust())
 
-        # After first round: 1-0.02=0.98 per dim (above probation) — trust goes UP
+        # After first round: 1-0.02=0.98 per dim (above probation) -- trust goes UP
         # After many rounds: 1 - n*0.02 → decreases toward 0
         # After 25 rounds: 1 - 0.5 = 0.5 per dim
         # After 50 rounds: 1 - 1.0 = 0 per dim (clamped to 0)

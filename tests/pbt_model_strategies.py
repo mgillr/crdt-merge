@@ -95,7 +95,7 @@ def _state_dicts_close(sd_a, sd_b, tol=1e-5):
 
 
 # ---------------------------------------------------------------------------
-# WeightAverage — idempotency
+# WeightAverage -- idempotency
 # ---------------------------------------------------------------------------
 
 
@@ -146,7 +146,7 @@ def test_weight_average_single_model_passthrough(sd):
 
 
 # ---------------------------------------------------------------------------
-# SLERP — idempotency and key preservation
+# SLERP -- idempotency and key preservation
 # ---------------------------------------------------------------------------
 
 
@@ -171,7 +171,7 @@ def test_slerp_preserves_layer_keys(data):
 
 
 # ---------------------------------------------------------------------------
-# TaskArithmetic — idempotency and key preservation
+# TaskArithmetic -- idempotency and key preservation
 # ---------------------------------------------------------------------------
 
 
@@ -198,7 +198,7 @@ def test_task_arithmetic_single_passthrough(sd):
 
 
 # ---------------------------------------------------------------------------
-# LinearInterpolation — idempotency and key preservation
+# LinearInterpolation -- idempotency and key preservation
 # ---------------------------------------------------------------------------
 
 
@@ -224,7 +224,7 @@ def test_linear_interpolation_preserves_keys(data):
 
 
 # ---------------------------------------------------------------------------
-# ModelMergeSchema — pattern resolution and serialisation
+# ModelMergeSchema -- pattern resolution and serialisation
 # ---------------------------------------------------------------------------
 
 

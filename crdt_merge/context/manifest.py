@@ -217,7 +217,7 @@ class ContextManifest:
             key=lambda e: (e.get("timestamp", 0.0), repr(sorted(e.items())))
         )
 
-        # Manifest ID: max of the two IDs — commutative, associative, idempotent
+        # Manifest ID: max of the two IDs -- commutative, associative, idempotent
         merged_id = max(self.manifest_id, other.manifest_id)
 
         return ContextManifest(

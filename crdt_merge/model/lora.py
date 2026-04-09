@@ -158,7 +158,7 @@ def _harmonize_rank_lora_a(matrices: List, target_rank: int, strategy: str):
             else:
                 # Truncate (keep top rows by SVD or simply first rows)
                 if strategy == "min":
-                    # Simple truncation — keep top singular value components
+                    # Simple truncation -- keep top singular value components
                     U, S, Vt = np.linalg.svd(arr, full_matrices=False)
                     k = target_rank
                     results.append(U[:k, :k] @ np.diag(S[:k]) @ Vt[:k, :])

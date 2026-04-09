@@ -341,7 +341,7 @@ class MerkleTree:
             Full record dict.
         """
         k = str(key)
-        # Determine which field to exclude when hashing — guess "id" or use
+        # Determine which field to exclude when hashing -- guess "id" or use
         # the key itself if it appears in the record.
         exclude = None
         if k in (str(record.get("id", "")),):
@@ -410,7 +410,7 @@ class MerkleTree:
             in_self = k in self._records
             in_other = k in other._records
             if in_self and in_other:
-                # Both have it — higher hash wins for determinism
+                # Both have it -- higher hash wins for determinism
                 if self._records[k] >= other._records[k]:
                     result._records[k] = self._records[k]
                     result._record_data[k] = dict(self._record_data[k])
@@ -562,7 +562,7 @@ def merkle_diff(tree_a: MerkleTree, tree_b: MerkleTree) -> MerkleDiff:
             comparisons_made=comparisons,
         )
 
-    # Full scan — compare record-level hashes
+    # Full scan -- compare record-level hashes
     keys_a = set(tree_a._records.keys())
     keys_b = set(tree_b._records.keys())
 

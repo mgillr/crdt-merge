@@ -63,7 +63,7 @@ class TestMergeTracer:
         with tracer.trace_merge("my_merge", {"key": "user_id"}) as span:
             result = 1 + 1
         assert result == 2
-        # Span is a NoOp — should not raise
+        # Span is a NoOp -- should not raise
         span.set_attribute("extra", "ok")
 
     def test_trace_batch(self):

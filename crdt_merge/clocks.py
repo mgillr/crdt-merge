@@ -203,7 +203,7 @@ class VectorClock:
         return f"VectorClock({self._clocks})"
 
 # ═════════════════════════════════════════════════════════════════════════════
-# DottedVersionVector — causal context with a single outstanding event (dot)
+# DottedVersionVector -- causal context with a single outstanding event (dot)
 # ═════════════════════════════════════════════════════════════════════════════
 
 @dataclass

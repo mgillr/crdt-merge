@@ -210,7 +210,7 @@ def test_cms_roundtrip(items):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# Wire protocol — core CRDT roundtrips
+# Wire protocol -- core CRDT roundtrips
 # ═══════════════════════════════════════════════════════════════════════════
 
 
@@ -289,7 +289,7 @@ def test_wire_lwwmap_roundtrip(keys, vals):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# Wire protocol — probabilistic type roundtrips
+# Wire protocol -- probabilistic type roundtrips
 # ═══════════════════════════════════════════════════════════════════════════
 
 
@@ -324,7 +324,7 @@ def test_wire_cms_roundtrip(items):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# Wire protocol — batch, compression, peek, size
+# Wire protocol -- batch, compression, peek, size
 # ═══════════════════════════════════════════════════════════════════════════
 
 

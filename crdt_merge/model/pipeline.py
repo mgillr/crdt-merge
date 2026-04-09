@@ -74,7 +74,7 @@ class PipelineCheckpoint:
         ckpt = PipelineCheckpoint("/tmp/pipeline.ckpt.json")
         pipeline = MergePipeline(stages=[...], checkpoint=ckpt)
         result = pipeline.execute()   # saves after each stage
-        # If execution fails, re-run the same line — completed stages skip.
+        # If execution fails, re-run the same line -- completed stages skip.
         ckpt.clear()                  # remove checkpoint after successful run
     """
 

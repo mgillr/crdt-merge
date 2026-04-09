@@ -62,7 +62,7 @@ def _mock_conn(tables=None):
     return conn
 
 # ===================================================================
-# TestDuckDBMergeUDF — 25 tests
+# TestDuckDBMergeUDF -- 25 tests
 # ===================================================================
 
 class TestDuckDBMergeUDF:

@@ -149,7 +149,7 @@ class TestGuideMultiRegionAssistant:
         home.add_fact("user_language", "English", confidence=1.0, timestamp=998.0)
 
         user_context = SharedKnowledge.merge(phone, laptop, home)
-        # phone has the latest timestamp for this key — its value wins
+        # phone has the latest timestamp for this key -- its value wins
         fact = user_context.state.get_fact("user_preferred_length")
         assert fact is not None
         assert fact.value == "brief"
@@ -621,7 +621,7 @@ class TestGuideCrashRecovery:
         # B merges A's state (periodic gossip)
         agent_b = agent_b.merge(agent_a)
 
-        # A "crashes" — simulate by creating fresh instance
+        # A "crashes" -- simulate by creating fresh instance
         agent_a_recovered = AgentState(agent_id="researcher-a")
         agent_a_recovered = agent_a_recovered.merge(agent_b)
 

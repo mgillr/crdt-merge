@@ -198,7 +198,7 @@ class TestGPT2Weights:
     def test_total_param_count(self, gpt2_weights):
         """Verify parameter counts match GPT-2 expectations."""
         total = sum(w.size for w in gpt2_weights.values())
-        # Subset of GPT-2 layers — should have millions of params
+        # Subset of GPT-2 layers -- should have millions of params
         assert total > 1_000_000
 
     def test_pco_attached_to_delta(self, gpt2_weights):
@@ -395,7 +395,7 @@ class TestLargeScaleWeights:
         ins = {f"k_{i}": rng.bytes(256) for i in range(100)}
         delta = _make_delta(insertions=ins)
         quantized = delta.compress("quantized", bits=4)
-        # Quantization truncates each byte — effective representation smaller
+        # Quantization truncates each byte -- effective representation smaller
         assert quantized.encoding == "quantized"
 
     def test_billion_scale_key_simulation(self):

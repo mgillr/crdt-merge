@@ -99,6 +99,6 @@ __all__ = [
 ]
 
 
-# Hardening subsystem (v0.9.5.1) — addresses all peer review concerns
+# Hardening subsystem (v0.9.5.1) -- addresses all peer review concerns
 # Import makes resilience available as crdt_merge.e4.resilience.*
 from crdt_merge.e4 import resilience as resilience  # noqa: F401

@@ -82,7 +82,7 @@ class TestPackageIntegrity:
         assert True
 
 # ═══════════════════════════════════════════════════════════════
-# SECTION 2: CORE CRDT TYPES — GCounter
+# SECTION 2: CORE CRDT TYPES -- GCounter
 # ═══════════════════════════════════════════════════════════════
 
 class TestGCounter:
@@ -922,7 +922,7 @@ class TestMergeableHLL:
         for i in range(500): h1.add(f"a_{i}")
         for i in range(500): h2.add(f"b_{i}")
         merged = h1.merge(h2)
-        # merge might return new or mutate — check both
+        # merge might return new or mutate -- check both
         est = (merged or h1).cardinality()
         assert 800 < est < 1200
 
@@ -1079,7 +1079,7 @@ class TestMergeableCMS:
         c1 = MergeableCMS(); c2 = MergeableCMS()
         c1.add("x", count=3); c2.add("x", count=7)
         result = c1.merge(c2)
-        # merge returns new or mutates — check whichever has the result
+        # merge returns new or mutates -- check whichever has the result
         est = (result or c1).estimate("x")
         assert est >= 3  # At minimum should have the data
 

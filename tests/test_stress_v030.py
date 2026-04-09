@@ -54,7 +54,7 @@ def gen_conflict_pair(n, overlap=0.5):
     return a, b
 
 # =============================================================
-# SUITE 1: CORE merge() — list-of-dicts mode
+# SUITE 1: CORE merge() -- list-of-dicts mode
 # =============================================================
 def test_core_merge():
     from crdt_merge import merge
@@ -88,7 +88,7 @@ def test_core_merge():
         if mb > 1024: break
 
 # =============================================================
-# SUITE 2: STRATEGIES — MergeSchema.resolve_row at scale
+# SUITE 2: STRATEGIES -- MergeSchema.resolve_row at scale
 # =============================================================
 def test_strategies():
     from crdt_merge.strategies import MergeSchema, LWW, MaxWins, UnionSet, Priority
@@ -124,7 +124,7 @@ def test_strategies():
         if mb > 1024: break
 
 # =============================================================
-# SUITE 3: STREAMING merge_stream — O(batch) proof
+# SUITE 3: STREAMING merge_stream -- O(batch) proof
 # =============================================================
 def test_streaming():
     from crdt_merge.streaming import merge_stream, merge_sorted_stream, StreamStats
@@ -185,7 +185,7 @@ def test_streaming():
         if mb > 1024: break
 
 # =============================================================
-# SUITE 4: BATCH TUNING — optimal batch_size at 100K
+# SUITE 4: BATCH TUNING -- optimal batch_size at 100K
 # =============================================================
 def test_batch_tuning():
     from crdt_merge.streaming import merge_stream, StreamStats
@@ -215,7 +215,7 @@ def test_batch_tuning():
     del a, b; gc.collect()
 
 # =============================================================
-# SUITE 5: VERIFICATION — CRDT property proof throughput
+# SUITE 5: VERIFICATION -- CRDT property proof throughput
 # =============================================================
 def test_verification():
     from crdt_merge.verify import verify_crdt, verify_commutative, verify_associative, verify_idempotent
@@ -245,7 +245,7 @@ def test_verification():
             record("verify", f"full_{trials}", trials, "status", 0, "ERROR", str(e)[:120])
 
 # =============================================================
-# SUITE 6: DELTA SYNC — compute_delta + apply_delta at scale
+# SUITE 6: DELTA SYNC -- compute_delta + apply_delta at scale
 # =============================================================
 def test_delta():
     from crdt_merge.delta import compute_delta, apply_delta, compose_deltas, Delta
@@ -315,7 +315,7 @@ def test_delta():
         record("delta_compose", f"compose_{num_deltas}", num_deltas, "time_sec", elapsed, "s")
 
 # =============================================================
-# SUITE 7: JSON MERGE — Deep nested structures
+# SUITE 7: JSON MERGE -- Deep nested structures
 # =============================================================
 def test_json_merge():
     from crdt_merge import merge_dicts
@@ -343,7 +343,7 @@ def test_json_merge():
             record("json", f"nested_{label}", breadth**depth, "status", 0, "ERROR", str(e)[:80])
 
 # =============================================================
-# SUITE 8: FUZZY DEDUP — O(n²) ceiling
+# SUITE 8: FUZZY DEDUP -- O(n²) ceiling
 # =============================================================
 def test_dedup():
     from crdt_merge import dedup_records

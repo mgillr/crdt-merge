@@ -326,7 +326,7 @@ class TestBackwardCompatibility:
         ev = em_xor.encrypt_field("secret", "f")
         d = ev.to_dict()
 
-        # Decrypt with AES-GCM EncryptedMerge — should auto-route to XOR
+        # Decrypt with AES-GCM EncryptedMerge -- should auto-route to XOR
         em_gcm = EncryptedMerge(prov, backend="aes-256-gcm")
         restored = EncryptedValue.from_dict(d)
         assert em_gcm.decrypt_field(restored) == "secret"

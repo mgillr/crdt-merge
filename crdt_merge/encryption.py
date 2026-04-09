@@ -292,7 +292,7 @@ def get_backend(name: str) -> CryptoBackend:
 # Always available (stdlib only)
 register_backend("xor-legacy", XORLegacyBackend)
 
-# AEAD backends — only if cryptography is installed
+# AEAD backends -- only if cryptography is installed
 try:
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM as _AESGCM  # noqa: F401 — import tests availability; class used via AES256GCMBackend
     register_backend("aes-256-gcm", AES256GCMBackend)
@@ -458,7 +458,7 @@ class StaticKeyProvider(KeyProvider):
 
 
 # ---------------------------------------------------------------------------
-# EncryptedMerge — the main API
+# EncryptedMerge -- the main API
 # ---------------------------------------------------------------------------
 
 class EncryptedMerge:
@@ -547,10 +547,10 @@ class EncryptedMerge:
         # Route to the correct backend based on cipher metadata
         cipher_name = getattr(encrypted, "cipher", None)
         if not cipher_name:
-            # v1 / legacy — always use XOR backend regardless of current backend
+            # v1 / legacy -- always use XOR backend regardless of current backend
             backend = XORLegacyBackend()
         else:
-            # v2 — use the named backend
+            # v2 -- use the named backend
             backend = get_backend(cipher_name)
 
         plaintext = backend.decrypt(field_key, encrypted.ciphertext, encrypted.nonce, encrypted.tag)
@@ -655,7 +655,7 @@ class EncryptedMerge:
                 merged.append(self._dehydrate_record(l_rec))
                 continue
 
-            # Both sides exist — resolve field by field
+            # Both sides exist -- resolve field by field
             if schema is not None:
                 resolved = schema.resolve_row(l_rec, r_rec)
             else:
@@ -671,7 +671,7 @@ class EncryptedMerge:
                     elif isinstance(lv, EncryptedValue) and isinstance(rv, EncryptedValue):
                         resolved[field] = lv if lv >= rv else rv
                     else:
-                        # Non-encrypted field (e.g., key column) — keep left
+                        # Non-encrypted field (e.g., key column) -- keep left
                         resolved[field] = lv
 
             merged.append(self._dehydrate_record(resolved))

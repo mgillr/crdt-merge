@@ -100,7 +100,7 @@ def _resolve_strategy_name(name: str) -> MergeStrategy:
     return cls()
 
 # ---------------------------------------------------------------------------
-# Helpers — Arrow ↔ list-of-dicts conversion
+# Helpers -- Arrow ↔ list-of-dicts conversion
 # ---------------------------------------------------------------------------
 
 def _table_to_records(table: Any) -> List[dict]:

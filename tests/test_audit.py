@@ -48,7 +48,7 @@ def audit_log():
 
 
 # ---------------------------------------------------------------------------
-# 1. Basic logging — log_merge creates correct entry with hashes
+# 1. Basic logging -- log_merge creates correct entry with hashes
 # ---------------------------------------------------------------------------
 
 class TestBasicLogging:
@@ -109,7 +109,7 @@ class TestBasicLogging:
 
 
 # ---------------------------------------------------------------------------
-# 2. Chain integrity — verify_chain returns True for valid log
+# 2. Chain integrity -- verify_chain returns True for valid log
 # ---------------------------------------------------------------------------
 
 class TestChainIntegrity:
@@ -131,7 +131,7 @@ class TestChainIntegrity:
 
 
 # ---------------------------------------------------------------------------
-# 3. Tamper detection — modifying any entry breaks chain verification
+# 3. Tamper detection -- modifying any entry breaks chain verification
 # ---------------------------------------------------------------------------
 
 class TestTamperDetection:
@@ -186,7 +186,7 @@ class TestTamperDetection:
 
 
 # ---------------------------------------------------------------------------
-# 4. AuditedMerge — wraps real merge() with auto-logging
+# 4. AuditedMerge -- wraps real merge() with auto-logging
 # ---------------------------------------------------------------------------
 
 class TestAuditedMerge:
@@ -246,7 +246,7 @@ class TestAuditedMerge:
 
 
 # ---------------------------------------------------------------------------
-# 5. Export / Import — round-trip through JSON preserves data + chain
+# 5. Export / Import -- round-trip through JSON preserves data + chain
 # ---------------------------------------------------------------------------
 
 class TestExportImport:
@@ -304,7 +304,7 @@ class TestExportImport:
 
 
 # ---------------------------------------------------------------------------
-# 6. Filtering — get_entries by operation, since, until
+# 6. Filtering -- get_entries by operation, since, until
 # ---------------------------------------------------------------------------
 
 class TestFiltering:
@@ -354,7 +354,7 @@ class TestFiltering:
 
 
 # ---------------------------------------------------------------------------
-# 7. Multiple operations — log_merge, log_operation mixed
+# 7. Multiple operations -- log_merge, log_operation mixed
 # ---------------------------------------------------------------------------
 
 class TestMixedOperations:
@@ -374,7 +374,7 @@ class TestMixedOperations:
 
 
 # ---------------------------------------------------------------------------
-# 8. Genesis — first entry has prev_hash = "genesis"
+# 8. Genesis -- first entry has prev_hash = "genesis"
 # ---------------------------------------------------------------------------
 
 class TestGenesis:
@@ -391,7 +391,7 @@ class TestGenesis:
 
 
 # ---------------------------------------------------------------------------
-# 9. Empty log — verify_chain on empty log returns True
+# 9. Empty log -- verify_chain on empty log returns True
 # ---------------------------------------------------------------------------
 
 class TestEmptyLog:

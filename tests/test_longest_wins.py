@@ -75,7 +75,7 @@ class TestLongestWins:
             # If it handles None, it should return the non-None value
             assert result == "hello"
         except (TypeError, AttributeError):
-            # Acceptable — None isn't a valid string input
+            # Acceptable -- None isn't a valid string input
             pass
 
     def test_numeric_values(self):
@@ -85,5 +85,5 @@ class TestLongestWins:
             result = s.resolve(42, 12345)
             # If it handles numbers, fine
         except (TypeError, AttributeError):
-            # Also acceptable — LongestWins is designed for strings
+            # Also acceptable -- LongestWins is designed for strings
             pass

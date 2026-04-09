@@ -97,7 +97,7 @@ def _are_equal(a: Any, b: Any) -> bool:
     """Deep equality check that handles CRDT objects, DataFrames, dicts, floats, etc."""
     if a is b:
         return True
-    # Handle DataFrames (pandas, polars) — compare as sorted records
+    # Handle DataFrames (pandas, polars) -- compare as sorted records
     if hasattr(a, 'to_dict') and hasattr(b, 'to_dict'):
         try:
             # Pandas DataFrames
@@ -431,13 +431,13 @@ def verified_merge(
                 raise CRDTVerificationError(
                     f"CRDT verification failed for {fn.__name__}:\n{result.summary()}"
                 )
-            # on_fail == "warn" — attach but don't raise
+            # on_fail == "warn" -- attach but don't raise
 
         return wrapper
 
     # Support both @verified_merge and @verified_merge(...)
     if merge_fn is not None:
-        # Called without arguments — but gen_fn is required, so error
+        # Called without arguments -- but gen_fn is required, so error
         raise ValueError(
             "@verified_merge requires gen_fn. Use: @verified_merge(gen_fn=...)"
         )

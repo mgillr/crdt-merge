@@ -283,7 +283,7 @@ class ContextConsolidator:
                 # Bloom-based dedup check
                 if bloom is not None:
                     if bloom.contains(mc.fact):
-                        # Probable duplicate — merge sidecar if we already have it
+                        # Probable duplicate -- merge sidecar if we already have it
                         if fid in seen:
                             merged_sc = seen[fid].sidecar.merge(mc.sidecar)
                             seen[fid] = MemoryChunk(fact=mc.fact, sidecar=merged_sc)

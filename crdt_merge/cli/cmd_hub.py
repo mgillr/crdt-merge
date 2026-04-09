@@ -128,7 +128,7 @@ def handle_push(args: argparse.Namespace, formatter: OutputFormatter) -> None:
         )
 
     hub = HFMergeHub(token=token)
-    # Use HfApi.upload_folder — HFMergeHub has no push() method.
+    # Use HfApi.upload_folder -- HFMergeHub has no push() method.
     api = hub._hub_api()
 
     try:
@@ -148,7 +148,7 @@ def handle_push(args: argparse.Namespace, formatter: OutputFormatter) -> None:
 
 def handle_pull(args: argparse.Namespace, formatter: OutputFormatter) -> None:
     """Pull a model from the HuggingFace Hub to a local directory."""
-    # HFMergeHub has no pull() method — use HfApi.snapshot_download() directly.
+    # HFMergeHub has no pull() method -- use HfApi.snapshot_download() directly.
     HFMergeHub = _lazy_import_hub()
 
     token = _resolve_token(args)

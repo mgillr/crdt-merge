@@ -217,7 +217,7 @@ class HFMergeHub:
             except ImportError:
                 pass
 
-            # Fall back to numpy backend (no torch required — works on CPU-only Spaces)
+            # Fall back to numpy backend (no torch required -- works on CPU-only Spaces)
             try:
                 from safetensors.numpy import load_file as np_load_file
                 state_dict = {}

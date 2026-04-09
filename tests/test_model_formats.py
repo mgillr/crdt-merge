@@ -58,7 +58,7 @@ class TestStrategyMaps:
 
 
 # ---------------------------------------------------------------------------
-# import_mergekit_config — happy paths
+# import_mergekit_config -- happy paths
 # ---------------------------------------------------------------------------
 
 class TestImportMergekitConfig:
@@ -147,7 +147,7 @@ class TestImportMergekitConfig:
 
 
 # ---------------------------------------------------------------------------
-# import_mergekit_config — slices
+# import_mergekit_config -- slices
 # ---------------------------------------------------------------------------
 
 class TestImportMergekitConfigSlices:

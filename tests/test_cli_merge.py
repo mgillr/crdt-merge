@@ -157,7 +157,7 @@ class TestParseStrategyFlags:
 
 
 # ===================================================================
-# 2. handle_merge — happy paths
+# 2. handle_merge -- happy paths
 # ===================================================================
 
 
@@ -425,7 +425,7 @@ class TestHandleDedup:
 
 
 # ===================================================================
-# 5. main() CLI dispatch — merge, diff, dedup
+# 5. main() CLI dispatch -- merge, diff, dedup
 # ===================================================================
 
 
@@ -485,4 +485,4 @@ class TestMainDispatch:
         # main() dispatches to handle_merge; verify it does not raise SystemExit.
         main(["merge", fa, fb, "--key", "id"])
         # Output may go to stdout (JSON) or stderr (table/spinner).
-        # Simply assert the command ran without error — no sys.exit raised above.
+        # Simply assert the command ran without error -- no sys.exit raised above.

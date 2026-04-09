@@ -147,7 +147,7 @@ class TestParseRegisterFlags:
 
 
 # ===================================================================
-# 2. handle_query — no query provided
+# 2. handle_query -- no query provided
 # ===================================================================
 
 
@@ -184,7 +184,7 @@ class TestHandleQueryNoInput:
 
 
 # ===================================================================
-# 3. handle_query — explain mode
+# 3. handle_query -- explain mode
 # ===================================================================
 #
 # NOTE: MergeAST.explain is a bool field (not a method), so calling
@@ -282,7 +282,7 @@ class TestHandleQueryExplain:
 
 
 # ===================================================================
-# 4. handle_query — execution with registered sources
+# 4. handle_query -- execution with registered sources
 # ===================================================================
 
 
@@ -381,7 +381,7 @@ class TestHandleQueryExecution:
 
 
 # ===================================================================
-# 5. main() CLI dispatch — query command
+# 5. main() CLI dispatch -- query command
 # ===================================================================
 
 

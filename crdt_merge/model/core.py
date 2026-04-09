@@ -558,5 +558,5 @@ def _ordered_union(iterables) -> List[str]:
                 result.append(k)
     return result
 
-# Backward-compatible alias (deprecated — will be removed in v1.0)
+# Backward-compatible alias (deprecated -- will be removed in v1.0)
 ModelCRDT = ModelMerge

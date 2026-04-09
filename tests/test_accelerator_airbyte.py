@@ -39,7 +39,7 @@ from crdt_merge.accelerators.airbyte import (
 from crdt_merge.accelerators import ACCELERATOR_REGISTRY
 
 # ===================================================================
-# TestAirbyteMergeDestination — 25 tests
+# TestAirbyteMergeDestination -- 25 tests
 # ===================================================================
 
 class TestAirbyteMergeDestination:
@@ -225,7 +225,7 @@ class TestAirbyteMergeDestination:
         assert dest.read_stream("users")[0]["name"] == "Alice"
 
 # ===================================================================
-# TestStreamConfig — extra coverage
+# TestStreamConfig -- extra coverage
 # ===================================================================
 
 class TestStreamConfig:
@@ -240,7 +240,7 @@ class TestStreamConfig:
         assert cfg.resolve_strategy_name("score") == "MaxWins"
 
 # ===================================================================
-# TestStreamStore — extra coverage
+# TestStreamStore -- extra coverage
 # ===================================================================
 
 class TestStreamStore:
@@ -277,7 +277,7 @@ class TestStreamStore:
         assert store.count == 0
 
 # ===================================================================
-# TestResolveField — strategy resolution
+# TestResolveField -- strategy resolution
 # ===================================================================
 
 class TestResolveField:

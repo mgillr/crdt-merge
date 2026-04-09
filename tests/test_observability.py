@@ -85,7 +85,7 @@ class TestMergeMetric:
 
 
 # ---------------------------------------------------------------------------
-# MetricsCollector — recording
+# MetricsCollector -- recording
 # ---------------------------------------------------------------------------
 
 
@@ -125,7 +125,7 @@ class TestMetricsRecording:
 
 
 # ---------------------------------------------------------------------------
-# MetricsCollector — querying
+# MetricsCollector -- querying
 # ---------------------------------------------------------------------------
 
 
@@ -155,7 +155,7 @@ class TestMetricsQuerying:
 
 
 # ---------------------------------------------------------------------------
-# MetricsCollector — summary
+# MetricsCollector -- summary
 # ---------------------------------------------------------------------------
 
 
@@ -186,7 +186,7 @@ class TestMetricsSummary:
 
 
 # ---------------------------------------------------------------------------
-# MetricsCollector — reset and export
+# MetricsCollector -- reset and export
 # ---------------------------------------------------------------------------
 
 
@@ -238,7 +238,7 @@ class TestMaxHistory:
             c.record_merge(1, 1, 1, float(i))
         assert len(c) == 5
         metrics = c.get_metrics()
-        # Oldest metrics evicted — remaining durations are 5..9
+        # Oldest metrics evicted -- remaining durations are 5..9
         durations = [m.duration_ms for m in metrics]
         assert durations == [5.0, 6.0, 7.0, 8.0, 9.0]
 
@@ -327,7 +327,7 @@ class TestHealthCheck:
 
 
 # ---------------------------------------------------------------------------
-# ObservedMerge — integration with real merge API
+# ObservedMerge -- integration with real merge API
 # ---------------------------------------------------------------------------
 
 

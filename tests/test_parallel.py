@@ -254,7 +254,7 @@ def test_parallel_merge_arrow_correctness():
     if isinstance(result, list):
         ids = {r["id"] for r in result}
     else:
-        # pyarrow Table — convert to Python
+        # pyarrow Table -- convert to Python
         ids = set(result.column("id").to_pylist())
     assert ids == {1, 2, 3}
 

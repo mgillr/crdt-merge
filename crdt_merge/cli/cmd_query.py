@@ -186,7 +186,7 @@ def handle_query(args: argparse.Namespace, formatter: OutputFormatter) -> None:
 
     # -- output results -------------------------------------------------------
     if hasattr(result, "data") and isinstance(result.data, list):
-        # MergeQLResult dataclass — show merged rows as a table
+        # MergeQLResult dataclass -- show merged rows as a table
         formatter.auto(result.data)
         formatter.message(
             f"Merged {result.sources_merged} sources, "

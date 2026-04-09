@@ -148,7 +148,7 @@ class TestVerifyMethod:
         results = merger.verify(strategy="task_arithmetic", trials=20)
 
         ta = results["task_arithmetic"]
-        # Should no longer raise ValueError — base is auto-generated
+        # Should no longer raise ValueError -- base is auto-generated
         assert "needs_base" in ta
         assert ta["needs_base"] is True
         assert ta["commutative"] is True

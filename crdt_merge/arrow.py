@@ -233,7 +233,7 @@ def _dedup_table(table: Any, pa: Any) -> Any:
     )
 
 # ---------------------------------------------------------------------------
-# ArrowMerge — main merge engine
+# ArrowMerge -- main merge engine
 # ---------------------------------------------------------------------------
 
 class ArrowMerge:
@@ -585,7 +585,7 @@ class ArrowMerge:
         for k in sorted(only_left, key=lambda x: (str(type(x).__name__), x)):
             merged_rows.append(left_rows[left_idx[k]])
 
-        # Matched rows — resolve conflicts per column
+        # Matched rows -- resolve conflicts per column
         for k in sorted(both, key=lambda x: (str(type(x).__name__), x)):
             row_a = left_rows[left_idx[k]]
             row_b = right_rows[right_idx[k]]
@@ -615,7 +615,7 @@ class ArrowMerge:
         for k in sorted(only_right, key=lambda x: (str(type(x).__name__), x)):
             merged_rows.append(right_rows[right_idx[k]])
 
-        # Handle rows with None keys — keep all of them
+        # Handle rows with None keys -- keep all of them
         none_rows_left = [
             row for row in left_rows if row.get(key) is None
         ]

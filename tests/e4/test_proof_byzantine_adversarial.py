@@ -713,7 +713,7 @@ class TestInvalidDeltaProof:
             dimension="integrity", amount=0.1,
             proof=proof,
         )
-        # This should fail because the hash MATCHES — not a real invalid delta
+        # This should fail because the hash MATCHES -- not a real invalid delta
         assert not ev.verify()
 
 
@@ -783,7 +783,7 @@ class TestMultiVectorAttack:
         """Peer with both equivocation and clock regression evidence is severely penalized."""
         score = TypedTrustScore.probationary()
 
-        # Equivocation evidence on integrity — use >0.5 to get below probation
+        # Equivocation evidence on integrity -- use >0.5 to get below probation
         sig = b"\x00" * 64
         op_a = b"evil\x001\x00A\x00" + sig
         op_b = b"evil\x001\x00B\x00" + sig
@@ -796,7 +796,7 @@ class TestMultiVectorAttack:
         )
         score = score.record_evidence("obs1", "integrity", 0.7, ev)
 
-        # Clock regression on causality — use >0.5 to get below probation
+        # Clock regression on causality -- use >0.5 to get below probation
         proof2 = pack_clock_pair(b"evil=5", b"evil=3")
         ev2 = TrustEvidence.create(
             observer="obs2", target="evil",

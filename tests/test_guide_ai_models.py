@@ -43,7 +43,7 @@ class TestFederatedQuickStart:
         team_b.add(code_tensors, model_id="llama-code-v3", weight=0.35)
         team_c.add(reasoning_tensors, model_id="llama-reason-v1", weight=0.25)
 
-        # Team B removes and replaces — no coordinator needed
+        # Team B removes and replaces -- no coordinator needed
         team_b.remove("llama-code-v3")
         team_b.add(fixed_code_tensors, model_id="llama-code-v4", weight=0.35)
 
@@ -536,7 +536,7 @@ class TestLoRAEnterpriseGovernance:
         prod_adapter = state.resolve()
         assert prod_adapter.shape == (100,)
 
-        # Month 2: legal team fixes bias — remove and replace
+        # Month 2: legal team fixes bias -- remove and replace
         state.remove("team_legal_may")
         fixed_legal = _tensor((100,), seed=83)
         state.add(fixed_legal, model_id="team_legal_may_v2", weight=0.35,
@@ -638,7 +638,7 @@ class TestContinualCRDTvsDefault:
 
         result_a = cm_a.export()
         result_b = cm_b.export()
-        # In default mode results may differ — just check they're valid arrays
+        # In default mode results may differ -- just check they're valid arrays
         assert "w" in result_a
         assert "w" in result_b
 

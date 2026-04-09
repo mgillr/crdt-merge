@@ -198,7 +198,7 @@ class TrustWeightedLWWResolver:
         ]
 
         if not eligible:
-            # All peers below threshold — fall back to highest trust entry
+            # All peers below threshold -- fall back to highest trust entry
             eligible = sorted(
                 resolved_entries,
                 key=lambda e: e.trust.overall_trust(),
@@ -550,7 +550,7 @@ class TrustWeightedStrategySelector:
         )
 
         if not accepted:
-            # Everyone rejected — use highest trust as fallback
+            # Everyone rejected -- use highest trust as fallback
             best = max(entries, key=lambda e: e.trust.overall_trust())
             return ResolutionResult(
                 resolved_value=best.value,

@@ -39,7 +39,7 @@ from crdt_merge.strategies import MergeSchema, LWW, MaxWins
 from crdt_merge.accelerators import ACCELERATOR_REGISTRY
 
 # ===================================================================
-# TestFlightMergeServer — 15 tests
+# TestFlightMergeServer -- 15 tests
 # ===================================================================
 
 class TestFlightMergeServer:
@@ -122,7 +122,7 @@ class TestFlightMergeServer:
         # Simulate descriptor with metadata
         descriptor = MagicMock()
         descriptor.command = json.dumps({"crdt-key": "id"}).encode()
-        # Reader yields batches — we simulate with list-of-dicts
+        # Reader yields batches -- we simulate with list-of-dicts
         batch1 = [{"id": 1, "v": "a"}]
         batch_sentinel = []  # empty = separator
         batch2 = [{"id": 1, "v": "b"}]
@@ -145,7 +145,7 @@ class TestFlightMergeServer:
         assert len(recs) == 0
 
 # ===================================================================
-# TestFlightMergeClient — 5 tests
+# TestFlightMergeClient -- 5 tests
 # ===================================================================
 
 class TestFlightMergeClient:
@@ -184,7 +184,7 @@ class TestFlightMergeClient:
             assert recs[0]["score"] == 20
 
 # ===================================================================
-# TestHelpers — 5 tests
+# TestHelpers -- 5 tests
 # ===================================================================
 
 class TestHelpers:

@@ -105,7 +105,7 @@ def right_data():
     ]
 
 # ═══════════════════════════════════════════════════════════════════════════
-# TestPolarsMerge — core merge
+# TestPolarsMerge -- core merge
 # ═══════════════════════════════════════════════════════════════════════════
 
 class TestPolarsMerge:
@@ -167,7 +167,7 @@ class TestPolarsMerge:
         assert result.merge_time_ms >= 0
 
 # ═══════════════════════════════════════════════════════════════════════════
-# TestPolarsLazy — lazy merge
+# TestPolarsLazy -- lazy merge
 # ═══════════════════════════════════════════════════════════════════════════
 
 class TestPolarsLazy:
@@ -185,7 +185,7 @@ class TestPolarsLazy:
         assert result.rows_merged == 1
 
 # ═══════════════════════════════════════════════════════════════════════════
-# TestPolarsExpression — expression API
+# TestPolarsExpression -- expression API
 # ═══════════════════════════════════════════════════════════════════════════
 
 class TestPolarsExpression:

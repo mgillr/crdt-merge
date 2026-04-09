@@ -191,7 +191,7 @@ def _try_vectorized_merge(
                     # Column only in one source
                     result[col] = merged[col]
                 else:
-                    # Both sources have this column — apply prefer logic
+                    # Both sources have this column -- apply prefer logic
                     va = merged[col_a] if col_a in merged.columns else None
                     vb = merged[col_b] if col_b in merged.columns else None
                     if va is not None and vb is not None:
@@ -362,7 +362,7 @@ def merge(
         elif row_b and not row_a:
             merged.append(row_b)
         else:
-            # Both sides have this key — CRDT merge per cell
+            # Both sides have this key -- CRDT merge per cell
             merged_row = _merge_rows(row_a, row_b, all_columns, timestamp_col, prefer, schema)
             merged.append(merged_row)
 
@@ -370,7 +370,7 @@ def merge(
     merged.extend(none_key_rows)
 
     if dedup:
-        # Include key columns in dedup hash — rows with different keys are always distinct
+        # Include key columns in dedup hash -- rows with different keys are always distinct
         merged = _dedup_records(merged, all_columns)
 
     if fuzzy_dedup and key_cols:
@@ -403,10 +403,10 @@ def _merge_rows(
         elif val_b is None and val_a is not None:
             result[col] = val_a
         elif norm_a == norm_b:
-            # Values are equal after normalization — keep val_a (original value preserved)
+            # Values are equal after normalization -- keep val_a (original value preserved)
             result[col] = val_a
         else:
-            # Conflict — resolve with schema strategy if available
+            # Conflict -- resolve with schema strategy if available
             if schema is not None:
                 strategy = schema.strategy_for(col)
                 result[col] = strategy.resolve(val_a, val_b, ts_a, ts_b, "a", "b")

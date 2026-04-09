@@ -22,7 +22,7 @@ from crdt_merge.strategies import (
 )
 
 # ---------------------------------------------------------------------------
-# Equality helpers — compare CRDT state since instances lack __eq__
+# Equality helpers -- compare CRDT state since instances lack __eq__
 # ---------------------------------------------------------------------------
 
 
@@ -154,7 +154,7 @@ def gen_lww_map(draw, node_prefix=""):
 
 
 # ===================================================================
-# GCounter — algebraic laws and roundtrip
+# GCounter -- algebraic laws and roundtrip
 # ===================================================================
 
 
@@ -196,7 +196,7 @@ def test_gcounter_merge_monotonic(a, b):
 
 
 # ===================================================================
-# PNCounter — algebraic laws and roundtrip
+# PNCounter -- algebraic laws and roundtrip
 # ===================================================================
 
 
@@ -229,7 +229,7 @@ def test_pncounter_roundtrip(a):
 
 
 # ===================================================================
-# LWWRegister — algebraic laws and roundtrip
+# LWWRegister -- algebraic laws and roundtrip
 # Uses fixed distinct node_ids to avoid the pathological case where
 # timestamp and node_id are both equal but values differ.
 # ===================================================================
@@ -281,7 +281,7 @@ def test_lww_register_roundtrip(a):
 
 
 # ===================================================================
-# ORSet — algebraic laws and roundtrip
+# ORSet -- algebraic laws and roundtrip
 # ===================================================================
 
 
@@ -315,7 +315,7 @@ def test_orset_roundtrip(a):
 
 
 # ===================================================================
-# LWWMap — algebraic laws and roundtrip
+# LWWMap -- algebraic laws and roundtrip
 # Uses node_prefix to guarantee distinct node_ids across replicas.
 # ===================================================================
 
@@ -353,7 +353,7 @@ def test_lww_map_roundtrip(a):
 
 
 # ===================================================================
-# Strategy commutativity — resolve(a,b,...) == resolve(b,a,...) swapped
+# Strategy commutativity -- resolve(a,b,...) == resolve(b,a,...) swapped
 # ===================================================================
 
 
@@ -431,7 +431,7 @@ def test_strategy_priority_commutativity(val_a, val_b):
 
 
 # ===================================================================
-# Strategy idempotency — resolve(a, a) == a
+# Strategy idempotency -- resolve(a, a) == a
 # ===================================================================
 
 
@@ -450,7 +450,7 @@ def test_strategy_min_wins_idempotent(val):
 
 
 # ===================================================================
-# MergeSchema — roundtrip and resolve_row commutativity
+# MergeSchema -- roundtrip and resolve_row commutativity
 # ===================================================================
 
 

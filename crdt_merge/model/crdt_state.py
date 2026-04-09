@@ -64,7 +64,7 @@ Usage
     # Resolve to get the actual merged tensor
     result = merged_1.resolve()
 
-    # Works with ANY strategy — all 25 are true CRDTs
+    # Works with ANY strategy -- all 25 are true CRDTs
     state_ties = CRDTMergeState("ties", base=pretrained_base)
     state_ties.add(finetuned_a, model_id="ft-a")
     state_ties.add(finetuned_b, model_id="ft-b")
@@ -119,7 +119,7 @@ class MergeContribution:
         self.metadata = metadata or {}
         self.timestamp = timestamp or time.time()
 
-        # Store tensor — import numpy lazily
+        # Store tensor -- import numpy lazily
         try:
             import numpy as np
             self.tensor = np.asarray(tensor, dtype=np.float64)
@@ -708,11 +708,11 @@ class CRDTMergeState:
                     f"Strategy '{self.strategy_name}' requires base= but none provided"
                 )
             # ARCHITECTURAL INVARIANT: strategy is called once over the full sorted visible set.
-            # Never call strategies pairwise — doing so would break commutativity for non-associative strategies.
+            # Never call strategies pairwise -- doing so would break commutativity for non-associative strategies.
             return strategy.merge(tensors, weights=weights, base=self.base, **kwargs)
 
         # ARCHITECTURAL INVARIANT: strategy is called once over the full sorted visible set.
-        # Never call strategies pairwise — doing so would break commutativity for non-associative strategies.
+        # Never call strategies pairwise -- doing so would break commutativity for non-associative strategies.
         return strategy.merge(tensors, weights=weights, **kwargs)
 
     # ------------------------------------------------------------------

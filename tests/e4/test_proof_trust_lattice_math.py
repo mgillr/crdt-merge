@@ -395,7 +395,7 @@ class TestVerificationLevelBoundaries:
 
     def test_low_trust_level_2(self):
         """0.1 ≤ overall_trust < 0.4 → level 2"""
-        # Avoid 0.1 exactly — float precision: 1-0.9=0.0999... < 0.1 → level 3
+        # Avoid 0.1 exactly -- float precision: 1-0.9=0.0999... < 0.1 → level 3
         for target in [0.3, 0.15, 0.11]:
             score = self._make_score_with_trust(target)
             lev = score.verification_level()

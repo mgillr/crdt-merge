@@ -530,7 +530,7 @@ class TestEdgeCases:
     def test_empty_input_hash(self):
         auditor = ComplianceAuditor(framework="eu_ai_act")
         auditor.record_merge(operation="merge", input_hash="", output_hash="")
-        # Should still work — findings may flag missing hashes
+        # Should still work -- findings may flag missing hashes
         report = auditor.validate()
         assert isinstance(report, ComplianceReport)
 

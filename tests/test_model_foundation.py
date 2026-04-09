@@ -31,7 +31,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 # ---------------------------------------------------------------------------
-# Fixtures — a simple concrete strategy for testing
+# Fixtures -- a simple concrete strategy for testing
 # ---------------------------------------------------------------------------
 
 from crdt_merge.model.strategies.base import (

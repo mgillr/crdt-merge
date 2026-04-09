@@ -34,7 +34,7 @@ from crdt_merge.accelerators.dbt_package import (
 from crdt_merge.accelerators import ACCELERATOR_REGISTRY
 
 # ===================================================================
-# TestDbtMergeGenerator — 25 tests
+# TestDbtMergeGenerator -- 25 tests
 # ===================================================================
 
 class TestDbtMergeGenerator:
@@ -249,7 +249,7 @@ class TestDbtMergeGenerator:
         assert set(wh) == {"snowflake", "bigquery", "postgres", "duckdb"}
 
 # ===================================================================
-# TestMacroConfig — extra coverage
+# TestMacroConfig -- extra coverage
 # ===================================================================
 
 class TestMacroConfig:

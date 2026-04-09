@@ -326,13 +326,13 @@ class TestMinHashDedup:
         assume(len(base_text.strip()) >= 10)
         mh = MinHashDedup(num_hashes=128, threshold=0.5)
         added_first = mh.add("item1", base_text)
-        # Create a minor variant — append a single char
+        # Create a minor variant -- append a single char
         variant = base_text + "z"
         added_second = mh.add("item2", variant)
         # At least the first must be added; if similarity is high, second is dup
         assert added_first is True
         # If both were added, the texts were dissimilar enough at threshold=0.5
-        # This is a probabilistic check — we just assert no crash and boolean return
+        # This is a probabilistic check -- we just assert no crash and boolean return
         assert isinstance(added_second, bool)
 
 

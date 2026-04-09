@@ -1053,7 +1053,7 @@ def _():
 @check("verify_crdt: LWW with timestamps passes commutativity", "M: Verify Laws")
 def _():
     s = LWW()
-    # For LWW, we need to supply timestamps — test with wrapper
+    # For LWW, we need to supply timestamps -- test with wrapper
     counter = [0]
     def gen():
         counter[0] += 1

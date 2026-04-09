@@ -19,7 +19,7 @@ from crdt_merge.model import CRDTMergeState, list_strategies
 
 
 # ---------------------------------------------------------------------------
-# Fixtures — tabular
+# Fixtures -- tabular
 # ---------------------------------------------------------------------------
 
 @pytest.fixture
@@ -81,7 +81,7 @@ def df_prio_c():
 
 
 # ---------------------------------------------------------------------------
-# Fixtures — model
+# Fixtures -- model
 # ---------------------------------------------------------------------------
 
 @pytest.fixture
@@ -128,7 +128,7 @@ def _make_state(strategy_name, base, seed=42):
 
 
 # ===================================================================
-# TABULAR LAYER — timestamp-based strategies (default merge behaviour)
+# TABULAR LAYER -- timestamp-based strategies (default merge behaviour)
 # ===================================================================
 
 class TestTabularCommutativity:
@@ -321,7 +321,7 @@ class TestTabularConvergence:
 
 
 # ===================================================================
-# MODEL LAYER — all 26 strategies via CRDTMergeState
+# MODEL LAYER -- all 26 strategies via CRDTMergeState
 # ===================================================================
 
 class TestModelCommutativity:

@@ -189,7 +189,7 @@ class TestMerge:
         assert a.size == 1
         assert b.size == 1
 
-# ─── 7. merkle_diff — identical ─────────────────────────────────────────────
+# ─── 7. merkle_diff -- identical ─────────────────────────────────────────────
 
 class TestDiffIdentical:
     def test_same_trees_identical(self):
@@ -205,7 +205,7 @@ class TestDiffIdentical:
         assert diff.is_identical
         assert diff.comparisons_made == 1
 
-# ─── 8. merkle_diff — different ─────────────────────────────────────────────
+# ─── 8. merkle_diff -- different ─────────────────────────────────────────────
 
 class TestDiffDifferent:
     def test_only_left_keys(self):

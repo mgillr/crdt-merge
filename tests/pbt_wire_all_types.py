@@ -46,7 +46,7 @@ _safe_float = st.floats(
 )
 _scalar = st.one_of(_safe_int, _safe_str, st.booleans(), st.none())
 
-# A simple JSON-safe value (no floats — avoids float64 precision edge cases)
+# A simple JSON-safe value (no floats -- avoids float64 precision edge cases)
 _wire_value = st.one_of(_safe_int, _safe_str, st.booleans(), st.none())
 
 # ---------------------------------------------------------------------------

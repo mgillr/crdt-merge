@@ -49,7 +49,7 @@ __all__ = [
 
 
 # ---------------------------------------------------------------------------
-# Lazy numpy import — numpy is optional for tabular operations
+# Lazy numpy import -- numpy is optional for tabular operations
 # ---------------------------------------------------------------------------
 
 def _lazy_np():
@@ -62,7 +62,7 @@ def _lazy_np():
 
 
 # ---------------------------------------------------------------------------
-# Data classes — public result types
+# Data classes -- public result types
 # ---------------------------------------------------------------------------
 
 @dataclass
@@ -154,7 +154,7 @@ def _estimate_bytes(value: Any) -> int:
 
 
 # ---------------------------------------------------------------------------
-# UnmergeEngine — tabular unmerge
+# UnmergeEngine -- tabular unmerge
 # ---------------------------------------------------------------------------
 
 class UnmergeEngine:
@@ -218,21 +218,21 @@ class UnmergeEngine:
             key_val = _record_key(row, key_field)
             prov_rec = prov_by_key.get(key_val)
 
-            # No provenance — keep record unchanged (safe default)
+            # No provenance -- keep record unchanged (safe default)
             if prov_rec is None:
                 result.append(dict(row))
                 continue
 
-            # Record was unique to the removed source — drop it
+            # Record was unique to the removed source -- drop it
             if prov_rec.origin == remove_unique:
                 continue
 
-            # Record was unique to the kept source — keep as-is
+            # Record was unique to the kept source -- keep as-is
             if prov_rec.origin == f"unique_{keep_source}":
                 result.append(dict(row))
                 continue
 
-            # Merged record — reconstruct without the removed source
+            # Merged record -- reconstruct without the removed source
             if prov_rec.origin == "merged":
                 new_row = self._reconstruct_merged_row(
                     prov_rec, remove_source, remove_only, keep_only,
@@ -387,16 +387,16 @@ class UnmergeEngine:
 
         for dec in prov_rec.decisions:
             if dec.source == "both_equal":
-                # Both sources agree — safe to keep
+                # Both sources agree -- safe to keep
                 new_row[dec.field] = dec.value
                 has_kept_data = True
 
             elif dec.source == remove_only:
-                # Field contributed only by the removed source — drop it
+                # Field contributed only by the removed source -- drop it
                 continue
 
             elif dec.source == keep_only:
-                # Field contributed only by the kept source — keep it
+                # Field contributed only by the kept source -- keep it
                 new_row[dec.field] = dec.value
                 has_kept_data = True
 
@@ -414,7 +414,7 @@ class UnmergeEngine:
 
 
 # ---------------------------------------------------------------------------
-# ModelUnmerge — model weight unmerge
+# ModelUnmerge -- model weight unmerge
 # ---------------------------------------------------------------------------
 
 class ModelUnmerge:
@@ -558,7 +558,7 @@ class ModelUnmerge:
         """Unmerge from a CRDTMergeState using its built-in provenance."""
         contribution = state.get_contribution(remove_model)
         if contribution is None:
-            # Nothing to remove — resolve and return as single-layer result
+            # Nothing to remove -- resolve and return as single-layer result
             resolved = state.resolve()
             return {"merged": self._to_native(resolved, np)}
 
@@ -628,7 +628,7 @@ class ModelUnmerge:
         result: dict = {}
         for layer_name, merged_tensor in merged_state.items():
             if layer_name == remove_model:
-                # This layer IS the removed model — skip
+                # This layer IS the removed model -- skip
                 continue
 
             removed_tensor = merged_state.get(remove_model)
@@ -746,7 +746,7 @@ class ModelUnmerge:
 
 
 # ---------------------------------------------------------------------------
-# GDPRForget — compliance-oriented forget API
+# GDPRForget -- compliance-oriented forget API
 # ---------------------------------------------------------------------------
 
 class GDPRForget:

@@ -42,14 +42,14 @@ from typing import Any, Dict, List, NamedTuple, Optional
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Optional integration imports — compliance.py works standalone
+# Optional integration imports -- compliance.py works standalone
 # ---------------------------------------------------------------------------
 # Issue #83: These type: ignore[assignment,misc] comments are intentional.
 # Each try/except block imports an optional dependency module. When the import
 # fails (e.g., circular import during bootstrapping or missing optional dep),
 # the name is set to None so that downstream isinstance() / getattr() checks
 # degrade gracefully. Mypy flags the None assignment because it conflicts with
-# the class type from the successful import path — this is expected and
+# the class type from the successful import path -- this is expected and
 # unavoidable without TYPE_CHECKING guards, which would break the runtime
 # fallback pattern used here.
 # ---------------------------------------------------------------------------
@@ -92,7 +92,7 @@ __all__ = [
 
 
 # ---------------------------------------------------------------------------
-# CheckResult — typed return structure for _check_* methods
+# CheckResult -- typed return structure for _check_* methods
 # ---------------------------------------------------------------------------
 
 class CheckResult(NamedTuple):
@@ -488,11 +488,11 @@ _FRAMEWORK_RULES: types.MappingProxyType = types.MappingProxyType({
 
 
 # ---------------------------------------------------------------------------
-# Built-in compliance rules — GDPR Art. 5, HIPAA PHI, SOX controls
+# Built-in compliance rules -- GDPR Art. 5, HIPAA PHI, SOX controls
 # ---------------------------------------------------------------------------
 # These rules are registered at module import time via register_compliance_rule().
 # They supplement the structural checks in _FRAMEWORK_RULES with data-level
-# and control-flow checks.  They are intentionally not exhaustive — see the
+# and control-flow checks.  They are intentionally not exhaustive -- see the
 # individual rule docstrings for the specific clause addressed.
 # ---------------------------------------------------------------------------
 
@@ -536,7 +536,7 @@ def _gdpr_data_minimisation_rule(auditor: "ComplianceAuditor") -> "ComplianceFin
         findings_list.append(field_name)
 
     if findings_list:
-        # Return one finding per extra field — represented as a single finding
+        # Return one finding per extra field -- represented as a single finding
         # with evidence listing all offending fields, to keep the API simple.
         return ComplianceFinding(
             rule_id="GDPR_ART_5_1_C_DATA_MINIMISATION",
@@ -704,7 +704,7 @@ def _hipaa_phi_detection_rule(auditor: "ComplianceAuditor") -> "ComplianceFindin
                 "Review flagged fields and apply HIPAA Safe Harbor de-identification "
                 "before storing or transmitting this data."
             ),
-            # Only field names and PHI types — no actual values are included
+            # Only field names and PHI types -- no actual values are included
             evidence={
                 "phi_fields": {f: types for f, types in detected.items()},
                 "note": "Sampled detection (up to 100 values per field) — not exhaustive.",
@@ -853,12 +853,12 @@ def _sox_merge_authorization_rule(auditor: "ComplianceAuditor") -> "ComplianceFi
 
 
 # Register built-in rules at module import time.
-# GDPR Art. 5 — data minimisation and storage limitation
+# GDPR Art. 5 -- data minimisation and storage limitation
 register_compliance_rule("gdpr", _gdpr_data_minimisation_rule)
 register_compliance_rule("gdpr", _gdpr_storage_limitation_rule)
 # HIPAA PHI detection (Safe Harbor identifiers)
 register_compliance_rule("hipaa", _hipaa_phi_detection_rule)
-# SOX IT General Controls — Change Management and Separation of Duties
+# SOX IT General Controls -- Change Management and Separation of Duties
 register_compliance_rule("sox", _sox_audit_trail_integrity_rule)
 register_compliance_rule("sox", _sox_merge_authorization_rule)
 
@@ -1426,7 +1426,7 @@ class ComplianceAuditor:
 
 
 # ---------------------------------------------------------------------------
-# EUAIActReport — specialised EU AI Act report generator
+# EUAIActReport -- specialised EU AI Act report generator
 # ---------------------------------------------------------------------------
 
 class EUAIActReport:
@@ -1573,7 +1573,7 @@ class EUAIActReport:
         checks into a single :class:`ComplianceReport`.
         """
         # Use a shallow copy of the auditor to avoid mutating the original's
-        # framework attribute — the original approach was NOT thread-safe.
+        # framework attribute -- the original approach was NOT thread-safe.
         temp_auditor = copy.copy(self._auditor)
         temp_auditor.framework = "eu_ai_act"
         report = temp_auditor.validate()

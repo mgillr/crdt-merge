@@ -252,7 +252,7 @@ class TestAuditLogConcurrency:
             t.join(timeout=15)
 
         assert not errors, f"Errors during concurrent AuditLog writes: {errors}"
-        # All entries must have been appended — total count correct
+        # All entries must have been appended -- total count correct
         assert len(log) == n_threads * records_per_thread
 
     def test_concurrent_log_and_export(self):

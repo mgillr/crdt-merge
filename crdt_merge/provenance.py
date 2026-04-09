@@ -227,7 +227,7 @@ def _resolve_with_provenance(
             record.decisions.append(MergeDecision(
                 field=col, source="both_equal", strategy="", value=val_a))
         else:
-            # Real conflict — resolve with strategy
+            # Real conflict -- resolve with strategy
             strategy = schema.strategy_for(col) if schema else default_strategy
             resolved = strategy.resolve(val_a, val_b, ts_a, ts_b)
             # Determine which source won

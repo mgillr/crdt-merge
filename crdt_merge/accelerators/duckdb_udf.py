@@ -252,7 +252,7 @@ class DuckDBMergeUDF:
                 right_recs = [right_recs]
             return _json.dumps(_diff_records(left_recs, right_recs, key))
 
-        # UDF: crdt_strategy(name) -> VARCHAR — returns strategy metadata as JSON
+        # UDF: crdt_strategy(name) -> VARCHAR -- returns strategy metadata as JSON
         def _udf_strategy(strategy_name: str) -> str:
             lower = strategy_name.lower()
             if lower in _STRATEGY_MAP:
@@ -442,7 +442,7 @@ class DuckDBMergeQLExtension:
 
         ql = MergeQL(arrow_backend=False)
         # We cannot directly register DuckDB tables as MergeQL sources
-        # without reading them first — delegate to the UDF for table-level work.
+        # without reading them first -- delegate to the UDF for table-level work.
         return ql.execute(query)
 
     def explain_mergeql(self, query: str) -> str:

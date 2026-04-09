@@ -78,7 +78,7 @@ TYPE_WIDENING: Dict[Tuple[str, str], str] = {
     ("list[float64]", "list[int32]"): "list[float64]",
     ("list[int64]", "list[float64]"): "list[float64]",
     ("list[float64]", "list[int64]"): "list[float64]",
-    # struct field-type widening (opaque — both sides must be identical struct types)
+    # struct field-type widening (opaque -- both sides must be identical struct types)
     # Specific struct widening must be registered at runtime via register_widening().
 }
 

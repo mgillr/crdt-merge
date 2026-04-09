@@ -84,7 +84,7 @@ def main(argv: Optional[list] = None) -> None:
     # Dispatch
     handler = getattr(args, "handler", None)
     if handler is None:
-        # No command given — show help
+        # No command given -- show help
         parser.print_help()
         sys.exit(0)
 

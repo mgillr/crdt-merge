@@ -87,7 +87,7 @@ _VERSION = "0.7.0"
 _CONNECTOR_NAME = "destination-crdt-merge"
 _DEFAULT_STRATEGY = "lww"
 
-# Issue #20: Immutable mapping — strategy names are a fixed lookup table.
+# Issue #20: Immutable mapping -- strategy names are a fixed lookup table.
 # Using MappingProxyType prevents accidental mutation in multi-threaded contexts.
 _STRATEGY_MAP = types.MappingProxyType({
     "lww": "LWW",

@@ -113,7 +113,7 @@ LINES_B = [
 
 
 # ===================================================================
-# 1. handle_json_merge — happy paths
+# 1. handle_json_merge -- happy paths
 # ===================================================================
 
 
@@ -230,17 +230,17 @@ class TestHandleJsonMerge:
         fb = _write_json_file(tmp_path, "b.json", doc_b)
         formatter, stream = _make_formatter()
         # prefer flag is parsed by the caller; merge_dicts respects timestamps
-        # or side-B precedence by default — the flag is stored on args.prefer
+        # or side-B precedence by default -- the flag is stored on args.prefer
         # but merge_dicts does not consume it directly (LWW defaults to B).
         args = _make_merge_args(file_a=fa, file_b=fb, prefer="b")
         handle_json_merge(args, formatter)
         result = json.loads(stream.getvalue())
-        # By default CRDT LWW side-B wins ties — value should be from_b.
+        # By default CRDT LWW side-B wins ties -- value should be from_b.
         assert result["x"] == "from_b"
 
 
 # ===================================================================
-# 2. handle_json_merge_lines — happy paths
+# 2. handle_json_merge_lines -- happy paths
 # ===================================================================
 
 
@@ -318,7 +318,7 @@ class TestHandleJsonMergeLines:
 
 
 # ===================================================================
-# 3. main() CLI dispatch — json sub-commands
+# 3. main() CLI dispatch -- json sub-commands
 # ===================================================================
 
 

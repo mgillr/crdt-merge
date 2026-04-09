@@ -955,7 +955,7 @@ class EMRMerge(ModelMergeStrategy):
             return _from_array(result, original)
 
 # ===================================================================
-# 11. STAR — Spectral Truncation Adaptive Rescaling
+# 11. STAR -- Spectral Truncation Adaptive Rescaling
 # ===================================================================
 
 @register_strategy("star")

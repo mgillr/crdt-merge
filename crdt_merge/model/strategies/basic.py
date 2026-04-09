@@ -159,7 +159,7 @@ class WeightAverage(ModelMergeStrategy):
                 result = result + w * a.astype(float)
             return _from_array(result, original)
 
-        # Pure-python fallback — flat lists
+        # Pure-python fallback -- flat lists
         result = _py_zeros_like(arrays[0])
         for w, a in zip(norm_w, arrays):
             result = _py_add(result, _py_scale(a, w))

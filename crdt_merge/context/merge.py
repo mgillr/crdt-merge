@@ -91,7 +91,7 @@ def _resolve_conflict_lww(a: MemoryChunk, b: MemoryChunk) -> MemoryChunk:
     elif a.sidecar.timestamp > b.sidecar.timestamp:
         winner_fact, merged_sc = a.fact, a.sidecar.merge(b.sidecar)
     else:
-        # Same timestamp — higher confidence wins, then deterministic
+        # Same timestamp -- higher confidence wins, then deterministic
         if b.sidecar.confidence > a.sidecar.confidence:
             winner_fact = b.fact
         elif a.sidecar.confidence > b.sidecar.confidence:
@@ -109,7 +109,7 @@ def _resolve_conflict_max_confidence(a: MemoryChunk, b: MemoryChunk) -> MemoryCh
     elif a.sidecar.confidence > b.sidecar.confidence:
         winner_fact = a.fact
     else:
-        # Same confidence — LWW tie-break
+        # Same confidence -- LWW tie-break
         if b.sidecar.timestamp > a.sidecar.timestamp:
             winner_fact = b.fact
         elif a.sidecar.timestamp > b.sidecar.timestamp:
@@ -130,7 +130,7 @@ def _resolve_conflict_priority(
     elif rank_a > rank_b:
         winner_fact = a.fact
     else:
-        # Same priority — max confidence
+        # Same priority -- max confidence
         return _resolve_conflict_max_confidence(a, b)
     return MemoryChunk(fact=winner_fact, sidecar=a.sidecar.merge(b.sidecar))
 
@@ -282,7 +282,7 @@ class ContextMerge:
                 # Same fact_id → conflict or exact dup
                 existing = merged[fid]
                 if existing.fact == mc.fact:
-                    # Exact duplicate — merge sidecars
+                    # Exact duplicate -- merge sidecars
                     merged[fid] = MemoryChunk(
                         fact=mc.fact,
                         sidecar=existing.sidecar.merge(mc.sidecar),
@@ -295,7 +295,7 @@ class ContextMerge:
             elif is_bloom_dup:
                 # Bloom says we've seen this fact before but fact_id not in merged
                 # (might have been from a previous merge session)
-                # Still add it — bloom false positives handled gracefully
+                # Still add it -- bloom false positives handled gracefully
                 merged[fid] = mc
             else:
                 merged[fid] = mc
@@ -306,7 +306,7 @@ class ContextMerge:
             if mc.sidecar.confidence >= self.min_confidence
         ]
 
-        # Step 4: Budget filter — keep highest confidence
+        # Step 4: Budget filter -- keep highest confidence
         if self.budget is not None and len(result_memories) > self.budget:
             result_memories.sort(key=lambda mc: mc.sidecar.confidence, reverse=True)
             result_memories = result_memories[: self.budget]

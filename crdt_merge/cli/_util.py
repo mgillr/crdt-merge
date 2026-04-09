@@ -280,7 +280,7 @@ def write_data(
     if format is None:
         format = detect_format(path) if path != "-" else "json"
 
-    # Parquet is binary — handle separately (cannot write to stdout easily).
+    # Parquet is binary -- handle separately (cannot write to stdout easily).
     if format == "parquet":
         if path == "-":
             raise ValueError(

@@ -239,7 +239,7 @@ class TestApplyEntries:
         s1.update("k", "from-n1")
         s2.update("k", "from-n2")
 
-        # Apply s1's entry to s2 — if s1's clock wins the tiebreak it
+        # Apply s1's entry to s2 -- if s1's clock wins the tiebreak it
         # should update, otherwise not.  Either way, it should not crash.
         entries_1 = s1.get_entries({"k"})
         s2.apply_entries(entries_1)
@@ -258,7 +258,7 @@ class TestApplyEntries:
         assert old_entry is not None
 
         s1.update("k", "new")
-        # Try to apply the old entry — should be rejected
+        # Try to apply the old entry -- should be rejected
         count = s1.apply_entries([old_entry])
         assert count == 0
         assert s1.get("k") == "new"

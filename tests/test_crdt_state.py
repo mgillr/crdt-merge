@@ -62,7 +62,7 @@ def make_state(strategy, trial=0):
     return sa, sb, sc
 
 # ===========================================================================
-# 1. CRDT LAW PROOFS — All 25 Strategies
+# 1. CRDT LAW PROOFS -- All 25 Strategies
 # ===========================================================================
 
 class TestCRDTLaws:
@@ -131,7 +131,7 @@ class TestCRDTLaws:
             )
 
 # ===========================================================================
-# 2. RESOLVE CONSISTENCY — All merge orderings produce same output
+# 2. RESOLVE CONSISTENCY -- All merge orderings produce same output
 # ===========================================================================
 
 class TestResolveConsistency:
@@ -156,7 +156,7 @@ class TestResolveConsistency:
             )
 
 # ===========================================================================
-# 3. OR-SET SEMANTICS — Add/Remove with concurrent operations
+# 3. OR-SET SEMANTICS -- Add/Remove with concurrent operations
 # ===========================================================================
 
 class TestORSetSemantics:
@@ -194,7 +194,7 @@ class TestORSetSemantics:
         assert "X" in state.model_ids
 
 # ===========================================================================
-# 4. VERSIONED REGISTRY — Model update support
+# 4. VERSIONED REGISTRY -- Model update support
 # ===========================================================================
 
 class TestVersionedRegistry:

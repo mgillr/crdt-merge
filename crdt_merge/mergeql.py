@@ -807,7 +807,7 @@ class MergeQL:
 
         for src_name in ast.sources:
             for row in self._sources.get(src_name, []):
-                # OPTIMISATION: filter_pushdown — evaluate WHERE predicate on the
+                # OPTIMISATION: filter_pushdown -- evaluate WHERE predicate on the
                 # raw source row before merging.  Rows that fail the predicate are
                 # dropped here, reducing merge work.  Falls back to post-merge
                 # filtering if the optimisation is not applied.
@@ -855,7 +855,7 @@ class MergeQL:
 
         result_data = list(keyed.values())
 
-        # WHERE filter (post-merge fallback — applied when filter_pushdown was
+        # WHERE filter (post-merge fallback -- applied when filter_pushdown was
         # not used or when the pushed-down filter failed mid-scan).
         if ast.where_clause and not use_filter_pushdown:
             result_data = [r for r in result_data if _eval_where(r, ast.where_clause)]

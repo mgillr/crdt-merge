@@ -74,7 +74,7 @@ def gen_records(draw, min_size=0, max_size=5):
 
 
 # ---------------------------------------------------------------------------
-# GossipState — CRDT laws
+# GossipState -- CRDT laws
 # ---------------------------------------------------------------------------
 
 
@@ -117,7 +117,7 @@ def test_gossip_to_from_dict_roundtrip(a):
 
 
 # ---------------------------------------------------------------------------
-# GossipState — digest determinism and anti-entropy
+# GossipState -- digest determinism and anti-entropy
 # ---------------------------------------------------------------------------
 
 
@@ -165,7 +165,7 @@ def test_gossip_anti_entropy_keys_classify_correctly(a, b):
 
 
 # ---------------------------------------------------------------------------
-# MerkleTree — CRDT laws
+# MerkleTree -- CRDT laws
 # ---------------------------------------------------------------------------
 
 
@@ -221,7 +221,7 @@ def test_merkle_to_from_dict_roundtrip(records):
 
 
 # ---------------------------------------------------------------------------
-# MerkleTree — diff and convergence
+# MerkleTree -- diff and convergence
 # ---------------------------------------------------------------------------
 
 

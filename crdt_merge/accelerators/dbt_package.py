@@ -64,7 +64,7 @@ from crdt_merge.accelerators import register_accelerator
 
 _SUPPORTED_WAREHOUSES = ("snowflake", "bigquery", "postgres", "duckdb")
 
-# Issue #20: Immutable mapping — strategy names are a fixed lookup table.
+# Issue #20: Immutable mapping -- strategy names are a fixed lookup table.
 # Using MappingProxyType prevents accidental mutation in multi-threaded contexts.
 _STRATEGY_MAP = types.MappingProxyType({
     "lww": "lww",
@@ -652,5 +652,5 @@ class DbtMergeGenerator:
             return f"case {' '.join(cases)} else {fallback} end as {col}"
 
         else:
-            # Fallback — coalesce
+            # Fallback -- coalesce
             return f"coalesce({', '.join(src_refs)}) as {col}"

@@ -106,7 +106,7 @@ class TestRoundTrip:
 
 
 # ---------------------------------------------------------------------------
-# 2. Order preservation — EncryptedValue comparisons match plaintext
+# 2. Order preservation -- EncryptedValue comparisons match plaintext
 # ---------------------------------------------------------------------------
 
 class TestOrderPreservation:
@@ -171,7 +171,7 @@ class TestMergeEncrypted:
         merged = em.merge_encrypted(left, right, key="id")
         decrypted = em.decrypt_records(merged)
         assert len(decrypted) == 1
-        # Default: higher order_tag wins — both produce valid encrypted values
+        # Default: higher order_tag wins -- both produce valid encrypted values
         assert decrypted[0]["val"] in (10, 20)
 
     def test_merge_preserves_unencrypted_key(self, em):
@@ -251,7 +251,7 @@ class TestKeyRotation:
 
 
 # ---------------------------------------------------------------------------
-# 5. Authentication — tampered ciphertext raises error
+# 5. Authentication -- tampered ciphertext raises error
 # ---------------------------------------------------------------------------
 
 class TestAuthentication:
@@ -285,7 +285,7 @@ class TestAuthentication:
 
 
 # ---------------------------------------------------------------------------
-# 6. Field isolation — different fields use different derived keys
+# 6. Field isolation -- different fields use different derived keys
 # ---------------------------------------------------------------------------
 
 class TestFieldIsolation:

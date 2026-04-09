@@ -36,7 +36,7 @@ Usage:
     )
     merged = merge(df_a, df_b, key="id", schema=schema)
 
-    # Streaming merge — O(batch_size) memory (NEW in v0.3.0)
+    # Streaming merge -- O(batch_size) memory (NEW in v0.3.0)
     from crdt_merge.streaming import merge_stream
     for batch in merge_stream(source_a, source_b, key="id", batch_size=5000):
         write_batch(batch)
@@ -195,7 +195,7 @@ from .async_merge import amerge, amerge_stream, amerge_sorted_stream
 # v0.6.0: Parallel Merge
 from .parallel import parallel_merge, parallel_merge_arrow
 
-# v0.7.0: MergeQL — SQL-like CRDT merge interface
+# v0.7.0: MergeQL -- SQL-like CRDT merge interface
 from .mergeql import (
     MergeQL, MergeAST, MergePlan, MergeQLResult,
     MergeQLSyntaxError, MergeQLValidationError,
@@ -212,7 +212,7 @@ from .context import (
 # v0.8.2: Agentic AI State Merge
 from .agentic import AgentState, SharedKnowledge, Fact
 
-# v0.9.0: Enterprise Modules — Unmerge, Audit, Encryption, RBAC, Observability
+# v0.9.0: Enterprise Modules -- Unmerge, Audit, Encryption, RBAC, Observability
 from .unmerge import UnmergeEngine, ModelUnmerge, GDPRForget
 from .audit import AuditLog, AuditEntry, AuditedMerge
 try:

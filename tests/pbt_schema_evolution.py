@@ -51,7 +51,7 @@ _schema = st.dictionaries(
 
 
 # ---------------------------------------------------------------------------
-# evolve_schema — no-change when old == new
+# evolve_schema -- no-change when old == new
 # ---------------------------------------------------------------------------
 
 
@@ -75,7 +75,7 @@ def test_evolve_schema_same_input_resolved_equals_input(schema):
 
 
 # ---------------------------------------------------------------------------
-# evolve_schema — UNION includes all keys from both sides
+# evolve_schema -- UNION includes all keys from both sides
 # ---------------------------------------------------------------------------
 
 
@@ -91,7 +91,7 @@ def test_evolve_schema_union_has_all_keys(a, b):
 
 
 # ---------------------------------------------------------------------------
-# evolve_schema — INTERSECTION keeps only common keys
+# evolve_schema -- INTERSECTION keeps only common keys
 # ---------------------------------------------------------------------------
 
 
@@ -115,7 +115,7 @@ def test_evolve_schema_intersection_no_extra_keys(a, b):
 
 
 # ---------------------------------------------------------------------------
-# evolve_schema — LEFT_PRIORITY
+# evolve_schema -- LEFT_PRIORITY
 # ---------------------------------------------------------------------------
 
 
@@ -129,7 +129,7 @@ def test_evolve_schema_left_priority_keeps_left_types_for_common(a, b):
 
 
 # ---------------------------------------------------------------------------
-# widen_type — idempotency and known pairs
+# widen_type -- idempotency and known pairs
 # ---------------------------------------------------------------------------
 
 
@@ -175,7 +175,7 @@ def test_widen_type_symmetric(pair):
 
 
 # ---------------------------------------------------------------------------
-# register_widening — custom rule is queryable afterward
+# register_widening -- custom rule is queryable afterward
 # ---------------------------------------------------------------------------
 
 
@@ -194,7 +194,7 @@ def test_register_widening_then_widen_returns_registered(result_type):
 
 
 # ---------------------------------------------------------------------------
-# SchemaEvolutionResult — rename_column
+# SchemaEvolutionResult -- rename_column
 # ---------------------------------------------------------------------------
 
 
@@ -225,7 +225,7 @@ def test_rename_column_missing_key_raises(col, typ):
 
 
 # ---------------------------------------------------------------------------
-# SchemaEvolutionResult — serialisation roundtrip
+# SchemaEvolutionResult -- serialisation roundtrip
 # ---------------------------------------------------------------------------
 
 
@@ -244,7 +244,7 @@ def test_schema_evolution_result_to_from_dict_roundtrip(a, b):
 
 
 # ---------------------------------------------------------------------------
-# evolve_schema — compatible flag
+# evolve_schema -- compatible flag
 # ---------------------------------------------------------------------------
 
 

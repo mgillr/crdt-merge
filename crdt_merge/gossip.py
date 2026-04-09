@@ -77,7 +77,7 @@ __all__ = [
 ]
 
 # ═════════════════════════════════════════════════════════════════════════════
-# GossipEntry — a single key-value entry with causal metadata
+# GossipEntry -- a single key-value entry with causal metadata
 # ═════════════════════════════════════════════════════════════════════════════
 
 @dataclass
@@ -135,7 +135,7 @@ class GossipEntry:
         )
 
 # ═════════════════════════════════════════════════════════════════════════════
-# GossipState — the gossip protocol state machine
+# GossipState -- the gossip protocol state machine
 # ═════════════════════════════════════════════════════════════════════════════
 
 class GossipState:

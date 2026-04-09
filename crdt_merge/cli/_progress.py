@@ -98,7 +98,7 @@ class ProgressBar:
         try:
             self._is_tty = hasattr(stream, "isatty") and stream.isatty()
         except (ValueError, OSError):
-            # Stream is closed (e.g. pytest capture redirect) — treat as non-TTY
+            # Stream is closed (e.g. pytest capture redirect) -- treat as non-TTY
             self._is_tty = False
         self._use_rich = False
         self._rich_ctx: Any = None
@@ -246,7 +246,7 @@ class Spinner:
         try:
             self._is_tty = hasattr(stream, "isatty") and stream.isatty()
         except (ValueError, OSError):
-            # Stream is closed (e.g. pytest capture redirect) — treat as non-TTY
+            # Stream is closed (e.g. pytest capture redirect) -- treat as non-TTY
             self._is_tty = False
         self._use_rich = False
         self._rich_ctx: Any = None

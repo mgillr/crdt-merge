@@ -40,7 +40,7 @@ def _close(a, b, tol=1e-6):
 
 
 # ---------------------------------------------------------------------------
-# FederatedMerge — initialization
+# FederatedMerge -- initialization
 # ---------------------------------------------------------------------------
 
 class TestFederatedMergeInit:
@@ -102,7 +102,7 @@ class TestFederatedMergeSubmit:
 
 
 # ---------------------------------------------------------------------------
-# FederatedMerge.aggregate — FedAvg
+# FederatedMerge.aggregate -- FedAvg
 # ---------------------------------------------------------------------------
 
 class TestFederatedMergeFedAvg:
@@ -169,7 +169,7 @@ class TestFederatedMergeFedAvg:
 
 
 # ---------------------------------------------------------------------------
-# FederatedMerge.aggregate — FedProx
+# FederatedMerge.aggregate -- FedProx
 # ---------------------------------------------------------------------------
 
 class TestFederatedMergeFedProx:

@@ -124,7 +124,7 @@ class TestUnmergeEngine:
     def test_unmerge_unknown_source(self, merged_result, engine):
         """Removing a source that contributed nothing keeps all records."""
         merged, prov = merged_result
-        # The provenance only knows "a" and "b" — "c" contributed nothing
+        # The provenance only knows "a" and "b" -- "c" contributed nothing
         # Since no records have origin "unique_c", all records are kept
         result = engine.unmerge(merged, prov, "c")
         # Merged records with origin "merged" will have decisions with
@@ -145,7 +145,7 @@ class TestUnmergeEngine:
         merged, prov = merge_with_provenance(data, list(data), key="id")
         result_a = engine.unmerge(merged, prov, "a")
         result_b = engine.unmerge(merged, prov, "b")
-        # Both sources agree — data persists regardless of which is removed
+        # Both sources agree -- data persists regardless of which is removed
         assert len(result_a) == 1
         assert len(result_b) == 1
         assert result_a[0]["name"] == "Same"
@@ -208,7 +208,7 @@ class TestVerifyUnmerge:
     def test_verify_detects_residual(self, merged_result, engine):
         """If we skip the unmerge, verification should detect residual."""
         merged, prov = merged_result
-        # Pass the original merged data as "unmerged" — source B is still there
+        # Pass the original merged data as "unmerged" -- source B is still there
         report = engine.verify_unmerge(merged, merged, "b", prov)
         # Records unique to B are still present → residual > 0
         assert report.residual_data > 0
@@ -237,7 +237,7 @@ class TestDeltaUnmerge:
             modified=[{"id": 1, "name": "Alice_B"}],
             removed=[],
         )
-        # Record id=3 is unique_b — should be removed
+        # Record id=3 is unique_b -- should be removed
         filtered = engine.unmerge_delta(delta, prov, "b")
         assert isinstance(filtered, Delta)
         added_ids = {r["id"] for r in filtered.added}
@@ -575,7 +575,7 @@ class TestCRDTPreservation:
         result = model_unmerge.unmerge_model(
             state, None, "b", method="negmerge",
         )
-        # Result is a dict with tensors — valid output
+        # Result is a dict with tensors -- valid output
         assert isinstance(result, dict)
         assert "merged" in result
         tensor = np.asarray(result["merged"])

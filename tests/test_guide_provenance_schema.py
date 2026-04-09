@@ -215,7 +215,7 @@ class TestAuditLogBasic:
 
 
 # ---------------------------------------------------------------------------
-# Cookbook: AuditedMerge — Automatic Logging
+# Cookbook: AuditedMerge -- Automatic Logging
 # ---------------------------------------------------------------------------
 
 class TestAuditedMerge:
@@ -536,7 +536,7 @@ class TestCheckCompatibility:
 
 
 # ---------------------------------------------------------------------------
-# evolve_schema — core walkthrough
+# evolve_schema -- core walkthrough
 # ---------------------------------------------------------------------------
 
 class TestEvolveSchema:
@@ -626,7 +626,7 @@ class TestEvolveSchema:
 
 
 # ---------------------------------------------------------------------------
-# Concurrent schema merges — pairwise resolution
+# Concurrent schema merges -- pairwise resolution
 # ---------------------------------------------------------------------------
 
 class TestConcurrentSchemaMerges:
@@ -662,12 +662,12 @@ class TestCrossVersionMerging:
         v1_schema = {"id": "int64", "name": "str", "score": "int32"}
         v2_schema = {"id": "int64", "name": "str", "score": "float64", "email": "str"}
 
-        # Step 1 — check up-front (not compatible because columns differ)
+        # Step 1 -- check up-front (not compatible because columns differ)
         ok, reasons = check_compatibility(v1_schema, v2_schema)
         # ok may be False due to extra column in v2; just verify it runs
         assert isinstance(ok, bool)
 
-        # Step 2 — evolve
+        # Step 2 -- evolve
         evo = evolve_schema(
             v1_schema, v2_schema,
             policy=SchemaPolicy.UNION,
@@ -740,7 +740,7 @@ class TestSchemaMigrationTests:
 # ===========================================================================
 
 # ---------------------------------------------------------------------------
-# Engine Selection — basic merge (pandas path)
+# Engine Selection -- basic merge (pandas path)
 # ---------------------------------------------------------------------------
 
 class TestPerformanceTuningBasicMerge:

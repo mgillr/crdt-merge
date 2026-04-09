@@ -62,7 +62,7 @@ def snap_b():
     ]
 
 # ═══════════════════════════════════════════════════════════════════════════
-# TestMergeSnapshots — core merge
+# TestMergeSnapshots -- core merge
 # ═══════════════════════════════════════════════════════════════════════════
 
 class TestMergeSnapshots:
@@ -122,7 +122,7 @@ class TestMergeSnapshots:
         assert result.merge_time_ms >= 0
 
 # ═══════════════════════════════════════════════════════════════════════════
-# TestDetectChanges — change detection
+# TestDetectChanges -- change detection
 # ═══════════════════════════════════════════════════════════════════════════
 
 class TestDetectChanges:
@@ -231,7 +231,7 @@ class TestBranching:
         assert data[0]["id"] == 10
 
 # ═══════════════════════════════════════════════════════════════════════════
-# TestSnapshots — snapshot registration
+# TestSnapshots -- snapshot registration
 # ═══════════════════════════════════════════════════════════════════════════
 
 class TestSnapshots:

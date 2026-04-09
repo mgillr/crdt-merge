@@ -1,4 +1,4 @@
-# Root conftest.py — project-wide pytest configuration.
+# Root conftest.py -- project-wide pytest configuration.
 #
 # Benchmark helpers in benchmarks/a100_v080/test_crdt_laws_granular.py are
 # NOT pytest tests; they return PropertyResult values and are invoked by

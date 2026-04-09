@@ -326,7 +326,7 @@ class RBACController:
 
 
 # ---------------------------------------------------------------------------
-# SecureMerge — RBAC-enforced merge wrapper
+# SecureMerge -- RBAC-enforced merge wrapper
 # ---------------------------------------------------------------------------
 
 

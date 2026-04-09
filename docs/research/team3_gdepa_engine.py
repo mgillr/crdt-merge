@@ -127,7 +127,7 @@ class ASTSymbolExtractor(ast.NodeVisitor):
                 self.symbols[mfqn] = {'type': 'method', 'lineno': child.lineno, 'name': child.name}
         
         self.scope_stack.pop()
-        # Don't call generic_visit — we already handled child functions above
+        # Don't call generic_visit -- we already handled child functions above
         for child in ast.iter_child_nodes(node):
             if not isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 self.visit(child)

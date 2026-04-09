@@ -630,7 +630,7 @@ class LWWMap:
                 result._registers[k] = LWWRegister(a.value, a.timestamp, a._node_id)
             else:
                 result._registers[k] = LWWRegister(b.value, b.timestamp, b._node_id)
-        # Merge tombstones — latest deletion wins
+        # Merge tombstones -- latest deletion wins
         for k in set(self._tombstones) | set(other._tombstones):
             ts_a = self._tombstones.get(k, 0)
             ts_b = other._tombstones.get(k, 0)

@@ -62,7 +62,7 @@ def ql_three(ql):
     return ql
 
 # ===================================================================
-# TestMergeQLParser — 15 tests
+# TestMergeQLParser -- 15 tests
 # ===================================================================
 
 class TestMergeQLParser:
@@ -146,7 +146,7 @@ class TestMergeQLParser:
         assert ast.limit == 50
 
 # ===================================================================
-# TestMergeQLExecution — 15 tests
+# TestMergeQLExecution -- 15 tests
 # ===================================================================
 
 class TestMergeQLExecution:
@@ -231,13 +231,13 @@ class TestMergeQLExecution:
         assert "id" in info["columns"]
 
 # ===================================================================
-# TestMergeQLStrategies — 10 tests
+# TestMergeQLStrategies -- 10 tests
 # ===================================================================
 
 class TestMergeQLStrategies:
     def test_default_strategy_lww(self, ql):
         result = ql.execute("MERGE east, west ON id")
-        # Default LWW — both timestamps are 0, so tiebreaker by node_id
+        # Default LWW -- both timestamps are 0, so tiebreaker by node_id
         assert len(result.data) == 4
 
     def test_per_field_strategies(self, ql):
@@ -286,7 +286,7 @@ class TestMergeQLStrategies:
         assert result.data[0]["active"] is True
 
 # ===================================================================
-# TestMergeQLExplain — 5 tests
+# TestMergeQLExplain -- 5 tests
 # ===================================================================
 
 class TestMergeQLExplain:
@@ -320,7 +320,7 @@ class TestMergeQLExplain:
         assert "east" in text
 
 # ===================================================================
-# TestMergeQLProvenance — 5 tests
+# TestMergeQLProvenance -- 5 tests
 # ===================================================================
 
 class TestMergeQLProvenance:
@@ -353,7 +353,7 @@ class TestMergeQLProvenance:
         assert "west" in sources_in_prov
 
 # ===================================================================
-# TestMergeQLIntegration — 10 tests
+# TestMergeQLIntegration -- 10 tests
 # ===================================================================
 
 class TestMergeQLIntegration:

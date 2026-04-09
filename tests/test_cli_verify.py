@@ -159,7 +159,7 @@ class TestFormatResult:
 
 
 # ---------------------------------------------------------------------------
-# handle_verify_crdt — built-in CRDT types
+# handle_verify_crdt -- built-in CRDT types
 # ---------------------------------------------------------------------------
 
 
@@ -210,7 +210,7 @@ class TestPropertyHandlers:
         data = self._write_data(tmp_path)
         fmt = _make_formatter()
         # The merge fn may pass or fail; either way the handler must not crash
-        # with an unexpected exception — only a possible SystemExit(1) on FAIL.
+        # with an unexpected exception -- only a possible SystemExit(1) on FAIL.
         try:
             handle_commutative(
                 self._args(data, "crdt_merge.strategies.LWW"),
@@ -252,7 +252,7 @@ class TestPropertyHandlers:
 
 
 # ---------------------------------------------------------------------------
-# CLI integration — main() and --help
+# CLI integration -- main() and --help
 # ---------------------------------------------------------------------------
 
 

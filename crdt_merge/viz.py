@@ -177,7 +177,7 @@ class ConflictTopology:
 
         # --- Try MergeQLResult -------------------------------------------------
         if hasattr(result, "data") and hasattr(result, "plan"):
-            # MergeQLResult — walk provenance entries if present
+            # MergeQLResult -- walk provenance entries if present
             prov = getattr(result, "provenance", None) or []
             for entry in prov:
                 if isinstance(entry, dict):

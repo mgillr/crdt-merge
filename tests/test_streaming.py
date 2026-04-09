@@ -195,7 +195,7 @@ class TestMemoryEfficiency:
         count = 0
         for batch in merge_stream(gen_rows(5000, "a", start=0), gen_rows(5000, "b", start=5000), key="id", batch_size=100):
             count += len(batch)
-            # Don't accumulate — just count
+            # Don't accumulate -- just count
 
         peak = tracemalloc.get_traced_memory()[1]
         tracemalloc.stop()

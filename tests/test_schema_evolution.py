@@ -43,7 +43,7 @@ class TestSchemaPolicyValues:
         assert len(SchemaPolicy) == 4
 
 # ===================================================================
-# 2. evolve_schema — UNION policy (4 tests)
+# 2. evolve_schema -- UNION policy (4 tests)
 # ===================================================================
 
 class TestEvolveSchemaUnion:
@@ -85,7 +85,7 @@ class TestEvolveSchemaUnion:
         assert changed[0].resolved_type == "int64"
 
 # ===================================================================
-# 3. evolve_schema — INTERSECTION policy (3 tests)
+# 3. evolve_schema -- INTERSECTION policy (3 tests)
 # ===================================================================
 
 class TestEvolveSchemaIntersection:
@@ -107,7 +107,7 @@ class TestEvolveSchemaIntersection:
         assert result.resolved_schema == {"b": "str"}
 
 # ===================================================================
-# 4. evolve_schema — LEFT_PRIORITY (2 tests)
+# 4. evolve_schema -- LEFT_PRIORITY (2 tests)
 # ===================================================================
 
 class TestEvolveSchemaLeftPriority:
@@ -124,7 +124,7 @@ class TestEvolveSchemaLeftPriority:
         assert result.resolved_schema["val"] == "int32"
 
 # ===================================================================
-# 5. evolve_schema — RIGHT_PRIORITY (2 tests)
+# 5. evolve_schema -- RIGHT_PRIORITY (2 tests)
 # ===================================================================
 
 class TestEvolveSchemaRightPriority:

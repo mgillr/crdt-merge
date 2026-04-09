@@ -209,7 +209,7 @@ class TestTypedTrustScoreMonotonicity:
         assert score.trust_for_dimension("integrity") == PROBATION_TRUST  # 0.5
         ev = _make_evidence("obs", "integrity", 0.05)
         score2 = score.record_evidence("obs", "integrity", 0.05, ev)
-        # 1 - 0.05 = 0.95 > 0.5 — this is expected behavior
+        # 1 - 0.05 = 0.95 > 0.5 -- this is expected behavior
         assert score2.trust_for_dimension("integrity") == pytest.approx(0.95)
         # But subsequent evidence only decreases
         ev2 = _make_evidence("obs2", "integrity", 0.1)
@@ -439,7 +439,7 @@ class TestDeltaTrustLatticeConvergence:
                 old = lattice._trust_scores.get(p, TypedTrustScore.probationary())
                 lattice._trust_scores[p] = old.record_evidence(node_id, d, amt, ev)
 
-        # Merge repeatedly — homeostasis may shift but values should stabilize
+        # Merge repeatedly -- homeostasis may shift but values should stabilize
         merged = a.merge(b)
         for _ in range(10):
             merged = merged.merge(b)

@@ -20,7 +20,7 @@ __all__ = ["load_toml", "load_toml_string"]
 
 
 # ---------------------------------------------------------------------------
-# TOML loading — prefer stdlib tomllib, fallback to minimal parser
+# TOML loading -- prefer stdlib tomllib, fallback to minimal parser
 # ---------------------------------------------------------------------------
 
 def load_toml(path: str) -> Dict[str, Any]:

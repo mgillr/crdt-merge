@@ -42,7 +42,7 @@ Usage:
         write_batch(batch)
     print(stats)  # rows_processed, batches, duration, rows/sec
 
-    # Memory: O(batch_size), not O(n) — bounded by config, not data size
+    # Memory: O(batch_size), not O(n) -- bounded by config, not data size
 """
 
 from __future__ import annotations

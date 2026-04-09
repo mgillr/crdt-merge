@@ -182,7 +182,7 @@ def _key_set(records, key="id"):
 
 
 # ---------------------------------------------------------------------------
-# DataFrame merge — commutativity
+# DataFrame merge -- commutativity
 # ---------------------------------------------------------------------------
 
 
@@ -249,7 +249,7 @@ class TestDataframeMergeCommutativity:
 
 
 # ---------------------------------------------------------------------------
-# DataFrame merge — idempotency
+# DataFrame merge -- idempotency
 # ---------------------------------------------------------------------------
 
 
@@ -273,7 +273,7 @@ class TestDataframeMergeIdempotency:
 
 
 # ---------------------------------------------------------------------------
-# DataFrame merge — key preservation
+# DataFrame merge -- key preservation
 # ---------------------------------------------------------------------------
 
 
@@ -292,7 +292,7 @@ class TestDataframeMergeKeyPreservation:
 
 
 # ---------------------------------------------------------------------------
-# DataFrame merge — empty inputs
+# DataFrame merge -- empty inputs
 # ---------------------------------------------------------------------------
 
 
@@ -322,7 +322,7 @@ class TestDataframeMergeEmpty:
 
 
 # ---------------------------------------------------------------------------
-# DataFrame merge — None value handling
+# DataFrame merge -- None value handling
 # ---------------------------------------------------------------------------
 
 
@@ -383,7 +383,7 @@ class TestDataframeDiff:
 
 
 # ---------------------------------------------------------------------------
-# JSON merge_dicts — commutativity
+# JSON merge_dicts -- commutativity
 # ---------------------------------------------------------------------------
 
 
@@ -405,7 +405,7 @@ class TestMergeDictsCommutativity:
 
 
 # ---------------------------------------------------------------------------
-# JSON merge_dicts — idempotency
+# JSON merge_dicts -- idempotency
 # ---------------------------------------------------------------------------
 
 
@@ -426,7 +426,7 @@ class TestMergeDictsIdempotency:
 
 
 # ---------------------------------------------------------------------------
-# JSON merge_dicts — key preservation and empty inputs
+# JSON merge_dicts -- key preservation and empty inputs
 # ---------------------------------------------------------------------------
 
 
@@ -463,7 +463,7 @@ class TestMergeDictsKeyPreservation:
 
 
 # ---------------------------------------------------------------------------
-# JSON merge_dicts — None value handling
+# JSON merge_dicts -- None value handling
 # ---------------------------------------------------------------------------
 
 

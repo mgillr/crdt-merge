@@ -994,7 +994,7 @@ class TestConflictHeatmapMethods:
         """Single model → from_models works but conflict should be 0."""
         m = _make_model(["l0", "l1"], seed=1)
         hm = ConflictHeatmap.from_models([m])
-        # Single model — no conflict possible
+        # Single model -- no conflict possible
         assert hm.num_models == 1
 
     def test_large_layer_count(self):

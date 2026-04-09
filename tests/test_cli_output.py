@@ -318,7 +318,7 @@ class TestFormatDetection:
 
 
 # ---------------------------------------------------------------------------
-# write_output() — file-path routing
+# write_output() -- file-path routing
 # ---------------------------------------------------------------------------
 
 class TestWriteOutput:

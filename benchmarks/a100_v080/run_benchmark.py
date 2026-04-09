@@ -275,7 +275,7 @@ results["law_verification"]["all_passed"] = all_passed
 log(f"\n**Result: {'ALL PASSED' if all_passed else 'FAILURES'}**")
 
 # ═════════════════════════════════════════════════════════════════
-# 6. MODEL MERGE — ALL 25 STRATEGIES (NEW v0.8.0)
+# 6. MODEL MERGE -- ALL 25 STRATEGIES (NEW v0.8.0)
 # ═════════════════════════════════════════════════════════════════
 section("Model Merge — 25 Strategy Benchmark")
 
@@ -479,7 +479,7 @@ for n_stages in [2, 5, 10]:
     log(f"| {n_stages} | `MergePipeline.execute()` | {_fmt(d['pipelines_per_sec'])}/s | {d['time']:.3f}s |")
 
 # ═════════════════════════════════════════════════════════════════
-# 12. GPU MERGE — CPU PATH (NEW v0.8.0)
+# 12. GPU MERGE -- CPU PATH (NEW v0.8.0)
 # ═════════════════════════════════════════════════════════════════
 section("GPU Merge (CPU fallback path)")
 

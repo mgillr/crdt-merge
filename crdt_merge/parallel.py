@@ -128,7 +128,7 @@ def parallel_merge(
                 if isinstance(result, list):
                     merged_records.extend(result)
                 else:
-                    # DataFrame result — convert to records
+                    # DataFrame result -- convert to records
                     recs, _, _ = _to_records(result)
                     merged_records.extend(recs)
             except Exception as e:

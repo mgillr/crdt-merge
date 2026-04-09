@@ -10,7 +10,7 @@ np.random.seed(42)
 random.seed(42)
 
 # ---------------------------------------------------------------------------
-# crdt-primitives-reference.md — GCounter
+# crdt-primitives-reference.md -- GCounter
 # ---------------------------------------------------------------------------
 
 def test_gcounter_basic():
@@ -42,7 +42,7 @@ def test_gcounter_commutativity():
 
 
 # ---------------------------------------------------------------------------
-# crdt-primitives-reference.md — PNCounter
+# crdt-primitives-reference.md -- PNCounter
 # ---------------------------------------------------------------------------
 
 def test_pncounter_basic():
@@ -60,7 +60,7 @@ def test_pncounter_basic():
 
 
 # ---------------------------------------------------------------------------
-# crdt-primitives-reference.md — LWWRegister
+# crdt-primitives-reference.md -- LWWRegister
 # ---------------------------------------------------------------------------
 
 def test_lwwregister_basic():
@@ -75,7 +75,7 @@ def test_lwwregister_basic():
 
 
 # ---------------------------------------------------------------------------
-# crdt-primitives-reference.md — ORSet
+# crdt-primitives-reference.md -- ORSet
 # ---------------------------------------------------------------------------
 
 def test_orset_basic():
@@ -96,7 +96,7 @@ def test_orset_basic():
 
 
 # ---------------------------------------------------------------------------
-# crdt-primitives-reference.md — LWWMap
+# crdt-primitives-reference.md -- LWWMap
 # ---------------------------------------------------------------------------
 
 def test_lwwmap_basic():
@@ -116,7 +116,7 @@ def test_lwwmap_basic():
 
 
 # ---------------------------------------------------------------------------
-# crdt-primitives-reference.md — VectorClock
+# crdt-primitives-reference.md -- VectorClock
 # ---------------------------------------------------------------------------
 
 def test_vectorclock_immutability_and_compare():
@@ -138,7 +138,7 @@ def test_vectorclock_immutability_and_compare():
 
 
 # ---------------------------------------------------------------------------
-# crdt-primitives-reference.md — MergeableHLL
+# crdt-primitives-reference.md -- MergeableHLL
 # ---------------------------------------------------------------------------
 
 def test_mergeablehll_cardinality():
@@ -155,12 +155,12 @@ def test_mergeablehll_cardinality():
 
     merged = h1.merge(h2)
     card = merged.cardinality()
-    # Approximate — should be within 20% of 150
+    # Approximate -- should be within 20% of 150
     assert 120 <= card <= 180, f"HLL cardinality {card} not in expected range [120, 180]"
 
 
 # ---------------------------------------------------------------------------
-# crdt-primitives-reference.md — MergeableBloom
+# crdt-primitives-reference.md -- MergeableBloom
 # ---------------------------------------------------------------------------
 
 def test_mergeablebloom_contains():
@@ -179,7 +179,7 @@ def test_mergeablebloom_contains():
 
 
 # ---------------------------------------------------------------------------
-# crdt-primitives-reference.md — MergeableCMS
+# crdt-primitives-reference.md -- MergeableCMS
 # ---------------------------------------------------------------------------
 
 def test_mergeablecms_estimate():
@@ -199,7 +199,7 @@ def test_mergeablecms_estimate():
 
 
 # ---------------------------------------------------------------------------
-# crdt-primitives-reference.md — dedup
+# crdt-primitives-reference.md -- dedup
 # ---------------------------------------------------------------------------
 
 def test_dedup_strings():
@@ -212,7 +212,7 @@ def test_dedup_strings():
 
 
 # ---------------------------------------------------------------------------
-# crdt-primitives-reference.md — dedup_records
+# crdt-primitives-reference.md -- dedup_records
 # NOTE: Guide shows dedup_records(records, key="id") but actual API uses
 # dedup_records(records, columns=None, ...) and returns (unique, count).
 # This test documents the actual API.
@@ -239,7 +239,7 @@ def test_dedup_records_actual_api():
 
 
 # ---------------------------------------------------------------------------
-# crdt-primitives-reference.md — verify_crdt with GCounter
+# crdt-primitives-reference.md -- verify_crdt with GCounter
 # ---------------------------------------------------------------------------
 
 def test_verify_crdt_gcounter():
@@ -262,7 +262,7 @@ def test_verify_crdt_gcounter():
 
 
 # ---------------------------------------------------------------------------
-# crdt-verification-toolkit.md — Quick Start: CRDTMergeState with verify_crdt
+# crdt-verification-toolkit.md -- Quick Start: CRDTMergeState with verify_crdt
 # ---------------------------------------------------------------------------
 
 def test_verify_crdt_merge_state():
@@ -298,7 +298,7 @@ def test_verify_crdt_merge_state():
 
 
 # ---------------------------------------------------------------------------
-# crdt-verification-toolkit.md — Cookbook: Custom merge function (max-wins dict)
+# crdt-verification-toolkit.md -- Cookbook: Custom merge function (max-wins dict)
 # ---------------------------------------------------------------------------
 
 def test_verify_crdt_custom_max_merge():
@@ -318,7 +318,7 @@ def test_verify_crdt_custom_max_merge():
 
 
 # ---------------------------------------------------------------------------
-# crdt-verification-toolkit.md — Cookbook: Individual law verification
+# crdt-verification-toolkit.md -- Cookbook: Individual law verification
 # NOTE: Guide shows verify_commutative returning a CRDTVerification with
 # .commutativity attribute, but the actual API returns a VerificationResult.
 # This test uses the actual (correct) API.
@@ -350,7 +350,7 @@ def test_verify_commutative_individual():
 
 
 # ---------------------------------------------------------------------------
-# crdt-verification-toolkit.md — Cookbook: Catching a non-CRDT buggy merge
+# crdt-verification-toolkit.md -- Cookbook: Catching a non-CRDT buggy merge
 # ---------------------------------------------------------------------------
 
 def test_verify_crdt_catches_buggy_merge():
@@ -373,7 +373,7 @@ def test_verify_crdt_catches_buggy_merge():
 
 
 # ---------------------------------------------------------------------------
-# crdt-verification-toolkit.md — Cookbook: Strategies (LWW, MaxWins, MinWins)
+# crdt-verification-toolkit.md -- Cookbook: Strategies (LWW, MaxWins, MinWins)
 # ---------------------------------------------------------------------------
 
 def test_verify_crdt_strategies_lww_maxwins_minwins():
@@ -403,7 +403,7 @@ def test_verify_crdt_strategies_lww_maxwins_minwins():
 
 
 # ---------------------------------------------------------------------------
-# crdt-verification-toolkit.md — Cookbook: @verified_merge decorator pattern
+# crdt-verification-toolkit.md -- Cookbook: @verified_merge decorator pattern
 # ---------------------------------------------------------------------------
 
 def test_verified_merge_decorator_pattern():
@@ -441,7 +441,7 @@ def test_verified_merge_decorator_pattern():
 
 
 # ---------------------------------------------------------------------------
-# crdt-verification-toolkit.md — CI/CD scenario: patient merge
+# crdt-verification-toolkit.md -- CI/CD scenario: patient merge
 # ---------------------------------------------------------------------------
 
 def test_patient_merge_is_crdt():
@@ -479,7 +479,7 @@ def test_patient_merge_is_crdt():
 
 
 # ---------------------------------------------------------------------------
-# crdt-verification-toolkit.md — AgentState verification
+# crdt-verification-toolkit.md -- AgentState verification
 # ---------------------------------------------------------------------------
 
 def test_agentstate_crdt_compliance():
@@ -535,7 +535,7 @@ def test_agentstate_crdt_compliance():
 
 
 # ---------------------------------------------------------------------------
-# crdt-verification-toolkit.md — CRDTVerification field access
+# crdt-verification-toolkit.md -- CRDTVerification field access
 # ---------------------------------------------------------------------------
 
 def test_crdt_verification_fields():

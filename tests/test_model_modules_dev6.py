@@ -571,7 +571,7 @@ class TestFormatsStrategyMap:
         assert isinstance(REVERSE_STRATEGY_MAP, dict)
 
 # ===================================================================
-# GPU TESTS (~25) — ALL MUST WORK WITHOUT TORCH
+# GPU TESTS (~25) -- ALL MUST WORK WITHOUT TORCH
 # ===================================================================
 
 from crdt_merge.model.gpu import GPUMerge

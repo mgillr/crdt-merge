@@ -365,7 +365,7 @@ class TestCLIMain:
         assert captured.out.strip() or captured.err.strip()
 
     def test_model_pipeline_validate_via_main(self, tmp_path, capsys):
-        # from_dict now used correctly — valid config should succeed end-to-end.
+        # from_dict now used correctly -- valid config should succeed end-to-end.
         cfg = {
             "stages": [
                 {

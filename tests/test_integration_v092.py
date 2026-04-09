@@ -32,7 +32,7 @@ from crdt_merge.flower_plugin import (
 )
 
 # ============================================================================
-# Section A — Compliance Module Real Endpoint Tests (15+ tests)
+# Section A -- Compliance Module Real Endpoint Tests (15+ tests)
 # ============================================================================
 
 
@@ -371,7 +371,7 @@ class TestComplianceFindingSeverityLevels:
 
 
 # ============================================================================
-# Section B — Observability Module Real Endpoint Tests (20+ tests)
+# Section B -- Observability Module Real Endpoint Tests (20+ tests)
 # ============================================================================
 
 
@@ -731,7 +731,7 @@ class TestGrafanaDashboardValidJson:
 
 
 # ============================================================================
-# Section C — Flower Plugin Real Endpoint Tests (15+ tests)
+# Section C -- Flower Plugin Real Endpoint Tests (15+ tests)
 # ============================================================================
 
 
@@ -985,7 +985,7 @@ class TestFlowerAggregatorToDict:
 
 
 # ============================================================================
-# Section D — Cross-Module Integration (10+ tests)
+# Section D -- Cross-Module Integration (10+ tests)
 # ============================================================================
 
 
@@ -1102,7 +1102,7 @@ class TestDriftDetectorWithFlowerUpdates:
         round1 = agg1.aggregate()
         detector.record_baseline([round1])
 
-        # Round 2 — similar
+        # Round 2 -- similar
         agg2 = FlowerAggregator()
         agg2.add_result("c1", {"score": 0.55, "loss": 0.25})
         agg2.add_result("c2", {"score": 0.65, "loss": 0.15})
@@ -1228,7 +1228,7 @@ class TestVersionConsistency:
 
 
 # ============================================================================
-# Section E — Edge Cases & Error Handling (8+ tests)
+# Section E -- Edge Cases & Error Handling (8+ tests)
 # ============================================================================
 
 

@@ -34,7 +34,7 @@ from crdt_merge.parquet import (
 from crdt_merge.strategies import LWW, MaxWins, MinWins, MergeSchema
 
 # ═══════════════════════════════════════════════════════════════════════════
-# TestParquetMetadata — 10 tests
+# TestParquetMetadata -- 10 tests
 # ═══════════════════════════════════════════════════════════════════════════
 
 class TestParquetMetadata:
@@ -124,7 +124,7 @@ class TestParquetMetadata:
             assert restored.provenance_enabled is flag
 
 # ═══════════════════════════════════════════════════════════════════════════
-# TestSelfMergingParquet — 15 tests
+# TestSelfMergingParquet -- 15 tests
 # ═══════════════════════════════════════════════════════════════════════════
 
 class TestSelfMergingParquet:
@@ -247,7 +247,7 @@ class TestSelfMergingParquet:
         assert log[1]["source"] == "batch_2"
 
 # ═══════════════════════════════════════════════════════════════════════════
-# TestParquetStrategies — 10 tests
+# TestParquetStrategies -- 10 tests
 # ═══════════════════════════════════════════════════════════════════════════
 
 class TestParquetStrategies:
@@ -258,7 +258,7 @@ class TestParquetStrategies:
         smf = SelfMergingParquet("test", key="id", schema=schema)
         smf.ingest([{"id": 1, "name": "Alice"}])
         smf.ingest([{"id": 1, "name": "Alicia"}])
-        # LWW with 0 timestamps — incoming wins by default (node_id "incoming" > "existing")
+        # LWW with 0 timestamps -- incoming wins by default (node_id "incoming" > "existing")
         records = smf.read()
         assert records[0]["name"] == "Alicia"
 
@@ -338,7 +338,7 @@ class TestParquetStrategies:
         assert records[0]["count"] == 200
 
 # ═══════════════════════════════════════════════════════════════════════════
-# TestParquetProvenance — 5 tests
+# TestParquetProvenance -- 5 tests
 # ═══════════════════════════════════════════════════════════════════════════
 
 class TestParquetProvenance:
@@ -379,7 +379,7 @@ class TestParquetProvenance:
         assert meta.provenance_enabled is True
 
 # ═══════════════════════════════════════════════════════════════════════════
-# TestSelfMergingParquetEdgeCases — extra tests to reach ~40
+# TestSelfMergingParquetEdgeCases -- extra tests to reach ~40
 # ═══════════════════════════════════════════════════════════════════════════
 
 class TestSelfMergingParquetEdgeCases:

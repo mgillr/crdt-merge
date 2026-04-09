@@ -55,7 +55,7 @@ _all_permissions = st.sampled_from(list(Permission))
 
 
 # ---------------------------------------------------------------------------
-# Permission model — basic grant/deny
+# Permission model -- basic grant/deny
 # ---------------------------------------------------------------------------
 
 
@@ -101,7 +101,7 @@ def test_reader_lacks_merge_permission(node):
 
 
 # ---------------------------------------------------------------------------
-# Revocation — removing a policy is immediately effective
+# Revocation -- removing a policy is immediately effective
 # ---------------------------------------------------------------------------
 
 
@@ -118,7 +118,7 @@ def test_revoke_policy_denies_all_permissions(node):
 
 
 # ---------------------------------------------------------------------------
-# Field access — denied_fields and allowed_fields
+# Field access -- denied_fields and allowed_fields
 # ---------------------------------------------------------------------------
 
 
@@ -155,7 +155,7 @@ def test_reader_without_denied_fields_can_read_all(node, field):
 
 
 # ---------------------------------------------------------------------------
-# enforce_merge — raises on missing MERGE permission
+# enforce_merge -- raises on missing MERGE permission
 # ---------------------------------------------------------------------------
 
 
@@ -182,7 +182,7 @@ def test_enforce_merge_succeeds_for_merger(node):
 
 
 # ---------------------------------------------------------------------------
-# AuditLog — ordering and chain integrity
+# AuditLog -- ordering and chain integrity
 # ---------------------------------------------------------------------------
 
 

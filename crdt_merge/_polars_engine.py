@@ -211,7 +211,7 @@ def strategy_to_expr(
     )
 
 # ---------------------------------------------------------------------------
-# Core merge kernel — Arrow tables
+# Core merge kernel -- Arrow tables
 # ---------------------------------------------------------------------------
 
 def polars_merge_arrow(
@@ -330,7 +330,7 @@ def polars_merge_arrow(
     return result_arrow, conflict_count
 
 # ---------------------------------------------------------------------------
-# Core merge kernel — List[dict] (for accelerators)
+# Core merge kernel -- List[dict] (for accelerators)
 # ---------------------------------------------------------------------------
 
 def polars_merge_dicts(

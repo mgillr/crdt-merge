@@ -214,7 +214,7 @@ class GPUMerge:
                     for t, w in zip(tensors, norm_w):
                         result += w * t
 
-                # Explicit CUDA barrier before CPU transfer — ensures all
+                # Explicit CUDA barrier before CPU transfer -- ensures all
                 # async GPU operations are fully committed before we read
                 # the tensor values back on the host.
                 try:

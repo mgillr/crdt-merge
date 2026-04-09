@@ -299,11 +299,11 @@ def compose_deltas(*deltas: Delta, key: Optional[str] = None) -> Delta:
         for r in delta.modified:
             rid = _record_id(r)
             if rid in net_removed:
-                # Was removed then modified — it's back, treat as add
+                # Was removed then modified -- it's back, treat as add
                 net_removed.discard(rid)
                 net_added[rid] = r
             elif rid in net_added:
-                # Was added, now modified — update the add
+                # Was added, now modified -- update the add
                 net_added[rid] = r
             else:
                 net_modified[rid] = r

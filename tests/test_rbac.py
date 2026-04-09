@@ -241,7 +241,7 @@ class TestEnforceMerge:
 
 
 # ---------------------------------------------------------------------------
-# SecureMerge — integration with real merge API
+# SecureMerge -- integration with real merge API
 # ---------------------------------------------------------------------------
 
 

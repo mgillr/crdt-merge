@@ -249,7 +249,7 @@ class MemorySidecar:
         else:
             merged_source = self.source_agent or other.source_agent
 
-        # TTL: None means "never expires" — it dominates any finite TTL.
+        # TTL: None means "never expires" -- it dominates any finite TTL.
         # Among two finite TTLs, max wins (more permissive).
         if self.ttl is None or other.ttl is None:
             merged_ttl: Optional[float] = None

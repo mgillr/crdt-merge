@@ -362,7 +362,7 @@ def test_verify_crdt_base_bug() -> Dict[str, Any]:
             results[name] = {"status": "STRATEGY_NOT_FOUND"}
             continue
         
-        # Call verify_crdt exactly as the benchmark does — WITHOUT base
+        # Call verify_crdt exactly as the benchmark does -- WITHOUT base
         v = strat.verify_crdt(trials=5)
         
         # If all three are False AND failures are 5/5, the bug is confirmed
