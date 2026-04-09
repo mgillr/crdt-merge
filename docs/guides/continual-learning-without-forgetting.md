@@ -69,7 +69,7 @@ ft_math = {"layer1": np.random.randn(64, 64).astype(np.float32)}
 
 # CRDT mode: order-independent, guaranteed convergence
 cm = ContinualMerge(
-    base_model=base_model,
+    base=base_model,
     strategy="ties",
     convergence="crdt",
 )
@@ -201,7 +201,7 @@ from crdt_merge.model.continual import ContinualMerge
 
 # Base: Mistral-7B fine-tuned for customer support
 cm = ContinualMerge(
-    base_model=base_support_model,
+    base=base_support_model,
     strategy="dare_ties",
     convergence="crdt",
     memory_budget=0.9,
@@ -244,7 +244,7 @@ import numpy as np
 # Each hospital runs ContinualMerge locally
 def run_hospital_learning(hospital_id: str, monthly_updates: list) -> dict:
     cm = ContinualMerge(
-        base_model=global_base_model,
+        base=global_base_model,
         strategy="ties",
         convergence="crdt",
     )
@@ -282,7 +282,7 @@ Two fine-tunes are being evaluated: variant A (conservative) and variant B (aggr
 from crdt_merge.model.continual import ContinualMerge
 
 cm = ContinualMerge(
-    base_model=production_model,
+    base=production_model,
     strategy="dare_ties",
     convergence="crdt",
 )
@@ -312,14 +312,14 @@ from crdt_merge.model.continual import ContinualMerge
 
 # Server EU-WEST has the current global model
 eu_west = ContinualMerge(
-    base_model=current_global,
+    base=current_global,
     strategy="ties",
     convergence="crdt",
 )
 
 # Server US-EAST receives a new contribution from its local cluster
 us_east = ContinualMerge(
-    base_model=current_global,
+    base=current_global,
     strategy="ties",
     convergence="crdt",
 )

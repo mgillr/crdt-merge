@@ -96,7 +96,7 @@ b.remove("x")        # B removes x (but B never observed A's add)
 
 # Merge — A's add-tag survives
 merged = a.merge(b)
-assert "x" in merged.elements()   # add-wins is by design
+assert "x" in merged.value   # add-wins is by design
 ```
 
 **To force a remove after merge**, remove from the merged state:
@@ -104,7 +104,7 @@ assert "x" in merged.elements()   # add-wins is by design
 ```python
 merged = a.merge(b)
 merged.remove("x")   # Remove all tags including A's tag
-assert "x" not in merged.elements()
+assert "x" not in merged.value
 ```
 
 ---

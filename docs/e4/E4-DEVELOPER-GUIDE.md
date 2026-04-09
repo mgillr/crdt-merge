@@ -750,7 +750,7 @@ assert merkle.is_plausible_root(expected_root)
 ### Clock Diagnostics
 
 ```python
-print(f"Local time: {clock.logical_time}")
+print(f"Local time: {clock.value}")
 print(f"Known peers: {clock.known_peers()}")
 for peer in clock.known_peers():
     time, trust = clock.get_entry(peer)

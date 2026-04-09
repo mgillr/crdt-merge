@@ -124,7 +124,7 @@ weights_b = {"layer.weight": torch.randn(128, 64)}
 base = {"layer.weight": torch.zeros(128, 64)}
 
 schema = ModelMergeSchema({"default": "ties"})
-result = ModelMerge(schema).merge([weights_a, weights_b], base_model=base)
+result = ModelMerge(schema).merge([weights_a, weights_b], base=base)
 
 print(result.tensor["layer.weight"].shape)  # torch.Size([128, 64])
 ```
@@ -143,7 +143,7 @@ schema = ModelMergeSchema({"default": "dare_ties"})
 result = ModelMerge(schema).merge([
     {"lora_A": torch.randn(16, 768), "lora_B": torch.randn(768, 16)},
     {"lora_A": torch.randn(16, 768), "lora_B": torch.randn(768, 16)},
-], base_model=base)
+], base=base)
 ```
 
 **[LoRA merging guide ->](docs/guides/lora-adapter-merging.md)**

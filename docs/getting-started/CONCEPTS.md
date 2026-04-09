@@ -232,10 +232,10 @@ from crdt_merge.model.crdt_state import CRDTMergeState
 
 # Layer 1 (CRDT): OR-Set of contributions — commutative, associative, idempotent
 state_a = CRDTMergeState("weight_average")
-state_a.add_contribution(model_a, model_id="hospital_a")
+state_a.add(model_a, model_id="hospital_a")
 
 state_b = CRDTMergeState("weight_average")
-state_b.add_contribution(model_b, model_id="hospital_b")
+state_b.add(model_b, model_id="hospital_b")
 
 # Merge is set union — always commutative
 merged = state_a.merge(state_b)

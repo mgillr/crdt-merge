@@ -321,7 +321,7 @@ from crdt_merge.unmerge import ModelUnmerge
 import numpy as np
 
 continual = ContinualMerge(
-    base_model=base_model,
+    base=base_model,
     strategy="weight_average",
 )
 

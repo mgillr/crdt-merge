@@ -190,7 +190,7 @@ from crdt_merge.model.continual import ContinualMerge
 # Each server sees different data distribution
 # Periodic re-training produces local model updates
 continual = ContinualMerge(
-    base_model=base_model,
+    base=base_model,
     strategy="ties",
 )
 
@@ -285,7 +285,7 @@ fed_round = TrustFederationRound(
 
 # Each participant's contribution is weighted by trust score
 for participant_state in participant_states:
-    fed_round.add_contribution(participant_state)
+    fed_round.add(participant_state)
 
 # Resolve with trust convergence: 0.0 max divergence across all participants
 merged_model = fed_round.resolve_trusted()

@@ -1230,7 +1230,7 @@ state = CRDTMergeState(node_id="n1", strategy="fisher",
                         fisher_matrices=fisher_data)
 
 # Evolutionary
-state = CRDTMergeState(node_id="n1", strategy="evolutionary",
+state = CRDTMergeState(node_id="n1", strategy="evolutionary_merge",
                         population_size=50, generations=100)
 
 # Weight Average

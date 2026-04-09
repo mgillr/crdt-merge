@@ -64,34 +64,18 @@ depending on the pairing order.
 | **DARE** | `dare` | | | | | Random dropout is seeded per-call; results vary between runs without a fixed seed. Not idempotent. Best applied once with all models. |
 | **DELLA** | `della` | | | | | Magnitude-aware DARE variant. Same caveats as DARE regarding idempotency and ordering. |
 | **DARETies** | `dare_ties` | | | | | Hybrid combining DARE dropout and TIES sign election. TIES component is commutative; DARE component is not idempotent. Pass all models in one call. |
-| **ModelBreadcrumbs** | `breadcrumbs` | | | | | Binary sparse masks are commutative (OR-union). Not associative: mask density depends on which models are included in a given call. |
+| **ModelBreadcrumbs** | `model_breadcrumbs` | | | | | Binary sparse masks are commutative (OR-union). Not associative: mask density depends on which models are included in a given call. |
 | **EMRMerge** | `emr` | | | | | Elect-Mask-Rescale. Commutative and idempotent but not associative under pairwise application due to rescaling on intermediate results. |
 | **STAR** | `star` | | | | | Spectral truncation changes with the set of models provided. Non-associative. Idempotent. |
 | **SVDKnotTying** | `svd_knot_tying` | | | | | SVD alignment is not commutative in general; order affects which basis is treated as reference. Pairwise only. |
-| **AdaptiveRankPruning** | `ada_rank` | | | | | Rank pruning thresholds are computed globally; commutative. Not associative. |
+| **AdaptiveRankPruning** | `adarank` | | | | | Rank pruning thresholds are computed globally; commutative. Not associative. |
 | **FisherMerge** | `fisher_merge` | | | | | Fisher information proxy `|θ|²` changes on intermediate merges. Pass all models in one call for correct N-way result. |
 | **RegressionMean** | `regression_mean` | | | | | Self-weighted by `θ²+λ`. Non-associative under pairwise composition; single N-way call is correct. |
 | **AdaptiveMerging** | `ada_merging` | | | | | Entropy-based iterative refinement converges to the same fixed point only when inputs have identical entropy distributions. Treat as conditionally commutative and associative. |
 | **DifferentiableAdaptiveMerging** | `dam` | | | | | Gradient-free optimisation; convergence point depends on initialization order for asymmetric inputs. Idempotent. |
-| **EvolutionaryMerge** | `evolutionary` | | | | | CMA-ES population search uses random seeds. Results are non-deterministic without a fixed seed. Not suitable for CRDT-safe distributed merging. |
-| **GeneticMerge** | `genetic` | | | | | Genetic algorithm with crossover/mutation. Same caveats as EvolutionaryMerge. Use only in offline/experimental pipelines. |
-| **Passthrough** | `passthrough` | | | | | Returns the first tensor unchanged. Trivially satisfies all CRDT properties. Used as a no-op placeholder. |
+| **EvolutionaryMerge** | `evolutionary_merge` | | | | | CMA-ES population search uses random seeds. Results are non-deterministic without a fixed seed. Not suitable for CRDT-safe distributed merging. |
+| **GeneticMerge** | `genetic_merge` | | | | | Genetic algorithm with crossover/mutation. Same caveats as EvolutionaryMerge. Use only in offline/experimental pipelines. |
 | **DualProjection** | `dual_projection` | | | | | Shared subspace (GCounter semantics) is commutative and idempotent. Task-specific subspace (OR-Set semantics) is commutative but not associative under pairwise composition. |
-| **UniformAverage** | `uniform_average` | | | | | Special case of `weight_average` with equal weights. Same pairwise non-associativity; use single N-way call. |
-| **MagnitudePrune** | `magnitude_prune` | | | | | Pruning threshold is computed from the merged tensor; different when applied pairwise vs. jointly. |
-| **RandPrune** | `rand_prune` | | | | | Random pruning is not idempotent (each call may drop different parameters). Use for one-shot model compression only. |
-| **LoRAMerge** | `lora_merge` | | | | | Low-rank adapter averaging. Non-associative because rank selection changes with the set of adapters provided. |
-| **KnowledgeDistillation** | `knowledge_distillation` | | | | | Requires forward-pass evaluation data; result depends on dataset ordering. Primarily a training-time operation. |
-| **SER** | `ser` | | | | | Spectral Entropy Regularization. Commutative and idempotent. Non-associative due to spectral decomposition on intermediate results. |
-| **HessianWeighted** | `hessian_weighted` | | | | | Fisher approximation via Hessian diagonal. Commutative and idempotent. Non-associative under pairwise composition; pass all models together. |
-| **GradientWeighted** | `gradient_weighted` | | | | | Weight by gradient magnitude. Commutative and idempotent. Non-associative. |
-| **ConsensusVoting** | `consensus_voting` | | | | | Majority-vote sign selection. Commutative and idempotent. Non-associative because vote counts depend on which models are included. |
-| **MoEExpert** | `moe_expert` | | | | | Mixture-of-Experts router merging. Commutative. Not idempotent if expert routing changes. |
-| **KnowledgeGraph** | `knowledge_graph` | | | | | Graph-topology-aware merging; commutativity depends on edge symmetry. Not suitable for fully automated distributed merging. |
-| **EnsembleDistillation** | `ensemble_distillation` | | | | | Logit ensembling with distillation; requires consistent token vocabularies across models. |
-| **ActivationAware** | `activation_aware` | | | | | Weighted by activation statistics. Commutative given identical calibration data. |
-| **LayerWiseLearningRate** | `layer_wise_lr` | | | | | Layer-specific coefficients; commutative but non-associative under pairwise composition. |
-| **SparseAttention** | `sparse_attention` | | | | | Attention-head sparsification. Commutative and idempotent. Non-associative. |
 
 ---
 
@@ -102,15 +86,11 @@ depending on the pairing order.
 These strategies produce order-independent results when all tensors are
 provided to a single `merge([t1, ..., tN])` call:
 
-- `weight_average`, `uniform_average`
+- `weight_average`
 - `task_arithmetic`
 - `fisher_merge`, `regression_mean`
-- `hessian_weighted`, `gradient_weighted`
-- `consensus_voting`
-- `ties`, `breadcrumbs`, `emr`
+- `ties`, `model_breadcrumbs`, `emr`
 - `dual_projection`
-- `passthrough`
-
 ### Pairwise-Only (sequential or tree-structured application)
 
 These strategies may give different results depending on pairing order. Use
@@ -119,9 +99,7 @@ with an N-way strategy:
 
 - `slerp`, `linear` — designed for two-model interpolation
 - `svd_knot_tying` — SVD alignment selects a reference basis
-- `evolutionary`, `genetic` — stochastic; not suitable for CRDT workflows
-- `knowledge_distillation`, `knowledge_graph`, `ensemble_distillation` — require data evaluation
-- `lora_merge` — rank selection changes with adapter count
+- `evolutionary_merge`, `genetic_merge` — stochastic; not suitable for CRDT workflows
 
 ---
 
@@ -156,7 +134,7 @@ at uniform weights. Use it for rapid prototyping.
 on competing tasks. TIES resolves sign conflicts via majority vote, reducing
 interference. DARE adds stochastic pruning to further reduce redundancy.
 
-**`breadcrumbs`** and **`emr`** are lighter-weight sparsification approaches
+**`model_breadcrumbs`** and **`emr`** are lighter-weight sparsification approaches
 that do not require a base model, making them applicable when the base
 checkpoint is unavailable.
 
@@ -173,18 +151,18 @@ merging many fine-tuned variants of the same base model.
 
 ### Experimental / Research Strategies
 
-**`evolutionary`** and **`genetic`** strategies are non-deterministic and
+**`evolutionary_merge`** and **`genetic_merge`** strategies are non-deterministic and
 not suitable for production distributed workflows. Use them only in
 controlled offline experiments where result reproducibility can be enforced
 via fixed random seeds.
 
-**`knowledge_distillation`** and **`ensemble_distillation`** require forward
+Knowledge distillation and ensemble distillation approaches require forward
 passes over calibration data and a teacher-student training step. They are
 training-time operations rather than weight-space merge operations.
 
 ### LoRA Adapters
 
-**`lora_merge`** is the correct strategy for merging PEFT/LoRA adapters. It
+For merging PEFT/LoRA adapters, use `linear` or `weight_average` with appropriate weight configuration.
 handles rank alignment automatically. Use the `linear` or `cat` sub-strategy
 via `--rank-method` to control how adapter ranks are combined.
 
@@ -194,11 +172,11 @@ via `--rank-method` to control how adapter ranks are combined.
 
 ```
 Does your merge involve LoRA adapters?
-  → lora_merge
+  → linear or weight_average (with appropriate adapter weights)
 
 Do you have a pretrained base model?
   Yes: Do tasks compete (different domains)?
-    Yes  → dare_ties, ties, breadcrumbs
+    Yes  → dare_ties, ties, model_breadcrumbs
     No   → task_arithmetic, slerp (2 models), weight_average (N models)
   No: → weight_average, fisher_merge, regression_mean
 
@@ -225,11 +203,11 @@ from crdt_merge.model.crdt_state import CRDTMergeState
 
 # Node A adds its contribution
 state_a = CRDTMergeState("weight_average")
-state_a.add_contribution(tensor_a, model_id="node_a", weight=1.0)
+state_a.add(tensor_a, model_id="node_a", weight=1.0)
 
 # Node B adds its contribution
 state_b = CRDTMergeState("weight_average")
-state_b.add_contribution(tensor_b, model_id="node_b", weight=1.0)
+state_b.add(tensor_b, model_id="node_b", weight=1.0)
 
 # CRDT guarantee: any merge order converges to the same state
 merged_1 = state_a.merge(state_b)   # merge is in-place on state_a, returns self
@@ -247,9 +225,9 @@ from crdt_merge.model.crdt_state import CRDTMergeState
 
 # weight_average: N-way safe, commutative, idempotent
 state = CRDTMergeState("weight_average")
-state.add_contribution(model_a, model_id="hospital_a", weight=0.4)
-state.add_contribution(model_b, model_id="hospital_b", weight=0.3)
-state.add_contribution(model_c, model_id="hospital_c", weight=0.3)
+state.add(model_a, model_id="hospital_a", weight=0.4)
+state.add(model_b, model_id="hospital_b", weight=0.3)
+state.add(model_c, model_id="hospital_c", weight=0.3)
 
 merged = state.resolve()   # Weighted average of all three — order-independent 
 ```
@@ -261,8 +239,8 @@ from crdt_merge.model.crdt_state import CRDTMergeState
 
 # ties: requires base= at construction time
 state = CRDTMergeState("ties", base=pretrained_llama)
-state.add_contribution(finetuned_chat, model_id="chat-ft")
-state.add_contribution(finetuned_code, model_id="code-ft")
+state.add(finetuned_chat, model_id="chat-ft")
+state.add(finetuned_code, model_id="code-ft")
 
 merged = state.resolve()   # TIES sign election across both fine-tuned models
 ```
@@ -270,15 +248,15 @@ merged = state.resolve()   # TIES sign election across both fine-tuned models
 ```python
 # task_arithmetic: fully commutative + associative + NOT idempotent
 state_ta = CRDTMergeState("task_arithmetic", base=base_model)
-state_ta.add_contribution(expert_model, model_id="expert", weight=0.7)
+state_ta.add(expert_model, model_id="expert", weight=0.7)
 merged = state_ta.resolve()
 ```
 
 ```python
 # dare_ties: DARE pruning + TIES sign election
 state_dt = CRDTMergeState("dare_ties", base=pretrained_base)
-state_dt.add_contribution(domain_a, model_id="domain_a")
-state_dt.add_contribution(domain_b, model_id="domain_b")
+state_dt.add(domain_a, model_id="domain_a")
+state_dt.add(domain_b, model_id="domain_b")
 merged = state_dt.resolve()
 ```
 
@@ -289,8 +267,8 @@ from crdt_merge.model.crdt_state import CRDTMergeState
 
 # slerp: commutative at t=0.5 only — best for two-model merges
 state = CRDTMergeState("slerp")
-state.add_contribution(base_model, model_id="base", weight=0.5)
-state.add_contribution(instruct_model, model_id="instruct", weight=0.5)
+state.add(base_model, model_id="base", weight=0.5)
+state.add(instruct_model, model_id="instruct", weight=0.5)
 merged = state.resolve()
 ```
 
@@ -300,9 +278,9 @@ merged = state.resolve()
 from crdt_merge.model.crdt_state import CRDTMergeState
 
 state_x = CRDTMergeState("weight_average")
-state_x.add_contribution(model_a, model_id="a")
+state_x.add(model_a, model_id="a")
 state_y = CRDTMergeState("weight_average")
-state_y.add_contribution(model_b, model_id="b")
+state_y.add(model_b, model_id="b")
 
 # Commutativity: merge order doesn't matter
 m1 = CRDTMergeState("weight_average").merge(state_x).merge(state_y)
@@ -338,10 +316,10 @@ from crdt_merge.model.crdt_state import CRDTMergeState
 
 # Each hospital creates its own state and trains locally
 hospital_a = CRDTMergeState("weight_average")
-hospital_a.add_contribution(local_model_a, model_id="hospital_a")
+hospital_a.add(local_model_a, model_id="hospital_a")
 
 hospital_b = CRDTMergeState("weight_average")
-hospital_b.add_contribution(local_model_b, model_id="hospital_b")
+hospital_b.add(local_model_b, model_id="hospital_b")
 
 # Coordinator merges — no parameter server needed
 # Any merge order converges to the same global model

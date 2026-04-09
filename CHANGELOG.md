@@ -72,7 +72,7 @@
 - **json merge-lines**: passed file paths to `merge_json_lines()` instead of loaded lists; unsupported `prefer` kwarg; `formatter.auto(dict)` on single-object result (#24)
 - **dedup**: `dedup_records()` returned `(records, n_removed)` tuple but was not unpacked; invalid `key=` kwarg (#25)
 - **merkle diff/compare**: `MerkleDiff` is a dataclass, not iterable — crashed with `TypeError` (#26)
-- **clock create**: `VectorClock(node_id=...)` invalid; `increment()` is immutable — returns new clock (#27)
+- **clock create**: `VectorClock()` invalid; `increment()` is immutable — returns new clock (#27)
 - **encrypt/decrypt**: `EncryptedValue.encrypt()` / `ev.decrypt()` do not exist; wrong backend choice strings; short keys crash `StaticKeyProvider` (#28)
 - **migrate**: `cli_migrate()` called with keyword arguments instead of argv list (#29)
 - **rbac**: `Role.has_permission()` used incorrect flag membership check (#30)

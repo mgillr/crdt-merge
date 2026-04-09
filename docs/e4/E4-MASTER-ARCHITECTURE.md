@@ -286,7 +286,7 @@ class SubtreeRef:
 
 ```python
 # Module-level constant (defined in typed_trust.py, not a class attribute)
-TRUST_DIMENSIONS = frozenset({'data_quality', 'availability', 'consistency', 'byzantine_resistance', 'protocol_compliance'})
+TRUST_DIMENSIONS = frozenset({'causality', 'integrity', 'context', 'model', 'gossip', 'consistency'})
 
 @dataclass
 class TypedTrustScore:
@@ -1138,8 +1138,8 @@ class CRDTState:
         If components provided → custom configuration (for testing or migration).
         """
         self.merkle = merkle or TrustBoundMerkle()          # E4 default
-        self.clock = clock or CausalTrustClock()             # E4 default
-        self.trust = trust or DeltaTrustLattice()            # E4 default
+        self.clock = clock or CausalTrustClock(peer_id="node_1")             # E4 default
+        self.trust = trust or DeltaTrustLattice(peer_id="node_1", initial_peers=set())            # E4 default
         self.delta_encoder = delta_encoder or _DefaultDeltaEncoder()  # E4 default
 ```
 

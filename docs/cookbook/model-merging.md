@@ -79,7 +79,7 @@ task_b_model = {"layer1.weight": [1.3, 2.3], "layer1.bias": [0.12, 0.22]}
 # Combines task vectors: base + (task_a - base) + (task_b - base)
 result = merger.merge(
     [task_a_model, task_b_model],
-    base_model=base_model,
+    base=base_model,
 )
 print(result.tensor)
 # {'layer1.weight': [1.8, 2.8], 'layer1.bias': [0.17, 0.27]}
@@ -104,7 +104,7 @@ model_b = {"layer1.weight": [1.3, 2.3], "layer1.bias": [0.12, 0.22]}
 # Trim-Elect-Sign merge resolves sign conflicts in task vectors
 result = merger.merge(
     [model_a, model_b],
-    base_model=base_model,
+    base=base_model,
 )
 print(result.tensor)
 ```
@@ -126,7 +126,7 @@ model_b = {"layer1.weight": [1.4, 2.4], "layer1.bias": [0.14, 0.24]}
 # Randomly drops delta parameters and rescales survivors
 result = merger.merge(
     [model_a, model_b],
-    base_model=base_model,
+    base=base_model,
 )
 print(result.tensor)
 ```
@@ -148,7 +148,7 @@ model_b = {"layer1.weight": [1.4, 2.4], "layer1.bias": [0.14, 0.24]}
 # Combines DARE dropout with TIES sign election
 result = merger.merge(
     [model_a, model_b],
-    base_model=base_model,
+    base=base_model,
 )
 print(result.tensor)
 ```
@@ -170,7 +170,7 @@ model_b = {"layer1.weight": [1.4, 2.4], "layer1.bias": [0.14, 0.24]}
 # Extends DARE-TIES with low-rank reconstruction
 result = merger.merge(
     [model_a, model_b],
-    base_model=base_model,
+    base=base_model,
 )
 print(result.tensor)
 ```
@@ -192,7 +192,7 @@ model_b = {"layer1.weight": [1.4, 2.4], "layer1.bias": [0.14, 0.24]}
 # Partitions into shared/task-specific params with distinct rescaling
 result = merger.merge(
     [model_a, model_b],
-    base_model=base_model,
+    base=base_model,
 )
 print(result.tensor)
 ```
@@ -214,7 +214,7 @@ model_b = {"layer1.weight": [1.4, 2.4], "layer1.bias": [0.14, 0.24]}
 # Retains only the most important "breadcrumb" parameters
 result = merger.merge(
     [model_a, model_b],
-    base_model=base_model,
+    base=base_model,
 )
 print(result.tensor)
 ```
@@ -236,7 +236,7 @@ model_b = {"layer1.weight": [1.4, 2.4], "layer1.bias": [0.14, 0.24]}
 # Adaptively selects rank per weight matrix during merge
 result = merger.merge(
     [model_a, model_b],
-    base_model=base_model,
+    base=base_model,
 )
 print(result.tensor)
 ```
@@ -258,7 +258,7 @@ model_b = {"layer1.weight": [1.4, 2.4], "layer1.bias": [0.14, 0.24]}
 # Truncates spectrum of task vectors and rescales
 result = merger.merge(
     [model_a, model_b],
-    base_model=base_model,
+    base=base_model,
 )
 print(result.tensor)
 ```
@@ -280,7 +280,7 @@ model_b = {"layer1.weight": [1.4, 2.4], "layer1.bias": [0.14, 0.24]}
 # Aligns SVD subspaces of task vectors before merging
 result = merger.merge(
     [model_a, model_b],
-    base_model=base_model,
+    base=base_model,
 )
 print(result.tensor)
 ```
@@ -436,7 +436,7 @@ model_b = {"layer1.weight": [1.3, 2.3], "layer1.bias": [0.12, 0.22]}
 # Detects and protects safety-critical layers during merge
 result = merger.merge(
     [model_a, model_b],
-    base_model=base_model,
+    base=base_model,
     weights=[0.5, 0.5],
 )
 print(result.tensor)
@@ -459,7 +459,7 @@ model_b = {"layer1.weight": [1.3, 2.3], "layer1.bias": [0.12, 0.22]}
 # Evaluates each layer against safety benchmarks to adjust merge ratios
 result = merger.merge(
     [model_a, model_b],
-    base_model=base_model,
+    base=base_model,
     weights=[0.5, 0.5],
 )
 print(result.tensor)
@@ -484,7 +484,7 @@ forget_model = {"layer1.weight": [1.3, 2.3], "layer1.bias": [0.13, 0.23]}
 # Subtracts the "forget" task vector to unlearn capabilities
 result = merger.merge(
     [forget_model],
-    base_model=base_model,
+    base=base_model,
     weights=[-1.0],
 )
 print(result.tensor)
@@ -507,7 +507,7 @@ forget_model = {"layer1.weight": [1.3, 2.3], "layer1.bias": [0.13, 0.23]}
 # Splits into retain/forget, applies targeted unlearning, re-merges
 result = merger.merge(
     [retain_model, forget_model],
-    base_model=base_model,
+    base=base_model,
 )
 print(result.tensor)
 ```
@@ -531,7 +531,7 @@ model_b = {"layer1.weight": [1.3, 2.3], "layer1.bias": [0.12, 0.22]}
 # Post-merge correction: realigns representations toward the base model
 result = merger.merge(
     [model_a, model_b],
-    base_model=base_model,
+    base=base_model,
     weights=[0.5, 0.5],
 )
 print(result.tensor)
@@ -554,7 +554,7 @@ model_b = {"layer1.weight": [1.3, 2.3], "layer1.bias": [0.12, 0.22]}
 # Aligns weight distribution scope to correct magnitude drift
 result = merger.merge(
     [model_a, model_b],
-    base_model=base_model,
+    base=base_model,
     weights=[0.5, 0.5],
 )
 print(result.tensor)
@@ -580,7 +580,7 @@ model_b = {"layer1.weight": [1.3, 2.3], "layer1.bias": [0.12, 0.22]}
 # This is the only TRUE_CRDT strategy (commutative, associative, idempotent)
 result = merger.merge(
     [model_a, model_b],
-    base_model=base_model,
+    base=base_model,
     weights=[0.5, 0.5],
 )
 print(result.tensor)
@@ -600,9 +600,9 @@ base = {"layer1.weight": [0.5, 1.0], "layer2.weight": [0.4, 0.4]}
 # Run safety analysis before merging
 analyzer = SafetyAnalyzer()
 safety_layers = analyzer.detect_safety_layers(
-    [model_a, model_b], base_model=base
+    [model_a, model_b], base=base
 )
-report = analyzer.safety_report([model_a, model_b], base_model=base)
+report = analyzer.safety_report([model_a, model_b], base=base)
 print(f"Risk score: {report.risk_score}")
 print(f"Recommendation: {report.recommendation}")
 print(f"Safety-critical layers: {safety_layers}")

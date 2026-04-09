@@ -83,7 +83,7 @@
 | `ModelMerge` | `model/core.py` | `(strategy="linear", **kwargs)` |
 | `ModelMergeSchema` | `model/core.py` | `(default_strategy="linear", **layer_strategies)` |
 | `CRDTMergeState` | `model/crdt_state.py` | `(node_id: str)` |
-| `LoRAMerge` | `model/lora.py` | `(strategy="linear", base_model=None)` |
+| `LoRAMerge` | `model/lora.py` | `(strategy="linear", base=None)` |
 | `ContinualMerge` | `model/continual.py` | `(strategy="ewc", importance_method="fisher")` |
 | `FederatedMerge` | `model/federated.py` | `(strategy="fedavg")` |
 | `GPUMerge` | `model/gpu.py` | `(device="cuda", dtype="float16")` |

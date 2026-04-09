@@ -99,7 +99,7 @@ The `@register_strategy(name)` decorator registers a `ModelMergeStrategy` subcla
 - The decorated class **must** be a subclass of `ModelMergeStrategy` (raises `TypeError` otherwise)
 - The strategy name **must** be unique (raises `ValueError` on duplicate registration)
 
-Built-in strategies are registered at module import time via `_auto_register()`, which imports all built-in strategy modules (`basic`, `subspace`, `weighted`, `evolutionary`, `unlearning`, `calibration`, `safety`, `continual`) inside `try/except ImportError` blocks.
+Built-in strategies are registered at module import time via `_auto_register()`, which imports all built-in strategy modules (`basic`, `subspace`, `linear`, `evolutionary_merge`, `unlearning`, `calibration`, `safety`, `continual`) inside `try/except ImportError` blocks.
 
 #### Fallback Behavior
 

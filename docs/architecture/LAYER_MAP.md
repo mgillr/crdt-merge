@@ -161,9 +161,8 @@ from crdt_merge.delta import DeltaStore, compute_delta
 | `dare` | Delta pruning via DARE | Yes |
 | `dare_ties` | DARE + TIES combined | Yes |
 | `task_arithmetic` | Task vector addition | Yes |
-| `fisher_weighted` | Fisher information weighting | No |
-| `lora_merge` | LoRA adapter merge | No |
-| `evolutionary` | Evolutionary/genetic | No |
+| `fisher_merge` | Fisher information weighting | No |
+| `evolutionary_merge` | Evolutionary/genetic | No |
 | `continual` | Anti-forgetting merge | No |
 
 ### Quick Reference

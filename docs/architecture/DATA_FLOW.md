@@ -172,7 +172,7 @@ Model B (state_dict / weights)
 │ CRDTMergeState [Layer 4]         │
 │ model/crdt_state.py              │
 │                                  │
-│  1. add_contribution(model, id)  │
+│  1. add(model, id)               │
 │     → ORSet tag assigned         │
 │     → merkle_hash computed       │
 │                                  │
@@ -196,8 +196,8 @@ Model B (state_dict / weights)
 from crdt_merge.model.crdt_state import CRDTMergeState
 
 state = CRDTMergeState(strategy="weight_average")
-state.add_contribution(model_a, model_id="hospital_a")
-state.add_contribution(model_b, model_id="hospital_b")
+state.add(model_a, model_id="hospital_a")
+state.add(model_b, model_id="hospital_b")
 
 # Merge with remote state (from another federation node)
 merged = state.merge(remote_state)
