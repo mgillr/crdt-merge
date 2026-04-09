@@ -17,17 +17,21 @@ Standard CRDTs guarantee convergence of *data*. They say nothing about whether t
 ## Quick start
 
 ```python
-from crdt_merge import CRDTMergeState
+import numpy as np
+from crdt_merge.e4 import TypedTrustScore, TrustEvidence
 
 # E4 activates transparently on import -- zero configuration
-state = CRDTMergeState("weight_average")
-state.add(weights_a, model_id="node-a", weight=0.5)
-state.add(weights_b, model_id="node-b", weight=0.5)
-merged = state.merge(strategy="slerp")
+# Create typed trust scores for peers
+score = TypedTrustScore()
+print(score.overall_trust())  # 1.0 -- all peers start trusted
 
-# Access trust scores directly
-from crdt_merge.e4 import TypedTrustScore, ProjectionDelta
-score = TypedTrustScore.for_peer("node-a")
+# Record evidence of misbehaviour
+evidence = TrustEvidence(
+    evidence_type="equivocation",
+    peer_id="node-suspect",
+    details={"description": "conflicting deltas from same causal slot"},
+)
+print(evidence.evidence_type)  # equivocation
 ```
 
 Disable E4 if needed: `CRDT_MERGE_E4=0`

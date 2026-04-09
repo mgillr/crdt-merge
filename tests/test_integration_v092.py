@@ -1217,14 +1217,14 @@ class TestVersionConsistency:
 
     def test_version_consistency(self):
         import crdt_merge
-        assert crdt_merge.__version__ == "0.9.4"
+        assert crdt_merge.__version__ == "0.9.5"
 
         # Also check pyproject.toml
         import pathlib
         pyproject = pathlib.Path(__file__).parent.parent / "pyproject.toml"
         if pyproject.exists():
             content = pyproject.read_text()
-            assert 'version = "0.9.4"' in content
+            assert 'version = "0.9.5"' in content
 
 
 # ============================================================================

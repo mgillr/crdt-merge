@@ -349,7 +349,7 @@ def merge(
             stacklevel=2,
         )
 
-    all_keys = list(dict.fromkeys(list(index_a.keys()) + list(index_b.keys())))
+    all_keys = sorted(dict.fromkeys(list(index_a.keys()) + list(index_b.keys())), key=str)
     merged = []
 
     for k in all_keys:

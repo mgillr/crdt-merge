@@ -116,18 +116,17 @@ E4 activates transparently on `import crdt_merge`. Every existing function call 
 
 ```python
 import torch
-from crdt_merge.model import CRDTMergeState
+from crdt_merge.model import ModelMerge, ModelMergeSchema
 
 # Simulate independently trained model weights
 weights_a = {"layer.weight": torch.randn(128, 64)}
 weights_b = {"layer.weight": torch.randn(128, 64)}
+base = {"layer.weight": torch.zeros(128, 64)}
 
-state = CRDTMergeState()
-state.add("hospital-a", weights_a)
-state.add("hospital-b", weights_b)
-merged = state.merge(strategy="ties")  # order-independent, trust-gated
+schema = ModelMergeSchema({"default": "ties"})
+result = ModelMerge(schema).merge([weights_a, weights_b], base_model=base)
 
-print(merged["layer.weight"].shape)  # torch.Size([128, 64])
+print(result.tensor["layer.weight"].shape)  # torch.Size([128, 64])
 ```
 
 **[Federated merging guide ->](docs/guides/federated-model-merging.md)**
@@ -137,12 +136,14 @@ print(merged["layer.weight"].shape)  # torch.Size([128, 64])
 Mixed-rank adapters merged with per-module strategy selection and SVD rank harmonisation. CRDT semantics guarantee that merging adapter A into B produces the same result as merging B into A -- enabling asynchronous adapter development across teams.
 
 ```python
-from crdt_merge.model import CRDTMergeState
+from crdt_merge.model import ModelMerge, ModelMergeSchema
 
-state = CRDTMergeState()
-state.add("adapter-coding", {"lora_A": torch.randn(16, 768), "lora_B": torch.randn(768, 16)})
-state.add("adapter-medical", {"lora_A": torch.randn(16, 768), "lora_B": torch.randn(768, 16)})
-merged = state.merge(strategy="dare_ties")
+base = {"lora_A": torch.zeros(16, 768), "lora_B": torch.zeros(768, 16)}
+schema = ModelMergeSchema({"default": "dare_ties"})
+result = ModelMerge(schema).merge([
+    {"lora_A": torch.randn(16, 768), "lora_B": torch.randn(768, 16)},
+    {"lora_A": torch.randn(16, 768), "lora_B": torch.randn(768, 16)},
+], base_model=base)
 ```
 
 **[LoRA merging guide ->](docs/guides/lora-adapter-merging.md)**

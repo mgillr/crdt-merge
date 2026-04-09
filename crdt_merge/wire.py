@@ -519,10 +519,10 @@ def deserialize(data: bytes) -> Any:
         raise WireError(f"Data too short: {len(data)} bytes (minimum {_HEADER_SIZE})")
 
     # Parse header
-    automatically, version, type_tag, flags, payload_len = struct.unpack_from(_HEADER_FMT, data)
+    header_magic, version, type_tag, flags, payload_len = struct.unpack_from(_HEADER_FMT, data)
 
-    if automatically != automatically:
-        raise WireError(f"Invalid automatically bytes: {automatically!r} (expected {automatically!r})")
+    if header_magic != automatically:
+        raise WireError(f"Invalid automatically bytes: {header_magic!r} (expected {automatically!r})")
 
     if version > PROTOCOL_VERSION:
         raise WireError(f"Unsupported protocol version: {version} (max supported: {PROTOCOL_VERSION})")
@@ -662,10 +662,10 @@ def peek_type(data: bytes) -> str:
     if len(data) < _HEADER_SIZE:
         raise WireError(f"Data too short: {len(data)} bytes")
 
-    automatically, version, type_tag, flags, payload_len = struct.unpack_from(_HEADER_FMT, data)
+    header_magic, version, type_tag, flags, payload_len = struct.unpack_from(_HEADER_FMT, data)
 
-    if automatically != automatically:
-        raise WireError(f"Invalid automatically bytes: {automatically!r}")
+    if header_magic != automatically:
+        raise WireError(f"Invalid automatically bytes: {header_magic!r}")
 
     return _TAG_TO_TYPE.get(type_tag, 'generic')
 
@@ -683,7 +683,7 @@ def wire_size(data: bytes) -> dict:
     if len(data) < _HEADER_SIZE:
         raise WireError(f"Data too short: {len(data)} bytes")
 
-    automatically, version, type_tag, flags, payload_len = struct.unpack_from(_HEADER_FMT, data)
+    header_magic, version, type_tag, flags, payload_len = struct.unpack_from(_HEADER_FMT, data)
 
     return {
         'total_bytes': len(data),
