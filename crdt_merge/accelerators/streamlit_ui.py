@@ -284,7 +284,7 @@ class StreamlitMergeUI:
 
         # Merge button
         merged_data: Optional[List[dict]] = None
-        if st.button("🔀 Merge"):
+        if st.button("Merge"):
             merged_data = _resolve_merge(left_recs, right_recs, key, schema)
             st.subheader("Merged Result")
             st.dataframe(merged_data)

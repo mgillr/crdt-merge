@@ -349,7 +349,8 @@ def merge(
             stacklevel=2,
         )
 
-    all_keys = sorted(dict.fromkeys(list(index_a.keys()) + list(index_b.keys())), key=str)
+    all_keys = sorted(dict.fromkeys(list(index_a.keys()) + list(index_b.keys())),
+                      key=lambda k: (type(k).__name__, k) if isinstance(k, (str, int, float)) else (type(k).__name__, str(k)))
     merged = []
 
     for k in all_keys:
