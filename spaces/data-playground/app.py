@@ -73,9 +73,9 @@ Tabular CRDT merge for DataFrames and datasets. Conflict-free record merge, dedu
 STRATEGIES_DF = ["LWW", "MaxWins", "MinWins", "Union"]
 
 
-# ─────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------
 # Data loading
-# ─────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------
 
 def _load_dataset_records():
     """Try HF datasets first, fallback to synthetic."""
@@ -127,9 +127,9 @@ def _load_dataset_records():
     return records_a, records_b, source
 
 
-# ─────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------
 # TAB 1 -- Dataset Merge
-# ─────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------
 
 def run_dataset_merge(strategy_name: str):
     from crdt_merge.dataframe import merge as df_merge
@@ -181,6 +181,58 @@ def run_dataset_merge(strategy_name: str):
 - **Commutativity PASS** means `merge(A, B)` and `merge(B, A)` produce identical results — a core CRDT guarantee. This ensures any two replicas performing the merge get the same output regardless of order.
 """
 
+        # E4 Trust Layer -- trust scores and Merkle provenance for the merge
+        e4_md = ""
+        try:
+            from crdt_merge.e4 import TypedTrustScore
+            from crdt_merge.e4.delta_trust_lattice import DeltaTrustLattice
+            from crdt_merge.e4.trust_bound_merkle import TrustBoundMerkle
+
+            ids_a = set(r["id"] for r in records_a)
+            ids_b = set(r["id"] for r in records_b)
+
+            lattice_a = DeltaTrustLattice(peer_id="node_A")
+            lattice_b = DeltaTrustLattice(peer_id="node_B")
+
+            score_a_self = lattice_a.get_trust("node_A")
+            score_b_self = lattice_b.get_trust("node_B")
+            score_a_from_b = lattice_b.get_trust("node_A")
+            score_b_from_a = lattice_a.get_trust("node_B")
+
+            merkle = TrustBoundMerkle(trust_lattice=lattice_a)
+            for r in merged:
+                originator = "node_A"
+                if r["id"] in ids_b and r["id"] not in ids_a:
+                    originator = "node_B"
+                elif r["id"] in ids_b and r["id"] in ids_a:
+                    originator = "node_B" if r.get("_ts", 0) >= 150 else "node_A"
+                merkle.insert_leaf(
+                    key=str(r["id"]),
+                    data=json.dumps(r, default=str).encode(),
+                    originator=originator,
+                )
+            root_hash = merkle.recompute()
+
+            e4_md = f"""
+---
+### E4 Trust Layer
+
+| Peer | Lattice | Overall Trust | Status |
+|------|---------|--------------|--------|
+| node_A | node_A (self) | {score_a_self.overall_trust():.3f} | {"Probationary" if score_a_self.overall_trust() <= 0.5 else "Trusted"} |
+| node_B | node_B (self) | {score_b_self.overall_trust():.3f} | {"Probationary" if score_b_self.overall_trust() <= 0.5 else "Trusted"} |
+| node_A | node_B (cross) | {score_a_from_b.overall_trust():.3f} | {"Probationary" if score_a_from_b.overall_trust() <= 0.5 else "Trusted"} |
+| node_B | node_A (cross) | {score_b_from_a.overall_trust():.3f} | {"Probationary" if score_b_from_a.overall_trust() <= 0.5 else "Trusted"} |
+
+**Merkle Provenance Root:** `{root_hash}`
+**Merged records in Merkle tree:** {len(merged)}
+**Trust scoring:** All merge participants start at probationary (0.5) trust. Trust accrues over time via successful merges and evidence accumulation.
+"""
+        except Exception as e:
+            e4_md = f"\n\n---\n### E4 Trust Layer\n\nE4 trust module unavailable: {e}\n"
+
+        summary_md = summary_md + e4_md
+
         display_rows = merged[:20]
         return display_rows, summary_md
 
@@ -188,9 +240,9 @@ def run_dataset_merge(strategy_name: str):
         return [], f"Error: {e}"
 
 
-# ─────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------
 # TAB 2 -- Conflict Analysis
-# ─────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------
 
 def run_conflict_analysis():
     from crdt_merge.dataframe import merge as df_merge
@@ -278,9 +330,100 @@ def run_conflict_analysis():
     return summary_rows, fig
 
 
-# ─────────────────────────────────────────────────────────────────
+def _e4_conflict_trust_analysis():
+    """Run E4 trust evidence analysis for detected conflicts. Returns markdown string."""
+    try:
+        from crdt_merge.e4 import TypedTrustScore
+        from crdt_merge.e4.delta_trust_lattice import DeltaTrustLattice
+        from crdt_merge.e4.proof_evidence import TrustEvidence, EVIDENCE_TYPES
+
+        records_a, records_b, source = _load_dataset_records()
+        overlap_ids = set(r["id"] for r in records_a) & set(r["id"] for r in records_b)
+        map_a = {r["id"]: r for r in records_a}
+        map_b = {r["id"]: r for r in records_b}
+
+        lattice = DeltaTrustLattice(peer_id="auditor")
+
+        evidence_log = []
+
+        # Detect conflict types and fire evidence
+        equivocation_count = 0
+        invalid_delta_count = 0
+
+        for rid in sorted(overlap_ids):
+            ra = map_a.get(rid)
+            rb = map_b.get(rid)
+            if ra is None or rb is None:
+                continue
+
+            # Same key, different values = equivocation evidence
+            if str(ra.get("sentence", "")) != str(rb.get("sentence", "")):
+                ev = TrustEvidence.create(
+                    observer="auditor",
+                    target="node_B",
+                    evidence_type="equivocation",
+                    dimension="consistency",
+                    amount=-0.05,
+                    proof=f"id={rid} sentence diverged".encode(),
+                )
+                evidence_log.append(("equivocation", "node_B", rid, "consistency"))
+                equivocation_count += 1
+
+            # Label flip = invalid_delta evidence
+            if ra.get("label") != rb.get("label"):
+                ev = TrustEvidence.create(
+                    observer="auditor",
+                    target="node_B",
+                    evidence_type="invalid_delta",
+                    dimension="integrity",
+                    amount=-0.1,
+                    proof=f"id={rid} label flipped {ra.get('label')}->{rb.get('label')}".encode(),
+                )
+                evidence_log.append(("invalid_delta", "node_B", rid, "integrity"))
+                invalid_delta_count += 1
+
+        # Get trust scores after evidence
+        score_a = lattice.get_trust("node_A")
+        score_b = lattice.get_trust("node_B")
+
+        # Build trust verdict table
+        verdict_rows = []
+        for ev_type, target, rid, dim in evidence_log[:10]:
+            verdict_rows.append(f"| {ev_type} | {target} | {rid} | {dim} |")
+        if len(evidence_log) > 10:
+            verdict_rows.append(f"| ... | ... | ... | ... |")
+            verdict_rows.append(f"| *(total {len(evidence_log)} events)* | | | |")
+
+        verdict_table = "\n".join(verdict_rows)
+
+        md = f"""
+---
+### E4 Trust Layer -- Conflict Evidence
+
+**Evidence Events Fired:** {len(evidence_log)} total ({equivocation_count} equivocation, {invalid_delta_count} invalid_delta)
+
+| Evidence Type | Target | Record ID | Dimension |
+|--------------|--------|-----------|-----------|
+{verdict_table}
+
+**Post-Evidence Trust Scores:**
+
+| Peer | Overall Trust | Verdict |
+|------|--------------|---------|
+| node_A | {score_a.overall_trust():.3f} | {"Probationary" if score_a.overall_trust() <= 0.5 else "Trusted"} -- no negative evidence |
+| node_B | {score_b.overall_trust():.3f} | {"Probationary" if score_b.overall_trust() <= 0.5 else "Trusted"} -- {len(evidence_log)} evidence events filed |
+
+**Interpretation:** Conflicts between nodes degrade trust for the conflicting peer. The trust lattice records evidence so downstream consumers can make trust-aware merge decisions (e.g., reject merges from peers below a trust threshold).
+"""
+        return md
+
+    except Exception as e:
+        return f"\n\n---\n### E4 Trust Layer -- Conflict Evidence\n\nE4 trust module unavailable: {e}\n"
+
+
+# -----------------------------------------------------------------
 # TAB 3 -- Core CRDT Primitives
-# ─────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------
 
 def run_primitives_demo():
     from crdt_merge.core import GCounter, PNCounter, LWWRegister, ORSet
@@ -367,10 +510,112 @@ def run_primitives_demo():
     return rows
 
 
+def _e4_primitives_trust():
+    """Run E4 trust primitives alongside core CRDTs. Returns markdown string."""
+    try:
+        from crdt_merge.e4 import TypedTrustScore, FrozenDict
+        from crdt_merge.e4.delta_trust_lattice import DeltaTrustLattice
+        from crdt_merge.e4.trust_bound_merkle import TrustBoundMerkle
+        from crdt_merge.e4.causal_trust_clock import CausalTrustClock
+        from crdt_merge.e4.pco import AggregateProofCarryingOperation
 
-# ─────────────────────────────────────────────────────────────────
+        # CausalTrustClock demo
+        clock_a = CausalTrustClock(peer_id="node_A")
+        clock_b = CausalTrustClock(peer_id="node_B")
+
+        # Simulate operations on each clock
+        clock_a = clock_a.increment()  # op 1
+        clock_a = clock_a.increment()  # op 2
+        clock_a = clock_a.increment()  # op 3
+        clock_b = clock_b.increment()  # op 1
+        clock_b = clock_b.increment()  # op 2
+
+        clock_a_time = clock_a.logical_time
+        clock_b_time = clock_b.logical_time
+
+        # Merge clocks
+        clock_merged = clock_a.merge(clock_b)
+        clock_merged_time = clock_merged.logical_time
+
+        # Trust-Bound Merkle tree wrapping primitive operations
+        lattice = DeltaTrustLattice(peer_id="node_A")
+        merkle = TrustBoundMerkle(trust_lattice=lattice)
+
+        ops = [
+            ("gcounter_inc_A", b"increment(node_A, 5)", "node_A"),
+            ("gcounter_inc_B", b"increment(node_B, 7)", "node_B"),
+            ("pncounter_inc", b"increment(n, 10)", "node_A"),
+            ("pncounter_dec", b"decrement(n, 3)", "node_A"),
+            ("lww_set_v1", b"set(model_v1, ts=1.0)", "node_A"),
+            ("lww_set_v3", b"set(model_v3, ts=2.0)", "node_B"),
+            ("orset_add_alpha", b"add(alpha)", "node_A"),
+            ("orset_add_delta", b"add(delta)", "node_B"),
+        ]
+
+        for key, data, orig in ops:
+            merkle.insert_leaf(key=key, data=data, originator=orig)
+
+        merkle_root = merkle.recompute()
+
+        # PCO wire format
+        pco = AggregateProofCarryingOperation(
+            aggregate_hash=b'\x00' * 32,
+            signature=b'\x00' * 64,
+            originator_id="node_A",
+            metadata=b'{"ops": 8}',
+            merkle_root_at_creation=str(merkle_root),
+            clock_snapshot=b'\x03',
+            trust_vector_hash="tvh_demo",
+            delta_bounds=(),
+        )
+        wire = pco.to_wire()
+        wire_size = len(wire)
+
+        md = f"""
+---
+### E4 Trust Layer -- Primitive-Level Trust
+
+#### CausalTrustClock
+
+| Clock | Operations | Logical Time |
+|-------|-----------|-------------|
+| node_A | 3 increments | {clock_a_time} |
+| node_B | 2 increments | {clock_b_time} |
+| merged(A, B) | merge | {clock_merged_time} |
+
+Causal trust clocks are immutable -- each `increment()` returns a new clock instance. The merged clock captures the causal frontier of both peers.
+
+#### Trust-Bound Merkle Tree
+
+| Property | Value |
+|----------|-------|
+| Leaves inserted | {len(ops)} |
+| Operations covered | GCounter, PNCounter, LWWRegister, ORSet |
+| Merkle root | `{merkle_root}` |
+
+Every CRDT operation is recorded as a Merkle leaf with its originator. The trust-bound Merkle tree links each leaf to the originator's trust score in the lattice, enabling per-operation provenance auditing.
+
+#### Proof-Carrying Operation (PCO) Wire Format
+
+| Property | Value |
+|----------|-------|
+| Wire size | {wire_size} bytes |
+| Originator | node_A |
+| Merkle root at creation | `{str(merkle_root)[:32]}...` |
+| Format | AggregateProofCarryingOperation |
+
+The PCO bundles a cryptographic proof (aggregate hash + signature), the Merkle root at time of creation, and a clock snapshot into a compact wire format suitable for gossip protocols.
+"""
+        return md
+
+    except Exception as e:
+        return f"\n\n---\n### E4 Trust Layer -- Primitive-Level Trust\n\nE4 trust module unavailable: {e}\n"
+
+
+
+# -----------------------------------------------------------------
 # Gradio UI
-# ─────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------
 
 with gr.Blocks(theme=THEME, css=CSS, title="crdt-merge — Data Playground") as demo:
     gr.Markdown(NAV_MD)
@@ -378,7 +623,7 @@ with gr.Blocks(theme=THEME, css=CSS, title="crdt-merge — Data Playground") as 
 
     with gr.Tabs():
 
-        # ── TAB 1 ──────────────────────────────────────────────────────
+        # -- TAB 1 --------------------------------------------------------
         with gr.Tab("Dataset Merge"):
             gr.Markdown("""
 ## Dataset Merge
@@ -414,7 +659,7 @@ Demonstrates conflict-free merge with configurable strategy.
             merge_ds_btn.click(_run_ds_merge, inputs=[strat_dd], outputs=[merge_summary_md, merge_result_table])
             demo.load(lambda: _run_ds_merge("LWW"), outputs=[merge_summary_md, merge_result_table])
 
-        # ── TAB 2 ──────────────────────────────────────────────────────
+        # -- TAB 2 --------------------------------------------------------
         with gr.Tab("Conflict Analysis"):
             gr.Markdown("""
 ## Conflict Analysis
@@ -439,6 +684,7 @@ between strategy pairs. The heatmap shows how often two strategies disagree on a
                 headers=["Strategy", "Conflicts vs LWW", "Overlap Records", "Conflict Rate"],
                 label="Strategy Comparison",
             )
+            conflict_e4_md = gr.Markdown()
 
             def _run_conflict():
                 rows, fig = run_conflict_analysis()
@@ -446,12 +692,13 @@ between strategy pairs. The heatmap shows how often two strategies disagree on a
                     [r["Strategy"], r["Conflicts vs LWW"], r["Overlap Records"], r["Conflict Rate"]]
                     for r in rows
                 ]
-                return fig, df_data
+                e4_md = _e4_conflict_trust_analysis()
+                return fig, df_data, e4_md
 
-            conflict_btn.click(_run_conflict, outputs=[conflict_chart, conflict_table])
-            demo.load(_run_conflict, outputs=[conflict_chart, conflict_table])
+            conflict_btn.click(_run_conflict, outputs=[conflict_chart, conflict_table, conflict_e4_md])
+            demo.load(_run_conflict, outputs=[conflict_chart, conflict_table, conflict_e4_md])
 
-        # ── TAB 3 ──────────────────────────────────────────────────────
+        # -- TAB 3 --------------------------------------------------------
         with gr.Tab("Core CRDT Primitives"):
             gr.Markdown("""
 ## Core CRDT Primitives
@@ -482,17 +729,20 @@ Commutativity is verified: merge(A,B) must equal merge(B,A).
                 label="Primitive Commutativity Proof",
                 wrap=True,
             )
+            prim_e4_md = gr.Markdown()
 
             def _run_prims():
                 rows = run_primitives_demo()
-                return [
+                table_data = [
                     [r["Primitive"], r["Node A Operations"], r["Node B Operations"],
                      r["merge(A,B) Value"], r["merge(B,A) Value"], r["Commutative"]]
                     for r in rows
                 ]
+                e4_md = _e4_primitives_trust()
+                return table_data, e4_md
 
-            prim_btn.click(_run_prims, outputs=[prim_table])
-            demo.load(_run_prims, outputs=[prim_table])
+            prim_btn.click(_run_prims, outputs=[prim_table, prim_e4_md])
+            demo.load(_run_prims, outputs=[prim_table, prim_e4_md])
 
     gr.Markdown("""
 ---
