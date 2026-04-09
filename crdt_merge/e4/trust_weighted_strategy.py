@@ -507,11 +507,13 @@ class TrustWeightedStrategySelector:
         acceptance_filter: Optional[TrustGatedAcceptanceFilter] = None,
         lww_resolver: Optional[TrustWeightedLWWResolver] = None,
         averaging_resolver: Optional[TrustWeightedAveragingResolver] = None,
+        trust_scores: Optional[Dict[str, "TypedTrustScore"]] = None,
     ) -> None:
         self._filter = acceptance_filter or TrustGatedAcceptanceFilter()
         self._lww = lww_resolver or TrustWeightedLWWResolver()
         self._averaging = averaging_resolver or TrustWeightedAveragingResolver()
         self._custom_resolvers: Dict[str, ConflictResolver] = {}
+        self._default_trust_scores: Dict[str, TypedTrustScore] = dict(trust_scores or {})
 
     # -- resolver registration ---------------------------------------------
 
@@ -662,3 +664,7 @@ class TrustWeightedStrategySelector:
             f"custom={len(self._custom_resolvers)}, "
             f"strict={self._filter._strict})"
         )
+
+
+# Convenience alias
+TrustWeightedStrategy = TrustWeightedStrategySelector

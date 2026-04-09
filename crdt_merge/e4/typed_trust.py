@@ -120,6 +120,9 @@ class TypedTrustScore:
         """Weighted mean across all six dimensions."""
         return sum(self.trust_for_dimension(d) for d in TRUST_DIMENSIONS) / len(TRUST_DIMENSIONS)
 
+    # Convenience alias used by higher-level APIs
+    composite = overall_trust
+
     # -- adaptive immune level (ref 895) --------------------------------
 
     def verification_level(self) -> int:

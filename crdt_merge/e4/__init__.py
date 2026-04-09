@@ -64,6 +64,7 @@ from crdt_merge.e4.trust_weighted_strategy import (
     TrustGatedAcceptanceFilter,
     TrustWeightedAveragingResolver,
     TrustWeightedLWWResolver,
+    TrustWeightedStrategy,
     TrustWeightedStrategySelector,
 )
 
@@ -93,6 +94,7 @@ __all__ = [
     "TrustGatedAcceptanceFilter",
     "TrustWeightedAveragingResolver",
     "TrustWeightedLWWResolver",
+    "TrustWeightedStrategy",
     "TrustWeightedStrategySelector",
 ]
 

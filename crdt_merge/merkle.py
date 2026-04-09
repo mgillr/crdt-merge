@@ -120,7 +120,13 @@ class MerkleTree:
     ``from_dict()`` so it can participate in the ``crdt-merge`` ecosystem.
     """
 
-    def __init__(self, branching_factor: int = 16) -> None:
+    def __init__(
+        self,
+        branching_factor: int = 16,
+        *,
+        leaves: Optional[List[dict]] = None,
+        leaf_key: str = "id",
+    ) -> None:
         """Initialise a MerkleTree.
 
         Args:
@@ -129,6 +135,11 @@ class MerkleTree:
                 tree, larger proofs. Lower values = deeper tree, smaller proofs.
                 Default 16 balances proof size and tree depth for datasets of
                 1K–10M leaves.
+            leaves: Optional list of record dicts to populate the tree on
+                construction. Each record must contain the field named by
+                *leaf_key*.
+            leaf_key: Field name used as the unique record key when
+                populating from *leaves* (default "id").
         """
         if branching_factor < 2:
             branching_factor = 2
@@ -137,6 +148,11 @@ class MerkleTree:
         self._record_data: Dict[str, dict] = {}  # key → full record
         self._root: Optional[MerkleNode] = None
         self._dirty: bool = True                  # needs rebuild?
+
+        if leaves is not None:
+            for record in leaves:
+                k = str(record[leaf_key])
+                self.insert(k, record)
 
     # ── Construction ────────────────────────────────────────────────────
 

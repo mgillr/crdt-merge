@@ -67,7 +67,12 @@ class VectorClock:
 
     _clocks: Dict[str, int] = field(default_factory=dict)
 
-    def __init__(self, clocks: Optional[Dict[str, int]] = None) -> None:
+    def __init__(
+        self,
+        clocks: Optional[Dict[str, int]] = None,
+        *,
+        node_id: Optional[str] = None,
+    ) -> None:
         """Create a vector clock from an optional {node_id: counter} dict.
 
         Zero-counter normalization:
@@ -86,6 +91,11 @@ class VectorClock:
             ValueError: If any counter is negative.
             TypeError: If any counter is not an int.
         """
+        if clocks is None and node_id is not None:
+            # Convenience: VectorClock(node_id="my_node") initialises
+            # with a single tick for the given node.
+            self._clocks: Dict[str, int] = {node_id: 1}
+            return
         if clocks is None:
             self._clocks: Dict[str, int] = {}
         else:
