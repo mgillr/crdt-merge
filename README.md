@@ -185,15 +185,11 @@ merged = merge(node_a, node_b, key="id")
 
 ---
 
-## When not to use crdt-merge
+## When you do not need the CRDT layer
 
-If you are merging two models on a single machine with a known, fixed order, you do not need CRDT guarantees. Standard merge tools (mergekit, model-stock) are simpler and have no overhead. crdt-merge adds value when:
+The CRDT convergence layer is unnecessary when merge order is fixed and known in advance -- a single researcher merging two models on one machine, for example. In that case, the CRDT overhead (sub-millisecond) is harmless but adds no value.
 
-- Multiple nodes merge independently without coordination
-- Merge order is unknown or non-deterministic
-- You need provenance, auditability, or tamper evidence
-- Byzantine actors may be present in the merge network
-- You need GDPR-compliant erasure from merged state
+The rest of the library -- 26 merge strategies, E4 trust scoring, Merkle provenance, GDPR-compliant erasure, schema evolution, and the data/model/agent merge APIs -- works identically with or without the distributed convergence guarantee. You can use crdt-merge as a local merge toolkit and gain the CRDT properties for free if you later move to a distributed setting.
 
 ---
 
