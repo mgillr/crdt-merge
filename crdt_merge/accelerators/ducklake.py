@@ -273,7 +273,7 @@ class DuckLakeConflictResolver:
             self._snapshots[name] = [dict(r) for r in data]
         elif isinstance(data, str) and self._conn is not None:
             # Query from DuckDB
-            result = self._conn.execute(f"SELECT * FROM {data}").fetchall()
+            result = self._conn.execute(f"SELECT * FROM {data}").fetchall()  # nosec B608 -- table name from internal snapshot registry
             cols = [desc[0] for desc in self._conn.description]
             self._snapshots[name] = [dict(zip(cols, row)) for row in result]
         else:
@@ -571,7 +571,7 @@ class DuckLakeConflictResolver:
             if self._conn is not None:
                 # Try as DuckDB table
                 try:
-                    result = self._conn.execute(f"SELECT * FROM {snapshot}").fetchall()
+                    result = self._conn.execute(f"SELECT * FROM {snapshot}").fetchall()  # nosec B608 -- table name from internal snapshot registry
                     cols = [desc[0] for desc in self._conn.description]
                     return [dict(zip(cols, row)) for row in result]
                 except Exception:

@@ -204,13 +204,13 @@ class SQLiteCRDTMerge:
         """)
         cur.execute(f"""
             CREATE TABLE IF NOT EXISTS {_CLOCK_TABLE} (
-                table_name TEXT NOT NULL,
+                table_name TEXT NOT NULL,  # nosec B608 -- _META_TABLE is a module constant, not user input
                 key_value TEXT NOT NULL,
                 node_id TEXT NOT NULL DEFAULT 'local',
                 clock INTEGER NOT NULL DEFAULT 0,
                 updated_at TEXT DEFAULT (datetime('now')),
                 PRIMARY KEY (table_name, key_value, node_id)
-            )
+            )  # nosec B608 -- _CLOCK_TABLE is a module constant, not user input
         """)
         self._conn.commit()
 
@@ -218,7 +218,7 @@ class SQLiteCRDTMerge:
         """Get CRDT metadata for a table, or None."""
         cur = self._conn.cursor()
         cur.execute(
-            f"SELECT key_column, strategies, merge_count FROM {_META_TABLE} WHERE table_name = ?",
+            f"SELECT key_column, strategies, merge_count FROM {_META_TABLE} WHERE table_name = ?",  # nosec B608 -- _META_TABLE is a module constant
             (table,),
         )
         row = cur.fetchone()
@@ -233,7 +233,7 @@ class SQLiteCRDTMerge:
     def _increment_merge_count(self, table: str) -> None:
         """Bump the merge counter for a table."""
         self._conn.execute(
-            f"UPDATE {_META_TABLE} SET merge_count = merge_count + 1 WHERE table_name = ?",
+            f"UPDATE {_META_TABLE} SET merge_count = merge_count + 1 WHERE table_name = ?",  # nosec B608 -- _META_TABLE is a module constant
             (table,),
         )
         self._conn.commit()
@@ -266,12 +266,12 @@ class SQLiteCRDTMerge:
         col_defs.append("_crdt_ts REAL DEFAULT 0.0")
         col_defs.append("_crdt_node TEXT DEFAULT 'local'")
 
-        sql = f"CREATE TABLE IF NOT EXISTS {name} ({', '.join(col_defs)})"
+        sql = f"CREATE TABLE IF NOT EXISTS {name} ({', '.join(col_defs)})"  # nosec B608 -- table name from programmatic API, column defs built internally
         self._conn.execute(sql)
 
         # Store metadata
         self._conn.execute(
-            f"INSERT OR REPLACE INTO {_META_TABLE} (table_name, key_column, strategies) VALUES (?, ?, ?)",
+            f"INSERT OR REPLACE INTO {_META_TABLE} (table_name, key_column, strategies) VALUES (?, ?, ?)",  # nosec B608 -- _META_TABLE is a module constant
             (name, key, json.dumps(strategies)),
         )
         self._conn.commit()
@@ -282,9 +282,9 @@ class SQLiteCRDTMerge:
         Args:
             name: Table name.
         """
-        self._conn.execute(f"DROP TABLE IF EXISTS {name}")
-        self._conn.execute(f"DELETE FROM {_META_TABLE} WHERE table_name = ?", (name,))
-        self._conn.execute(f"DELETE FROM {_CLOCK_TABLE} WHERE table_name = ?", (name,))
+        self._conn.execute(f"DROP TABLE IF EXISTS {name}")  # nosec B608 -- table name from programmatic API
+        self._conn.execute(f"DELETE FROM {_META_TABLE} WHERE table_name = ?", (name,))  # nosec B608 -- _META_TABLE is a module constant
+        self._conn.execute(f"DELETE FROM {_CLOCK_TABLE} WHERE table_name = ?", (name,))  # nosec B608 -- _CLOCK_TABLE is a module constant
         self._conn.commit()
 
     def list_crdt_tables(self) -> List[str]:
@@ -293,7 +293,7 @@ class SQLiteCRDTMerge:
         Returns:
             List of table names.
         """
-        cur = self._conn.execute(f"SELECT table_name FROM {_META_TABLE} ORDER BY table_name")
+        cur = self._conn.execute(f"SELECT table_name FROM {_META_TABLE} ORDER BY table_name")  # nosec B608 -- _META_TABLE is a module constant
         return [row[0] for row in cur.fetchall()]
 
     def table_info(self, name: str) -> Dict[str, Any]:
@@ -312,7 +312,7 @@ class SQLiteCRDTMerge:
         if meta is None:
             raise ValueError(f"Table '{name}' is not a CRDT-managed table.")
 
-        cur = self._conn.execute(f"SELECT COUNT(*) FROM {name}")
+        cur = self._conn.execute(f"SELECT COUNT(*) FROM {name}")  # nosec B608 -- table name validated via _get_table_meta
         row_count = cur.fetchone()[0]
 
         return {
@@ -368,7 +368,7 @@ class SQLiteCRDTMerge:
 
             # Fetch existing row
             cur = self._conn.execute(
-                f"SELECT * FROM {table} WHERE {key_col} = ?",
+                f"SELECT * FROM {table} WHERE {key_col} = ?",  # nosec B608 -- table/key_col from CRDT metadata, not user input
                 (str(key_val),),
             )
             existing = cur.fetchone()
@@ -385,7 +385,7 @@ class SQLiteCRDTMerge:
                 col_str = ", ".join(cols)
                 vals = [record_with_meta[c] for c in cols]
                 self._conn.execute(
-                    f"INSERT INTO {table} ({col_str}) VALUES ({placeholders})",
+                    f"INSERT INTO {table} ({col_str}) VALUES ({placeholders})",  # nosec B608 -- table/columns from CRDT metadata, not user input
                     vals,
                 )
                 inserted += 1
@@ -423,14 +423,14 @@ class SQLiteCRDTMerge:
                     set_clauses = ", ".join(f"{c} = ?" for c in update_vals)
                     vals_list = list(update_vals.values()) + [str(key_val)]
                     self._conn.execute(
-                        f"UPDATE {table} SET {set_clauses} WHERE {key_col} = ?",
+                        f"UPDATE {table} SET {set_clauses} WHERE {key_col} = ?",  # nosec B608 -- table/columns from CRDT metadata, not user input
                         vals_list,
                     )
                 merged += 1
 
             # Update clock
             self._conn.execute(
-                f"""INSERT INTO {_CLOCK_TABLE} (table_name, key_value, node_id, clock)
+                f"""INSERT INTO {_CLOCK_TABLE} (table_name, key_value, node_id, clock)  # nosec B608 -- _CLOCK_TABLE is a module constant
                     VALUES (?, ?, ?, 1)
                     ON CONFLICT(table_name, key_value, node_id)
                     DO UPDATE SET clock = clock + 1, updated_at = datetime('now')""",
@@ -452,7 +452,7 @@ class SQLiteCRDTMerge:
         Returns:
             List of dicts.
         """
-        cur = self._conn.execute(f"SELECT * FROM {table}")
+        cur = self._conn.execute(f"SELECT * FROM {table}")  # nosec B608 -- table name from programmatic API
         rows = cur.fetchall()
         result = []
         for row in rows:
@@ -520,7 +520,7 @@ class SQLiteCRDTMerge:
 
     def _read_raw_table(self, table: str) -> List[Dict[str, Any]]:
         """Read all rows from an arbitrary table as dicts."""
-        cur = self._conn.execute(f"SELECT * FROM {table}")
+        cur = self._conn.execute(f"SELECT * FROM {table}")  # nosec B608 -- table name from programmatic API
         cols = [desc[0] for desc in cur.description]
         rows = cur.fetchall()
         result = []
@@ -560,7 +560,7 @@ class SQLiteCRDTMerge:
         stats: Dict[str, int] = {}
         for table in tables:
             try:
-                cur = remote_conn.execute(f"SELECT * FROM {table}")
+                cur = remote_conn.execute(f"SELECT * FROM {table}")  # nosec B608 -- table name from programmatic API
                 cols = [desc[0] for desc in cur.description]
                 rows = cur.fetchall()
                 records = []
@@ -609,7 +609,7 @@ class SQLiteCRDTMerge:
             Dict mapping node_id → clock value.
         """
         cur = self._conn.execute(
-            f"SELECT node_id, clock FROM {_CLOCK_TABLE} WHERE table_name = ? AND key_value = ?",
+            f"SELECT node_id, clock FROM {_CLOCK_TABLE} WHERE table_name = ? AND key_value = ?",  # nosec B608 -- _CLOCK_TABLE is a module constant
             (table, str(key_value)),
         )
         return {row[0]: row[1] for row in cur.fetchall()}
@@ -630,7 +630,7 @@ class SQLiteCRDTMerge:
         key_col = meta["key_column"]
         # Find clock entries whose key no longer exists in the table
         cur = self._conn.execute(
-            f"""DELETE FROM {_CLOCK_TABLE}
+            f"""DELETE FROM {_CLOCK_TABLE}  # nosec B608 -- _CLOCK_TABLE / table from CRDT metadata
                 WHERE table_name = ?
                 AND key_value NOT IN (SELECT {key_col} FROM {table})""",
             (table,),

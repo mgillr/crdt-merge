@@ -306,8 +306,8 @@ class DuckDBMergeUDF:
         Column-at-a-time batching is not yet implemented.
         """
         conn = self._ensure_conn()
-        left_recs = _records_from_relation(conn.sql(f"SELECT * FROM {left}"))
-        right_recs = _records_from_relation(conn.sql(f"SELECT * FROM {right}"))
+        left_recs = _records_from_relation(conn.sql(f"SELECT * FROM {left}"))  # nosec B608 -- table name from caller, not user input
+        right_recs = _records_from_relation(conn.sql(f"SELECT * FROM {right}"))  # nosec B608 -- table name from caller, not user input
         schema = self._build_schema(strategies)
         merged, _ = _merge_records(left_recs, right_recs, key, schema)
         return merged
@@ -329,8 +329,8 @@ class DuckDBMergeUDF:
             Diff dict with added, removed, modified, unchanged_count.
         """
         conn = self._ensure_conn()
-        left_recs = _records_from_relation(conn.sql(f"SELECT * FROM {left}"))
-        right_recs = _records_from_relation(conn.sql(f"SELECT * FROM {right}"))
+        left_recs = _records_from_relation(conn.sql(f"SELECT * FROM {left}"))  # nosec B608 -- table name from caller, not user input
+        right_recs = _records_from_relation(conn.sql(f"SELECT * FROM {right}"))  # nosec B608 -- table name from caller, not user input
         return _diff_records(left_recs, right_recs, key)
 
     def merge_results(
