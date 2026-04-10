@@ -233,7 +233,7 @@ class HFMergeHub:
                 import torch
                 state_dict = {}
                 for bf in sorted(bin_files):
-                    state_dict.update(torch.load(str(bf), map_location="cpu"))
+                    state_dict.update(torch.load(str(bf), map_location="cpu", weights_only=True))
                 return state_dict
             except ImportError:
                 pass
