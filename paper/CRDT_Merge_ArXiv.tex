@@ -63,7 +63,7 @@ Layer~2 applies merge strategies as deterministic pure functions over a canonica
 We prove that this separation guarantees Strong Eventual Consistency~\cite{shapiro2011conflict}: all replicas receiving the same contributions compute identical merged models, regardless of message ordering.
 Empirical validation spans three tiers: controlled $4\times 4$ tensors (104/104 tests pass), production-scale models up to 7.24\,B parameters (208 strategy-level tests, 43{,}368 layer-level property checks at capped tensor resolution), and multi-node convergence under gossip and partition healing (100 nodes, 20 orderings), with CRDT overhead below 0.5\,ms.
 Because the wrapper is transparent, downstream performance is identical by construction, confirmed via byte-identical output verification.
-The reference implementation is available as \texttt{crdt-merge} v0.9.5, which additionally includes E4 Recursive Trust-Delta Entanglement -- a protocol that makes trust a first-class CRDT dimension, enabling Byzantine detection without consensus (Section~\ref{sec:e4}).
+The reference implementation is available as \texttt{crdt-merge} v0.9.4.
 \end{abstract}
 \vspace{1.5em}
 ]
@@ -480,7 +480,7 @@ This overhead is dwarfed by inference, fine-tuning, and strategy execution costs
 
 \subsection{Tier 3: Multi-Node Convergence Suite}\label{sec:convergence_suite}
 
-To validate convergence under realistic distributed conditions, we execute a four-part convergence suite using the \texttt{crdt-merge} library (v0.9.5).
+To validate convergence under realistic distributed conditions, we execute a four-part convergence suite using the \texttt{crdt-merge} library (v0.9.4).
 The gossip protocol is \emph{push-based all-pairs}: in each round, every node sends its full CRDT state to every other node, which merges it locally via Eq.~\ref{eq:merge}.
 For $n$ nodes this requires $n(n{-}1)$ directed merge calls per round; since each call is $O(|A_1|{+}|A_2|)$ (set union, independent of tensor size), the gossip phase scales as $O(n^2)$ in node count while remaining $O(1)$ in model size.
 This all-pairs protocol is a \emph{prototype for validation purposes}, chosen as the simplest correct implementation; production deployments should use epidemic (randomised) gossip~\cite{koloskova2019decentralized}, which reduces per-round communication to $O(n)$ at the cost of slower convergence and is a natural scalability optimisation beyond ${\sim}50$ nodes.
@@ -566,88 +566,19 @@ We have not empirically evaluated tombstone accumulation rates; for the consorti
 
 \paragraph{L4: Security and Conflict Resolution.}
 The OR-Set's add-wins policy means concurrent adds survive concurrent removes---problematic if removal represents discovery of a poisoned model.
-The architecture did not originally provide Byzantine fault tolerance; this has been addressed by E4 (Section~\ref{sec:e4}), implemented in v0.9.5.
-The two-layer separation enabled a trust-as-CRDT extension where trust metadata propagates through the same lattice semantics as data.
-This has been implemented as the E4 protocol (Section~\ref{sec:e4}), which extends the architecture to a four-dimensional product lattice with Byzantine detection through trust score convergence.
-See Section~\ref{sec:e4} for details.
-Integration with existing Byzantine-resilient aggregation methods~\cite{blanchard2017machine} remains possible as a complementary defence layer.
+The architecture does not currently provide Byzantine fault tolerance.
+However, the two-layer separation creates a structural opportunity that goes beyond incremental hardening: trust metadata---such as evidence of equivocation (a node sending inconsistent states to different peers), Merkle-root divergence, or contribution-fingerprint anomalies---can itself be modelled as a monotonically-growing CRDT within Layer~1.
+A gated merge at the Layer~2 boundary would then reject contributions from nodes whose converged trust score falls below a configurable threshold.
 
+Critically, trust convergence would be guaranteed by the same join-semilattice proof as data convergence, enabling consensus-free Byzantine isolation at well-defined threat levels: given $n$ nodes with at most $f$ Byzantine actors, if evidence propagation reaches all honest nodes (guaranteed under eventual delivery), then all $n - f$ honest nodes converge to the same trust state, make identical gating decisions, and therefore converge to identical data states---without coordinators, external oracles, or cryptographic voting rounds.
+This would yield a promising structural pathway toward Byzantine exclusion at well-defined threat levels: rather than degrading gracefully, the system could provably exclude Byzantine contributions from the merged output once the evidence lattice has converged.
+The exclusion threshold, evidence types, and convergence bounds would be configurable parameters defining the exclusion level for a given deployment.
 
-% ============================================================
-% 8. E4: TRUST AS A CRDT DIMENSION
-% ============================================================
-\section{E4: Trust as a CRDT Dimension}\label{sec:e4}
-
-The limitation identified in Section~\ref{sec:limitations} (L4) -- that the architecture provides no Byzantine fault tolerance -- motivated E4 Recursive Trust-Delta Entanglement, implemented in v0.9.5.
-E4 extends the two-layer architecture without modifying it: trust becomes an additional dimension of the CRDT state, entangled with data at the lattice level.
-
-\subsection{Product Lattice Structure}
-
-E4 extends \CMS{} from a three-component tuple $(A, R, V, H)$ to a four-dimensional product lattice:
-
-\begin{equation}\label{eq:e4state}
-\mathrm{E4State} = \mathrm{Data} \times \mathrm{Trust} \times \mathrm{Clock} \times \mathrm{Hash}
-\end{equation}
-
-Each dimension is a join-semilattice.
-The product of join-semilattices is a join-semilattice~\cite{shapiro2011comprehensive}.
-The join is defined dimension-by-dimension:
-
-\begin{equation}\label{eq:e4join}
-(d_1, t_1, c_1, h_1) \sqcup (d_2, t_2, c_2, h_2) = (d_1 \sqcup d_2,\; t_1 \sqcup t_2,\; c_1 \sqcup c_2,\; \mathrm{recompute}(h))
-\end{equation}
-
-Convergence follows from the algebraic structure -- it is inherited, not tested.
-The Data dimension join is unchanged from Eq.~\ref{eq:merge}, so enabling E4 cannot break existing convergence guarantees.
-
-\subsection{Six Foundational Primitives}
-
-E4 is built from six primitives:
-
-\begin{enumerate}[leftmargin=*]
-\item \textbf{Change detection (P1).} Given two states, identify what differs -- implemented through 256-ary Merkle tree differencing.
-\item \textbf{Change encoding (P2).} Represent differences compactly -- projection delta encoding extracts only changed subtrees and compresses through parameter-aware encoding.
-\item \textbf{Change verification (P3).} Prove differences are legitimate -- each delta carries a cryptographic proof that is verified independently of trust scores.
-\item \textbf{Trust assignment (P4).} Score each peer's reliability -- a five-dimensional trust vector (integrity, causality, consistency, gossip, model quality) maintained as per-dimension GCounters with homeostatic budget normalisation.
-\item \textbf{Trust-gated application (P5).} Apply changes only from sufficiently trusted peers -- a configurable threshold gates data application at the Layer~2 boundary.
-\item \textbf{Recursive propagation (P6).} Trust changes propagate as data changes through the same delta pipeline they govern.
-\end{enumerate}
-
-P1--P2 correspond to delta-state CRDTs~\cite{almeida2018delta}.
-P3 corresponds to authenticated data structures.
-P4--P5 correspond to Byzantine filtering, established in consensus protocols but not previously as CRDT-native semantics.
-P6 -- recursive trust-delta propagation -- is the binding contribution: when a peer's trust score changes, that change is encoded as a delta, transmitted and verified through the same pipeline as data deltas.
-
-\subsection{Symbiotic Lattice Trust (SLT) Protocol}
-
-The SLT protocol implements Byzantine detection through trust lattice convergence rather than voting rounds.
-Each peer maintains a per-peer trust vector as five independent GCounters.
-Evidence of malicious behaviour -- equivocation (sending inconsistent states to different peers), Merkle-root divergence, clock regression, invalid deltas, or trust manipulation -- triggers monotonic trust decay.
-Because GCounters are CRDTs, all honest peers converge on the same trust state without coordination.
-
-SLT's threat model differs from classical BFT~\cite{castro1999practical}.
-Classical BFT guarantees safety below $n/3$ Byzantine actors through voting rounds.
-SLT operates without voting -- Byzantine detection emerges from trust score convergence across the lattice, and trust-gated application at the Layer~2 boundary excludes contributions from peers whose converged trust falls below threshold.
-The 34\% tolerance threshold was measured empirically with actively Byzantine peers performing data injection, trust inflation, and selective withholding.
-End-to-end federation latency across 10 nodes with 2 actively Byzantine peers: 9.69\,ms.
-
-\subsection{Delta Encoding}
-
-Projection delta encoding decomposes state changes through 256-ary Merkle tree differencing, extracts only changed subtrees, and compresses through parameter-aware encoding.
-Deltas compose associatively -- chaining any sequence produces the same result as a single diff between endpoints.
-Validated on \texttt{facebook/opt-6.7b} (6.7 billion parameters).
-Causal clock throughput: 2.93\,M operations per second.
-Proof-carrying operation wire size: 128 bytes fixed.
-
-\subsection{Backward Compatibility}
-
-E4 activates transparently.
-Every existing API call works identically.
-The product lattice join is defined dimension-by-dimension, and the Data dimension join is unchanged.
-Disable with \texttt{CRDT\_MERGE\_E4=0} if needed.
+This ``self-securing lattice'' pattern---where the system uses its own convergence guarantees to secure itself---is structurally enabled by the two-layer architecture and impossible in single-layer CRDT designs where trust and data are entangled.
+Preliminary analysis suggests this is structurally feasible; integration with existing Byzantine-resilient aggregation methods~\cite{blanchard2017machine} is also possible as a complementary defence layer.
 
 % ============================================================
-% 9. RELATED WORK
+% 8. RELATED WORK
 % ============================================================
 \section{Related Work}
 
@@ -672,7 +603,7 @@ The two-layer CRDT architecture is the subject of UK Patent Application No.\ 260
 No prior patent or publication combines CRDT theory with neural network model merging.
 
 % ============================================================
-% 10. CONCLUSION
+% 9. CONCLUSION
 % ============================================================
 \section{Conclusion}
 
@@ -681,8 +612,7 @@ Our formal analysis established that no strategy satisfies the required commutat
 Our two-layer architecture---\CMS{}---resolves this by separating CRDT state management (Layer~1, OR-Set with version vectors and Merkle hashing) from deterministic strategy execution (Layer~2), with formal proofs of CvRDT compliance (Theorem~\ref{thm:crdt}), convergence (Theorem~\ref{thm:convergence}), and bounded overhead (Theorem~\ref{thm:complexity}).
 Empirical validation confirmed 100\% compliance across two tiers (312 strategy-level tests, 43{,}472 layer-level evaluations) with overhead below 0.5\,ms.
 This enables decentralised, coordinator-free model merging with formal convergence guarantees, advancing peer-to-peer model development~\cite{shapiro2011conflict, yang2024survey}.
-v0.9.5 implements E4 Recursive Trust-Delta Entanglement (Section~\ref{sec:e4}), which resolves the Byzantine limitation (L4) by making trust a first-class CRDT dimension with lattice-native Byzantine detection.
-Remaining future directions include cross-hardware determinism validation, incremental resolve strategies for large contribution sets, and integration with federated learning pipelines.
+Future directions include Byzantine exclusion via trust-as-CRDT mechanisms---where trust evidence would converge through the same lattice guarantees as data, offering a promising pathway toward provable Byzantine exclusion at known threat levels without consensus protocols (Section~\ref{sec:limitations}, L4)---as well as delta-state optimisation, cross-hardware determinism validation, incremental resolve strategies for large contribution sets, and integration with federated learning pipelines.
 
 
 
@@ -694,7 +624,7 @@ Section~\ref{sec:limitations} (L4) discusses adversarial considerations and miti
 
 \section*{Reproducibility Statement}
 
-The \texttt{crdt-merge} library (v0.9.5) and accompanying verification notebook are available at \url{https://github.com/RyanGillespie/crdt-merge}.
+The \texttt{crdt-merge} library (v0.9.4) and accompanying verification notebook are available at \url{https://github.com/RyanGillespie/crdt-merge}.
 All experiments use publicly available models from HuggingFace (Appendix~\ref{app:models}) and a single NVIDIA A100-SXM4-80GB GPU.
 The complete test suite, including the Tier~1--3 verification scripts, will be open-sourced upon publication.
 
@@ -1022,7 +952,7 @@ Zephyr & \texttt{HuggingFaceH4/\allowbreak zephyr-7b-beta} \\
 
 \section{Multi-Node Convergence Suite Results}\label{app:convergence}
 
-All experiments use the \texttt{crdt-merge} library v0.9.5.
+All experiments use the \texttt{crdt-merge} library v0.9.4.
 
 \subsection{Multi-Node Convergence}
 
