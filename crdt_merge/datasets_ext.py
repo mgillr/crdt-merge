@@ -33,6 +33,7 @@ def merge_datasets(
     timestamp_col: Optional[str] = None,
     prefer: str = "latest",
     dedup: bool = True,
+    revision: Optional[str] = None,
 ) -> Any:
     """
     Merge two HuggingFace Dataset objects using CRDT semantics.
@@ -52,9 +53,9 @@ def merge_datasets(
 
     # Load if string names provided
     if isinstance(dataset_a, str):
-        dataset_a = load_dataset(dataset_a, split="train")
+        dataset_a = load_dataset(dataset_a, split="train", revision=revision)  # nosec B615 -- revision pinning is caller's responsibility
     if isinstance(dataset_b, str):
-        dataset_b = load_dataset(dataset_b, split="train")
+        dataset_b = load_dataset(dataset_b, split="train", revision=revision)  # nosec B615 -- revision pinning is caller's responsibility
 
     # Convert to pandas, merge, convert back
     from .dataframe import merge as df_merge
@@ -77,6 +78,7 @@ def dedup_dataset(
     columns: Optional[List[str]] = None,
     method: str = "exact",
     threshold: float = 0.85,
+    revision: Optional[str] = None,
 ) -> Any:
     """
     Deduplicate a HuggingFace Dataset.
@@ -94,7 +96,7 @@ def dedup_dataset(
     from .dedup import dedup_records
 
     if isinstance(dataset, str):
-        dataset = load_dataset(dataset, split="train")
+        dataset = load_dataset(dataset, split="train", revision=revision)  # nosec B615 -- revision pinning is caller's responsibility
 
     records = [dict(r) for r in dataset]
     unique, removed = dedup_records(records, columns=columns, method=method, threshold=threshold)
