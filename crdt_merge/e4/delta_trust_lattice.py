@@ -336,6 +336,10 @@ class DeltaTrustLattice:
         if self._circuit_breaker.is_tripped():
             raise CircuitBreakerTripped("trust velocity exceeded threshold")
 
+        # 0. Reject self-attestation (observer cannot accuse themselves)
+        if evidence.observer == evidence.target:
+            raise ValueError("self-attestation rejected: observer cannot target self")
+
         # 1. Cryptographic proof verification (trust-independent)
         if not evidence.verify(self._merkle.root_hash):
             raise ValueError("evidence proof failed verification")

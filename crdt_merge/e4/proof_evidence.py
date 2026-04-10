@@ -32,6 +32,7 @@ Five evidence types are supported, each with a specific proof format:
 from __future__ import annotations
 
 import hashlib
+import math
 import struct
 import time as _time
 from dataclasses import dataclass
@@ -116,7 +117,9 @@ class TrustEvidence:
             return False
         if self.proof_type != EVIDENCE_TYPES[self.evidence_type]:
             return False
-        if self.amount <= 0:
+        if self.amount <= 0 or math.isnan(self.amount) or math.isinf(self.amount):
+            return False
+        if self.amount > 1.0:
             return False
 
         try:
@@ -200,6 +203,9 @@ class TrustEvidence:
             return False
         expected_hash = self.proof[:32]
         delta_bytes = self.proof[32:]
+        # Delta must reference the target peer
+        if self.target.encode("utf-8") not in delta_bytes:
+            return False
         actual_hash = hashlib.sha256(delta_bytes).digest()
         return actual_hash != expected_hash
 
@@ -216,6 +222,13 @@ class TrustEvidence:
         """
         state_a, state_b = _unpack_state_pair(self.proof)
         if state_a is None or state_b is None:
+            return False
+        # Minimum structural requirement: states must be non-trivial
+        # and contain the target peer ID to prove origin
+        if len(state_a) < 16 or len(state_b) < 16:
+            return False
+        target_bytes = self.target.encode("utf-8")
+        if target_bytes not in state_a or target_bytes not in state_b:
             return False
         return state_a != state_b
 

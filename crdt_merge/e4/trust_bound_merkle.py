@@ -140,12 +140,12 @@ class TrustBoundMerkle:
 
     # -- leaf hashing (ref 853, 930) ---------------------------------------
 
-    def compute_leaf_hash(self, data: bytes, originator: str) -> str:
-        """Trust-bound leaf hash: H(data || trust_score || originator)."""
+    def compute_leaf_hash(self, data: bytes, originator: str, key: str = "") -> str:
+        """Trust-bound leaf hash: H(key || data || trust_score || originator)."""
         trust = self._resolve_trust(originator)
         trust_ctx = trust.serialize()
         return hashlib.sha256(
-            data + trust_ctx + originator.encode("utf-8")
+            key.encode("utf-8") + data + trust_ctx + originator.encode("utf-8")
         ).hexdigest()
 
     def compute_leaf_hash_compat(self, data: bytes) -> str:
@@ -309,7 +309,7 @@ class TrustBoundMerkle:
         originator: str,
     ) -> str:
         """Insert a leaf and return its trust-bound hash."""
-        h = self.compute_leaf_hash(data, originator)
+        h = self.compute_leaf_hash(data, originator, key=key)
         node = MerkleNode(
             path=self._key_to_path(key),
             hash=h,
