@@ -1,0 +1,41 @@
+name: "Security Scan"
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  bandit:
+    name: Bandit SAST
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - name: Install Bandit
+      run: pip install bandit
+    - name: Run Bandit
+      run: bandit -r crdt_merge/ -f json -o bandit-report.json --severity-level medium || true
+    - name: Upload Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: bandit-report
+        path: bandit-report.json
+
+  semgrep:
+    name: Semgrep
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    steps:
+    - uses: actions/checkout@v4
+    - run: semgrep scan --config=auto --json --output=semgrep-report.json crdt_merge/ || true
+    - name: Upload Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: semgrep-report
+        path: semgrep-report.json

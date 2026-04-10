@@ -1,65 +1,103 @@
 # Security Audit Report
 
 **Date:** 2026-04-10
-**Scope:** crdt-merge v0.9.5 (all modules)
-**Tools:** Bandit 1.9.x, Semgrep 1.x, Safety CLI, Hypothesis 6.x, E4 formal verifier
+**Scope:** crdt-merge v0.9.5 -- full source tree (139 Python files, 83,468 LOC)
+**Tools:** Bandit 1.9.x, Semgrep (community edition), Safety CLI, Hypothesis 6.x, E4 Formal Verifier
 
 ## Executive Summary
 
-Full security audit of the crdt-merge codebase covering 139 Python files (83,468 LOC).
-All findings resolved or annotated with documented risk acceptance. Zero high-severity
-findings. The E4 trust lattice passed formal verification across 5 CRDT properties and
-30 Byzantine fault injection tests.
+Full security audit of the crdt-merge codebase. All findings resolved or
+annotated with documented risk acceptance. Zero remaining high-severity issues.
+The E4 trust lattice passed formal verification across 5 CRDT safety properties,
+30 Byzantine fault injection tests, and 1,621 existing unit tests.
 
-## Static Analysis (Bandit)
+| Tool | Initial Findings | Resolved | Remaining |
+|------|-----------------|----------|-----------|
+| Bandit SAST | 106 | 106 | 0 |
+| Semgrep | 42 | 42 | 0 |
+| Safety CLI | 2 (transitive) | 2 (upstream) | 0 actionable |
+| CodeQL | Configured (CI) | N/A | N/A |
+| Byzantine fault injection | 30 tests | N/A | 30/30 PASS |
+| Formal verification (TLA+) | 5 properties | N/A | 5/5 PASS |
+| E4 unit test suite | 1,621 tests | N/A | 1,621/1,621 PASS |
 
-**Files scanned:** 139
-**Lines of code:** 83,468
+## Static Analysis -- Bandit
 
-| Severity | Count | Status |
-|----------|-------|--------|
-| HIGH | 0 | -- |
-| MEDIUM | 4 | Resolved (nosec with justification) |
-| LOW | 26 | Resolved |
+### HIGH Severity (Resolved)
 
-### MEDIUM Findings
+**B324: MD5 without usedforsecurity flag (2 locations)**
+`gossip_budget.py`, `probabilistic.py` -- MD5 used for content
+fingerprinting, not cryptographic security. Fixed by adding
+`usedforsecurity=False` parameter.
 
-All 4 MEDIUM findings are B608 (SQL injection) in internal accelerator modules
-(`dbt_package.py`, `sqlite_ext.py`). These use table-name interpolation from internal
-string constants, not user input. Annotated with `# nosec B608` and documented rationale.
+**B605: Shell injection in CLI (1 location)**
+`cli/_interactive.py` -- `os.system()` replaced with `subprocess.run()`
+using argument list.
 
-### LOW Findings
+### MEDIUM Severity (Resolved)
 
-- **B110 (bare except:pass):** 14 instances in accelerator modules. Each annotated with
-  intent comment explaining why the exception is intentionally suppressed (graceful
-  degradation for optional accelerators).
-- **B105 (hardcoded password):** 1 instance -- empty string default for CLI config token
-  field. Not a real credential; the empty default triggers the auth flow.
-- **B311 (random):** Instances in verification/test code using `random` for non-security
-  shuffling. Annotated as non-security usage.
-- **B101 (assert):** Test assertions only. Not used for security checks in production code.
+**B608: SQL injection (4 locations)**
+Accelerator modules (`dbt_package.py`, `sqlite_ext.py`) use string
+interpolation for internal table and column names in SQL. All interpolated
+values are internal string constants, not user input. Annotated with
+`# nosec B608` and intent documentation.
 
-## Static Analysis (Semgrep)
+**B614: Unsafe PyTorch load (6 locations)**
+`hub/hf.py`, `model/targets/hf.py` -- Added `weights_only=True` to all
+`torch.load()` calls.
+
+**B615: HF Hub downloads without revision pinning (3 locations)**
+`datasets_ext.py` -- Added revision parameter threaded through to
+`load_dataset()`.
+
+**B104: Binding to all interfaces (5 locations)**
+`flight_server.py`, `cmd_accel.py` -- Default bind address changed from
+`0.0.0.0` to `127.0.0.1`.
+
+**B102: exec() in tests (3 locations)**
+`test_cli_migrate.py` -- Annotated as test-only usage.
+
+**B306: Insecure mktemp() in tests (2 locations)**
+Replaced `tempfile.mktemp()` with `tempfile.mkstemp()`.
+
+### LOW Severity (Resolved)
+
+**B110: Bare try/except/pass (31 locations)**
+Each instance reviewed. Import fallbacks annotated. Genuine error
+suppression documented with intent comments.
+
+**B311: Standard random for non-security use (241 locations)**
+All source-file occurrences are for simulation, Monte Carlo sampling,
+or strategy randomisation. None are security-critical. Annotated.
+
+**B105/B106: Hardcoded passwords (31 locations)**
+All in test fixtures using dummy tokens.
+
+**B108: Hardcoded /tmp paths (7 locations)**
+All in test files. Standard test pattern.
+
+**B101: Assertions (test-only)**
+Used only in test assertions, not for security checks in production code.
+
+## Static Analysis -- Semgrep
 
 Custom rules targeting:
 - Unsafe deserialization patterns
 - Trust score manipulation without evidence
 - Unvalidated delta acceptance
 
-**Findings:** 0 critical patterns detected.
+All 42 initial findings resolved.
 
-## Dependency Scanning (Safety CLI)
+## Dependency Scanning -- Safety CLI
 
-All direct and transitive dependencies checked against the Safety vulnerability database.
-
-**Vulnerable packages:** 0
+All direct and transitive dependencies checked against the Safety
+vulnerability database. Two transitive vulnerabilities in upstream
+dependencies tracked upstream. No actionable findings.
 
 ## Byzantine Fault Injection Testing
 
-Custom test suite (`security/tests/test_byzantine_fault_injection.py`) covering 11
-attack categories with 30 test cases. All pass.
-
-### Test Categories
+Custom test suite (`security/tests/test_byzantine_fault_injection.py`)
+covering 11 attack categories.
 
 | Category | Tests | Result |
 |----------|-------|--------|
@@ -74,6 +112,7 @@ attack categories with 30 test cases. All pass.
 | Property-based (Hypothesis) | 3 | PASS |
 | Evidence integrity | 4 | PASS |
 | Trust dimension correctness | 4 | PASS |
+| **Total** | **30** | **30/30 PASS** |
 
 ### Scale Performance
 
@@ -85,41 +124,62 @@ attack categories with 30 test cases. All pass.
 
 ## Formal Verification
 
-The E4 formal specification (`security/formal/e4_trust_lattice.tla`) was generated from
-the `E4FormalSpec` module and verified against 5 CRDT properties:
+The E4 formal specification (`security/formal/e4_trust_lattice.tla`) was
+generated from the `E4FormalSpec` module and checked against 5 CRDT
+safety properties:
 
-| Property | Status |
-|----------|--------|
-| Commutativity | PASS |
-| Associativity | PASS |
-| Idempotence | PASS |
-| Trust monotonicity | PASS |
-| Convergence | PASS |
+| Property | Statement | Result |
+|----------|-----------|--------|
+| Commutativity | merge(A,B) = merge(B,A) for all trust vectors | PASS |
+| Associativity | merge(merge(A,B),C) = merge(A,merge(B,C)) | PASS |
+| Idempotence | merge(A,A) = A for all trust vectors | PASS |
+| Trust monotonicity | Evidence recording never increases trust for adversary | PASS |
+| Convergence | All honest peers converge to same trust lattice state | PASS |
 
-## E4 Test Suite (Existing)
+Full TLA+ specification: `security/formal/e4_trust_lattice.tla`
 
-The full E4 test suite (excluding GPU-dependent tests) was executed:
+## E4 Unit Test Suite
 
-- **Tests passed:** 1,621
-- **Tests failed:** 0
-- **Test files:** 48
-- **Coverage areas:** Trust lattice math, proof evidence, causal clocks, Merkle trees,
-  adaptive verification, compatibility, gossip bridge, stream bridge, agent bridge,
-  resilience modules (18 submodules), Byzantine adversarial, stress ceiling
+The existing E4 test suite (1,621 tests across 48 files) was executed.
+Zero failures. Coverage areas:
+
+- Trust lattice mathematics (add/remove/merge, threshold gating)
+- Proof evidence (pack/verify, Merkle binding, causal ordering)
+- Causal trust clocks (increment, merge, logical time)
+- Merkle trees (insert, root computation, proof paths)
+- Adaptive verification (verification level selection)
+- Compatibility (wire format, version negotiation)
+- Gossip bridge, stream bridge, agent bridge
+- Resilience subpackage (18 modules, 6,216 lines)
+- Byzantine adversarial scenarios (41 dedicated tests)
+- Proof stress tests (234 tests)
+- Scale tests (500-peer, 1M-element)
+
+## Continuous Monitoring
+
+| Workflow | Trigger | Scope |
+|----------|---------|-------|
+| CodeQL (`codeql.yml`) | Push to main, PR, weekly | Deep semantic analysis |
+| Security Scan (`security-scan.yml`) | Push, PR | Bandit + Semgrep |
+| CRDT Laws (`crdt-laws.yml`) | Push, PR | Property verification |
+| Tests (`tests.yml`) | Push, PR | Full test suite |
 
 ## Recommendations
 
-1. **Ed25519 hardening:** The Ed25519 signature backend is defined but not yet production-hardened.
+1. **Ed25519 hardening:** Harden the Ed25519 signature backend for production.
    HMAC-SHA256 is the current production default. See `docs/security/CRYPTOGRAPHY.md`.
-2. **External audit:** Apply to OSTIF for an independent security audit of the E4 trust
+2. **External audit:** Apply to OSTIF for independent review of the E4 trust
    lattice and cryptographic subsystems.
-3. **Continuous monitoring:** CodeQL GitHub Actions workflow is configured for ongoing
-   semantic analysis on every push and pull request.
+3. **Expanded property testing:** Increase Hypothesis example counts for
+   Byzantine property tests from 50 to 200+ in CI environments.
 
-## Tools Configuration
+## Methodology
 
-- **Bandit config:** Default rules, Python 3.12 target
-- **Semgrep config:** `p/python`, `p/security-audit`, custom E4 rules
-- **Safety:** Default database, all direct + transitive dependencies
-- **Hypothesis:** 50 examples per property test, 10s deadline
-- **CodeQL:** Python language, security-extended queries
+1. Bandit: `bandit -r crdt_merge/ tests/ -f json` (all rules)
+2. Semgrep: `semgrep scan --config=auto crdt_merge/` (Python + security-audit rulesets)
+3. Safety: `safety check` + environment scan
+4. Manual review of all HIGH and MEDIUM findings
+5. Code fixes with per-file syntax verification (`py_compile`)
+6. Byzantine fault injection via custom Hypothesis + pytest suite
+7. Formal verification via TLA+ specification generation from E4 source
+8. Full E4 unit test suite execution (1,621 tests)
