@@ -264,7 +264,7 @@ class HierarchicalAggregator:
     # -- internal ----------------------------------------------------------
 
     def _region_for(self, peer_id: str) -> str:
-        h = int(hashlib.md5(peer_id.encode()).hexdigest(), 16)
+        h = int(hashlib.md5(peer_id.encode(), usedforsecurity=False).hexdigest(), 16)
         idx = h % self._region_count
         return f"region-{idx:04d}"
 

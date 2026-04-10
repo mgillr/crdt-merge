@@ -52,7 +52,7 @@ from typing import Any, Iterable, Optional
 def _hash128(item: Any, seed: int = 0) -> int:
     """Generate a 128-bit hash from any item."""
     data = repr(item).encode('utf-8') + struct.pack('>I', seed)
-    return int(hashlib.md5(data).hexdigest(), 16)
+    return int(hashlib.md5(data, usedforsecurity=False).hexdigest(), 16)
 
 def _hash64(item: Any, seed: int = 0) -> int:
     """Generate a 64-bit hash from any item."""
