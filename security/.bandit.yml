@@ -1,0 +1,6 @@
+skips:
+  - B101  # assert used only in tests
+tests: []
+exclude_dirs:
+  - tests
+  - .venv
