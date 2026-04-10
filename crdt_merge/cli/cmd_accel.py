@@ -62,7 +62,7 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     flight_sp = flight_p.add_subparsers(dest="flight_cmd")
 
     flight_serve = flight_sp.add_parser("serve", help="Start merge server")
-    flight_serve.add_argument("--host", default="0.0.0.0", help="Bind host")
+    flight_serve.add_argument("--host", default="127.0.0.1", help="Bind host")
     flight_serve.add_argument("--port", type=int, default=8815, help="Bind port")
     flight_serve.set_defaults(handler=handle_flight_serve)
 

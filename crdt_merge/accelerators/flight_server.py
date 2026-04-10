@@ -217,7 +217,7 @@ class FlightMergeServer:
 
     def __init__(
         self,
-        host: str = "0.0.0.0",
+        host: str = "127.0.0.1",
         port: int = 8815,
         default_schema: Optional[MergeSchema] = None,
     ) -> None:
