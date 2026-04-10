@@ -291,23 +291,5 @@ MerkleDiff
 
 ## Analysis Notes
 
-### GDEPA Findings
-- Runtime-only symbols: 3
-- Inherited methods: None (no inheritance beyond `@dataclass`)
-- No circular dependencies
-
-### RREA Findings
-- Entropy profile: zero (all symbols at H=0.0 in first pass)
-- Dead code: None
-- Shadow dependencies: `contrib.merkle_hash` (shadow dep via `crdt_merge.model.crdt_state`)
-- Chokepoint status: No chokepoints surfaced even in heightened sensitivity pass — architecturally correct for a utility module
-
-### Code Quality (Team 2)
-- Docstring coverage: 81.1%
-- `__all__` defined: no — **public API is ambiguous**
-- Code smells: `type: ignore` comment on L99 (`key_range=kr`) — investigate if proper typing can eliminate this suppression
-- Missing docstrings: `__init__`, `__eq__`, `__ne__`, `__repr__`, `__len__`, `__contains__`
-
----
 Approved by: Auditor (Team 1), Cross-validated by Teams 2–4  
 Last reviewed: 2026-03-31

@@ -100,7 +100,6 @@ Add multiple items.
 **Returns:** `None`
 
 
-
 ### `MergeableHLL.standard_error(self) → float`
 
 Return the standard error rate for this precision.
@@ -108,13 +107,11 @@ Return the standard error rate for this precision.
 **Returns:** `float`
 
 
-
 ### `MergeableHLL.size_bytes(self) → int`
 
 Return the memory usage in bytes.
 
 **Returns:** `int`
-
 
 
 ### `MergeableBloom.add_all(self, items: Iterable[Any]) → None`
@@ -127,7 +124,6 @@ Add multiple items.
 **Returns:** `None`
 
 
-
 ### `MergeableBloom.estimated_fp_rate(self) → float`
 
 Estimate current false positive rate based on fill ratio.
@@ -135,13 +131,11 @@ Estimate current false positive rate based on fill ratio.
 **Returns:** `float`
 
 
-
 ### `MergeableBloom.size_bytes(self) → int`
 
 Return memory usage in bytes.
 
 **Returns:** `int`
-
 
 
 ### `MergeableCMS.add_all(self, items: Iterable[Any]) → None`
@@ -152,7 +146,6 @@ Add multiple items (count 1 each).
 - `items` (`Iterable[Any]`)
 
 **Returns:** `None`
-
 
 
 ### `MergeableCMS.total(self) → int`
@@ -167,7 +160,6 @@ Total count of all items added.
 **Returns:** `int`
 
 
-
 ### `MergeableCMS.size_bytes(self) → int`
 
 Approximate memory usage in bytes.
@@ -175,12 +167,10 @@ Approximate memory usage in bytes.
 **Returns:** `int`
 
 
-
 ---
 
 ## Internal/Private API
 
-*Discovered during Team 4 RREA re-analysis. These are private helpers critical to internal operation.*
 
 ### Module-Level Functions
 
@@ -194,7 +184,6 @@ Generate a 128-bit hash from any item. Used internally by MergeableBloom for bit
 
 **Returns:** `int` — 128-bit integer hash
 
-**RREA Classification:** SHADOW
 
 #### `_hash64(item: Any, seed: int) -> int`
 
@@ -206,7 +195,6 @@ Generate a 64-bit hash from any item. Used internally by MergeableHLL and Mergea
 
 **Returns:** `int` — 64-bit integer hash
 
-**RREA Classification:** SHADOW
 
 #### `_leading_zeros(value: int, bits: int) -> int`
 
@@ -218,7 +206,6 @@ Count leading zeros in the binary representation. Core to HyperLogLog cardinalit
 
 **Returns:** `int` — count of leading zeros
 
-**RREA Classification:** SHADOW
 
 ### MergeableHLL Internal Methods
 
@@ -228,7 +215,6 @@ Compute the bias correction constant for HLL cardinality estimation. Value depen
 
 **Returns:** `float`
 
-**RREA Classification:** SHADOW
 
 ### MergeableBloom Internal Methods
 
@@ -242,7 +228,6 @@ Calculate optimal bit array size for given capacity and error rate. Formula: `-(
 
 **Returns:** `int`
 
-**RREA Classification:** SHADOW
 
 #### `MergeableBloom._optimal_hashes(m: int, n: int) -> int` (staticmethod)
 
@@ -254,7 +239,6 @@ Calculate optimal number of hash functions. Formula: `(m/n) * ln(2)`.
 
 **Returns:** `int`
 
-**RREA Classification:** SHADOW
 
 #### `MergeableBloom._get_positions(self, item: Any) -> list`
 
@@ -265,7 +249,6 @@ Get the bit positions for an item across all hash functions.
 
 **Returns:** `list` — list of integer positions
 
-**RREA Classification:** SHADOW
 
 #### `MergeableBloom._set_bit(self, pos: int) -> None`
 
@@ -274,7 +257,6 @@ Set a single bit in the bit array.
 **Parameters:**
 - `pos` (`int`): Bit position
 
-**RREA Classification:** SHADOW
 
 #### `MergeableBloom._get_bit(self, pos: int) -> bool`
 
@@ -285,7 +267,6 @@ Check if a bit is set in the bit array.
 
 **Returns:** `bool`
 
-**RREA Classification:** SHADOW
 
 ### MergeableCMS Internal Methods
 
@@ -298,7 +279,6 @@ Get hash positions for each row in the count matrix.
 
 **Returns:** `list` — list of (row, position) pairs
 
-**RREA Classification:** SHADOW
 
 ---
 
@@ -329,22 +309,3 @@ Returns `"MergeableCMS(width=W, depth=D)"`.
 Equality based on count matrix contents and dimensions.
 
 ---
-
-## RREA Priority Analysis
-
-| Symbol | Classification | Entropy | Reachability Score |
-|--------|---------------|---------|-------------------|
-| `MergeableHLL` | SPECIALIZED | — | Core probabilistic type |
-| `MergeableBloom` | SPECIALIZED | — | Core probabilistic type |
-| `MergeableCMS` | SPECIALIZED | — | Core probabilistic type |
-| `MergeableHLL.add` | DEAD (static) | — | Dynamic dispatch FP |
-| `MergeableHLL.cardinality` | DEAD (static) | — | Dynamic dispatch FP |
-| `MergeableBloom.add` | DEAD (static) | — | Dynamic dispatch FP |
-| `MergeableBloom.contains` | DEAD (static) | — | Dynamic dispatch FP |
-| `MergeableCMS.add` | DEAD (static) | — | Dynamic dispatch FP |
-| `MergeableCMS.estimate` | DEAD (static) | — | Dynamic dispatch FP |
-| `_hash128` | SHADOW | — | Critical internal hash function |
-| `_hash64` | SHADOW | — | Critical internal hash function |
-| `_leading_zeros` | SHADOW | — | HLL core algorithm helper |
-
-> **Note:** 46 symbols in probabilistic.py; 16 were missing from docs. All DEAD classifications on instance methods are likely false positives.

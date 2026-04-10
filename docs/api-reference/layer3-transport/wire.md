@@ -442,28 +442,5 @@ For batch operations, a single malformed object will abort the entire batch. Con
 
 ## Analysis Notes
 
-### GDEPA Findings
-- Runtime-only symbols: 2
-- Inherited methods: `WireError.add_note` (from `BaseException`), `WireError.with_traceback` (from `BaseException`)
-- No circular dependencies
-- Import graph edges (full package): 289
-
-### RREA Findings
-- Entropy profile: zero (first pass); heightened sensitivity found 4 genuine chokepoints
-- `_get_delta_module`: combined H=0.6076, ping H=0.9722, 4 endpoints — **critical chokepoint** in delta serialization pipeline
-- `WireError`: combined H=0.5019, ping H=0.6628, 7 endpoints — high-reachability error class
-- `serialize`: combined H=0.3597, ping H=0.598, 2 endpoints
-- `deserialize`: combined H=0.3312, ping H=0.541, 2 endpoints
-- Dead code: None
-- Shadow dependencies: None (wire-specific)
-- Chokepoint status: 4 genuine chokepoints surfaced by heightened sensitivity second pass
-
-### Code Quality (Team 2)
-- Docstring coverage: 92.9%
-- `__all__` defined: yes (`serialize`, `deserialize`, `peek_type`, `wire_size`, `serialize_batch`, `deserialize_batch`, `WireError`)
-- Code smells: `_TAG_TO_TYPE` (L175) is a mutable global dict — consider `types.MappingProxyType`
-- Conditional import: `try: import msgpack` (L67) — graceful fallback to JSON
-
----
 Approved by: Auditor (Team 1), Cross-validated by Teams 2–4  
 Last reviewed: 2026-03-31

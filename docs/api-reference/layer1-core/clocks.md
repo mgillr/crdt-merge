@@ -124,7 +124,6 @@ Advance the dot for *node_id*. Returns a NEW instance.
 **Returns:** `DottedVersionVector`
 
 
-
 ### `DottedVersionVector.descends(self, other: DottedVersionVector) → bool`
 
 Return True if *self* causally descends from (or equals) *other*.
@@ -139,12 +138,10 @@ Return True if *self* causally descends from (or equals) *other*.
 **Returns:** `bool`
 
 
-
 ---
 
 ## automatic Methods (Missing from initial docs)
 
-*Discovered during Team 4 RREA re-analysis.*
 
 ### `VectorClock.__eq__(self, other: object) -> bool`
 
@@ -167,18 +164,3 @@ Equality comparison. Two DVVs are equal if both base clocks and dot sets match.
 Returns string representation showing base clocks and active dots.
 
 ---
-
-## RREA Priority Analysis
-
-| Symbol | Classification | Entropy | Reachability Score |
-|--------|---------------|---------|-------------------|
-| `Ordering` | SPECIALIZED | — | Enum for causal comparison |
-| `VectorClock` | SPECIALIZED | — | Core causality type |
-| `VectorClock.get` | DEAD (static) | 0.2714 | 4.7 — likely dynamic dispatch FP |
-| `VectorClock.increment` | DEAD (static) | — | Called via `obj.increment()` |
-| `VectorClock.compare` | DEAD (static) | — | Called via `obj.compare()` |
-| `DottedVersionVector` | SPECIALIZED | — | Advanced causality type |
-| `DottedVersionVector.advance` | DEAD (static) | — | Called via `obj.advance()` |
-| `DottedVersionVector.descends` | DEAD (static) | — | Called via `obj.descends()` |
-
-> **Note:** All DEAD classifications are likely false positives — these are instance methods called via dynamic dispatch which static AST analysis cannot trace.

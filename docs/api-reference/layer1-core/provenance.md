@@ -98,7 +98,6 @@ Record of how a single field was resolved during merge.
 - `alternative`: `Any`
 
 
-
 ### `MergeDecision.was_conflict(self) → bool`
 
 True if this field had a real conflict that needed resolution.
@@ -106,13 +105,11 @@ True if this field had a real conflict that needed resolution.
 **Returns:** `bool`
 
 
-
 ### `MergeDecision.to_dict(self) → dict`
 
 Serializes this merge decision to a plain dictionary with keys: `field`, `source`, `strategy`, `value`, and `alternative`. Values are safely converted to string representations for non-serializable types.
 
 **Returns:** `dict`
-
 
 
 ### `class MergeRecord`
@@ -132,13 +129,11 @@ Complete provenance for one merged row.
 - `decisions`: `List[MergeDecision]`
 
 
-
 ### `MergeRecord.conflict_count(self) → int`
 
 Computed property that returns the number of fields in this row that had a real conflict (i.e., where `MergeDecision.was_conflict()` is `True`). Fields that were equal or only present in one source are not counted.
 
 **Returns:** `int`
-
 
 
 ### `MergeRecord.conflicts(self) → List[MergeDecision]`
@@ -148,13 +143,11 @@ Return only decisions where a real conflict was resolved.
 **Returns:** `List[MergeDecision]`
 
 
-
 ### `MergeRecord.fields_from_a(self) → List[str]`
 
 Returns a list of field names whose final merged value came from source A (either exclusively present in A or chosen from A during conflict resolution).
 
 **Returns:** `List[str]`
-
 
 
 ### `MergeRecord.fields_from_b(self) → List[str]`
@@ -164,7 +157,6 @@ Returns a list of field names whose final merged value came from source B (eithe
 **Returns:** `List[str]`
 
 
-
 ### `MergeRecord.to_dict(self) → dict`
 
 Serializes this merge record to a plain dictionary with keys: `key`, `origin`, `conflict_count`, and `decisions` (a list of `MergeDecision.to_dict()` results).
@@ -172,13 +164,11 @@ Serializes this merge record to a plain dictionary with keys: `key`, `origin`, `
 **Returns:** `dict`
 
 
-
 ### `ProvenanceLog.to_dict(self) → dict`
 
 Serializes the full provenance log to a plain dictionary containing: `total_rows`, `merged_rows`, `unique_a_rows`, `unique_b_rows`, `total_conflicts`, `duration_ms`, and `records` (a list of per-row `MergeRecord.to_dict()` results).
 
 **Returns:** `dict`
-
 
 
 ---
@@ -216,7 +206,6 @@ Provenance information for a single layer.
 - `metadata`: `Dict[str, Any]`
 
 
-
 ### `class ProvenanceSummary`
 
 Aggregated provenance across all layers.
@@ -238,7 +227,6 @@ Aggregated provenance across all layers.
 - `dominant_model`: `int`
 - `layer_conflict_ranking`: `List[str]`
 - `per_layer`: `Dict[str, LayerProvenance]`
-
 
 
 ### `compute_conflict_score(tensors: list) → float`
@@ -265,12 +253,10 @@ Compute conflict score between tensors from different models.
 **Returns:** `float`
 
 
-
 ---
 
 ## Internal/Private API
 
-*Discovered during Team 4 RREA re-analysis.*
 
 ### Module-Level Helper Functions
 
@@ -283,7 +269,6 @@ Convert value to JSON-safe representation. Handles DataFrames, numpy arrays, and
 
 **Returns:** `Any` — JSON-serializable representation
 
-**RREA Classification:** SHADOW
 
 #### `_to_dicts(data, key: str) -> list`
 
@@ -295,7 +280,6 @@ Convert DataFrame or list-of-dicts to list-of-dicts. Normalizes input format for
 
 **Returns:** `list` — list of dicts
 
-**RREA Classification:** SHADOW
 
 #### `_resolve_with_provenance(row_a: dict, row_b: dict, key_val: Any, columns: list, schema: Optional[MergeSchema] = None, timestamp_col: Optional[str] = None, default_strategy: MergeStrategy = LWW()) -> Tuple[dict, MergeRecord]`
 
@@ -312,7 +296,6 @@ Merge two rows and produce full provenance record. Core internal function that d
 
 **Returns:** `Tuple[dict, MergeRecord]` — (merged row dict, provenance record)
 
-**RREA Classification:** SHADOW — **critical internal function**, undocumented dependency of `merge_with_provenance()`
 
 ---
 
@@ -323,18 +306,3 @@ Merge two rows and produce full provenance record. Core internal function that d
 Returns string representation showing record count and conflict summary.
 
 ---
-
-## RREA Priority Analysis
-
-| Symbol | Classification | Entropy | Reachability Score |
-|--------|---------------|---------|-------------------|
-| `MergeDecision` | SPECIALIZED | 0.2714 | 4.7 |
-| `MergeRecord` | SPECIALIZED | 0.2714 | 4.7 |
-| `ProvenanceLog` | SPECIALIZED | 0.2714 | 4.7 |
-| `merge_with_provenance` | SPECIALIZED | — | Public entry point |
-| `export_provenance` | SPECIALIZED | — | Public export function |
-| `_resolve_with_provenance` | SHADOW | — | **Core merge logic**, undocumented |
-| `_to_dicts` | SHADOW | — | Input normalization helper |
-| `_safe_repr` | SHADOW | — | Serialization safety helper |
-
-> **Provenance module** has 3 SHADOW dependencies that drive the entire merge-with-provenance pipeline.

@@ -74,13 +74,11 @@ Arrow-native CRDT merge engine.
     
 
 
-
 ### `ArrowMerge.timestamp_col(self) → Optional[str]`
 
 Return the configured timestamp column name.
 
 **Returns:** `Optional[str]`
-
 
 
 ### `write_ipc(table: Any, path: str) → str`
@@ -107,7 +105,6 @@ Write a ``pa.Table`` to an Arrow IPC file.
 **Returns:** `str`
 
 
-
 ### `read_ipc(path: str) → Any`
 
 Read an Arrow IPC file and return a ``pa.Table``.
@@ -126,7 +123,6 @@ Read an Arrow IPC file and return a ``pa.Table``.
 - `path` (`str`)
 
 **Returns:** `Any`
-
 
 
 ### `arrow_schema_info(table: Any) → Dict[str, str]`
@@ -150,30 +146,9 @@ Return a dict mapping column names to Arrow type strings.
 
 ---
 
-## RREA Chokepoint Analysis (2026-03-31)
-
-`arrow.py` contains the **highest-entropy chokepoint** in all of Layer 2. The following undocumented symbols were identified by RREA Ping Entropy analysis:
-
-| Symbol | Entropy (H) | Role |
-|--------|-------------|------|
-| `_ensure_table` | **0.6232** | **#1 Layer 2 chokepoint** — validates/converts input to pa.Table |
-| `_import_pyarrow` | 0.5976 | Lazy import guard for pyarrow |
-| `_arrow_type_string` | 0.5203 | Convert Arrow type to string representation |
-| `_schema_dict` | 0.5203 | Extract schema as dict from Arrow table |
-| `ArrowMerge.timestamp_col` | 0.4547 | Property — configured timestamp column |
-| `ArrowMerge` | 0.4547 | Class — Arrow-native CRDT merge engine |
-| `ArrowMerge.schema` | 0.4547 | Property — merge schema configuration |
-| `_has_pyarrow` | 0.396 | Boolean flag — pyarrow availability check |
-
-> **`_ensure_table` (H=0.6232) is the single highest-entropy chokepoint in Layer 2.** It is the convergence point for all Arrow merge operations — every path through `arrow.py` flows through this function. It needs thorough documentation covering input validation, type coercion, and error handling.
-
-> **`ArrowMerge` class** and its properties (`timestamp_col`, `schema`) are partially documented above but were flagged as chokepoints (H=0.4547) due to high fan-in from parquet.py and upper layers.
-
----
 
 ## Internal Chokepoints
 
-*Identified by RREA Ping Entropy analysis (2026-03-31). These private functions are convergence points for all Arrow merge operations.*
 
 ### `_ensure_table(obj, pa)` — H=0.6232
 
@@ -227,8 +202,3 @@ Converts a `pyarrow` data type to its string representation via `str(arrow_type)
 | 6 | `ArrowMerge.timestamp_col` | 0.4547 | LWW resolution | Timestamp column configuration |
 | 7 | `ArrowMerge.schema` | 0.4547 | Strategy dispatch | MergeSchema accessor |
 | 8 | `_has_pyarrow` | 0.396 | `arrow_merge()` fallback | Boolean availability check |
-
-## GDEPA Runtime-Only Symbols
-
-Runtime introspection discovered symbols invisible to static AST analysis in this module. These are included in the 15 runtime-only symbols across Layer 2.
-

@@ -115,22 +115,3 @@ Since `_discover_plugins` gates all registry lookups, any failure in the plugin 
 ---
 
 ## Analysis Notes
-
-### GDEPA Findings
-- Runtime-only symbols: 11
-- Inherited methods: 0
-- Circular dependencies: None
-
-### RREA Findings
-- Entropy profile: High
-- Dead code: None
-- Shadow dependencies: `CRDTTier.NOT_CRDT` → `DualProjectionMerge`, `CRDTTier.PARTIAL_CRDT` → `DualProjectionMerge`, `CRDTTier.TRUE_CRDT` → `DualProjectionMerge`, `abc.ABC` → `DualProjectionMerge`, `_REGISTRY.items` → `list_strategies_by_category` (+2 more)
-- Chokepoint status: `_discover_plugins` (combined H=0.5681, ping H=0.9438); `register_strategy` (combined H=0.3312, ping H=0.5410)
-
-### Code Quality (Team 2)
-- Docstring coverage: 77.8%
-- `__all__` defined: Yes
-- Code smells: 8 noqa
-
-### Second Pass
-- Heightened findings: None (all 1,063 new inherited methods classified as false positive dunders)

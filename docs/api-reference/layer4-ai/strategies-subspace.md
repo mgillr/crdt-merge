@@ -239,22 +239,3 @@ Compute task vectors as plain lists.
 
 
 ## Analysis Notes
-
-### GDEPA Findings
-- Runtime-only symbols: 2
-- Inherited methods: 9 inherited properties
-- Circular dependencies: None
-
-### RREA Findings
-- Entropy profile: Zero
-- Dead code: None
-- Shadow dependencies: None
-- Chokepoint status: None
-
-### Code Quality (Team 2)
-- Docstring coverage: 21.5%
-- `__all__` defined: No
-- Code smells: None
-
-### Second Pass
-- Heightened findings: None (all 1,063 new inherited methods classified as false positive dunders)

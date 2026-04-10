@@ -48,17 +48,14 @@ USING LWW FOR name, MaxWins FOR score, UnionSet FOR tags
 Base exception for MergeQL errors.
 
 
-
 ### `class MergeQLSyntaxError(MergeQLError)`
 
 Raised when MergeQL query has syntax errors.
 
 
-
 ### `class MergeQLValidationError(MergeQLError)`
 
 Raised when MergeQL query references invalid sources or strategies.
-
 
 
 ### `class MergeAST`
@@ -73,7 +70,6 @@ Abstract syntax tree for a MergeQL statement.
 - `explain`: `bool`
 - `schema_mapping`: `Optional[Dict[str, str]]`
 - `limit`: `Optional[int]`
-
 
 
 ### `class MergePlan`
@@ -91,7 +87,6 @@ Execution plan for a MergeQL query.
 - `steps`: `List[str]`
 
 
-
 ### `class MergeQLResult`
 
 Result of a MergeQL execution.
@@ -103,7 +98,6 @@ Result of a MergeQL execution.
 - `provenance`: `Optional[List[dict]]`
 - `merge_time_ms`: `float`
 - `sources_merged`: `int`
-
 
 
 ### `class MergeQLParser`
@@ -123,7 +117,6 @@ Parse MergeQL SQL-like syntax into AST nodes.
 
 **Attributes:**
 - `KEYWORDS`
-
 
 
 ### `MergeQLParser.parse(self, query: str) → MergeAST`
@@ -149,7 +142,6 @@ Parse a MergeQL query string into an AST.
 **Raises:** `MergeQLSyntaxError('Empty query')`
 
 
-
 ### `MergeQL.unregister(self, name: str) → None`
 
 Remove a registered data source.
@@ -160,13 +152,11 @@ Remove a registered data source.
 **Returns:** `None`
 
 
-
 ### `MergeQL.list_sources(self) → List[str]`
 
 List all registered source names.
 
 **Returns:** `List[str]`
-
 
 
 ### `MergeQL.source_info(self, name: str) → Dict[str, Any]`
@@ -179,7 +169,6 @@ Get info about a registered source (row count, columns, etc).
 **Returns:** `Dict[str, Any]`
 
 **Raises:** `MergeQLValidationError(f"Source '{name}' not registered")`
-
 
 
 ### `MergeQL.register_strategy(self, name: str, func: Callable) → None`
@@ -247,22 +236,3 @@ Because `MergeQLError` is the single error base class, any consumer that catches
 ---
 
 ## Analysis Notes
-
-### GDEPA Findings
-- Runtime-only symbols: 2
-- Inherited methods: 0
-- Circular dependencies: None
-
-### RREA Findings
-- Entropy profile: High
-- Dead code: None
-- Shadow dependencies: None
-- Chokepoint status: `MergeQLError` (combined H=0.5949, ping H=0.9972)
-
-### Code Quality (Team 2)
-- Docstring coverage: 96.6%
-- `__all__` defined: Yes
-- Code smells: None
-
-### Second Pass
-- Heightened findings: None (all 1,063 new inherited methods classified as false positive dunders)

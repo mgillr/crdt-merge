@@ -133,26 +133,9 @@ print(result["modified"])  # [{"key": 1, "changes": {"name": {"old": "Alice", "n
 
 ---
 
-## RREA Chokepoint Analysis (2026-03-31)
-
-The following undocumented private symbols were identified as chokepoints by RREA Ping Entropy analysis:
-
-| Symbol | Entropy (H) | Role |
-|--------|-------------|------|
-| `_to_records` | 0.5982 | Convert DataFrame to list of dicts for internal merge |
-| `_validate_key_columns` | 0.5982 | Validate key column presence before merge |
-| `_make_composite_key` | 0.5982 | Build composite key from multiple columns |
-| `_normalize_key` | 0.5982 | Normalize key values for consistent matching |
-| `_from_records` | 0.5982 | Reconstruct DataFrame from merged records |
-| `merge` | 0.3853 | Public entry point — high fan-in from upper layers |
-
-> **5 private helpers** (`_to_records`, `_validate_key_columns`, `_make_composite_key`, `_normalize_key`, `_from_records`) form a critical internal pipeline. All have H=0.5982, indicating they are convergence points for multiple call paths.
-
----
 
 ## Internal Chokepoints
 
-*Identified by RREA Ping Entropy analysis (2026-03-31). These 5 private helpers form the data normalization pipeline that every DataFrame merge flows through.*
 
 All five functions share H=0.5982, indicating they are equi-critical convergence points in the merge data flow. They execute in sequence: normalize key → validate → convert to records → merge → reconstruct.
 
@@ -227,7 +210,3 @@ Reconstructs the output DataFrame from the merged records list, restoring the or
 | 4 | `_normalize_key` | 0.5982 | Key parameter canonicalization |
 | 5 | `_from_records` | 0.5982 | Dict → DataFrame reconstruction (exit gate) |
 | 6 | `merge` | 0.3853 | Public entry point — high fan-in from upper layers |
-
-## GDEPA Runtime-Only Symbols
-
-Runtime introspection discovered symbols invisible to static AST analysis in this module. These are included in the 15 runtime-only symbols across Layer 2.

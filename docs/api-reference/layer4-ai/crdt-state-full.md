@@ -154,22 +154,3 @@ CRDTMergeState(strategy_name: str, base: Any = None, conflict_resolution: Confli
 
 
 ## Analysis Notes
-
-### GDEPA Findings
-- Runtime-only symbols: 4
-- Inherited methods: 34 (ConflictResolution (from str))
-- Circular dependencies: None
-
-### RREA Findings
-- Entropy profile: Low (shadow deps present)
-- Dead code: None
-- Shadow dependencies: `contrib._tag` → `CRDTMergeState`, `contrib.merkle_hash` → `CRDTMergeState`, `contrib.metadata` → `CRDTMergeState`, `contrib.model_id` → `CRDTMergeState`, `contrib.tensor` → `CRDTMergeState`
-- Chokepoint status: None
-
-### Code Quality (Team 2)
-- Docstring coverage: 81.8%
-- `__all__` defined: Yes
-- Code smells: None
-
-### Second Pass
-- Heightened findings: None (all 1,063 new inherited methods classified as false positive dunders)

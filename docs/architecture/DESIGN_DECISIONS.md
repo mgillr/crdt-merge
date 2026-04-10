@@ -238,7 +238,6 @@ from crdt_merge import (
 )
 ```
 
-**Note**: GDEPA static analysis flags 19 "layer violations" from `__init__.py`. These are all facade imports — expected behavior, not bugs.
 
 ---
 

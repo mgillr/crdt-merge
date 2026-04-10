@@ -18,22 +18,3 @@ Quick start::
 
 
 ## Analysis Notes
-
-### GDEPA Findings
-- Runtime-only symbols: 12
-- Inherited methods: 0
-- Circular dependencies: None
-
-### RREA Findings
-- Entropy profile: Low (shadow deps present)
-- Dead code: None
-- Shadow dependencies: `?.cpu` → `compute_conflict_score`, `?.numpy` → `compute_conflict_score`, `?.ravel` → `compute_conflict_score`, `CRDTTier.NOT_CRDT` → `DualProjectionMerge`, `CRDTTier.PARTIAL_CRDT` → `DualProjectionMerge` (+13 more)
-- Chokepoint status: None
-
-### Code Quality (Team 2)
-- Docstring coverage: 100.0%
-- `__all__` defined: Yes
-- Code smells: None
-
-### Second Pass
-- Heightened findings: None (all 1,063 new inherited methods classified as false positive dunders)

@@ -27,7 +27,6 @@ Layer 2 (Engines)      ── Layer 1 (Core)       [strategies, schema_evolution
 Layer 1 (Core)         ── Python stdlib only
 ```
 
-All dependencies are **downward only** — 0 circular dependencies confirmed by GDEPA runtime analysis.
 
 ---
 
@@ -47,7 +46,6 @@ from crdt_merge import (
 )
 ```
 
-GDEPA flagged 19 "violations" from `__init__.py` — all are facade imports, not bugs.
 
 ---
 
@@ -194,7 +192,6 @@ pip install crdt-merge[all]
 
 ---
 
-## Chokepoints (RREA Entropy Analysis)
 
 The most critical classes — highest information flow through a single abstraction:
 

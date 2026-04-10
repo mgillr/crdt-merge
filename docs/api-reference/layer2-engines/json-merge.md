@@ -57,11 +57,3 @@ Merge two JSONL datasets.
     If no key, concatenates and deduplicates.
 
 ---
-
-## RREA Chokepoint Analysis (2026-03-31)
-
-| Symbol | Entropy (H) | Role |
-|--------|-------------|------|
-| `_list_item_key` | 0.413 | Create hashable key for list dedup — convergence point for list merge |
-| `merge_dicts` | 0.2593 | Public entry point — recursive dict merge with LWW semantics |
-

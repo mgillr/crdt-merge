@@ -51,7 +51,6 @@ Detailed parameter-level analysis for a single layer.
 - `magnitude_spread`: `float`
 
 
-
 ### `ConflictHeatmap.from_merge(cls, provenance_summary: ProvenanceSummary) → 'ConflictHeatmap'`
 
 Build heatmap from provenance data.
@@ -68,13 +67,11 @@ Build heatmap from provenance data.
 **Returns:** `'ConflictHeatmap'`
 
 
-
 ### `ConflictHeatmap.layer_conflicts(self) → Dict[str, float]`
 
 Per-layer conflict scores.
 
 **Returns:** `Dict[str, float]`
-
 
 
 ### `ConflictHeatmap.model_contributions(self) → Dict[str, Dict[int, float]]`
@@ -84,13 +81,11 @@ Per-layer per-model contribution fractions.
 **Returns:** `Dict[str, Dict[int, float]]`
 
 
-
 ### `ConflictHeatmap.num_layers(self) → int`
 
 Number of layers in the heatmap.
 
 **Returns:** `int`
-
 
 
 ### `ConflictHeatmap.num_models(self) → int`
@@ -100,13 +95,11 @@ Number of models being compared.
 **Returns:** `int`
 
 
-
 ### `ConflictHeatmap.overall_conflict(self) → float`
 
 Mean conflict score across all layers.
 
 **Returns:** `float`
-
 
 
 ### `ConflictHeatmap.most_conflicted_layers(self, n: int = 10) → List[Tuple[str, float]]`
@@ -125,7 +118,6 @@ Return the *n* most conflicted layers.
 **Returns:** `List[Tuple[str, float]]`
 
 
-
 ### `ConflictHeatmap.least_conflicted_layers(self, n: int = 10) → List[Tuple[str, float]]`
 
 Return the *n* least conflicted layers.
@@ -140,7 +132,6 @@ Return the *n* least conflicted layers.
 - `n` (`int`)
 
 **Returns:** `List[Tuple[str, float]]`
-
 
 
 ### `ConflictHeatmap.parameter_detail(self, layer_name: str) → LayerDetail`
@@ -170,7 +161,6 @@ Get detailed parameter-level analysis for a layer.
 **Raises:** `KeyError(f"Layer '{layer_name}' not found in heatmap")`
 
 
-
 ### `ConflictHeatmap.to_csv(self, path: Optional[str] = None) → str`
 
 Export heatmap as CSV.
@@ -192,7 +182,6 @@ Export heatmap as CSV.
 **Returns:** `str`
 
 
-
 ### `ConflictHeatmap.to_dict(self) → Dict[str, Any]`
 
 Export heatmap as a plain dict.
@@ -206,22 +195,3 @@ Export heatmap as a plain dict.
 
 
 ## Analysis Notes
-
-### GDEPA Findings
-- Runtime-only symbols: 2
-- Inherited methods: 0
-- Circular dependencies: None
-
-### RREA Findings
-- Entropy profile: Zero
-- Dead code: None
-- Shadow dependencies: None
-- Chokepoint status: None
-
-### Code Quality (Team 2)
-- Docstring coverage: 93.8%
-- `__all__` defined: Yes
-- Code smells: None
-
-### Second Pass
-- Heightened findings: None (all 1,063 new inherited methods classified as false positive dunders)

@@ -333,23 +333,5 @@ Returns:
 
 ## Analysis Notes
 
-### GDEPA Findings
-- Runtime-only symbols: 2
-- Inherited methods: None
-- No circular dependencies
-
-### RREA Findings
-- Entropy profile: zero (no symbols in reachability graph — gossip is a leaf module)
-- Dead code: None
-- Shadow dependencies: None
-- Chokepoint status: No chokepoints — pure state machine with no upstream dependents in the package graph
-
-### Code Quality (Team 2)
-- Docstring coverage: 85.7%
-- `__all__` defined: no — **public API is ambiguous**
-- Code smells: 1 assertion found (acceptable for invariant checking)
-- Missing docstrings: `__repr__` (×2), `__init__`, `__eq__`
-
----
 Approved by: Auditor (Team 1), Cross-validated by Teams 2–4  
 Last reviewed: 2026-03-31

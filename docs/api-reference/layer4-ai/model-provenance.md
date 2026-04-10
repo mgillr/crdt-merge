@@ -99,8 +99,3 @@ The `model/provenance.py` module uses 3 implicit tensor operations that constitu
 ---
 
 ## Analysis Notes
-
-### RREA Findings
-- Entropy profile: Low (shadow deps present)
-- Shadow dependencies: `.ravel()`, `np.stack()`, `np.var()`/`np.mean()`/`np.abs()` — all standard NumPy operations
-- Chokepoint status: None

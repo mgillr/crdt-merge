@@ -45,7 +45,6 @@ Maps adapter module names to merge strategies.
     
 
 
-
 ### `LoRAMergeSchema.strategy_for(self, module_name: str) → ModelMergeStrategy`
 
 Return the strategy that applies to *module_name*.
@@ -66,13 +65,11 @@ Return the strategy that applies to *module_name*.
 **Raises:** `KeyError(f"No strategy matches module '{module_name}' and no default set")`
 
 
-
 ### `LoRAMergeSchema.to_dict(self) → Dict[str, str]`
 
 Serialize to a plain dict (strategy names only).
 
 **Returns:** `Dict[str, str]`
-
 
 
 ### `LoRAMergeSchema.from_dict(cls, d: Dict[str, str]) → 'LoRAMergeSchema'`
@@ -86,22 +83,3 @@ Deserialize from a plain dict.
 
 
 ## Analysis Notes
-
-### GDEPA Findings
-- Runtime-only symbols: 1
-- Inherited methods: 0
-- Circular dependencies: None
-
-### RREA Findings
-- Entropy profile: Zero
-- Dead code: None
-- Shadow dependencies: None
-- Chokepoint status: None
-
-### Code Quality (Team 2)
-- Docstring coverage: 87.5%
-- `__all__` defined: Yes
-- Code smells: None
-
-### Second Pass
-- Heightened findings: None (all 1,063 new inherited methods classified as false positive dunders)

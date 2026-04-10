@@ -56,13 +56,11 @@ A single conflict event.
 - `timestamp`: `Optional[str]`
 
 
-
 ### `ConflictRecord.to_dict(self) → Dict[str, Any]`
 
 Serialise to a plain dict.
 
 **Returns:** `Dict[str, Any]`
-
 
 
 ### `class ConflictCluster`
@@ -81,7 +79,6 @@ Group of related conflicts sharing a pattern.
 - `source_pairs`: `List[Tuple[str, str]]`
 - `count`: `int`
 - `pattern`: `str`
-
 
 
 ### `ConflictTopology.from_merge(cls, result: Any, provenance: Optional[Any] = None) → ConflictTopology`
@@ -110,7 +107,6 @@ Create from a merge result and optional provenance log.
 **Returns:** `ConflictTopology`
 
 
-
 ### `ConflictTopology.from_records(cls, conflicts: List[Dict[str, Any]]) → ConflictTopology`
 
 Create from raw conflict dicts.
@@ -129,7 +125,6 @@ Create from raw conflict dicts.
 **Returns:** `ConflictTopology`
 
 
-
 ### `ConflictTopology.heatmap(self) → Dict[str, Dict[str, int]]`
 
 Generate field × source conflict frequency matrix.
@@ -141,7 +136,6 @@ Generate field × source conflict frequency matrix.
 **Returns:** `Dict[str, Dict[str, int]]`
 
 
-
 ### `ConflictTopology.temporal_pattern(self) → List[Dict[str, Any]]`
 
 Analyze conflict patterns over time.
@@ -151,7 +145,6 @@ Analyze conflict patterns over time.
         
 
 **Returns:** `List[Dict[str, Any]]`
-
 
 
 ### `ConflictTopology.clusters(self) → List[ConflictCluster]`
@@ -167,7 +160,6 @@ Identify clusters of related conflicts.
 **Returns:** `List[ConflictCluster]`
 
 
-
 ### `ConflictTopology.field_frequency(self) → Dict[str, int]`
 
 Count conflicts per field.
@@ -177,7 +169,6 @@ Count conflicts per field.
         
 
 **Returns:** `Dict[str, int]`
-
 
 
 ### `ConflictTopology.source_frequency(self) → Dict[str, int]`
@@ -191,7 +182,6 @@ Count conflicts per source.
 **Returns:** `Dict[str, int]`
 
 
-
 ### `ConflictTopology.strategy_stats(self) → Dict[str, int]`
 
 Count which strategies resolved conflicts.
@@ -201,7 +191,6 @@ Count which strategies resolved conflicts.
         
 
 **Returns:** `Dict[str, int]`
-
 
 
 ### `ConflictTopology.to_json(self) → str`
@@ -221,7 +210,6 @@ Export as D3-compatible JSON.
 **Returns:** `str`
 
 
-
 ### `ConflictTopology.to_csv(self, path: str) → None`
 
 Export conflict records to CSV.
@@ -236,7 +224,6 @@ Export conflict records to CSV.
 **Returns:** `None`
 
 
-
 ### `ConflictTopology.to_csv_string(self) → str`
 
 Export conflict records to a CSV string.
@@ -246,7 +233,6 @@ Export conflict records to a CSV string.
         
 
 **Returns:** `str`
-
 
 
 ### `ConflictTopology.to_dict(self) → Dict[str, Any]`
@@ -261,22 +247,3 @@ Export complete topology as dict.
 
 
 ## Analysis Notes
-
-### GDEPA Findings
-- Runtime-only symbols: 3
-- Inherited methods: 0
-- Circular dependencies: None
-
-### RREA Findings
-- Entropy profile: Zero
-- Dead code: None
-- Shadow dependencies: None
-- Chokepoint status: None
-
-### Code Quality (Team 2)
-- Docstring coverage: 95.7%
-- `__all__` defined: No
-- Code smells: None
-
-### Second Pass
-- Heightened findings: None (all 1,063 new inherited methods classified as false positive dunders)

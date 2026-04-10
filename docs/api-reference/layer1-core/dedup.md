@@ -95,7 +95,6 @@ world" are distinct.
 **Returns:** `bool`
 
 
-
 ### `DedupIndex.add_fuzzy(self, text: str, threshold: float = 0.85) → Tuple[bool, Optional[str]]`
 
 Returns (is_new, matched_hash_or_None).
@@ -107,7 +106,6 @@ Returns (is_new, matched_hash_or_None).
 **Returns:** `Tuple[bool, Optional[str]]`
 
 
-
 ### `DedupIndex.size(self) → int`
 
 Returns the number of unique hashes currently tracked in the dedup index. This is the count of live elements in the underlying OR-Set.
@@ -115,12 +113,10 @@ Returns the number of unique hashes currently tracked in the dedup index. This i
 **Returns:** `int`
 
 
-
 ---
 
 ## Internal/Private API
 
-*Discovered during Team 4 RREA re-analysis.*
 
 ### Module-Level Helper Functions
 
@@ -133,7 +129,6 @@ Normalize text for comparison. Strips whitespace, lowercases, removes punctuatio
 
 **Returns:** `str` — normalized text
 
-**RREA Classification:** SHADOW
 
 #### `_hash_text(text: str) -> str`
 
@@ -144,7 +139,6 @@ SHA-256 hash of normalized text. Used by DedupIndex for exact matching.
 
 **Returns:** `str` — hex digest
 
-**RREA Classification:** SHADOW
 
 #### `_bigrams(text: str) -> Set[str]`
 
@@ -155,7 +149,6 @@ Generate character bigrams from text. Used for Dice similarity coefficient.
 
 **Returns:** `Set[str]` — set of 2-character substrings
 
-**RREA Classification:** SHADOW
 
 #### `_dice_similarity(a: str, b: str) -> float`
 
@@ -167,7 +160,6 @@ Dice coefficient between two strings. `2 * |bigrams(a) ∩ bigrams(b)| / (|bigra
 
 **Returns:** `float` — similarity score in [0, 1]
 
-**RREA Classification:** SHADOW
 
 ### Public Functions (Missing from initial docs)
 
@@ -183,7 +175,6 @@ Deduplicate a list of strings.
 
 **Returns:** `Tuple[List[str], List[int]]` — (unique items, indices of duplicates)
 
-**RREA Classification:** SPECIALIZED — public API, exported in `__all__`
 
 ### MinHashDedup Internal Methods
 
@@ -196,7 +187,6 @@ Compute MinHash signature for text. Generates `num_perm` independent hash values
 
 **Returns:** `Tuple[int, ...]` — MinHash signature vector
 
-**RREA Classification:** SHADOW
 
 #### `MinHashDedup._jaccard_estimate(self, sig_a: Tuple[int, ...], sig_b: Tuple[int, ...]) -> float`
 
@@ -208,7 +198,6 @@ Estimate Jaccard similarity from MinHash signatures. `|matching positions| / num
 
 **Returns:** `float` — estimated Jaccard similarity
 
-**RREA Classification:** SHADOW
 
 ---
 
@@ -219,21 +208,3 @@ Estimate Jaccard similarity from MinHash signatures. `|matching positions| / num
 Returns string representation showing key name and index size.
 
 ---
-
-## RREA Priority Analysis
-
-| Symbol | Classification | Entropy | Reachability Score |
-|--------|---------------|---------|-------------------|
-| `DedupIndex` | SPECIALIZED | 0.3651 | 7.0 — **#2 entropy chokepoint** |
-| `DedupIndex.add_exact` | DEAD (static) | 0.2714 | 4.7 — dynamic dispatch FP |
-| `DedupIndex.add_fuzzy` | DEAD (static) | 0.2714 | 4.7 — dynamic dispatch FP |
-| `dedup_list` | SPECIALIZED | — | Public function, exported |
-| `dedup_records` | SPECIALIZED | — | Public function |
-| `MinHashDedup` | SPECIALIZED | — | Public class |
-| `MinHashDedup.dedup` | SPECIALIZED | — | Public entry point |
-| `_normalize` | SHADOW | — | Critical text normalization |
-| `_hash_text` | SHADOW | — | Exact dedup core |
-| `_bigrams` | SHADOW | — | Fuzzy dedup core |
-| `_dice_similarity` | SHADOW | — | Fuzzy dedup core |
-
-> **DedupIndex** is the **#2 entropy chokepoint** in Layer 1 (entropy=0.3651, reachability=7.0).

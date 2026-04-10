@@ -37,16 +37,3 @@ Lazy loader for the model-merge sub-package.
 
 
 ---
-
-## RREA Priority Analysis
-
-`__init__.py` is the **package facade** — it imports from ALL layers to provide a flat namespace. The 19 "layer violations" detected by GDEPA are **expected behavior** for a facade module, not architectural bugs.
-
-| Symbol | Classification | Notes |
-|--------|---------------|-------|
-| `merge_datasets` | SPECIALIZED | HuggingFace integration, line 151 |
-| `dedup_dataset` | SPECIALIZED | HuggingFace integration, line 156 |
-| `_load_accelerators` | SHADOW | Lazy loader, line 204 |
-| `_load_model` | SHADOW | Lazy loader, line 210 |
-
-**Module Stats:** 132 AST LOC, 248 total lines, 4 functions, 0 classes, 106 `__all__` exports.

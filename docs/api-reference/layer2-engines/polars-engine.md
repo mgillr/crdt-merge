@@ -23,12 +23,3 @@ The Polars engine provides:
 3. Type-aware strategy resolution leveraging Polars' type system
 
 ---
-
-## RREA Chokepoint Analysis (2026-03-31)
-
-| Symbol | Entropy (H) | Role |
-|--------|-------------|------|
-| `_get_field_strategy` | 0.5597 | Extract per-field strategy from MergeSchema — convergence point for all Polars merge paths |
-| `strategy_to_expr` | 0.231 | Compile MergeStrategy to Polars expression — critical dispatch |
-
-> **Dead code candidates:** RREA identified 41 dead code candidates in this module, mostly local variables inside Polars expression builder functions. These are **largely false positives** from static analysis — Polars expression DSL assigns to variables that are consumed by the Polars engine at runtime, not via Python call graph. Manual triage is needed to separate true dead code from expression-builder patterns. See issue LAY2-006.

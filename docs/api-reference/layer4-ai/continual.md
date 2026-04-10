@@ -48,13 +48,11 @@ Result of measuring how much of a model's contribution is retained.
 - `per_layer`: `Dict[str, float]`
 
 
-
 ### `ContinualMerge.export(self) → dict`
 
 Return the current merged state_dict.
 
 **Returns:** `dict`
-
 
 
 ### `ContinualMerge.history(self) → List[dict]`
@@ -64,13 +62,11 @@ List of absorption events.
 **Returns:** `List[dict]`
 
 
-
 ### `ContinualMerge.current_weights(self) → Dict[str, float]`
 
 Effective contribution weight of each absorbed model (after decay).
 
 **Returns:** `Dict[str, float]`
-
 
 
 ### `ContinualMerge.reset(self, base_model: dict) → None`
@@ -81,7 +77,6 @@ Restart from a new base model, clearing all history.
 - `base_model` (`dict`)
 
 **Returns:** `None`
-
 
 
 ### `ContinualMerge.verify_convergence(self) → bool`
@@ -102,7 +97,6 @@ Check whether the current merge configuration guarantees CRDT convergence.
         
 
 **Returns:** `bool`
-
 
 
 ### `ContinualMerge.measure_stability(self, model_name: str) → StabilityResult`
@@ -135,7 +129,6 @@ Measure how much of *model_name*'s contribution is retained.
 **Returns:** `StabilityResult`
 
 **Raises:** `KeyError(f"Model '{model_name}' not found.  Known: {[n for n in self._order if n != '__base__']}")`
-
 
 
 ---
@@ -178,13 +171,11 @@ Dual-projection continual merge with CRDT guarantees.
     
 
 
-
 ### `DualProjectionMerge.name(self) → str`
 
 *No docstring — needs documentation.*
 
 **Returns:** `str`
-
 
 
 ### `DualProjectionMerge.category(self) → str`
@@ -194,13 +185,11 @@ Dual-projection continual merge with CRDT guarantees.
 **Returns:** `str`
 
 
-
 ### `DualProjectionMerge.paper_reference(self) → str`
 
 *No docstring — needs documentation.*
 
 **Returns:** `str`
-
 
 
 ### `DualProjectionMerge.crdt_properties(self) → Dict[str, Any]`
@@ -211,22 +200,3 @@ Dual-projection continual merge with CRDT guarantees.
 
 
 ## Analysis Notes
-
-### GDEPA Findings
-- Runtime-only symbols: 2
-- Inherited methods: 0
-- Circular dependencies: None
-
-### RREA Findings
-- Entropy profile: Zero
-- Dead code: None
-- Shadow dependencies: None
-- Chokepoint status: None
-
-### Code Quality (Team 2)
-- Docstring coverage: 94.7%
-- `__all__` defined: Yes
-- Code smells: None
-
-### Second Pass
-- Heightened findings: None (all 1,063 new inherited methods classified as false positive dunders)

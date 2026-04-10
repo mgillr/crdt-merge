@@ -47,7 +47,6 @@ Strategy for resolving conflicts when the same model_id appears twice.
 - `HIGHEST_VERSION`
 
 
-
 ### `class MergeContribution`
 
 A single model contribution in the CRDT state.
@@ -58,7 +57,6 @@ A single model contribution in the CRDT state.
 
 **Attributes:**
 - `__slots__`
-
 
 
 ### `CRDTMergeState.remove(self, model_id: str) → 'CRDTMergeState'`
@@ -79,7 +77,6 @@ Remove a model contribution by ID (OR-Set remove).
 - `model_id` (`str`)
 
 **Returns:** `'CRDTMergeState'`
-
 
 
 ### `CRDTMergeState.merge_many(cls, states: List['CRDTMergeState']) → 'CRDTMergeState'`
@@ -118,7 +115,6 @@ Merge N states at once (more efficient than chained pairwise merges).
 **Raises:** `ValueError('merge_many() requires at least one state')`
 
 
-
 ### `CRDTMergeState.resolve(self) → Any`
 
 Apply the merge strategy atomically to all contributions.
@@ -143,13 +139,11 @@ Apply the merge strategy atomically to all contributions.
 **Raises:** `ValueError('Cannot resolve empty CRDT state with no base model')`
 
 
-
 ### `CRDTMergeState.size(self) → int`
 
 Number of active contributions.
 
 **Returns:** `int`
-
 
 
 ### `CRDTMergeState.is_empty(self) → bool`
@@ -159,7 +153,6 @@ Number of active contributions.
 **Returns:** `bool`
 
 
-
 ### `CRDTMergeState.needs_base(self) → bool`
 
 Whether this state's strategy requires a base model.
@@ -167,13 +160,11 @@ Whether this state's strategy requires a base model.
 **Returns:** `bool`
 
 
-
 ### `CRDTMergeState.is_stochastic(self) → bool`
 
 Whether this state's strategy has internal RNG.
 
 **Returns:** `bool`
-
 
 
 ### `CRDTMergeState.estimated_memory_bytes(self) → int`
@@ -193,7 +184,6 @@ Estimate the total memory footprint of this state in bytes.
 **Returns:** `int`
 
 
-
 ### `CRDTMergeState.get_contribution(self, model_id: str) → Optional[MergeContribution]`
 
 Get a specific contribution by model ID.
@@ -202,7 +192,6 @@ Get a specific contribution by model ID.
 - `model_id` (`str`)
 
 **Returns:** `Optional[MergeContribution]`
-
 
 
 ### `CRDTMergeState.provenance(self) → List[Dict[str, Any]]`
@@ -235,22 +224,3 @@ Return provenance trail for all contributions.
 ---
 
 ## Analysis Notes
-
-### GDEPA Findings
-- Runtime-only symbols: 4
-- Inherited methods: 34 (ConflictResolution (from str))
-- Circular dependencies: None
-
-### RREA Findings
-- Entropy profile: Low (shadow deps present)
-- Dead code: None
-- Shadow dependencies: `contrib._tag` → `CRDTMergeState`, `contrib.merkle_hash` → `CRDTMergeState`, `contrib.metadata` → `CRDTMergeState`, `contrib.model_id` → `CRDTMergeState`, `contrib.tensor` → `CRDTMergeState`
-- Chokepoint status: None
-
-### Code Quality (Team 2)
-- Docstring coverage: 81.8%
-- `__all__` defined: Yes
-- Code smells: None
-
-### Second Pass
-- Heightened findings: None (all 1,063 new inherited methods classified as false positive dunders)

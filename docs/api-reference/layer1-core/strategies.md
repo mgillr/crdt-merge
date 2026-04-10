@@ -201,7 +201,6 @@ merged = schema.resolve_row(row_a, row_b, timestamp_col="_ts")
 
 ## Internal/Private API
 
-*Discovered during Team 4 RREA re-analysis. These are private helpers critical to internal operation.*
 
 ### `UnionSet._to_set(self, val: Any) -> set`
 
@@ -212,7 +211,6 @@ Converts a value to a set for union operations. Handles comma-separated strings,
 
 **Returns:** `set`
 
-**RREA Classification:** SHADOW — private helper, undocumented dependency of `UnionSet.resolve()`.
 
 ---
 
@@ -224,27 +222,11 @@ Returns string representation of the schema showing default strategy and field c
 
 ---
 
-## RREA Priority Analysis
-
-| Symbol | Classification | Entropy | Reachability Score |
-|--------|---------------|---------|-------------------|
-| `MergeStrategy` | SPECIALIZED | — | Public base class |
-| `LWW` | SPECIALIZED | 0.2714 | 4.7 |
-| `MergeSchema` | SPECIALIZED | — | Core schema type |
-| `MergeStrategy.resolve` | DEAD (static) | — | Called dynamically via `obj.resolve()` |
-| `MergeSchema.strategy_for` | DEAD (static) | — | Called dynamically |
-| `_safe_parse_ts` | SHADOW | — | Critical timestamp parsing helper |
-| `UnionSet._to_set` | SHADOW | — | Internal set conversion |
-
-> **Note:** "DEAD" symbols with zero static reachability are likely **false positives** — AST cannot trace `obj.method()` dynamic dispatch. Runtime verification needed (see RREA-001).
-
----
 
 ## Chokepoint Analysis
 
 ### MergeStrategy — #1 Entropy Chokepoint in Layer 1
 
-`MergeStrategy` is classified as the **highest-entropy chokepoint** across the entire Layer 1 module group, superseding `VerificationResult` (H=0.5186) in the updated RREA analysis.
 
 | Metric | Value | Interpretation |
 |--------|-------|----------------|
@@ -393,19 +375,6 @@ class AutoRegisterStrategy(MergeStrategy):
 ```
 
 ---
-
-## Inherited Methods — `.name` Property (GDEPA Runtime Discovery)
-
-*Discovered by Team 3 GDEPA runtime introspection (2026-03-31). These inherited properties are invisible to static AST analysis.*
-
-All 8 `MergeStrategy` subclasses inherit the `.name` property from the base class. This property returns the class name as a string identifier, used for serialization, logging, and schema display.
-
-```python
-@property
-def name(self) -> str:
-    """Return the strategy class name (e.g., 'LWW', 'MaxWins')."""
-    return type(self).__name__
-```
 
 ### Inherited By
 

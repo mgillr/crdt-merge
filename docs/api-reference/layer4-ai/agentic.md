@@ -75,7 +75,6 @@ A single fact with confidence and provenance.
 - `timestamp`: `float`
 
 
-
 ### `AgentState.get_fact(self, key: str, default: Any = None) → Optional[Fact]`
 
 Return a :class:`Fact` by *key*, or *default* if absent.
@@ -87,13 +86,11 @@ Return a :class:`Fact` by *key*, or *default* if absent.
 **Returns:** `Optional[Fact]`
 
 
-
 ### `AgentState.list_facts(self) → Dict[str, Fact]`
 
 Return all live facts as ``{key: Fact}``.
 
 **Returns:** `Dict[str, Fact]`
-
 
 
 ### `AgentState.add_tag(self, tag: str) → None`
@@ -106,7 +103,6 @@ Add a string tag (ORSet — add-wins semantics).
 **Returns:** `None`
 
 
-
 ### `AgentState.remove_tag(self, tag: str) → None`
 
 Remove a tag (ORSet remove — kills current tags).
@@ -115,7 +111,6 @@ Remove a tag (ORSet remove — kills current tags).
 - `tag` (`str`)
 
 **Returns:** `None`
-
 
 
 ### `AgentState.has_tag(self, tag: str) → bool`
@@ -128,13 +123,11 @@ Check if *tag* is present.
 **Returns:** `bool`
 
 
-
 ### `AgentState.tags(self) → set`
 
 Current set of live tags.
 
 **Returns:** `set`
-
 
 
 ### `AgentState.decrement(self, counter_name: str, amount: int = 1) → None`
@@ -148,7 +141,6 @@ Decrement a named counter (PNCounter).
 **Returns:** `None`
 
 
-
 ### `AgentState.counter_value(self, counter_name: str) → int`
 
 Return the current value of a named counter (0 if missing).
@@ -159,13 +151,11 @@ Return the current value of a named counter (0 if missing).
 **Returns:** `int`
 
 
-
 ### `AgentState.messages(self) → List[dict]`
 
 Return a copy of the message log.
 
 **Returns:** `List[dict]`
-
 
 
 ### `SharedKnowledge.facts(self) → Dict[str, Fact]`
@@ -175,7 +165,6 @@ All merged facts.
 **Returns:** `Dict[str, Fact]`
 
 
-
 ### `SharedKnowledge.tags(self) → set`
 
 Union of all tags.
@@ -183,13 +172,11 @@ Union of all tags.
 **Returns:** `set`
 
 
-
 ### `SharedKnowledge.messages(self) → List[dict]`
 
 Deduplicated, time-sorted message log.
 
 **Returns:** `List[dict]`
-
 
 
 ### `SharedKnowledge.get_fact(self, key: str, default: Any = None) → Optional[Fact]`
@@ -203,7 +190,6 @@ Look up a single fact by *key*.
 **Returns:** `Optional[Fact]`
 
 
-
 ### `SharedKnowledge.counter_value(self, counter_name: str) → int`
 
 Return merged counter value.
@@ -215,22 +201,3 @@ Return merged counter value.
 
 
 ## Analysis Notes
-
-### GDEPA Findings
-- Runtime-only symbols: 2
-- Inherited methods: 0
-- Circular dependencies: None
-
-### RREA Findings
-- Entropy profile: Low (shadow deps present)
-- Dead code: None
-- Shadow dependencies: `?.list_facts` → `SharedKnowledge`
-- Chokepoint status: None
-
-### Code Quality (Team 2)
-- Docstring coverage: 84.8%
-- `__all__` defined: Yes
-- Code smells: None
-
-### Second Pass
-- Heightened findings: None (all 1,063 new inherited methods classified as false positive dunders)

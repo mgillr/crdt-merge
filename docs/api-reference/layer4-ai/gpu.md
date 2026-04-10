@@ -43,7 +43,6 @@ Check if GPU is available.
 **Returns:** `bool`
 
 
-
 ### `GPUMerge.device_info(self) → dict`
 
 Return information about the current device.
@@ -58,22 +57,3 @@ Return information about the current device.
 
 
 ## Analysis Notes
-
-### GDEPA Findings
-- Runtime-only symbols: 0
-- Inherited methods: 0
-- Circular dependencies: None
-
-### RREA Findings
-- Entropy profile: Zero
-- Dead code: None
-- Shadow dependencies: None
-- Chokepoint status: None
-
-### Code Quality (Team 2)
-- Docstring coverage: 87.5%
-- `__all__` defined: Yes
-- Code smells: None
-
-### Second Pass
-- Heightened findings: None (all 1,063 new inherited methods classified as false positive dunders)

@@ -43,13 +43,11 @@ Safety-preserving model merging (2025).
     
 
 
-
 ### `SafeMerge.name(self) → str`
 
 *No docstring — needs documentation.*
 
 **Returns:** `str`
-
 
 
 ### `SafeMerge.category(self) → str`
@@ -59,7 +57,6 @@ Safety-preserving model merging (2025).
 **Returns:** `str`
 
 
-
 ### `SafeMerge.paper_reference(self) → str`
 
 *No docstring — needs documentation.*
@@ -67,13 +64,11 @@ Safety-preserving model merging (2025).
 **Returns:** `str`
 
 
-
 ### `SafeMerge.crdt_properties(self) → Dict[str, Any]`
 
 *No docstring — needs documentation.*
 
 **Returns:** `Dict[str, Any]`
-
 
 
 ### `class LEDMerge(ModelMergeStrategy)`
@@ -86,13 +81,11 @@ LEDMerge: Layer-wise Evaluation-Driven best-source selection (2025).
     
 
 
-
 ### `LEDMerge.name(self) → str`
 
 *No docstring — needs documentation.*
 
 **Returns:** `str`
-
 
 
 ### `LEDMerge.category(self) → str`
@@ -102,13 +95,11 @@ LEDMerge: Layer-wise Evaluation-Driven best-source selection (2025).
 **Returns:** `str`
 
 
-
 ### `LEDMerge.paper_reference(self) → str`
 
 *No docstring — needs documentation.*
 
 **Returns:** `str`
-
 
 
 ### `LEDMerge.crdt_properties(self) → Dict[str, Any]`
@@ -119,22 +110,3 @@ LEDMerge: Layer-wise Evaluation-Driven best-source selection (2025).
 
 
 ## Analysis Notes
-
-### GDEPA Findings
-- Runtime-only symbols: 1
-- Inherited methods: 0
-- Circular dependencies: None
-
-### RREA Findings
-- Entropy profile: Zero
-- Dead code: None
-- Shadow dependencies: None
-- Chokepoint status: None
-
-### Code Quality (Team 2)
-- Docstring coverage: 90.0%
-- `__all__` defined: Yes
-- Code smells: None
-
-### Second Pass
-- Heightened findings: None (all 1,063 new inherited methods classified as false positive dunders)

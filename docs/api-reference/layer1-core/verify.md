@@ -87,13 +87,11 @@ Complete CRDT verification report.
 - `total_duration_ms`: `float`
 
 
-
 ### `CRDTVerification.passed(self) → bool`
 
 Returns `True` if all CRDT properties (commutativity, associativity, idempotency, and optionally convergence) passed verification. A single failure in any property causes this to return `False`.
 
 **Returns:** `bool`
-
 
 
 ### `CRDTVerification.summary(self) → str`
@@ -103,18 +101,15 @@ Returns a human-readable multi-line verification report. Includes results for ea
 **Returns:** `str`
 
 
-
 ### `class CRDTVerificationError(Exception)`
 
 Raised when a merge function fails CRDT property verification.
-
 
 
 ---
 
 ## Standalone Verification Functions
 
-*Discovered during Team 4 RREA re-analysis. These are the individual verification functions that `verify_crdt()` delegates to.*
 
 ### `verify_commutative(merge_fn: Callable, gen_fn: Callable, trials: int = 100, eq_fn: Optional[Callable] = None) -> VerificationResult`
 
@@ -181,7 +176,6 @@ Deep equality check that handles CRDT objects, DataFrames, dicts, floats (with e
 
 **Returns:** `bool`
 
-**RREA Classification:** SHADOW — core equality helper used by all verification functions.
 
 ---
 
@@ -197,24 +191,6 @@ Returns string representation showing all four verification results and total du
 
 ---
 
-## RREA Priority Analysis
-
-| Symbol | Classification | Entropy | Reachability Score |
-|--------|---------------|---------|-------------------|
-| `VerificationResult` | SPECIALIZED | **0.5186** | **11.6 — #1 entropy chokepoint in Layer 1** |
-| `CRDTVerification` | SPECIALIZED | 0.2714 | 4.7 |
-| `verify_commutative` | SPECIALIZED | 0.2714 | 4.7 |
-| `verify_associative` | SPECIALIZED | 0.2714 | 4.7 |
-| `verify_idempotent` | SPECIALIZED | 0.2714 | 4.7 |
-| `verify_convergence` | SPECIALIZED | 0.2714 | 4.7 |
-| `verify_crdt` | SPECIALIZED | — | Public entry point |
-| `verified_merge` | SPECIALIZED | — | Decorator entry point |
-| `CRDTVerificationError` | SPECIALIZED | — | Error type |
-| `_are_equal` | SHADOW | — | **Core equality logic**, used by ALL verify functions |
-
-> **CRITICAL CHOKEPOINT:** `VerificationResult` has the highest entropy (0.5186) and reachability (11.6) of ANY symbol in Layer 1. It is the convergence point for all verification operations and should have comprehensive documentation and testing.
-
----
 
 ## Chokepoint Analysis
 
@@ -262,10 +238,6 @@ It is also consumed by `CRDTVerification` (which aggregates four `VerificationRe
 
 ---
 
-## Inherited Methods on CRDTVerificationError (GDEPA Runtime Discovery)
-
-*Discovered by Team 3 GDEPA runtime introspection (2026-03-31). These standard Exception methods were undocumented.*
-
 ### `CRDTVerificationError.add_note(note: str) -> None`
 
 Add a note to the exception. Notes are appended to the exception's `__notes__` list and displayed in tracebacks.
@@ -302,4 +274,3 @@ except CRDTVerificationError as e:
     raise e.with_traceback(None) from e
 ```
 
-> **Note:** These are standard Python `Exception` inherited methods. They are included here for completeness since GDEPA runtime introspection identified them as undocumented on `CRDTVerificationError` specifically. The `add_note()` method requires Python 3.11+.
