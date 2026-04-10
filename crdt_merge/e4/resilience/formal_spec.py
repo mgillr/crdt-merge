@@ -16,7 +16,7 @@
 
 Addresses Okafor §C13 and Dubois §C4: the CRDT axioms are tested (16/16
 randomized property checks) but not mechanized.  For publication-grade
-confidence and patent defensibility, a formal specification is required.
+confidence and rigorous verification, a formal specification is required.
 
 This module generates a TLA+ specification that captures the core safety
 and liveness properties of the E4 product lattice:
@@ -33,7 +33,7 @@ and liveness properties of the E4 product lattice:
 The generated spec is suitable for TLC model checking with configurable
 state space bounds (peer count, operation count, trust dimensions).
 
-Technical effect (UK patent): provides machine-checkable proof that the
+Technical effect: provides machine-checkable proof that the
 product lattice E4State = Data x Trust x Clock x Hash satisfies the
 join-semilattice axioms under all reachable states.
 """
