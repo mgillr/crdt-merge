@@ -168,7 +168,6 @@ Zero failures. Coverage areas:
 
 1. **Ed25519 hardening:** Harden the Ed25519 signature backend for production.
    HMAC-SHA256 is the current production default. See `docs/security/CRYPTOGRAPHY.md`.
-2. **External audit:** Apply to OSTIF for independent review of the E4 trust
    lattice and cryptographic subsystems.
 3. **Expanded property testing:** Increase Hypothesis example counts for
    Byzantine property tests from 50 to 200+ in CI environments.
