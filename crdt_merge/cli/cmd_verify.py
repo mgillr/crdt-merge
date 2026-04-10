@@ -107,8 +107,8 @@ def handle_verify_crdt(args: argparse.Namespace, formatter: OutputFormatter) -> 
         if crdt_type == "gcounter":
             def gen_fn():
                 gc = GCounter()
-                for _ in range(random.randint(1, 5)):
-                    gc.increment("node-" + str(random.randint(1, 3)))
+                for _ in range(random.randint(1, 5)):  # nosec B311 -- simulation/verification, not security
+                    gc.increment("node-" + str(random.randint(1, 3)))  # nosec B311 -- simulation/verification, not security
                 return gc
             merge_fn = lambda a, b: a.merge(b)
             class_name = "GCounter"
@@ -116,11 +116,11 @@ def handle_verify_crdt(args: argparse.Namespace, formatter: OutputFormatter) -> 
         elif crdt_type == "pncounter":
             def gen_fn():
                 pc = PNCounter()
-                for _ in range(random.randint(1, 5)):
-                    if random.random() > 0.3:
-                        pc.increment("node-" + str(random.randint(1, 3)))
+                for _ in range(random.randint(1, 5)):  # nosec B311 -- simulation/verification, not security
+                    if random.random() > 0.3:  # nosec B311 -- simulation/verification, not security
+                        pc.increment("node-" + str(random.randint(1, 3)))  # nosec B311 -- simulation/verification, not security
                     else:
-                        pc.decrement("node-" + str(random.randint(1, 3)))
+                        pc.decrement("node-" + str(random.randint(1, 3)))  # nosec B311 -- simulation/verification, not security
                 return pc
             merge_fn = lambda a, b: a.merge(b)
             class_name = "PNCounter"
@@ -128,9 +128,9 @@ def handle_verify_crdt(args: argparse.Namespace, formatter: OutputFormatter) -> 
         elif crdt_type == "lww":
             def gen_fn():
                 return LWWRegister(
-                    value=random.choice(["a", "b", "c", 1, 2, 3]),
-                    timestamp=random.random() * 1000,
-                    node_id="node-" + str(random.randint(1, 3)),
+                    value=random.choice(["a", "b", "c", 1, 2, 3]),  # nosec B311 -- simulation/verification, not security
+                    timestamp=random.random() * 1000,  # nosec B311 -- simulation/verification, not security
+                    node_id="node-" + str(random.randint(1, 3)),  # nosec B311 -- simulation/verification, not security
                 )
             merge_fn = lambda a, b: a.merge(b)
             class_name = "LWWRegister"
@@ -138,7 +138,7 @@ def handle_verify_crdt(args: argparse.Namespace, formatter: OutputFormatter) -> 
         elif crdt_type == "orset":
             def gen_fn():
                 s = ORSet()
-                for i in range(random.randint(1, 5)):
+                for i in range(random.randint(1, 5)):  # nosec B311 -- simulation/verification, not security
                     s.add(f"item-{i}")
                 return s
             merge_fn = lambda a, b: a.merge(b)
@@ -147,8 +147,8 @@ def handle_verify_crdt(args: argparse.Namespace, formatter: OutputFormatter) -> 
         elif crdt_type == "lwwmap":
             def gen_fn():
                 m = LWWMap()
-                for i in range(random.randint(1, 3)):
-                    m.set(f"key{i}", random.randint(1, 100))
+                for i in range(random.randint(1, 3)):  # nosec B311 -- simulation/verification, not security
+                    m.set(f"key{i}", random.randint(1, 100))  # nosec B311 -- simulation/verification, not security
                 return m
             merge_fn = lambda a, b: a.merge(b)
             class_name = "LWWMap"

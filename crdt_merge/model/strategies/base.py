@@ -298,7 +298,7 @@ class ModelMergeStrategy(ABC):
 
         if gen_fn is None:
             def gen_fn():
-                return [random.random() for _ in range(10)]
+                return [random.random() for _ in range(10)]  # nosec B311 -- simulation/verification, not security
 
         # Detect if this strategy requires a base tensor
         _needs_base = False

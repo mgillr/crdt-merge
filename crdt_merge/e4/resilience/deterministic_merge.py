@@ -198,7 +198,7 @@ class DeterministicMerge:
         reference = self.merge_scalars(values, weights)
         for _ in range(permutations):
             combined = list(zip(values, weights))
-            random.shuffle(combined)
+            random.shuffle(combined)  # nosec B311 -- deterministic ordering test
             v_perm = [c[0] for c in combined]
             w_perm = [c[1] for c in combined]
             result = self.merge_scalars(v_perm, w_perm)
@@ -233,7 +233,7 @@ def reproducibility_report(
         outputs = set()
         for _ in range(trials):
             combined = list(zip(values, weights))
-            random.shuffle(combined)
+            random.shuffle(combined)  # nosec B311 -- deterministic ordering test
             v = [c[0] for c in combined]
             w = [c[1] for c in combined]
             result = merger.merge_scalars(v, w)

@@ -162,7 +162,7 @@ class ContinualBenchmark:
         models: List[dict] = []
 
         if np is not None:
-            rng = np.random.RandomState(seed)
+            rng = np.random.RandomState(seed)  # nosec B311 -- seeded RNG for benchmarks
             for m in range(n_models):
                 sd: dict = {}
                 for i, size in enumerate(self._layer_sizes):
@@ -171,7 +171,7 @@ class ContinualBenchmark:
         else:
             # Pure-Python fallback using deterministic LCG
             import random
-            rng = random.Random(seed)
+            rng = random.Random(seed)  # nosec B311 -- seeded RNG for benchmarks
             for m in range(n_models):
                 sd = {}
                 for i, size in enumerate(self._layer_sizes):

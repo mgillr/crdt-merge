@@ -330,14 +330,14 @@ class PropertyVerifier:
         states_checked = 0
         for _ in range(trials):
             ops = []
-            for _ in range(random.randint(1, self._max_ops)):
-                peer = random.randint(0, self._max_peers - 1)
-                dim = random.randint(0, 4)
-                value = random.randint(1, 10)
+            for _ in range(random.randint(1, self._max_ops)):  # nosec B311 -- simulation/verification, not security
+                peer = random.randint(0, self._max_peers - 1)  # nosec B311 -- simulation/verification, not security
+                dim = random.randint(0, 4)  # nosec B311 -- simulation/verification, not security
+                value = random.randint(1, 10)  # nosec B311 -- simulation/verification, not security
                 ops.append((peer, dim, value))
 
             state_a = self._apply_ops(ops)
-            random.shuffle(ops)
+            random.shuffle(ops)  # nosec B311 -- deterministic ordering test
             state_b = self._apply_ops(ops)
 
             merged_a = self._merge_states(state_a, state_b)
@@ -359,13 +359,13 @@ class PropertyVerifier:
         for _ in range(trials):
             n = self._max_peers
             state = [[0] * 5 for _ in range(n)]
-            for _ in range(random.randint(1, self._max_ops * 3)):
-                peer = random.randint(0, n - 1)
-                dim = random.randint(0, 4)
-                state[peer][dim] += random.randint(1, 5)
+            for _ in range(random.randint(1, self._max_ops * 3)):  # nosec B311 -- simulation/verification, not security
+                peer = random.randint(0, n - 1)  # nosec B311 -- simulation/verification, not security
+                dim = random.randint(0, 4)  # nosec B311 -- simulation/verification, not security
+                state[peer][dim] += random.randint(1, 5)  # nosec B311 -- simulation/verification, not security
 
             pre_merge = [row[:] for row in state]
-            other = [[random.randint(0, 10) for _ in range(5)] for _ in range(n)]
+            other = [[random.randint(0, 10) for _ in range(5)] for _ in range(n)]  # nosec B311 -- simulation/verification, not security
             merged = [
                 [max(state[p][d], other[p][d]) for d in range(5)]
                 for p in range(n)
@@ -389,7 +389,7 @@ class PropertyVerifier:
         for _ in range(trials):
             n = self._max_peers
             state = tuple(
-                tuple(random.randint(0, 20) for _ in range(5))
+                tuple(random.randint(0, 20) for _ in range(5))  # nosec B311 -- simulation/verification, not security
                 for _ in range(n)
             )
             merged = tuple(
@@ -411,8 +411,8 @@ class PropertyVerifier:
         states_checked = 0
         for _ in range(trials):
             n = self._max_peers
-            a = [[random.randint(0, 20) for _ in range(5)] for _ in range(n)]
-            b = [[random.randint(0, 20) for _ in range(5)] for _ in range(n)]
+            a = [[random.randint(0, 20) for _ in range(5)] for _ in range(n)]  # nosec B311 -- simulation/verification, not security
+            b = [[random.randint(0, 20) for _ in range(5)] for _ in range(n)]  # nosec B311 -- simulation/verification, not security
             ab = [[max(a[p][d], b[p][d]) for d in range(5)] for p in range(n)]
             ba = [[max(b[p][d], a[p][d]) for d in range(5)] for p in range(n)]
             states_checked += 1
@@ -430,9 +430,9 @@ class PropertyVerifier:
         states_checked = 0
         for _ in range(trials):
             n = self._max_peers
-            a = [[random.randint(0, 20) for _ in range(5)] for _ in range(n)]
-            b = [[random.randint(0, 20) for _ in range(5)] for _ in range(n)]
-            c = [[random.randint(0, 20) for _ in range(5)] for _ in range(n)]
+            a = [[random.randint(0, 20) for _ in range(5)] for _ in range(n)]  # nosec B311 -- simulation/verification, not security
+            b = [[random.randint(0, 20) for _ in range(5)] for _ in range(n)]  # nosec B311 -- simulation/verification, not security
+            c = [[random.randint(0, 20) for _ in range(5)] for _ in range(n)]  # nosec B311 -- simulation/verification, not security
             ab = [[max(a[p][d], b[p][d]) for d in range(5)] for p in range(n)]
             bc = [[max(b[p][d], c[p][d]) for d in range(5)] for p in range(n)]
             abc_l = [[max(ab[p][d], c[p][d]) for d in range(5)] for p in range(n)]

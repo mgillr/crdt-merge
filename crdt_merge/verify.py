@@ -39,7 +39,7 @@ Usage:
     from crdt_merge.core import GCounter
     result = verify_crdt(
         merge_fn=lambda a, b: a.merge(b),
-        gen_fn=lambda: GCounter("n1", random.randint(0, 100)),
+        gen_fn=lambda: GCounter("n1", random.randint(0, 100)),  # nosec B311 -- simulation/verification, not security
     )
 """
 
@@ -316,7 +316,7 @@ def verify_convergence(
             lr = _merge_order(list(range(num_replicas)))
             rl = _merge_order(list(reversed(range(num_replicas))))
             shuffled = list(range(num_replicas))
-            random.shuffle(shuffled)
+            random.shuffle(shuffled)  # nosec B311 -- deterministic ordering test
             rand = _merge_order(shuffled)
 
             if not (eq(lr, rl) and eq(lr, rand)):
@@ -396,7 +396,7 @@ def verified_merge(
         from crdt_merge.verify import verified_merge
 
         # As decorator with arguments
-        @verified_merge(gen_fn=lambda: random.randint(0, 100), trials=500)
+        @verified_merge(gen_fn=lambda: random.randint(0, 100), trials=500)  # nosec B311 -- simulation/verification, not security
         def my_max_merge(a, b):
             return max(a, b)
 
@@ -413,7 +413,7 @@ def verified_merge(
         if gen_fn is None:
             raise ValueError(
                 "@verified_merge requires gen_fn — a callable that produces "
-                "random test values. Example: gen_fn=lambda: random.randint(0, 100)"
+                "random test values. Example: gen_fn=lambda: random.randint(0, 100)"  # nosec B311 -- simulation/verification, not security
             )
 
         # Run verification at decoration time (ONCE)
