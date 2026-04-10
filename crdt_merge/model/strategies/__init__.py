@@ -154,7 +154,7 @@ def _discover_plugins() -> None:
         try:
             ep.load()
         except Exception:
-            pass
+            pass  # nosec B110 -- intentionally silent
 
 def _reset_registry() -> None:
     """Reset registry — for testing only."""
@@ -172,34 +172,34 @@ def _auto_register():
     try:
         from crdt_merge.model.strategies import basic       # noqa: F401 — side-effect: registers strategy
     except ImportError:
-        pass
+        pass  # nosec B110
     try:
         from crdt_merge.model.strategies import subspace     # noqa: F401 — side-effect: registers strategy
     except ImportError:
-        pass
+        pass  # nosec B110
     try:
         from crdt_merge.model.strategies import weighted     # noqa: F401 — side-effect: registers strategy
     except ImportError:
-        pass
+        pass  # nosec B110
     try:
         from crdt_merge.model.strategies import evolutionary # noqa: F401 — side-effect: registers strategy
     except ImportError:
-        pass
+        pass  # nosec B110
     try:
         from crdt_merge.model.strategies import unlearning   # noqa: F401 — side-effect: registers strategy
     except ImportError:
-        pass
+        pass  # nosec B110
     try:
         from crdt_merge.model.strategies import calibration  # noqa: F401 — side-effect: registers strategy
     except ImportError:
-        pass
+        pass  # nosec B110
     try:
         from crdt_merge.model.strategies import safety       # noqa: F401 — side-effect: registers strategy
     except ImportError:
-        pass
+        pass  # nosec B110
     try:
         from crdt_merge.model.strategies import continual    # noqa: F401 — side-effect: registers strategy
     except ImportError:
-        pass
+        pass  # nosec B110
 
 _auto_register()

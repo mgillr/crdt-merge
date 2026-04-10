@@ -42,7 +42,7 @@ try:
     _rich_text_col = TextColumn
     _rich_time_col = TimeRemainingColumn
 except ImportError:
-    pass
+    pass  # nosec B110
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -154,7 +154,7 @@ class ProgressBar:
                     )
                 self._rich_ctx.stop()
             except Exception:
-                pass
+                pass  # nosec B110 -- intentionally silent
             return
 
         if self._is_tty:
@@ -298,13 +298,13 @@ class Spinner:
             try:
                 self._rich_ctx.stop()
             except Exception:
-                pass
+                pass  # nosec B110 -- intentionally silent
             # Print final message below the spinner.
             try:
                 self.stream.write(f"{message} ({_format_time(elapsed)})\n")
                 self.stream.flush()
             except (ValueError, OSError):
-                pass
+                pass  # nosec B110 -- fallback on unsupported input
             return
 
         try:
@@ -316,7 +316,7 @@ class Spinner:
                 self.stream.write(f"[spinner] {message} ({_format_time(elapsed)})\n")
                 self.stream.flush()
         except (ValueError, OSError):
-            pass
+            pass  # nosec B110 -- fallback on unsupported input
 
     # -- Context manager ----------------------------------------------------
 

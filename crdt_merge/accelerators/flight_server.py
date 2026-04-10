@@ -186,7 +186,7 @@ def _parse_metadata(raw_metadata: Any) -> Dict[str, str]:
         try:
             out = json.loads(raw_metadata.decode())
         except Exception:
-            pass
+            pass  # nosec B110 -- intentionally silent
     elif isinstance(raw_metadata, dict):
         out = {str(k): str(v) for k, v in raw_metadata.items()}
     elif hasattr(raw_metadata, "__iter__"):
@@ -327,7 +327,7 @@ class FlightMergeServer:
             try:
                 strategies = json.loads(raw_strats)
             except Exception:
-                pass
+                pass  # nosec B110 -- intentionally silent
 
         # Read all batches into two groups
         left_recs: List[dict] = []

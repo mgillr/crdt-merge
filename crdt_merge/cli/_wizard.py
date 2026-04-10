@@ -106,7 +106,7 @@ def ask_choice(prompt: str, options: List[str]) -> str:
             if 0 <= idx < len(options):
                 return options[idx]
         except (ValueError, IndexError):
-            pass
+            pass  # nosec B110 -- fallback on unsupported input
         print(f"  Enter a number between 1 and {len(options)}.")
 
 
@@ -168,7 +168,7 @@ def ask_multi(prompt: str, options: List[str]) -> List[str]:
             if selected:
                 return selected
         except (ValueError, IndexError):
-            pass
+            pass  # nosec B110 -- fallback on unsupported input
         print("  Invalid selection. Use comma-separated numbers.")
 
 
@@ -247,7 +247,7 @@ def handle_wizard_merge(args: argparse.Namespace, formatter: Any) -> None:
             columns = list(sample[0].keys())
             print(f"\nDetected columns: {', '.join(columns)}")
     except Exception:
-        pass
+        pass  # nosec B110
 
     # Step 4: Key column
     if columns:

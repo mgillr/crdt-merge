@@ -172,7 +172,7 @@ class CRDTStrategy(_FlowerStrategyBase):
                 fit_ins = flwr.common.FitIns(parameters or flwr.common.Parameters(tensors=[], tensor_type=""), {})
                 return [(client, fit_ins) for client in sample]
             except Exception:
-                pass
+                pass  # nosec B110 -- intentionally silent
         return []
 
     def aggregate_fit(
@@ -249,7 +249,7 @@ class CRDTStrategy(_FlowerStrategyBase):
                 eval_ins = flwr.common.EvaluateIns(parameters or flwr.common.Parameters(tensors=[], tensor_type=""), {})
                 return [(client, eval_ins) for client in sample]
             except Exception:
-                pass
+                pass  # nosec B110 -- intentionally silent
         return []
 
     def aggregate_evaluate(

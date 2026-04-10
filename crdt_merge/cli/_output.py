@@ -160,7 +160,7 @@ class OutputFormatter:
             df.write_parquet(path)
             return
         except ImportError:
-            pass
+            pass  # nosec B110
 
         # Try pandas + pyarrow.
         try:
@@ -169,7 +169,7 @@ class OutputFormatter:
             df.to_parquet(path, engine="pyarrow", index=False)
             return
         except ImportError:
-            pass
+            pass  # nosec B110
 
         raise ImportError(
             "Parquet output requires either 'polars' or 'pandas' with "

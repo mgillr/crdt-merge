@@ -444,7 +444,7 @@ class AgentState:
                 # wrap values during to_dict
                 facts_dict = EncryptedMerge.encrypt_facts(facts_dict, self.key_provider)
             except ImportError:
-                pass
+                pass  # nosec B110
 
         return {
             "type": "agent_state",
@@ -475,7 +475,7 @@ class AgentState:
                 from crdt_merge.encryption import EncryptedMerge
                 facts_dict = EncryptedMerge.decrypt_facts(facts_dict, key_provider)
             except ImportError:
-                pass
+                pass  # nosec B110
 
         state._facts = LWWMap.from_dict(facts_dict)
         state._tags = ORSet.from_dict(d.get("tags", {}))

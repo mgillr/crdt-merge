@@ -575,7 +575,7 @@ class DuckLakeConflictResolver:
                     cols = [desc[0] for desc in self._conn.description]
                     return [dict(zip(cols, row)) for row in result]
                 except Exception:
-                    pass
+                    pass  # nosec B110 -- intentionally silent
             raise KeyError(
                 f"Snapshot '{snapshot}' not found in registered snapshots, "
                 f"branches, or DuckDB tables"

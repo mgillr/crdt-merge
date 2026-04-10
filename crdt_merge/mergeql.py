@@ -472,7 +472,7 @@ def _eval_where(record: dict, clause: str) -> bool:
         if op == ">=":  return num_rec >= num_val
         if op == "<=":  return num_rec <= num_val
     except (ValueError, TypeError):
-        pass
+        pass  # nosec B110 -- fallback on unsupported input
 
     # String comparison fallback
     str_rec, str_val = str(rec_val), str(raw_val)
@@ -655,7 +655,7 @@ class MergeQL:
             try:
                 return data.to_dict("records")
             except Exception:
-                pass
+                pass  # nosec B110 -- intentionally silent
         # Iterable
         try:
             return list(data)

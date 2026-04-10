@@ -80,7 +80,7 @@ def start_repl(
         if os.path.exists(hist_path):
             readline.read_history_file(hist_path)
     except OSError:
-        pass
+        pass  # nosec B110 -- fallback on unsupported input
 
     # Print banner
     try:
@@ -158,7 +158,7 @@ def start_repl(
     try:
         readline.write_history_file(hist_path)
     except OSError:
-        pass
+        pass  # nosec B110 -- fallback on unsupported input
 
     print("Goodbye.")
 

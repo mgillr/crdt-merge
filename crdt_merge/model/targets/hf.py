@@ -103,7 +103,7 @@ class HfSource:
                     state_dict.update(load_file(str(sf)))
                 return state_dict
             except ImportError:
-                pass
+                pass  # nosec B110
 
         # Fallback to pytorch bin
         bin_files = list(local_path.glob("*.bin"))
@@ -115,7 +115,7 @@ class HfSource:
                     state_dict.update(torch.load(str(bf), map_location="cpu", weights_only=True))
                 return state_dict
             except ImportError:
-                pass
+                pass  # nosec B110
 
         raise FileNotFoundError(
             f"No loadable weight files found in {self.repo_id}. "

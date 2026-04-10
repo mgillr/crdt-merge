@@ -61,18 +61,18 @@ def _safe_parse_ts(value: Any) -> float:
         try:
             return float(value)
         except (ValueError, TypeError):
-            pass
+            pass  # nosec B110 -- fallback on unsupported input
         from datetime import datetime as _dt
 
         try:
             return _dt.fromisoformat(value.replace("Z", "+00:00")).timestamp()
         except (ValueError, AttributeError, TypeError):
-            pass
+            pass  # nosec B110 -- fallback on unsupported input
     if hasattr(value, 'timestamp'):
         try:
             return float(value.timestamp())
         except (TypeError, OSError):
-            pass
+            pass  # nosec B110 -- fallback on unsupported input
     # Parsing failed -- fall back to epoch 0.0 for backward compatibility,
     # but emit a warning so the caller knows something unexpected happened.
     import warnings

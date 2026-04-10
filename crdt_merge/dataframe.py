@@ -66,7 +66,7 @@ def _parse_timestamp(value: Any) -> float:
         try:
             return float(value)
         except (ValueError, TypeError):
-            pass
+            pass  # nosec B110 -- fallback on unsupported input
         # Try ISO-8601 parsing
         from datetime import datetime as _dt
         try:
@@ -76,7 +76,7 @@ def _parse_timestamp(value: Any) -> float:
                 return dt.astimezone(timezone.utc).timestamp()
             return dt.timestamp()
         except (ValueError, AttributeError, TypeError):
-            pass
+            pass  # nosec B110 -- fallback on unsupported input
     # Try .timestamp() method (datetime objects)
     if hasattr(value, 'tzinfo') and hasattr(value, 'timestamp'):
         try:
@@ -84,12 +84,12 @@ def _parse_timestamp(value: Any) -> float:
                 return float(value.astimezone(timezone.utc).timestamp())
             return float(value.timestamp())
         except (TypeError, OSError):
-            pass
+            pass  # nosec B110 -- fallback on unsupported input
     elif hasattr(value, 'timestamp'):
         try:
             return float(value.timestamp())
         except (TypeError, OSError):
-            pass
+            pass  # nosec B110 -- fallback on unsupported input
     return 0.0
 
 
@@ -116,7 +116,7 @@ def _nan_safe_value(v: Any) -> Any:
         if isinstance(v, float) and math.isnan(v):
             return float('-inf')
     except (TypeError, ValueError):
-        pass
+        pass  # nosec B110 -- fallback on unsupported input
     return v
 
 

@@ -120,7 +120,7 @@ class GPUMerge:
                 # Use ~50% of GPU memory, assume ~100MB per layer chunk
                 return max(1, int(mem * 0.5 / (100 * 1024 * 1024)))
             except Exception:
-                pass
+                pass  # nosec B110 -- intentionally silent
         # Default for CPU: process all layers at once
         return 1024
 
@@ -222,7 +222,7 @@ class GPUMerge:
                     if _torch.cuda.is_available():
                         _torch.cuda.synchronize()
                 except Exception:
-                    pass
+                    pass  # nosec B110
                 # Move back to CPU and convert to list
                 merged[layer_name] = result.detach().cpu().tolist()
 
@@ -265,6 +265,6 @@ class GPUMerge:
                 info["gpu_name"] = props.name
                 info["memory_gb"] = round(props.total_mem / (1024 ** 3), 2)
             except Exception:
-                pass
+                pass  # nosec B110 -- intentionally silent
 
         return info

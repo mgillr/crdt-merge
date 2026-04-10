@@ -682,4 +682,4 @@ class SQLiteCRDTMerge:
         try:
             self._conn.close()
         except Exception:
-            pass
+            pass  # cleanup -- best-effort

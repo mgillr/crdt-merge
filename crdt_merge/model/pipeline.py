@@ -170,7 +170,7 @@ class PipelineCheckpoint:
             if os.path.exists(self._path):
                 os.remove(self._path)
         except Exception:
-            pass
+            pass  # cleanup -- best-effort
 
     @property
     def completed_stages(self) -> List[str]:

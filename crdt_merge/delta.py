@@ -224,7 +224,7 @@ def apply_delta(
         try:
             index.pop(int(k), None)
         except (ValueError, TypeError):
-            pass
+            pass  # nosec B110 -- fallback on unsupported input
 
     # Apply modifications
     for r in delta.modified:

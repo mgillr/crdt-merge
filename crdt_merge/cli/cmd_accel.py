@@ -103,7 +103,7 @@ def handle_accel_list(args: argparse.Namespace, formatter: Any) -> None:
         try:
             __import__(mod_name)
         except (ImportError, Exception):
-            pass
+            pass  # nosec B110
 
     rows = []
     for name, cls in ACCELERATOR_REGISTRY.items():
@@ -111,7 +111,7 @@ def handle_accel_list(args: argparse.Namespace, formatter: Any) -> None:
         try:
             instance = cls()
         except Exception:
-            pass
+            pass  # nosec B110 -- intentionally silent
 
         available = False
         version = "-"

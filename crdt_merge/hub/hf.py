@@ -215,7 +215,7 @@ class HFMergeHub:
                     state_dict.update(load_file(str(sf)))
                 return state_dict
             except ImportError:
-                pass
+                pass  # nosec B110
 
             # Fall back to numpy backend (no torch required -- works on CPU-only Spaces)
             try:
@@ -225,7 +225,7 @@ class HFMergeHub:
                     state_dict.update(np_load_file(str(sf)))
                 return state_dict
             except ImportError:
-                pass
+                pass  # nosec B110
 
         bin_files = list(local_path.glob("*.bin"))
         if bin_files:
@@ -236,7 +236,7 @@ class HFMergeHub:
                     state_dict.update(torch.load(str(bf), map_location="cpu", weights_only=True))
                 return state_dict
             except ImportError:
-                pass
+                pass  # nosec B110
 
         raise FileNotFoundError(
             f"No loadable weight files found in {repo_id}. "

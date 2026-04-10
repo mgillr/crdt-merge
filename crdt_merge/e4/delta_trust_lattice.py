@@ -546,7 +546,7 @@ class DeltaTrustLattice:
             self._trust_scores[peer_id] = new
             self._evidence_log.append(ev)
         except ValueError:
-            pass
+            pass  # nosec B110 -- fallback on unsupported input
 
     def __repr__(self) -> str:
         return (

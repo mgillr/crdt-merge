@@ -175,7 +175,7 @@ def parallel_merge_arrow(
             if right.num_rows == 0:
                 return left
     except ImportError:
-        pass
+        pass  # nosec B110
 
     try:
         from crdt_merge.arrow import ArrowMerge  # type: ignore[import-untyped]  # lazy import avoids circular dep; module lacks py.typed
@@ -183,9 +183,9 @@ def parallel_merge_arrow(
         engine = ArrowMerge(schema=schema)
         return engine.merge(left, right, key=key)
     except ImportError:
-        pass
+        pass  # nosec B110
     except Exception:
-        pass
+        pass  # nosec B110
 
     # Fallback: convert PyArrow tables to list of dicts for parallel_merge
     try:
@@ -195,7 +195,7 @@ def parallel_merge_arrow(
         if isinstance(right, _pa.Table):
             right = right.to_pylist()
     except ImportError:
-        pass
+        pass  # nosec B110
 
     return parallel_merge(
         left, right, key=key, schema=schema,

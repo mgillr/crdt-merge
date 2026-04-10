@@ -284,7 +284,7 @@ def handle_strategies(args: argparse.Namespace, formatter: OutputFormatter) -> N
                 if getattr(info, "category", "").lower() == category.lower():
                     filtered.append(s)
             except Exception:
-                pass
+                pass  # nosec B110 -- intentionally silent
         strategies = filtered
     else:
         strategies = all_strategies

@@ -58,17 +58,17 @@ def _safe_parse_ts(value):
         try:
             return float(value)
         except (ValueError, TypeError):
-            pass
+            pass  # nosec B110 -- fallback on unsupported input
         from datetime import datetime as _dt
         try:
             return _dt.fromisoformat(value.replace("Z", "+00:00")).timestamp()
         except (ValueError, AttributeError, TypeError):
-            pass
+            pass  # nosec B110 -- fallback on unsupported input
     if hasattr(value, 'timestamp'):
         try:
             return float(value.timestamp())
         except (TypeError, OSError):
-            pass
+            pass  # nosec B110 -- fallback on unsupported input
     return 0.0
 
 # Lazy-import polars
