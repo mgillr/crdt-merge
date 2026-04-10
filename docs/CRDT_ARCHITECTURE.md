@@ -7,7 +7,7 @@
 > Licensed under the **Business Source License 1.1** (BSL-1.1).
 > Licensor: Ryan Gillespie / Optitransfer
 > Licensed Work: crdt-merge
-> Change Date: 2028-03-29
+> Change Date: 2028-04-08
 > Change License: Apache License, Version 2.0
 >
 > You may use, modify, and deploy this work for any purpose — including commercial
@@ -29,8 +29,9 @@
 7. [Benchmark Results](#benchmark-results)
 8. [API Usage](#api-usage)
 9. [All 26 CRDT-Compliant Strategies](#all-26-strategies)
-10. [Future Work](#future-work)
-11. [References](#references)
+10. [E4: Recursive Trust-Delta Entanglement (v0.9.5)](#e4-trust)
+11. [Future Work](#future-work)
+12. [References](#references)
 
 ---
 
@@ -1397,13 +1398,119 @@ TOTAL                     |   26/26     |    26/26    |   26/26    |   26/26    
 
 ---
 
-## 10. Future Work <a name="future-work"></a>
+## 10. E4: Recursive Trust-Delta Entanglement (v0.9.5) <a name="e4-trust"></a>
 
-### 10.1 Delta Synchronization
+v0.9.5 introduces E4, which extends the two-layer architecture with a
+trust dimension. Trust, data, causal clock, and Merkle hash form a
+single product lattice:
 
-Currently, `serialize()` transmits the full state. A delta-sync
-protocol would transmit only the differences between states, using the
-version vectors to determine what the remote replica is missing:
+```
+E4State = Data x Trust x Clock x Hash
+Join: (d1,t1,c1,h1) | (d2,t2,c2,h2) = (d1|d2, t1|t2, c1|c2, recompute(h))
+```
+
+Each dimension is a join-semilattice. The product of join-semilattices
+is a join-semilattice. The Data dimension join is unchanged from
+Section 4, so enabling E4 cannot break existing convergence guarantees.
+
+### 10.1 Six Foundational Primitives
+
+| # | Primitive | Function |
+|---|-----------|----------|
+| P1 | Change detection | 256-ary Merkle tree differencing identifies what differs between two states |
+| P2 | Change encoding | Projection delta encoding extracts changed subtrees, compresses via parameter-aware encoding |
+| P3 | Change verification | Each delta carries a cryptographic proof verified independently of trust scores |
+| P4 | Trust assignment | Five-dimensional trust vector (integrity, causality, consistency, gossip, model) as per-dimension GCounters with homeostatic budget normalisation |
+| P5 | Trust-gated application | Configurable threshold gates data application at the Layer 2 boundary |
+| P6 | Recursive propagation | Trust changes propagate as data changes through the same delta pipeline they govern |
+
+P1-P2 are delta-state CRDT operations (Almeida et al., 2018). P3 is
+authenticated data structures. P4-P5 are Byzantine filtering applied as
+CRDT-native semantics rather than external consensus. P6 is the binding
+contribution: when a peer's trust score changes, that change is a delta
+encoded and verified through the same pipeline as data deltas.
+
+### 10.2 Symbiotic Lattice Trust (SLT) Protocol
+
+SLT implements Byzantine detection through trust lattice convergence
+rather than voting rounds. Each peer maintains a per-peer trust vector
+as five independent GCounters. Evidence of malicious behaviour triggers
+monotonic trust decay that propagates as CRDT deltas.
+
+SLT differs from classical BFT (Castro and Liskov, 1999). Classical BFT
+guarantees safety below n/3 through voting rounds. SLT operates without
+voting -- Byzantine detection emerges from trust score convergence
+across the lattice, and trust-gated application excludes contributions
+from peers whose converged trust falls below threshold.
+
+Evidence types handled:
+
+- **Equivocation** -- peer sends inconsistent states to different peers
+- **Merkle divergence** -- peer's claimed Merkle root does not match reconstructed root
+- **Clock regression** -- peer's causal clock moves backward
+- **Invalid delta** -- delta fails proof verification
+- **Trust manipulation** -- peer attempts to inflate own trust scores
+
+Measured performance:
+
+| Metric | Result |
+|--------|--------|
+| Byzantine tolerance | 34% (empirically measured with active attackers) |
+| End-to-end federation (10 nodes, 2 Byzantine) | 9.69ms |
+| Proof-carrying operation wire size | 128 bytes fixed |
+| Causal clock throughput | 2.93M ops/s |
+| Large-model delta validation | 6.7B parameters (facebook/opt-6.7b) |
+
+### 10.3 Delta Encoding
+
+Projection delta encoding decomposes state changes through 256-ary
+Merkle tree differencing, extracts only changed subtrees, and compresses
+through parameter-aware encoding. Deltas compose associatively --
+chaining any sequence produces the same result as a single diff between
+the endpoints.
+
+### 10.4 Integration
+
+E4 activates transparently on `import crdt_merge`. Every existing
+function call works identically. The product lattice join is defined
+dimension-by-dimension, and the Data dimension join is unchanged.
+Disable with `CRDT_MERGE_E4=0` if needed.
+
+```python
+from crdt_merge.e4.causal_trust_clock import CausalTrustClock
+from crdt_merge.e4.delta_trust_lattice import DeltaTrustLattice
+from crdt_merge.e4.trust_bound_merkle import TrustBoundMerkle
+from crdt_merge.e4.proof_evidence import TrustEvidence
+
+# Create a trust lattice for a peer
+lattice = DeltaTrustLattice("peer_alice")
+
+# Submit evidence of malicious behaviour
+evidence = TrustEvidence(
+    observer="peer_alice",
+    target="peer_mallory",
+    evidence_type="equivocation",
+    amount=0.8,
+    proof=b"state_hash_a != state_hash_b"
+)
+lattice.submit_evidence(evidence)
+
+# Trust score converges across all honest peers via CRDT semantics
+# Contributions from peer_mallory are automatically gated at Layer 2
+```
+
+Full specification: [E4 Master Architecture](e4/E4-MASTER-ARCHITECTURE.md)
+
+---
+
+## 11. Future Work <a name="future-work"></a>
+
+### 11.1 Delta Synchronization
+
+**Note:** Basic delta synchronization is now implemented via E4's
+projection delta encoding (Section 10). The API below shows the
+planned extension for fine-grained version-vector-based delta
+propagation:
 
 ```python
 def delta_since(self, remote_vv: Dict[str, int]) -> bytes:
@@ -1419,7 +1526,7 @@ def delta_since(self, remote_vv: Dict[str, int]) -> bytes:
     return self._serialize_delta(new_adds, new_removes)
 ```
 
-### 10.2 Persistent Storage Backend
+### 11.2 Persistent Storage Backend
 
 For large-scale deployments, tensor data could be stored in an external
 object store (S3, GCS) with only content hashes in the CRDT state.
@@ -1440,7 +1547,7 @@ class RemoteBackedCRDTState(CRDTMergeState):
         return super().add(model_id, tensors, **kwargs)
 ```
 
-### 10.3 Conflict Resolution Policies
+### 11.3 Conflict Resolution Policies
 
 While the current architecture uses add-wins semantics, future work
 could support configurable conflict resolution:
@@ -1450,7 +1557,7 @@ could support configurable conflict resolution:
 - **Voting** — Majority of replicas must agree
 - **Custom** — User-defined resolution functions
 
-### 10.4 Streaming Merge
+### 11.4 Streaming Merge
 
 For extremely large models that don't fit in memory, a streaming merge
 API would process one layer at a time:
@@ -1469,7 +1576,7 @@ async def streaming_resolve(self) -> AsyncIterator[Tuple[str, np.ndarray]]:
         yield layer_name, merged_layer
 ```
 
-### 10.5 Formal Verification
+### 11.5 Formal Verification
 
 The mathematical proof in Section 6 is a paper proof. Future work could
 formalize this in Coq or Lean to provide machine-checked verification
@@ -1477,7 +1584,7 @@ of the CRDT properties.
 
 ---
 
-## 11. References <a name="references"></a>
+## 12. References <a name="references"></a>
 
 ### CRDT Theory
 
@@ -1531,6 +1638,20 @@ of the CRDT properties.
     "Epidemic Algorithms for Replicated Database Maintenance."
     *PODC '87*.
 
+### E4 Trust Architecture
+
+13. Almeida, P. S., Shoker, A., & Baquero, C. (2018). "Delta State
+    Replicated Data Types." *Journal of Parallel and Distributed
+    Computing, 111*, 162-173.
+
+14. Castro, M. & Liskov, B. (1999). "Practical Byzantine Fault
+    Tolerance." *OSDI 1999*.
+
+15. Papamanthou, C., Tamassia, R., & Triandopoulos, N. (2013).
+    "Authenticated Hash Tables Based on Cryptographic Accumulators."
+    *Algorithmica, 66(4)*, 862-898.
+
+
 ---
 
 ## License
@@ -1556,4 +1677,4 @@ limitations under the License.
 ---
 
 *This document was generated as part of the crdt-merge library.*
-*Last updated: 2026-03-29*
+*Last updated: 2026-04-10*
