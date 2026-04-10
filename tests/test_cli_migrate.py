@@ -479,7 +479,7 @@ class TestRoundtrip:
         code = migrate_config(p)
         # Exec the generated code; should not raise
         namespace: dict = {}
-        exec(code, namespace)
+        exec(code, namespace)  # nosec B102 -- validating generated code is executable
         assert "schema" in namespace
         assert "strategy" in namespace
 
@@ -488,7 +488,7 @@ class TestRoundtrip:
         p = _write_yaml(tmp_path, "rt2.yaml", TIES_CONFIG)
         code = migrate_config(p)
         namespace: dict = {}
-        exec(code, namespace)
+        exec(code, namespace)  # nosec B102 -- validating generated code is executable
         schema = namespace["schema"]
         d = schema.to_dict()
         assert "default" in d
@@ -499,5 +499,5 @@ class TestRoundtrip:
         p = _write_yaml(tmp_path, "dare_rt.yaml", DARE_CONFIG)
         code = migrate_config(p)
         namespace: dict = {}
-        exec(code, namespace)
+        exec(code, namespace)  # nosec B102 -- validating generated code is executable
         assert namespace["schema"].to_dict()["default"] == "dare_ties"

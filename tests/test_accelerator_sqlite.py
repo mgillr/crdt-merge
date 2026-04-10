@@ -182,7 +182,8 @@ class TestSync:
     def test_sync_from_remote(self, ext):
         """Sync from a separate in-memory db using a temp file."""
         import sqlite3
-        tmppath = tempfile.mktemp(suffix=".db")
+        tmpfd, tmppath = tempfile.mkstemp(suffix=".db")
+        os.close(tmpfd)
         try:
             # Create remote db
             remote = sqlite3.connect(tmppath)

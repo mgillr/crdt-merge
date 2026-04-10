@@ -324,7 +324,8 @@ class TestExecuteSQL:
 
 class TestSyncFrom:
     def test_sync_inserts_remote_records(self, ext):
-        tmppath = tempfile.mktemp(suffix=".db")
+        tmpfd, tmppath = tempfile.mkstemp(suffix=".db")
+        os.close(tmpfd)
         try:
             remote = sqlite3.connect(tmppath)
             remote.execute(
