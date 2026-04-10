@@ -64,7 +64,7 @@ def run_doctor() -> List[Dict[str, Any]]:
 
     for display_name, import_name, extra in extras:
         try:
-            mod = importlib.import_module(import_name)
+            mod = importlib.import_module(import_name)  # nosemgrep: non-literal-import -- import_name from hardcoded extras list above
             version = getattr(mod, "__version__", "installed")
             results.append({
                 "name": display_name,
@@ -97,7 +97,7 @@ def run_doctor() -> List[Dict[str, Any]]:
 
     for name, mod_path in accel_modules.items():
         try:
-            mod = importlib.import_module(mod_path)
+            mod = importlib.import_module(mod_path)  # nosemgrep: non-literal-import -- mod_path from hardcoded accel_modules dict above
             version = "-"
             # Try to get version from registered class
             for attr_name in dir(mod):

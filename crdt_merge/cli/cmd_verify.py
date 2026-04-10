@@ -39,6 +39,9 @@ _PROPERTY_NAMES = ("commutative", "associative", "idempotent", "convergence")
 # ---------------------------------------------------------------------------
 
 
+_ALLOWED_MODULE_PREFIXES = ("crdt_merge.",)
+
+
 def _resolve_dotted_path(dotted: str):
     """Import and return the object at *dotted* (e.g. ``pkg.mod.func``)."""
     module_path, _, attr_name = dotted.rpartition(".")
@@ -46,8 +49,12 @@ def _resolve_dotted_path(dotted: str):
         raise ValueError(
             f"Invalid dotted path {dotted!r}: expected 'module.attribute'"
         )
+    if not any(module_path.startswith(p) for p in _ALLOWED_MODULE_PREFIXES):
+        raise ValueError(
+            f"Module {module_path!r} is outside the allowed namespace"
+        )
     try:
-        module = importlib.import_module(module_path)
+        module = importlib.import_module(module_path)  # nosemgrep: non-literal-import -- validated against _ALLOWED_MODULE_PREFIXES
     except ImportError as exc:
         raise ImportError(
             f"Could not import module {module_path!r}: {exc}"

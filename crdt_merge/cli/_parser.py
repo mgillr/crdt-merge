@@ -119,8 +119,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     for module_name in _COMMAND_MODULES:
         fqn = f"crdt_merge.cli.{module_name}"
+        if module_name not in _COMMAND_MODULES:
+            continue  # only import from the known command list
         try:
-            mod = importlib.import_module(fqn)
+            mod = importlib.import_module(fqn)  # nosemgrep: non-literal-import -- fqn built from _COMMAND_MODULES constant
         except ImportError as exc:
             # The module may simply not exist yet; only surface this when the
             # user has asked for verbose output (we can't know at import time,

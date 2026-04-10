@@ -93,12 +93,20 @@ def detect_format(path: str) -> str:
 # ---------------------------------------------------------------------------
 
 
+_ALLOWED_OPTIONAL_IMPORTS = frozenset({
+    "pandas", "polars", "orjson", "rich", "pyarrow",
+    "yaml", "toml", "tomllib", "tomli",
+})
+
+
 def _try_import(name: str):
     """Attempt to import *name*; return the module or ``None``."""
+    if name not in _ALLOWED_OPTIONAL_IMPORTS:
+        return None
     try:
         import importlib
 
-        return importlib.import_module(name)
+        return importlib.import_module(name)  # nosemgrep: non-literal-import -- validated against _ALLOWED_OPTIONAL_IMPORTS
     except ImportError:
         return None
 
