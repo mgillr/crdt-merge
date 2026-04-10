@@ -182,7 +182,7 @@
 - Cryptographic hash chain in AuditLog provides tamper detection for regulatory compliance
 
 
-## [0.8.3] - 2026-03-30 — "The Research Release"
+## [0.8.3] - 2026-03-30 — "The Full-Stack Release"
 
 ### Continual Merge Engine
 - `DualProjectionMerge` strategy — SVD-based dual-projection decomposition with shared/task-specific subspace separation
@@ -273,11 +273,6 @@
 - **`ModelMerge.crdt_merge()`** — High-level API wrapping every layer merge in CRDTMergeState, returns `MergeResult` with `metadata["crdt_guaranteed"] = True`
 - **195 new tests** — All 26 strategies × 3 CRDT laws × state + resolve levels + OR-Set + versioning + serialization + edge cases
 - **Architecture document** — `docs/CRDT_ARCHITECTURE.md` (1,744 lines) documenting the failure, 7 R&D architectures tested (all 25/25), and production solution
-
-### Research (Internal)
-- 7 distinct CRDT solution architectures designed, prototyped, and tested
-- All 7 achieved 25/26 strategies as true CRDTs
-- Production implementation unifies best features of all seven
 
 ### Removed
 - `research/` directory (internal R&D artifacts)
