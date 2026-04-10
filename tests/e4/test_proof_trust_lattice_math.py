@@ -53,13 +53,14 @@ from crdt_merge.e4.compatibility import CompatibilityController, CompatibilityMo
 # ---------------------------------------------------------------------------
 
 def _make_evidence(observer: str, dimension: str, amount: float) -> TrustEvidence:
+    from e4_factories import make_invalid_delta_proof
     return TrustEvidence.create(
         observer=observer,
         target="target",
         evidence_type="invalid_delta",
         dimension=dimension,
         amount=amount,
-        proof=b"\x00" * 33,
+        proof=make_invalid_delta_proof(target="target"),
     )
 
 

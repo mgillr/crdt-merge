@@ -55,13 +55,14 @@ def _scores_equal(a: TypedTrustScore, b: TypedTrustScore) -> bool:
 
 def _make_evidence(observer: str, dimension: str, amount: float) -> TrustEvidence:
     """Create a verifiable TrustEvidence for invalid_delta type."""
+    from e4_factories import make_invalid_delta_proof
     return TrustEvidence.create(
         observer=observer,
         target="target",
         evidence_type="invalid_delta",
         dimension=dimension,
         amount=amount,
-        proof=b"\x00" * 33,
+        proof=make_invalid_delta_proof(target="target"),
     )
 
 

@@ -216,7 +216,7 @@ class TestTrustEvidenceSerialization:
         ev = TrustEvidence.create(
             observer="a", target="b",
             evidence_type="invalid_delta", dimension="integrity",
-            amount=0.1, proof=make_invalid_delta_proof(),
+            amount=0.1, proof=make_invalid_delta_proof(target="b"),
             timestamp=100.0,
         )
         assert ev.to_bytes() == ev.to_bytes()
@@ -226,7 +226,7 @@ class TestTrustEvidenceSerialization:
         ev = TrustEvidence.create(
             observer="a", target="b",
             evidence_type="invalid_delta", dimension="integrity",
-            amount=0.1, proof=make_invalid_delta_proof(),
+            amount=0.1, proof=make_invalid_delta_proof(target="b"),
             timestamp=100.0,
         )
         h = ev.content_hash()
@@ -238,13 +238,13 @@ class TestTrustEvidenceSerialization:
         ev1 = TrustEvidence.create(
             observer="a", target="b",
             evidence_type="invalid_delta", dimension="integrity",
-            amount=0.1, proof=make_invalid_delta_proof(),
+            amount=0.1, proof=make_invalid_delta_proof(target="b"),
             timestamp=100.0,
         )
         ev2 = TrustEvidence.create(
             observer="a", target="c",
             evidence_type="invalid_delta", dimension="integrity",
-            amount=0.1, proof=make_invalid_delta_proof(),
+            amount=0.1, proof=make_invalid_delta_proof(target="c"),
             timestamp=100.0,
         )
         assert ev1.content_hash() != ev2.content_hash()

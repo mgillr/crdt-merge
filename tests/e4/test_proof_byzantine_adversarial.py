@@ -67,11 +67,12 @@ from crdt_merge.e4.adaptive_verification import (
 # ---------------------------------------------------------------------------
 
 def _make_evidence(observer, dimension, amount, evidence_type="invalid_delta"):
+    from e4_factories import make_invalid_delta_proof
     return TrustEvidence.create(
         observer=observer, target="target",
         evidence_type=evidence_type,
         dimension=dimension, amount=amount,
-        proof=b"\x00" * 33,
+        proof=make_invalid_delta_proof(target="target"),
     )
 
 
@@ -346,8 +347,8 @@ class TestTrustManipulationResistance:
 
     def test_trust_state_pair_detection(self):
         """Inconsistent trust state pairs detected via trust_manipulation evidence."""
-        state_a = b"state_version_1"
-        state_b = b"state_version_2"
+        state_a = b"state_version_1_of_bad_peer_alpha"
+        state_b = b"state_version_2_of_bad_peer_beta"
         proof = pack_state_pair(state_a, state_b)
         ev = TrustEvidence.create(
             observer="obs", target="bad_peer",
@@ -364,7 +365,7 @@ class TestTrustManipulationResistance:
                 observer="obs", target="target",
                 evidence_type="made_up_type",
                 dimension="integrity", amount=0.1,
-                proof=b"\x00" * 33,
+                proof=b"\x00" * 33,  # content irrelevant - type check fails first
             )
 
 
@@ -692,7 +693,7 @@ class TestInvalidDeltaProof:
     def test_invalid_delta_proof_verifies(self):
         """Pack a delta proof that verifies."""
         wrong_hash = b"\x00" * 32
-        delta_bytes = b"some bogus delta"
+        delta_bytes = b"some bogus delta from peer node"
         proof = pack_delta_proof(wrong_hash, delta_bytes)
         ev = TrustEvidence.create(
             observer="obs", target="peer",

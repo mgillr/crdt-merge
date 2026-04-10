@@ -77,11 +77,12 @@ from crdt_merge.e4.integration.agent_bridge import TrustAgentState, TrustAnnotat
 # ---------------------------------------------------------------------------
 
 def _make_evidence(observer, dimension, amount, evidence_type="invalid_delta"):
+    from e4_factories import make_invalid_delta_proof
     return TrustEvidence.create(
         observer=observer, target="target",
         evidence_type=evidence_type,
         dimension=dimension, amount=amount,
-        proof=b"\x00" * 33,
+        proof=make_invalid_delta_proof(target="target"),
     )
 
 

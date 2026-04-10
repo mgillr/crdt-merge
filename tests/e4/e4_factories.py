@@ -110,17 +110,17 @@ def make_clock_regression_proof(peer="peer-eve"):
     return pack_clock_pair(before, after)
 
 
-def make_invalid_delta_proof():
+def make_invalid_delta_proof(target="eve"):
     """Create a valid invalid-delta proof (hash mismatch)."""
-    delta_bytes = b"some bogus delta content"
+    delta_bytes = f"some bogus delta content from {target} node".encode("utf-8")
     wrong_hash = b"\x00" * 32
     return pack_delta_proof(wrong_hash, delta_bytes)
 
 
-def make_state_pair_proof():
+def make_state_pair_proof(target="eve"):
     """Create a valid trust-manipulation proof (two different states)."""
-    state_a = b"state_version_1"
-    state_b = b"state_version_2"
+    state_a = f"state_version_1_of_{target}_trust_vector_alpha".encode("utf-8")
+    state_b = f"state_version_2_of_{target}_trust_vector_beta".encode("utf-8")
     return pack_state_pair(state_a, state_b)
 
 
