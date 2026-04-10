@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import readline
 import shlex
 import sys
@@ -116,7 +117,7 @@ def start_repl(
             elif dot_cmd == ".history":
                 _print_history()
             elif dot_cmd == ".clear":
-                os.system("clear" if os.name != "nt" else "cls")
+                subprocess.run(["clear" if os.name != "nt" else "cls"], check=False)
             elif dot_cmd == ".load":
                 if len(parts) > 1:
                     last_result = _load_file(parts[1], formatter)
