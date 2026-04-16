@@ -357,7 +357,8 @@ class TrustEvidence:
         if self.target.encode("utf-8") not in delta_bytes:
             return False
         actual_hash = hashlib.sha256(delta_bytes).digest()
-        return actual_hash != expected_hash
+        import hmac as _hmac
+        return not _hmac.compare_digest(actual_hash, expected_hash)
 
     def _verify_trust_consistency(self) -> bool:
         """Inconsistent trust state pair.

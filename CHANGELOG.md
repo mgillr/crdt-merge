@@ -5,6 +5,53 @@
 > See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
 
 
+## [0.9.6] - 2026-04-16 — E4 Hardening Release
+
+**Stubs replaced with real cryptography.** Every security gap in v0.9.5 is now backed by real primitives with zero breaking changes.
+
+### Added
+- Real Ed25519 signature verification in PCO via the `cryptography` package (optional dep)
+- `configure_ed25519_verification(registry)` public API for opt-in real crypto
+- Observer authentication on `TrustEvidence` via `observer_signing_fn` parameter
+- Timestamp binding on evidence with `max_age_seconds` replay protection
+- `configure_evidence_verification(registry)` for evidence source validation
+- Real NIST ML-DSA-65 (Dilithium3) post-quantum signatures via liboqs (optional dep)
+- `Dilithium3Scheme` class using the NIST PQC reference implementation
+- `KeyPair` now uses real Ed25519 when cryptography is available
+- `RevocationEntry.verify(registry=...)` validates real signatures over structured payload
+- 70+ new tests covering real crypto paths and attack vectors
+
+### Changed
+- `DilithiumLite` honestly documented as hash-based, NOT post-quantum (security_level 192 -> 128)
+- `verification_level()` now rounds to 12 decimal places to prevent float boundary bugs
+- Key rotation and emergency revoke now sign structured revocation payloads
+
+### Fixed
+- Float precision bug in `verification_level()` — exact trust 0.8 now maps to level 1 (was level 0)
+- Float precision bug at 0.4 boundary — exact 0.4 now maps to level 1 (was level 2)
+
+### Security
+- Signature verification no longer accepts any 64-byte blob when a registry is configured
+- Evidence source is cryptographically verified when `require_observer_auth=True` or registry is set
+- Replay attacks on stale evidence blocked via `max_age_seconds`
+- Revocation entries require valid signatures from the revoked key, not just non-empty proof
+
+### Compatibility
+- Zero breaking changes — default (no registry configured) behavior is identical to v0.9.5
+- Nord SNN integration (129 tests): zero regressions
+- AIPG integration (49 tests): zero regressions
+- All 7,000+ existing tests continue to pass
+
+### Installation
+```bash
+pip install crdt-merge            # zero-dep core (legacy behavior)
+pip install crdt-merge[crypto]    # real Ed25519 only
+pip install crdt-merge[security]  # Ed25519 + ML-DSA-65 post-quantum
+```
+
+Patents: UK Application No. GB 2607132.4, GB2608127.3
+
+
 ## [0.9.5] - 2026-04-08 — E4 Recursive Trust-Delta Protocol
 
 **Trust is data. Data is trust.** Every merge operation now carries cryptographic proof of provenance, and every delta propagates trust as a first-class CRDT dimension.
