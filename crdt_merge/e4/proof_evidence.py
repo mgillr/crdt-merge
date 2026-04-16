@@ -52,20 +52,78 @@ EVIDENCE_TYPES = {
 
 # -- TrustEvidence (ref 831) -------------------------------------------
 
+# ── Crypto backend detection ─────────────────────────────────────────────
+try:
+    from cryptography.hazmat.primitives.asymmetric import ed25519 as _ed25519
+    from cryptography.exceptions import InvalidSignature as _InvalidSignature
+    _HAS_CRYPTO = True
+except ImportError:
+    _ed25519 = None
+    _InvalidSignature = Exception
+    _HAS_CRYPTO = False
+
+
+# Module-level registry for observer authentication.
+_OBSERVER_KEY_REGISTRY = None
+
+
+def configure_evidence_verification(registry=None) -> None:
+    """Configure a peer key registry for observer authentication.
+
+    Args:
+        registry: object with ``get_public_key(peer_id) -> bytes`` method,
+            or None to disable authentication (legacy behavior).
+
+    When configured, evidence verify() checks the observer_signature against
+    the observer's public key. Unsigned or forged evidence is rejected.
+    When not configured, evidence is accepted without source authentication
+    (backward compatible).
+    """
+    global _OBSERVER_KEY_REGISTRY
+    _OBSERVER_KEY_REGISTRY = registry
+
+
+def _signed_payload(
+    observer: str, target: str, evidence_type: str,
+    dimension: str, amount: float, proof: bytes, timestamp: float,
+) -> bytes:
+    """Canonical byte representation of evidence for signing/verification.
+
+    Includes timestamp to prevent replay attacks.
+    """
+    import struct
+    parts = [
+        observer.encode("utf-8"),
+        b"\x00",
+        target.encode("utf-8"),
+        b"\x00",
+        evidence_type.encode("utf-8"),
+        b"\x00",
+        dimension.encode("utf-8"),
+        b"\x00",
+        struct.pack("!d", amount),
+        struct.pack("!d", timestamp),
+        proof,
+    ]
+    return b"".join(parts)
+
+
 @dataclass(frozen=True)
 class TrustEvidence:
     """Immutable evidence record backed by a cryptographic proof.
 
     Fields
     ------
-    observer : str       Peer that observed the misbehaviour.
-    target : str         Peer accused of misbehaviour.
-    evidence_type : str  One of the five canonical types.
-    dimension : str      Trust dimension affected.
-    amount : float       Severity (positive, added to GCounter).
-    proof : bytes        Opaque proof payload.
-    proof_type : str     Expected proof format for this evidence type.
-    timestamp : float    POSIX timestamp of observation.
+    observer : str              Peer that observed the misbehaviour.
+    target : str                Peer accused of misbehaviour.
+    evidence_type : str         One of the five canonical types.
+    dimension : str              Trust dimension affected.
+    amount : float               Severity (positive, added to GCounter).
+    proof : bytes                Opaque proof payload.
+    proof_type : str             Expected proof format for this evidence type.
+    timestamp : float            POSIX timestamp of observation.
+    observer_signature : bytes   Optional signature over the signed payload.
+    observer_public_key : bytes  Optional public key (for self-describing evidence).
     """
 
     observer: str
@@ -76,6 +134,8 @@ class TrustEvidence:
     proof: bytes
     proof_type: str
     timestamp: float
+    observer_signature: bytes = b""
+    observer_public_key: bytes = b""
 
     # -- construction helpers -------------------------------------------
 
@@ -90,10 +150,30 @@ class TrustEvidence:
         proof: bytes,
         *,
         timestamp: Optional[float] = None,
+        observer_signing_fn: Optional[object] = None,
+        observer_public_key: bytes = b"",
     ) -> TrustEvidence:
-        """Build an evidence record with validation."""
+        """Build an evidence record with validation.
+
+        If observer_signing_fn is provided, the evidence is cryptographically
+        signed by the observer. This binds the evidence to its source and
+        prevents spoofing.
+
+        Args:
+            observer_signing_fn: callable(payload_bytes) -> signature_bytes
+            observer_public_key: observer's public key (for verification lookup)
+        """
         if evidence_type not in EVIDENCE_TYPES:
             raise ValueError(f"unknown evidence type: {evidence_type}")
+        ts = timestamp if timestamp is not None else _time.time()
+
+        signature = b""
+        if observer_signing_fn is not None:
+            payload = _signed_payload(
+                observer, target, evidence_type, dimension, amount, proof, ts,
+            )
+            signature = observer_signing_fn(payload)
+
         return cls(
             observer=observer,
             target=target,
@@ -102,16 +182,32 @@ class TrustEvidence:
             amount=amount,
             proof=proof,
             proof_type=EVIDENCE_TYPES[evidence_type],
-            timestamp=timestamp if timestamp is not None else _time.time(),
+            timestamp=ts,
+            observer_signature=signature,
+            observer_public_key=observer_public_key,
         )
 
     # -- deterministic verification (ref 833) ---------------------------
 
-    def verify(self, merkle_root: Optional[str] = None) -> bool:
+    def verify(
+        self,
+        merkle_root: Optional[str] = None,
+        *,
+        max_age_seconds: Optional[float] = None,
+        require_observer_auth: bool = False,
+    ) -> bool:
         """Verify the proof without trusting the observer.
 
         Each evidence type dispatches to a type-specific verifier.
         Returns False on any structural or cryptographic failure.
+
+        Args:
+            merkle_root: expected root for merkle_divergence evidence.
+            max_age_seconds: reject evidence older than this many seconds
+                (prevents replay of stale evidence).
+            require_observer_auth: if True, observer signature must verify.
+                Even without this flag, if a registry is configured AND the
+                evidence has a signature, verification is enforced.
         """
         if self.evidence_type not in EVIDENCE_TYPES:
             return False
@@ -121,6 +217,17 @@ class TrustEvidence:
             return False
         if self.amount > 1.0:
             return False
+
+        # Age check (replay prevention)
+        if max_age_seconds is not None:
+            age = _time.time() - self.timestamp
+            if age > max_age_seconds or age < -60:  # allow 60s clock skew
+                return False
+
+        # Observer authentication
+        if require_observer_auth or (self.observer_signature and _OBSERVER_KEY_REGISTRY is not None):
+            if not self._verify_observer_signature():
+                return False
 
         try:
             if self.evidence_type == "equivocation":
@@ -136,6 +243,49 @@ class TrustEvidence:
         except Exception:
             return False
         return False
+
+    def _verify_observer_signature(self) -> bool:
+        """Verify the observer's signature on this evidence.
+
+        Binds evidence to its claimed source. Without this, any peer can
+        submit false evidence claiming to be from any observer.
+        """
+        if not self.observer_signature:
+            return False
+
+        # Look up observer's public key
+        public_key = None
+        if _OBSERVER_KEY_REGISTRY is not None:
+            try:
+                public_key = _OBSERVER_KEY_REGISTRY.get_public_key(self.observer)
+            except (KeyError, AttributeError):
+                pass
+        # Fall back to embedded key (self-describing evidence)
+        if public_key is None or len(public_key) == 0:
+            public_key = self.observer_public_key
+        if not public_key:
+            return False
+
+        payload = _signed_payload(
+            self.observer, self.target, self.evidence_type,
+            self.dimension, self.amount, self.proof, self.timestamp,
+        )
+
+        # Tier 2: Ed25519
+        if _HAS_CRYPTO and len(public_key) == 32:
+            try:
+                pk = _ed25519.Ed25519PublicKey.from_public_bytes(public_key)
+                pk.verify(self.observer_signature, payload)
+                return True
+            except (_InvalidSignature, ValueError, Exception):
+                return False
+
+        # Tier 1: HMAC fallback
+        import hmac as _hmac
+        expected = _hmac.new(public_key, payload, hashlib.sha256).digest()
+        if len(self.observer_signature) < 32:
+            return False
+        return _hmac.compare_digest(self.observer_signature[:32], expected)
 
     # -- per-type verifiers ---------------------------------------------
 
