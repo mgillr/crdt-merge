@@ -1,6 +1,4 @@
-"""
-Tests for 4 Almost-Crazy Ideas — all live E4 endpoints, no stubs.
-"""
+"""E4 x Nord SNN integration tests -- live endpoints, no stubs."""
 import time
 import numpy as np
 import pytest

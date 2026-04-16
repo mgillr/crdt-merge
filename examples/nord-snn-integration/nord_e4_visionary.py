@@ -1,36 +1,50 @@
 """
-4 Almost-Crazy Ideas: E4 x Nord SNN
-=====================================
-Each violates 2+ conventional assumptions.
-Each is mathematically coherent from first principles.
-Each is tested against live crdt-merge E4 endpoints.
+E4 x Nord SNN -- four integration points where the math lines up.
 
-IDEA 1: CRDT-Native STDP
-  Conventional assumption violated: STDP is a local synaptic process
-  Conventional assumption violated: Spike traces cannot be merged across nodes
-  Reality: PNCounter IS a bidirectional counter. STDP IS potentiation/depression
-  counting. The math is literally identical. Merge STDP traces as CRDTs.
+1. CRDT-Native STDP
+   STDP is treated as a local synaptic process in the literature (Bi & Poo
+   1998, Song 2000, Neftci 2019). The assumption is that spike traces from
+   different machines are incompatible. But decompose STDP to its primitive:
+   a bidirectional counter. Potentiation increments, depression decrements.
+   A PNCounter is the same object. GCounter merge (element-wise max per node)
+   preserves potentiation from any node without averaging it away. Synaptic
+   memory survives distributed merge.
 
-IDEA 2: Trust-Gated Zone Merge
-  Conventional assumption violated: Model merge is all-or-nothing
-  Conventional assumption violated: Trust is per-peer, not per-layer
-  Reality: E4's 6 trust dimensions map 1:1 to Nord's zones. A node trusted
-  for sensory weights may not be trusted for memory cortex weights.
+   Breaks: "STDP is local" + "spike traces can't merge across nodes"
+   Tests: test_merge_preserves_potentiation, test_merge_commutativity
 
-IDEA 3: Emergence Detection via Trust Circuit Breaker
-  Conventional assumption violated: Circuit breakers are security mechanisms
-  Conventional assumption violated: Emergence cannot be detected algorithmically
-  Reality: Rapid change in activation distribution = rapid change in trust
-  velocity. Same math, different interpretation. Detects the 0.5%->39%
-  memory routing shift automatically.
+2. Trust-Gated Zone Merge
+   FedAvg, Krum, Trimmed Mean -- every FL defence scores clients as a single
+   scalar and accepts or rejects the full update. No existing framework gates
+   per-layer. E4 has 6 trust dimensions. Nord has 6 zones. The mapping is
+   1:1. A node with high integrity (sensory ok) but low causality (memory
+   unsafe) gets accepted for sensory and rejected for memory cortex.
 
-IDEA 4: Deterministic Spike-Train Consensus
-  Conventional assumption violated: Floating-point merges are non-deterministic
-  Conventional assumption violated: Spike threshold sensitivity makes merging
-  impossible across hardware
-  Reality: DeterministicMerge with Kahan summation produces bit-identical
-  results. A weight of 0.1200001 on RTX 5070 = 0.1200001 on A100.
-  The spike fires or doesn't — identically on every machine.
+   Breaks: "merge is all-or-nothing" + "trust is per-peer not per-layer"
+   Tests: test_low_trust_rejected_from_memory
+
+3. Emergence Detection via Circuit Breaker
+   Wei et al. 2022 and Schaeffer et al. 2023 treat emergence as something
+   discovered post-hoc. No training framework detects it during a run.
+   E4's TrustCircuitBreaker fires on anomalous velocity (rate of change
+   exceeding sigma_threshold). Activation rate shift is the same signal.
+   Feed zone activations instead of trust scores -- same math catches the
+   0.5%->39% memory routing shift at step 25K.
+
+   Breaks: "circuit breakers are for security" + "emergence can't be detected"
+   Tests: test_detects_memory_routing_shift, test_simulate_full_nord_training
+
+4. Deterministic Spike-Train Consensus
+   IEEE 754 float addition is non-associative. (a+b)+c != a+(b+c). Every
+   distributed ML framework (DDP, Horovod, DeepSpeed) accepts this. For
+   transformers it barely matters. For SNNs with a hard threshold at 0.12
+   it's catastrophic -- 0.1200001 fires, 0.1199999 doesn't. Kahan
+   compensated summation with pre-sorted inputs gives bit-identical results
+   regardless of merge order or hardware.
+
+   Breaks: "float merges are non-deterministic" + "threshold sensitivity
+   makes distributed SNN merging impossible"
+   Tests: test_bit_identical_across_permutations, test_determinism_proof
 """
 
 import time
@@ -57,16 +71,7 @@ from crdt_merge.e4.resilience.convergence_monitor import ConvergenceMonitor
 # ═══════════════════════════════════════════════════════════════════════
 
 class CRDTSynapticTrace:
-    """A single synapse's STDP trace as a CRDT.
-
-    Potentiation (pre-before-post) = GCounter increment
-    Depression (post-before-pre) = GCounter increment (separate counter)
-    Net plasticity = potentiation.value - depression.value
-
-    CRDT merge: element-wise max per node per counter.
-    Result: once ANY node strengthens a synapse, it stays strengthened
-    across all replicas. Synaptic memory is never lost during merges.
-    """
+    """Single synapse STDP trace backed by two GCounters."""
 
     def __init__(self):
         self.potentiation = GCounter()
@@ -90,16 +95,7 @@ class CRDTSynapticTrace:
 
 
 class CRDTSTDPEngine:
-    """Distributed STDP engine using CRDT synaptic traces.
-
-    Each synapse (pre_neuron, post_neuron) maintains a CRDTSynapticTrace.
-    Multiple training nodes can independently accumulate STDP events.
-    On merge, the traces combine monotonically — potentiation from any
-    node is preserved, depression from any node is preserved.
-
-    The entropy gate from Nord (threshold=2.5) is replicated here:
-    STDP only fires when model uncertainty is high.
-    """
+    """Distributed STDP across N nodes with entropy gating (threshold=2.5)."""
 
     def __init__(self, node_id: str, pre_dim: int, post_dim: int):
         self.node_id = node_id
@@ -191,15 +187,7 @@ ZONE_TRUST_MAP = {
 
 
 class TrustGatedZoneMerge:
-    """Per-zone trust gating for distributed SNN training.
-
-    A node trusted for sensory weights (high integrity score) may NOT
-    be trusted for memory cortex weights (requires high causality score).
-    Each zone has its own trust dimension and threshold.
-
-    This prevents a subtle attack: a node that trains well on simple
-    feature extraction (sensory) but corrupts persistent memory state.
-    """
+    """Per-zone trust gating -- different threshold per architectural zone."""
 
     def __init__(self, zone_thresholds: Optional[Dict[str, float]] = None):
         defaults = {
@@ -310,20 +298,7 @@ class EmergenceEvent:
 
 
 class EmergenceDetector:
-    """Detect emergent capabilities using E4's circuit breaker math.
-
-    The insight: emergence IS anomalous velocity in activation space.
-    E4's TrustCircuitBreaker detects anomalous trust velocity (rapid
-    changes that exceed sigma_threshold standard deviations).
-
-    We repurpose the SAME mechanism: instead of tracking trust scores,
-    we track zone activation rates. When a zone's activation shifts
-    beyond sigma_threshold (like memory going 0.5% -> 39%), the
-    detector fires.
-
-    This would have caught the cross-lingual emergence at step 25K
-    and the memory routing shift at 600M->1B automatically.
-    """
+    """Repurpose E4 circuit breaker to detect activation-space phase transitions."""
 
     def __init__(
         self,
@@ -435,20 +410,7 @@ class EmergenceDetector:
 # ═══════════════════════════════════════════════════════════════════════
 
 class DeterministicSpikeConsensus:
-    """Bit-identical spike behavior across heterogeneous hardware.
-
-    The problem: Nord's LIF threshold is 0.12. A weight of 0.1200001
-    on an RTX 5070 might fire. The same weight at 0.1199999 on an A100
-    (due to float rounding in the merge) stays silent.
-
-    DeterministicMerge with Kahan summation guarantees bit-identical
-    weights regardless of merge order or platform. This means:
-    - Same input -> same spikes -> same output on every machine
-    - The merged model is deterministically reproducible
-
-    Combined with E4's convergence monitoring, we can PROVE that
-    all N nodes have converged to the same model state.
-    """
+    """Kahan-summation merge -- bit-identical weights across any hardware."""
 
     def __init__(self, strategy: str = "sorted_kahan"):
         self.merger = DeterministicMerge(strategy=strategy)
