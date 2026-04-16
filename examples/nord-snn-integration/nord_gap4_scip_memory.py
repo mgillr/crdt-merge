@@ -1,5 +1,5 @@
 """
-Gap 4: SCIP memory lifecycle for Genesis Triple Memory.
+SCIP memory lifecycle for Genesis Triple Memory.
 
 5 primitives from the Synapse Convergent Intelligence Protocol:
   EXPERIENCE -> new spike pattern enters structural bank
@@ -8,7 +8,13 @@ Gap 4: SCIP memory lifecycle for Genesis Triple Memory.
   EVICT      -> old patterns pruned (context window rotation)
   REGENERATE -> full state reconstructed from CRDT deltas
 
-Branch: synapse/protocol
+Based on:
+  Synapse Convergent Intelligence Protocol (SCIP)
+  Branch: synapse/protocol
+
+Author: Ryan Gillespie
+Status: Pre-release
+Patent: UK Application No. GB 2607132.4, GB2608127.3
 """
 
 import time

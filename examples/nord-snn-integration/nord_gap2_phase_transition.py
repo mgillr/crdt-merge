@@ -1,11 +1,16 @@
 """
-Gap 2: Phase transition measurement for SNN emergence.
+Phase transition measurement for SNN emergence.
 
 Detection says "something happened at step 25K."
 Measurement says "the compositionality order parameter crossed critical
-threshold D_c with exponent beta=0.31."
+threshold D_c with exponent beta, classifying the universality class."
 
-Paper 03: Emergence From Nothing (phase transitions + renormalization group)
+Based on:
+  Paper 03 -- Emergence From Nothing (phase transitions + renormalization group)
+
+Author: Ryan Gillespie
+Status: Pre-release
+Patent: UK Application No. GB 2607132.4, GB2608127.3
 """
 
 import math

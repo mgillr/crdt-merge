@@ -1,12 +1,18 @@
 """
-Gap 1: Frozen specialist architecture for Nord SNN.
+Frozen specialist architecture for Nord SNN.
 
 After emergence (step 25K), freeze the memory cortex entirely.
 New capabilities added as frozen specialists merged via CRDT.
 Catastrophic forgetting becomes architecturally impossible.
 
-Papers 01 + 07: Convergence Trick + Undying Collective
-Branch: synapse/living-model
+Based on:
+  Paper 01 -- The Convergence Trick (Stability-Plasticity Dilemma)
+  Paper 07 -- The Undying Collective (Catastrophic Forgetting)
+  Branch: synapse/living-model
+
+Author: Ryan Gillespie
+Status: Pre-release
+Patent: UK Application No. GB 2607132.4, GB2608127.3
 """
 
 import time

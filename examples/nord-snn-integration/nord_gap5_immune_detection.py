@@ -1,8 +1,8 @@
 """
-Gap 5: Immune pattern detection within the SNN itself.
+Immune pattern detection within the SNN itself.
 
-Not monitoring worker contributions (we already have that in E4 trust).
-This monitors the MODEL'S OWN internal patterns for anomalies:
+Not monitoring worker contributions (that's E4 trust).
+Monitors the model's own internal patterns for anomalies:
   - STDP timing violations (post fires before pre in impossible timing)
   - Biologically implausible firing rates
   - Contradictory zone outputs
@@ -10,7 +10,14 @@ This monitors the MODEL'S OWN internal patterns for anomalies:
 
 When detected, quarantine the affected zone.
 
-Branch: synapse/immune
+Based on:
+  Paper 08 -- Trust Beats Treachery (affinity maturation)
+  Artificial Immune Intelligence architecture
+  Branch: synapse/immune
+
+Author: Ryan Gillespie
+Status: Pre-release
+Patent: UK Application No. GB 2607132.4, GB2608127.3
 """
 
 import time

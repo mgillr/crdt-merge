@@ -1,5 +1,5 @@
 """
-Gap 3: Sheaf-theoretic spike pattern gluing.
+Sheaf-theoretic spike pattern gluing.
 
 Standard merge preserves individual weights but can destroy correlations
 between connected neurons. For SNNs where spike timing correlations
@@ -8,7 +8,12 @@ ARE the computation, this is catastrophic.
 Sheaf gluing preserves local structure: neuron pairs with high STDP
 coherence (correlated firing) stay correlated after merge.
 
-Paper 04: The 1/k Ceiling Is A Floor (sheaf theory + Knaster-Tarski)
+Based on:
+  Paper 04 -- The 1/k Ceiling Is A Floor (sheaf theory + Knaster-Tarski)
+
+Author: Ryan Gillespie
+Status: Pre-release
+Patent: UK Application No. GB 2607132.4, GB2608127.3
 """
 
 import numpy as np
