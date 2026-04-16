@@ -56,7 +56,7 @@ Usage:
     merged = merge_datasets("user/dataset-a", "user/dataset-b", key="id")
 """
 
-__version__ = "0.9.5"
+__version__ = "0.9.6"
 
 __all__ = [
     # Core CRDT types

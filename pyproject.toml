@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "crdt-merge"
-version = "0.9.5"
+version = "0.9.6"
 description = "Mathematically proven conflict-free merge for AI model weights, datasets, and agent memory with recursive trust-delta entanglement. Zero dependencies. Patent protected."
 readme = "README.md"
 license = {text = "BUSL-1.1"}
@@ -48,6 +48,7 @@ gpu = ["torch>=2.0"]
 all = ["pandas>=1.5", "polars>=0.19", "datasets>=2.0", "orjson>=3.9", "xxhash>=3.0", "numpy>=1.21", "cryptography>=41", "flwr>=1.5"]
 dev = ["pytest>=7", "hypothesis>=6.80", "pytest-asyncio>=0.21"]
 crypto = ["cryptography>=41"]
+security = ["cryptography>=41", "oqs-python>=0.10"]
 flower = ["flwr>=1.5"]
 cli = ["rich>=13.0"]
 
