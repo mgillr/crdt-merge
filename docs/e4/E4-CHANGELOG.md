@@ -10,6 +10,48 @@
 
 ---
 
+## [0.9.6] — E4 Hardening Release
+
+Stubs replaced with real cryptography. Zero breaking changes.
+
+### Added
+- **Real Ed25519 signature verification** via the `cryptography` package (optional dep)
+- `configure_ed25519_verification(registry)` — public API to enable real crypto
+- **Observer authentication** on `TrustEvidence` via `observer_signing_fn` parameter
+- **Timestamp binding** on evidence with `max_age_seconds` replay protection
+- `configure_evidence_verification(registry)` — enforce evidence source validation
+- **Real NIST ML-DSA-65** post-quantum signatures via liboqs (optional dep)
+- `Dilithium3Scheme` class using the NIST PQC reference implementation
+- `KeyPair` now uses real Ed25519 when cryptography is available
+- `RevocationEntry.verify(registry=...)` validates real signatures over structured payload
+
+### Changed
+- `DilithiumLite` honestly documented as hash-based, NOT post-quantum (`security_level` 192 -> 128)
+- `verification_level()` now rounds to 12 decimal places to prevent float boundary bugs
+- Key rotation and emergency revoke now sign structured revocation payloads
+
+### Fixed
+- Float precision bug in `verification_level()` at exact 0.8 boundary (was returning level 0, now level 1)
+- Float precision bug at exact 0.4 boundary (was returning level 2, now level 1)
+
+### Security
+- Signature verification no longer accepts any 64-byte blob when a registry is configured
+- Evidence source cryptographically verified when registry is configured
+- Replay attacks on stale evidence blocked via `max_age_seconds` parameter
+- Revocation entries require valid signatures from the revoked key
+
+### Test additions
+- +16 Ed25519 verification tests (`tests/e4/test_pco_ed25519.py`)
+- +14 observer authentication tests (`tests/e4/test_proof_evidence_auth.py`)
+- +14 post-quantum tests (`tests/e4/resilience/test_pq_signatures_real.py`)
+- +14 key ownership tests (`tests/e4/resilience/test_key_ownership.py`)
+- +5 origin binding tests (`tests/e4/test_trust_delta_origin.py`)
+- +15 battle-hardened attack tests (`tests/e4/test_hardening_attacks.py`)
+- +11 real safetensors end-to-end tests (`tests/e4/test_real_safetensors_e4.py`)
+- **Net: +90 tests, zero regressions.** Nord SNN (129) and AIPG (49) integrations continue passing.
+
+---
+
 ## [0.9.5.2] — Round 2 Resilience
 
 ### Added

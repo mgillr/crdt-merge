@@ -5,11 +5,12 @@
 
 <p><strong>Deterministic, order-independent merge for distributed models, data, and agent state.</strong></p>
 
-[![PyPI version](https://img.shields.io/badge/pypi-v0.9.5-orange)](https://pypi.org/project/crdt-merge/)
+[![PyPI version](https://img.shields.io/badge/pypi-v0.9.6-orange)](https://pypi.org/project/crdt-merge/)
 [![Downloads](https://img.shields.io/pypi/dm/crdt-merge?label=downloads&color=brightgreen)](https://pypi.org/project/crdt-merge/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Tests](https://img.shields.io/badge/tests-7%2C855%20passing-brightgreen)](TEST_RESULTS.md)
+[![Tests](https://img.shields.io/badge/tests-7%2C945%20passing-brightgreen)](TEST_RESULTS.md)
 [![CRDT Compliance](https://img.shields.io/badge/CRDT%20compliance-26%2F26%20strategies-blue)](docs/CRDT_ARCHITECTURE.md)
+[![Crypto](https://img.shields.io/badge/crypto-Ed25519%20%2B%20ML--DSA--65-blue)](docs/security/CRYPTOGRAPHY.md)
 [![License: BSL 1.1](https://img.shields.io/badge/license-BSL%201.1%20%E2%86%92%20Apache%202.0-orange)](LICENSE)
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-crdt--merge-yellow)](https://huggingface.co/spaces/optitransfer/crdt-merge)
@@ -68,7 +69,7 @@ The strategy itself does not need to be a CRDT. SLERP remains SLERP. TIES remain
 
 ## E4: trust as a CRDT dimension
 
-v0.9.5 introduces E4 Recursive Trust-Delta Entanglement -- a protocol that makes trust a first-class algebraic dimension of the CRDT, entangled with data at the lattice level.
+v0.9.5 introduced E4 Recursive Trust-Delta Entanglement -- a protocol that makes trust a first-class algebraic dimension of the CRDT, entangled with data at the lattice level. **v0.9.6 hardens the cryptographic foundation with real Ed25519 signatures and NIST ML-DSA-65 post-quantum support.**
 
 In every existing distributed merge system, trust and data are separate concerns. Authentication sits in front of the merge pipeline, but the merge itself is trust-blind. A malicious peer that passes the gate poisons the shared state, and the system has no mechanism to detect, score, or recover from the damage within the merge semantics themselves.
 
@@ -79,6 +80,27 @@ E4State = Data x Trust x Clock x Hash
 ```
 
 Each dimension is a join-semilattice. The product of join-semilattices is a join-semilattice. Convergence is algebraic -- not a property that needs to be tested, but one that is inherited from the structure.
+
+### Cryptographic hardening (v0.9.6)
+
+Every signature is now real cryptography when the optional `[crypto]` or `[security]` extras are installed:
+
+- **Real Ed25519** on all PCO operations via the `cryptography` library. The previous v0.9.5 stub (which accepted any 64-byte blob) is preserved for backward compatibility when no key registry is configured.
+- **Observer authentication** on `TrustEvidence` -- evidence is signed by its observer, preventing spoofed accusations. Timestamp is part of the signed payload, blocking replay.
+- **NIST ML-DSA-65** post-quantum signatures via liboqs (`Dilithium3Scheme`). Real lattice-based cryptography, not the `DilithiumLite` hash-based placeholder.
+- **Structured revocation proofs** -- `RevocationEntry.verify(registry=...)` validates real signatures over key_id + peer_id + reason + successor, rejecting the previous "any non-empty bytes passes" behaviour.
+
+Opt in by configuring a key registry:
+
+```python
+from crdt_merge.e4.pco import configure_ed25519_verification
+from crdt_merge.e4.proof_evidence import configure_evidence_verification
+
+configure_ed25519_verification(my_registry)       # real Ed25519 on PCOs
+configure_evidence_verification(my_registry)      # observer auth on evidence
+```
+
+Without a registry, behaviour is identical to v0.9.5. Upgrade at your own pace.
 
 ### What makes this different
 
@@ -199,7 +221,8 @@ The rest of the library -- 26 merge strategies, E4 trust scoring, Merkle provena
 pip install crdt-merge            # Core -- zero dependencies
 pip install crdt-merge[fast]      # DuckDB + Polars (38.8x speedup on A100)
 pip install crdt-merge[model]     # PyTorch model weights
-pip install crdt-merge[crypto]    # AEAD encryption backends
+pip install crdt-merge[crypto]    # AEAD encryption + real Ed25519 signatures
+pip install crdt-merge[security]  # Ed25519 + NIST ML-DSA-65 post-quantum (new in 0.9.6)
 pip install crdt-merge[all]       # Everything
 ```
 
