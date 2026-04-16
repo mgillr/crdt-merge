@@ -73,30 +73,57 @@ class KeyPair:
     def sign(self, message: bytes) -> bytes:
         """Sign *message* with the private key.
 
-        Returns a 32-byte HMAC-SHA256 signature.  The HMAC is keyed
-        with the *public* key (derived deterministically from private)
-        so that any peer holding the public key can verify.
-        Raises ValueError if no private key is available.
+        When the cryptography package is available and the private key
+        is 32 bytes, uses real Ed25519 signing. Falls back to HMAC-SHA256
+        otherwise.
         """
         if self.private_key is None:
             raise ValueError("cannot sign without private key")
+        try:
+            from cryptography.hazmat.primitives.asymmetric import ed25519 as _ed
+            if len(self.private_key) == 32:
+                pk = _ed.Ed25519PrivateKey.from_private_bytes(self.private_key)
+                return pk.sign(message)
+        except (ImportError, ValueError, Exception):
+            pass
         return hmac.new(self.public_key, message, hashlib.sha256).digest()
 
     def verify(self, message: bytes, signature: bytes) -> bool:
         """Verify *signature* against *message* using the public key.
 
-        Uses the public key as HMAC key for portable verification.
-        In production, this would be Ed25519 verify.
+        When the cryptography package is available and the public key
+        is 32 bytes, uses real Ed25519 verification. Falls back to
+        HMAC-SHA256 otherwise.
         """
+        try:
+            from cryptography.hazmat.primitives.asymmetric import ed25519 as _ed
+            from cryptography.exceptions import InvalidSignature
+            if len(self.public_key) == 32 and len(signature) == 64:
+                pk = _ed.Ed25519PublicKey.from_public_bytes(self.public_key)
+                pk.verify(signature, message)
+                return True
+        except (ImportError, Exception):
+            pass
         expected = hmac.new(self.public_key, message, hashlib.sha256).digest()
-        return hmac.compare_digest(expected, signature)
+        return hmac.compare_digest(expected, signature[:32] if len(signature) >= 32 else signature)
 
     @classmethod
     def generate(cls) -> KeyPair:
-        """Generate a fresh random key pair."""
-        private = os.urandom(32)
-        public = hashlib.sha256(private).digest()
-        return cls(public_key=public, private_key=private)
+        """Generate a fresh random key pair.
+
+        Uses real Ed25519 when cryptography is available. Falls back to
+        HMAC-compatible key derivation (sha256(private) = public) otherwise.
+        """
+        try:
+            from cryptography.hazmat.primitives.asymmetric import ed25519 as _ed
+            pk = _ed.Ed25519PrivateKey.generate()
+            private = pk.private_bytes_raw()
+            public = pk.public_key().public_bytes_raw()
+            return cls(public_key=public, private_key=private)
+        except (ImportError, Exception):
+            private = os.urandom(32)
+            public = hashlib.sha256(private).digest()
+            return cls(public_key=public, private_key=private)
 
 
 @dataclass(frozen=True)
@@ -119,9 +146,36 @@ class RevocationEntry:
     successor: str = ""
     proof: bytes = b""
 
-    def verify(self) -> bool:
-        """Verify the revocation proof is non-empty (basic check)."""
-        return len(self.proof) > 0
+    def verify(self, registry: Optional[PeerKeyRegistry] = None) -> bool:
+        """Verify the revocation proof.
+
+        When a registry is provided, the proof is validated as a real
+        signature from the revoked key over the revocation payload.
+        Without a registry, falls back to non-empty check (backward compat).
+        """
+        if not self.proof:
+            return False
+        if registry is None:
+            return len(self.proof) > 0
+
+        # Look up the revoked key in the registry
+        chain = registry._keys.get(self.peer_id, [])
+        old_key = None
+        for k in chain:
+            if k.key_id == self.key_id:
+                old_key = k
+                break
+        if old_key is None:
+            return False
+
+        # Build the signed payload: key_id + peer_id + reason + successor
+        payload = (
+            self.key_id.encode("utf-8") + b"\x00"
+            + self.peer_id.encode("utf-8") + b"\x00"
+            + self.reason.encode("utf-8") + b"\x00"
+            + self.successor.encode("utf-8")
+        )
+        return old_key.verify(payload, self.proof)
 
 
 class PeerKeyRegistry:
@@ -245,9 +299,14 @@ class KeyManager:
         old_key = self._current_key
         new_key = KeyPair.generate()
 
-        # Old key signs authorization of new key
-        auth_msg = old_key.public_key + new_key.public_key
-        proof = old_key.sign(auth_msg)
+        # Old key signs revocation payload (matches RevocationEntry.verify format)
+        payload = (
+            old_key.key_id.encode("utf-8") + b"\x00"
+            + self._peer_id.encode("utf-8") + b"\x00"
+            + b"routine rotation\x00"
+            + new_key.key_id.encode("utf-8")
+        )
+        proof = old_key.sign(payload)
 
         revocation = RevocationEntry(
             key_id=old_key.key_id,
@@ -291,12 +350,18 @@ class KeyManager:
         Used when a key is suspected compromised.  The peer must
         generate a new key through out-of-band means.
         """
+        payload = (
+            self._current_key.key_id.encode("utf-8") + b"\x00"
+            + self._peer_id.encode("utf-8") + b"\x00"
+            + reason.encode("utf-8") + b"\x00"
+            + b""  # no successor
+        )
         revocation = RevocationEntry(
             key_id=self._current_key.key_id,
             peer_id=self._peer_id,
             revoked_at=_time.time(),
             reason=reason,
-            proof=self._current_key.sign(b"EMERGENCY_REVOKE"),
+            proof=self._current_key.sign(payload),
         )
         self._registry.revoke(revocation)
         return revocation
