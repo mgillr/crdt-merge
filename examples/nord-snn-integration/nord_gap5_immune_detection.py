@@ -1,22 +1,22 @@
 # SPDX-License-Identifier: BUSL-1.1
 # Copyright 2026 Ryan Gillespie / Optitransfer
 #
-# Licensed under the Business Source License 1.1 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# Licensed under the Business Source License 1.1 (the "License").
+# You may use this file freely for any non-production purpose:
+# research, evaluation, development, testing, education, personal use.
+#
+# A commercial production license is required ONLY if you deploy this
+# code in a revenue-generating production environment. All other use
+# is permitted without restriction.
 #
 #     https://github.com/mgillr/crdt-merge/blob/main/LICENSE
 # Patent: UK Application No. 2607132.4, GB2608127.3
 #
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
-
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#
-# On 2028-03-29 this file converts to Apache License, Version 2.0.
+# On 2028-03-29 this file converts to Apache License, Version 2.0
+# and becomes fully open for all use cases including commercial production.
 
 """
 Immune pattern detection within the SNN itself.
