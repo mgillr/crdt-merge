@@ -228,8 +228,16 @@ class Dilithium3Scheme(SignatureScheme):
                 "Dilithium3Scheme requires oqs-python. "
                 "Install with: pip install crdt-merge[security]"
             )
-        # NIST PQC Level 3 parameter set
-        self._alg_name = "Dilithium3"
+        # NIST PQC Level 3. In liboqs 0.15+ this is the standardized
+        # ML-DSA-65 name; older versions use Dilithium3. Try both.
+        available = _oqs.get_enabled_sig_mechanisms()
+        for candidate in ("ML-DSA-65", "Dilithium3"):
+            if candidate in available:
+                self._alg_name = candidate
+                return
+        raise RuntimeError(
+            "Neither ML-DSA-65 nor Dilithium3 available in this liboqs build"
+        )
 
     def name(self) -> str:
         return "dilithium-3"
