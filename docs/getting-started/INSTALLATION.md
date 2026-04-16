@@ -117,6 +117,8 @@ Enterprise (Layer 5) — cryptography not installed (pip install crdt-merge[ente
 | `polars` | `polars>=0.19` | L2 | Polars engine auto-detected in `merge()` |
 | `model` | `torch`, `transformers`, `numpy` | L4 | 26+ model merge strategies, LoRA, GPU, federated |
 | `hub` | `huggingface_hub` | L4 | HF Hub push/pull |
+| `crypto` | `cryptography>=41` | L5/E4 | AEAD encryption + real Ed25519 signatures (new in 0.9.6) |
+| `security` | `cryptography>=41`, `oqs-python>=0.10` | L5/E4 | Ed25519 + NIST ML-DSA-65 post-quantum signatures (new in 0.9.6) |
 | `enterprise` | `cryptography`, `prometheus_client`, `opentelemetry-sdk` | L5-L6 | Encryption, RBAC, audit, metrics, compliance |
 | `accelerators` | `duckdb`, `streamlit` | Accel | DuckDB UDFs, Streamlit UI |
 | `federated` | `flwr` | L4 | Flower federated learning plugin |

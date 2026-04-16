@@ -46,27 +46,92 @@ secret can produce valid signatures).
 - Scenarios requiring non-repudiation (provable attribution)
 - Multi-organisation deployments with trust boundaries
 
-## Defined Backends (Not Yet Hardened)
+## Production Backends (v0.9.6)
 
-### Ed25519
+### Ed25519 (Asymmetric, Production Ready)
 
-The Ed25519 adapter (`e4/resilience/signature_schemes.py`) provides
-asymmetric signatures with per-peer keypairs. Each peer signs evidence
-with their private key; other peers verify using the public key.
+Real Ed25519 signatures via the `cryptography` library. Available when `crdt-merge[crypto]` is installed and a peer key registry is configured.
 
-**Current status:** The interface is defined and the adapter compiles,
-but it has not been hardened for production. Specifically:
-- Key generation uses Python's `cryptography` library (adequate)
-- Key storage and rotation are not implemented
-- The adapter has unit tests but no adversarial testing
+**What it protects:**
+- PCO signatures -- prevents forgery of operation attestations
+- Observer signatures on `TrustEvidence` -- prevents spoofed accusations
+- Revocation entries -- prevents unauthorized key revocation
+- KeyPair sign/verify operations in the key manager
 
-### Post-Quantum (Dilithium)
+**How to enable:**
 
-The post-quantum adapter provides lattice-based signatures resistant
-to quantum computing attacks. It follows the NIST FIPS 204 standard.
+```python
+from crdt_merge.e4.pco import configure_ed25519_verification
+from crdt_merge.e4.proof_evidence import configure_evidence_verification
 
-**Current status:** Interface defined. Depends on a PQ cryptography
-library that is not yet stable. This is a forward-looking placeholder.
+class Registry:
+    def __init__(self):
+        self._keys = {}
+    def register(self, peer_id, public_key):
+        self._keys[peer_id] = public_key
+    def get_public_key(self, peer_id):
+        return self._keys.get(peer_id)
+
+reg = Registry()
+reg.register("alice", alice_public_key_32_bytes)
+configure_ed25519_verification(reg)
+configure_evidence_verification(reg)
+```
+
+Without a registry, behaviour falls back to v0.9.5 stub (length check only) for backward compatibility.
+
+**Verification cost:**
+- Ed25519 verify: ~100μs per signature on modern hardware
+- Full PCO verification at level 0: signature + hash comparison
+- Full PCO verification at level 2: signature + Merkle + clock + trust derivation
+
+### ML-DSA-65 (Post-Quantum, Production Ready)
+
+Real NIST-standardised Dilithium3 (aka ML-DSA-65) via liboqs. This is the lattice-based signature scheme selected by NIST for FIPS 204.
+
+**What it protects:**
+- Long-lived signatures that must survive the arrival of fault-tolerant quantum computers
+- Trust evidence and revocations where non-repudiation must extend beyond ~15 years
+
+**How to enable:**
+
+```bash
+pip install crdt-merge[security]
+```
+
+```python
+from crdt_merge.e4.resilience.pq_signatures import Dilithium3Scheme, has_real_pq
+
+if has_real_pq():
+    scheme = Dilithium3Scheme()
+    private_key, public_key = scheme.generate_keypair()
+    signature = scheme.sign(private_key, message)
+    assert scheme.verify(public_key, message, signature)
+```
+
+**Signature sizes:**
+- Public key: 1952 bytes
+- Signature: 3293 bytes
+- Security level: 192 bits (NIST Level 3)
+
+### HMAC-SHA256 (Symmetric, Fallback)
+
+Used when no registry is configured + cryptography not available, or as an explicit shared-secret backend. Provides integrity but not non-repudiation.
+
+### DilithiumLite (DEPRECATED for PQ)
+
+**Not post-quantum despite the name.** This is a hash-based construction using SHAKE-256 that was kept for backward compatibility. Security level is 128 bits classical, and it would degrade under Grover's algorithm. Use `Dilithium3Scheme` for real PQ security.
+
+## Selection Guide
+
+| Deployment | Required level | Recommended backend |
+|---|---|---|
+| Closed federation, single org | Integrity only | HMAC-SHA256 (default) |
+| Development / testing | Minimal | Stub (default, no configuration) |
+| Multi-org production | Non-repudiation | Ed25519 (`[crypto]`) |
+| Regulated industry | Non-repudiation | Ed25519 (`[crypto]`) |
+| Long-lived attestations | PQ resistance | ML-DSA-65 (`[security]`) |
+| Government / defense | FIPS / PQ | ML-DSA-65 (`[security]`) |
 
 ## Upgrade Path
 

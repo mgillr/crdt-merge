@@ -419,11 +419,9 @@ class TestVerificationLevelBoundaries:
         assert score.verification_level() == 2
 
     def test_exact_boundary_0_1(self):
-        """At 0.1 boundary: due to float precision 1-0.9=0.0999... < 0.1 → level 3.
-        Verify level 2 is reachable just above the boundary."""
-        # 0.1 via 1-0.9 = 0.0999... → level 3 (float edge)
+        """At 0.1 boundary: with float rounding fix, 0.1 → level 2 (not quarantine)."""
         score_at_point_1 = self._make_score_with_trust(0.1)
-        assert score_at_point_1.verification_level() == 3  # float imprecision
+        assert score_at_point_1.verification_level() == 2  # boundary lands in level 2
 
         # Just above 0.1 → level 2
         score_above = self._make_score_with_trust(0.101)

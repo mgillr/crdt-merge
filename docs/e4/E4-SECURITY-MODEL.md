@@ -4,9 +4,23 @@
 
 # E4 Security Model
 
-> **Version:** 0.9.5 &middot; **Module:** `crdt_merge.e4` &middot; **Author:** Ryan Gillespie / mgillr
+> **Version:** 0.9.6 &middot; **Module:** `crdt_merge.e4` &middot; **Author:** Ryan Gillespie / mgillr
 
 Formal threat model, defense analysis, trust mechanics, and known limitations of the E4 recursive trust-delta architecture.
+
+## What Changed in v0.9.6
+
+v0.9.5 shipped with several cryptographic stubs for backward compatibility during initial rollout. v0.9.6 replaces each with real cryptographic primitives as opt-in upgrades:
+
+| Mechanism | v0.9.5 | v0.9.6 |
+|---|---|---|
+| PCO signature verification | Length check only | Real Ed25519 when registry configured |
+| Observer authentication on evidence | None | Ed25519/HMAC signature over signed payload |
+| Timestamp binding on evidence | None | `max_age_seconds` replay protection |
+| Post-quantum signatures | DilithiumLite (hash-based, not PQ) | Real NIST ML-DSA-65 via liboqs |
+| Revocation proof verification | Non-empty check | Real signature over structured payload |
+
+Default behaviour (no registry configured) is identical to v0.9.5. Real crypto activates by calling `configure_ed25519_verification(registry)` and `configure_evidence_verification(registry)`. See the [Integration Guide](E4-INTEGRATION-GUIDE.md#enabling-real-cryptography) for migration.
 
 **Related documents:** [API Reference](E4-API-REFERENCE.md) · [Developer Guide](E4-DEVELOPER-GUIDE.md) · [Integration Guide](E4-INTEGRATION-GUIDE.md) · [Changelog](E4-CHANGELOG.md)
 
