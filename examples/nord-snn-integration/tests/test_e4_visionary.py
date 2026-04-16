@@ -15,8 +15,10 @@
 # Change Date: 2028-03-29
 # Change License: Apache License, Version 2.0
 #
-# On 2028-03-29 this file converts to Apache License, Version 2.0
-# and becomes fully open for all use cases including commercial production.
+# On 2028-03-29 the code license converts to Apache 2.0. Patent rights
+# are separately held
+# (UK Application No. GB 2607132.4, GB2608127.3) and are not granted by the
+# license. Commercial use of patented methods requires a patent license.
 
 """E4 x Nord SNN integration tests -- live endpoints, no stubs."""
 import time
