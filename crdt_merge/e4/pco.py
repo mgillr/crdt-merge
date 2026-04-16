@@ -281,12 +281,83 @@ def _build_metadata(version: int = 1, flags: int = 0) -> bytes:
     return struct.pack("!HHQ", version, flags, ts) + b"\x00" * 20
 
 
-def _verify_ed25519(signature: bytes, message: bytes, peer_id: str) -> bool:
-    """Ed25519 verification stub.
+# ── Crypto backend detection ─────────────────────────────────────────────
+try:
+    from cryptography.hazmat.primitives.asymmetric import ed25519 as _ed25519
+    from cryptography.exceptions import InvalidSignature as _InvalidSignature
+    _HAS_CRYPTO = True
+except ImportError:
+    _ed25519 = None
+    _InvalidSignature = Exception
+    _HAS_CRYPTO = False
 
-    In production this resolves *peer_id* to a public key via the peer
-    registry and performs real Ed25519 verification.  The stub accepts
-    any 64-byte signature to allow integration testing without a full
-    key infrastructure.
+
+# Module-level peer key registry. When None, verification falls back to
+# stub behavior (length check only). When set, real Ed25519 verification
+# is performed if cryptography is available, HMAC fallback otherwise.
+_PEER_KEY_REGISTRY = None
+
+
+def configure_ed25519_verification(registry=None) -> None:
+    """Configure a peer key registry for real signature verification.
+
+    Args:
+        registry: object with ``get_public_key(peer_id) -> bytes`` method,
+            or None to disable real verification (legacy stub behavior).
+
+    When a registry is configured, signatures are verified using Ed25519
+    if the ``cryptography`` package is installed, or HMAC as fallback.
+
+    When no registry is configured (default), the stub behavior is used:
+    any 64-byte blob passes as a "signature". This preserves backward
+    compatibility with existing tests and integrations that use
+    ``signing_fn=lambda h: b"\\x00" * 64``.
     """
-    return len(signature) == 64
+    global _PEER_KEY_REGISTRY
+    _PEER_KEY_REGISTRY = registry
+
+
+def has_real_crypto() -> bool:
+    """Return True if the cryptography package is available."""
+    return _HAS_CRYPTO
+
+
+def _verify_ed25519(signature: bytes, message: bytes, peer_id: str) -> bool:
+    """Ed25519 verification with three-tier fallback.
+
+    Tier 2: real Ed25519 when registry configured + cryptography available
+    Tier 1: HMAC-SHA256 when registry configured + only stdlib available
+    Tier 0: stub (length check) when no registry configured
+
+    This preserves backward compatibility. Existing callers that don't
+    configure a registry get the stub behavior they always had. New
+    callers that configure a registry get real cryptographic verification.
+    """
+    # Tier 0: stub behavior (backward compatible)
+    if _PEER_KEY_REGISTRY is None:
+        return len(signature) == 64
+
+    # Look up the peer's public key
+    try:
+        public_key = _PEER_KEY_REGISTRY.get_public_key(peer_id)
+    except (KeyError, AttributeError):
+        return False
+    if public_key is None or len(public_key) == 0:
+        return False
+
+    # Tier 2: real Ed25519 if available
+    if _HAS_CRYPTO and len(public_key) == 32:
+        try:
+            pk = _ed25519.Ed25519PublicKey.from_public_bytes(public_key)
+            pk.verify(signature, message)
+            return True
+        except (_InvalidSignature, ValueError, Exception):
+            return False
+
+    # Tier 1: HMAC fallback (stdlib only)
+    import hmac as _hmac
+    expected = _hmac.new(public_key, message, hashlib.sha256).digest()
+    # Signature format for HMAC: 32-byte HMAC + 32 bytes padding
+    if len(signature) < 32:
+        return False
+    return _hmac.compare_digest(signature[:32], expected)
