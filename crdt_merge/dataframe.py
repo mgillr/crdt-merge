@@ -133,10 +133,15 @@ def _normalize_key(key: Optional[Union[str, List[str]]]) -> Optional[List[str]]:
     raise TypeError(f"key must be str, List[str], or None, got {type(key)}")
 
 def _make_composite_key(record: Dict[str, Any], key_cols: List[str]) -> Any:
-    """Extract composite key as tuple. Single key returns the raw value for backward compat."""
+    """Extract composite key as tuple. Single key returns the raw value for backward compat.
+
+    String keys are NFC-normalized so visually identical keys in different
+    normalization forms collapse to the same merge entry — matching the
+    NFC-before-comparison policy applied to string values.
+    """
     if len(key_cols) == 1:
-        return record.get(key_cols[0])
-    return tuple(record.get(k) for k in key_cols)
+        return _normalize_str(record.get(key_cols[0]))
+    return tuple(_normalize_str(record.get(k)) for k in key_cols)
 
 def _validate_key_columns(records: List[Dict[str, Any]], key_cols: List[str]) -> None:
     """Validate key columns exist. Raises KeyError with helpful message."""
