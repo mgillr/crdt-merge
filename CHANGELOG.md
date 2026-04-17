@@ -5,6 +5,27 @@
 > See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
 
 
+## [0.9.7] - 2026-04-17 — Patch Release
+
+Bundles fixes and test-coverage additions that landed after the v0.9.6 tag. Contains the E4 hardening work from v0.9.6 (see below) plus the changes listed here.
+
+### Added
+- `verify_crdt_concurrent` — threaded CRDT law verification harness using `concurrent.futures` (issue #44)
+- Full unicode normalization test matrix — NFC/NFD/NFKC/NFKD across both keys and values, surrogate pairs, combining characters, zero-width joiners (issue #92)
+
+### Fixed
+- SQLite accelerator: `# nosec` annotations placed inside SQL string literals caused `sqlite3.OperationalError: unrecognized token: "#"`, blocking `SQLiteCRDTMerge()` instantiation
+- `_make_composite_key` now NFC-normalizes string keys, matching the NFC-before-comparison policy already applied to string values
+- `test_version_consistency` reads the version from `pyproject.toml` dynamically instead of pinning a literal
+- `_resolve_dotted_path` tests aligned with the hardened `crdt_merge.*` namespace allowlist
+
+### CI
+- Bumped GitHub Actions across all workflows: actions/checkout v4→v6, actions/setup-python v5→v6, actions/upload-artifact v4→v7, github/codeql-action v3→v4
+
+### Compatibility
+- Zero breaking changes. All 6,287 existing tests continue to pass.
+
+
 ## [0.9.6] - 2026-04-16 — E4 Hardening Release
 
 **Stubs replaced with real cryptography.** Every security gap in v0.9.5 is now backed by real primitives with zero breaking changes.
