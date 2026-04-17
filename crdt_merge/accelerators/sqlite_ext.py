@@ -204,14 +204,14 @@ class SQLiteCRDTMerge:
         """)
         cur.execute(f"""
             CREATE TABLE IF NOT EXISTS {_CLOCK_TABLE} (
-                table_name TEXT NOT NULL,  # nosec B608 -- _META_TABLE is a module constant, not user input
+                table_name TEXT NOT NULL,
                 key_value TEXT NOT NULL,
                 node_id TEXT NOT NULL DEFAULT 'local',
                 clock INTEGER NOT NULL DEFAULT 0,
                 updated_at TEXT DEFAULT (datetime('now')),
                 PRIMARY KEY (table_name, key_value, node_id)
-            )  # nosec B608 -- _CLOCK_TABLE is a module constant, not user input
-        """)
+            )
+        """)  # nosec B608 -- _CLOCK_TABLE is a module constant, not user input
         self._conn.commit()
 
     def _get_table_meta(self, table: str) -> Optional[Dict[str, Any]]:
@@ -430,10 +430,10 @@ class SQLiteCRDTMerge:
 
             # Update clock
             self._conn.execute(
-                f"""INSERT INTO {_CLOCK_TABLE} (table_name, key_value, node_id, clock)  # nosec B608 -- _CLOCK_TABLE is a module constant
+                f"""INSERT INTO {_CLOCK_TABLE} (table_name, key_value, node_id, clock)
                     VALUES (?, ?, ?, 1)
                     ON CONFLICT(table_name, key_value, node_id)
-                    DO UPDATE SET clock = clock + 1, updated_at = datetime('now')""",
+                    DO UPDATE SET clock = clock + 1, updated_at = datetime('now')""",  # nosec B608 -- _CLOCK_TABLE is a module constant
                 (table, str(key_val), node_id),
             )
 
@@ -630,9 +630,9 @@ class SQLiteCRDTMerge:
         key_col = meta["key_column"]
         # Find clock entries whose key no longer exists in the table
         cur = self._conn.execute(
-            f"""DELETE FROM {_CLOCK_TABLE}  # nosec B608 -- _CLOCK_TABLE / table from CRDT metadata
+            f"""DELETE FROM {_CLOCK_TABLE}
                 WHERE table_name = ?
-                AND key_value NOT IN (SELECT {key_col} FROM {table})""",
+                AND key_value NOT IN (SELECT {key_col} FROM {table})""",  # nosec B608 -- _CLOCK_TABLE / table from CRDT metadata
             (table,),
         )
         removed = cur.rowcount
