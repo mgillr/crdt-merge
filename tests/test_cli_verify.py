@@ -93,10 +93,9 @@ class TestConstants:
 
 
 class TestResolveDottedPath:
-    def test_resolves_builtin_function(self):
-        fn = _resolve_dotted_path("os.path.join")
-        import os.path
-        assert fn is os.path.join
+    def test_rejects_out_of_namespace_module(self):
+        with pytest.raises(ValueError, match="outside the allowed namespace"):
+            _resolve_dotted_path("os.path.join")
 
     def test_resolves_class(self):
         cls = _resolve_dotted_path("crdt_merge.core.GCounter")
@@ -109,11 +108,11 @@ class TestResolveDottedPath:
 
     def test_missing_module_raises_import_error(self):
         with pytest.raises(ImportError):
-            _resolve_dotted_path("nonexistent_module_xyz.func")
+            _resolve_dotted_path("crdt_merge.nonexistent_module_xyz.func")
 
     def test_missing_attribute_raises_attribute_error(self):
         with pytest.raises(AttributeError):
-            _resolve_dotted_path("os.path.nonexistent_func_xyz")
+            _resolve_dotted_path("crdt_merge.core.nonexistent_func_xyz")
 
 
 # ---------------------------------------------------------------------------
