@@ -301,9 +301,12 @@ Master architecture document: [E4-MASTER-ARCHITECTURE.md](../E4-MASTER-ARCHITECT
 - Key rotation protocol (new identity not required)
 - Differential privacy for trust observations
 - GPU-accelerated Merkle tree operations
-- Formal TLA+ specification of convergence
 - Trust recovery protocol (controlled trust increase)
 - Hierarchical trust delegation
+
+### Shipped in 0.9.5 (previously listed under Future Work)
+
+- **Formal TLA+ specification of convergence** -- shipped as part of the resilience subsystem in 0.9.5 (5/5 properties verified over 700 states; see CHANGELOG [0.9.5] resilience entry).
 
 ---
 

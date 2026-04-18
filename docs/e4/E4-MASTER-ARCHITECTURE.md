@@ -42,7 +42,7 @@ E4State = Data × Trust × Clock × Hash
 Join: (d₁,t₁,c₁,h₁) ⊔ (d₂,t₂,c₂,h₂) = (d₁⊔d₂, t₁⊔t₂, c₁⊔c₂, recompute_h)
 ```
 
-Data, Trust, Clock are independent join-semilattices. Hash is a dependent dimension derived from Data×Trust. The product of join-semilattices is a join-semilattice. This is the CRDT convergence proof for the unified system.
+Data, Trust, Clock are independent join-semilattices. Hash is a dependent dimension derived from Data×Trust. The product-of-join-semilattices-is-a-join-semilattice construction is standard algebra (Birkhoff 1940; any CRDT textbook). The E4 contribution is not the product construction itself but the inclusion of **Trust** as a first-class lattice dimension entangled with Data through the recursive-propagation primitive P6; that, combined with the standard product-lattice result, gives convergence of the unified system without a separate proof.
 
 ---
 
@@ -1075,7 +1075,9 @@ Output: Converged trust state
 
 ---
 
-## VI. ENTANGLEMENT PROOF
+## VI. DEPENDENCY ANALYSIS (not a formal proof)
+
+This section argues, component by component, why each part of E4 is load-bearing for the others. It is a coupling / dependency argument, not a machine-checked or mathematical proof. The formal convergence guarantee comes from the product-lattice construction in §II, not from this section.
 
 ### Why Each Component Cannot Be Removed
 

@@ -1547,20 +1547,23 @@ class RemoteBackedCRDTState(CRDTMergeState):
         return super().add(model_id, tensors, **kwargs)
 ```
 
-### 11.3 Conflict Resolution Policies
+### 11.3 Conflict Resolution Policies — **SHIPPED**
 
-While the current architecture uses add-wins semantics, future work
-could support configurable conflict resolution:
+Configurable conflict resolution is implemented today via `MergeStrategy`
+and `MergeSchema` (see `crdt_merge/strategies.py`). Built-in strategies
+include `LWW`, `MaxWins`, `MinWins`, `UnionSet`, `Priority`, `Concat`,
+`LongestWins`, and `Custom` (user-defined). Per-column selection is
+supported via `MergeSchema`. This section is retained for historical
+context; see the strategies module for the current API.
 
-- **Last-Writer-Wins (LWW)** — Most recent update wins
-- **Priority-Based** — Higher-priority nodes win
-- **Voting** — Majority of replicas must agree
-- **Custom** — User-defined resolution functions
+### 11.4 Streaming Merge — **SHIPPED**
 
-### 11.4 Streaming Merge
-
-For extremely large models that don't fit in memory, a streaming merge
-API would process one layer at a time:
+Streaming merge is implemented today via `merge_stream` and
+`merge_sorted_stream` (see `crdt_merge/streaming.py`). The current API
+operates on row batches for O(batch_size) memory usage; per-layer
+streaming for billion-parameter tensors is further scoped as a v0.10.x
+item. The illustrative `streaming_resolve` sketch below is retained
+for historical context.
 
 ```python
 async def streaming_resolve(self) -> AsyncIterator[Tuple[str, np.ndarray]]:
@@ -1575,6 +1578,14 @@ async def streaming_resolve(self) -> AsyncIterator[Tuple[str, np.ndarray]]:
         )
         yield layer_name, merged_layer
 ```
+
+### 11.6 Alignment Bounds (planned v0.9.9)
+
+v0.9.9 adds `crdt_merge/alignment/` -- lattice upper-element bounds
+(`L2Ball`, `SimplexBound`, `ActivationPercentileBound`) plus a
+`BoundedMerge` wrapper that projects the merged result back into a
+user-declared safe region while preserving CRDT convergence. See the
+v0.9.9 tracking plan for scope.
 
 ### 11.5 Formal Verification
 

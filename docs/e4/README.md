@@ -43,12 +43,12 @@ Disable E4 if needed: `CRDT_MERGE_E4=0`
 | Subsystem | Metric | Result |
 |-----------|--------|--------|
 | CRDT axiom compliance | 26 strategies x 3 axioms | 78/78 (0.0 residual) |
-| Large-scale validation | facebook/opt-1.3b + opt-6.7b | 156/156 PASS |
+| Large-scale CRDT axiom trials on weight tensors | facebook/opt-1.3b + opt-6.7b | 156/156 PASS |
 | Trust-bound Merkle | Bit diffusion (avalanche) | 0.500 (cryptographically ideal) |
 | PCO wire format | Fixed size | 128 bytes |
 | PCO throughput | Build / Verify | 167K / 101K ops/s |
 | Causal trust clocks | Vector clock throughput | 2.93M ops/s |
-| Byzantine tolerance | Fault threshold | 34% (exceeds 33.3% BFT) |
+| Adversarial-participant tolerance | SLT harness (not PBFT) | 34% |
 | Byzantine pipeline | End-to-end (10 nodes, 2 Byzantine) | 9.69ms |
 | Trust convergence | Max divergence | 0.0 |
 | Trust convergence | Convergence time | 3.84ms |
@@ -73,7 +73,7 @@ E4 is structured as five interlocking subsystems:
 
 **Projection Delta Encoding** -- Sparse delta representation maps billion-parameter model spaces into compact trust-annotated diffs. Achieves 1.45M ops/s at 10K entries.
 
-**Symbiotic Lattice Trust (SLT)** -- Byzantine protocol achieving 34% fault tolerance. Honest nodes converge at distance 49.5 vs Byzantine distance 165.0. No coordinator, no voting rounds.
+**Symbiotic Lattice Trust (SLT)** -- Lattice-native Byzantine detection without consensus. Under our evaluated harness, honest peers converged on identical trust state with up to 34% actively Byzantine participants (honest distance 49.5 vs Byzantine 165.0). No coordinator, no voting rounds; 34% is an empirical measurement, not a PBFT-style theoretical bound.
 
 **Resilience** -- 18 modules covering Sybil defence, longcon detection, epoch rotation, partition reconciliation, post-quantum signatures, and formal TLA+ specification (5/5 properties verified over 700 states).
 

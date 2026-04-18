@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "crdt-merge"
-version = "0.9.7"
+version = "0.9.8"
 description = "Mathematically proven conflict-free merge for AI model weights, datasets, and agent memory with recursive trust-delta entanglement. Zero dependencies. Patent protected."
 readme = "README.md"
 license = {text = "BUSL-1.1"}
