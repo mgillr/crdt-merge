@@ -256,7 +256,7 @@ crdt-merge is a **7-layer architecture** with orthogonal Accelerator and CLI sub
 
 **Dependencies**: Layers 1-6 (composes with all existing subsystems)
 
-**Validation**: 78/78 CRDT axioms, 156/156 large-model tests, 34% Byzantine fault tolerance, 328 computational proofs
+**Validation**: 78/78 CRDT axioms (26 strategies × 3 laws), 156/156 CRDT axiom trials on real weight tensors (facebook/opt-1.3b + opt-6.7b), 34% adversarial-participant tolerance under the SLT harness (not PBFT consensus), 328 computational proofs
 
 ---
 

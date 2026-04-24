@@ -79,7 +79,7 @@ E4 eliminates this separation. Trust, data, causal clock, and Merkle hash form a
 E4State = Data x Trust x Clock x Hash
 ```
 
-Each dimension is a join-semilattice. The product of join-semilattices is a join-semilattice. Convergence is algebraic -- not a property that needs to be tested, but one that is inherited from the structure.
+Each dimension is a join-semilattice. The product of join-semilattices is a join-semilattice -- a standard result (Birkhoff 1940). The E4 contribution is **including Trust as a lattice dimension** alongside Data and letting it propagate through the same delta pipeline, not reinventing the product construction. Convergence of the unified system is then inherited from that standard result, so it does not need a separate proof.
 
 ### Cryptographic hardening (v0.9.6)
 
@@ -112,7 +112,7 @@ No existing literature combines all six. Delta-state CRDTs handle P1-P2 (Almeida
 
 The Symbiotic Lattice Trust (SLT) protocol replaces BFT consensus with lattice-native Byzantine detection. Each peer maintains a five-dimensional trust vector (integrity, causality, consistency, gossip, model) as per-dimension GCounters with homeostatic budget normalisation. Malicious behaviour triggers monotonic trust decay that propagates as CRDT deltas -- every honest peer converges on the same trust state without coordination.
 
-SLT's threat model differs from classical BFT (Castro and Liskov, 1999). Classical BFT guarantees safety below n/3 through voting rounds. SLT operates without voting -- Byzantine detection emerges from trust score convergence across the lattice. The 34% tolerance threshold was measured empirically with actively Byzantine peers performing data injection, trust inflation, and selective withholding. The guarantee is CRDT convergence of trust state among honest peers, which then gates data application. End-to-end federation across 10 nodes with 2 Byzantine peers: 9.69ms.
+SLT is not a consensus protocol and does not claim PBFT equivalence. Classical BFT (Castro and Liskov, 1999) guarantees consensus safety below n/3 through voting rounds; SLT has no voting. Instead, Byzantine detection emerges from trust score convergence across the lattice, and the trust state gates data application. Under our evaluated harness -- 10 nodes, actively Byzantine peers performing data injection, trust inflation, and selective withholding -- honest peers continued to converge on identical trust state with up to 34% adversarial participation. This is an empirical measurement of the specific harness, not a theoretical bound. End-to-end federation across 10 nodes with 2 Byzantine peers: 9.69ms.
 
 ### Delta encoding at scale
 
@@ -238,7 +238,7 @@ Zero required dependencies. Python 3.9-3.12. Linux, macOS, Windows.
 |--------|--------|---------|
 | CRDT axiom compliance | 78/78 | All 26 strategies, all 3 laws |
 | Test suite | 6,179 passing, 0 failures | Core + E4 + resilience |
-| Byzantine fault tolerance | 34% | SLT protocol, empirically measured |
+| Adversarial-participant tolerance | 34% | SLT harness; honest peers still converge (not PBFT consensus) |
 | Proof-carrying operation wire size | 128 bytes | Fixed cost per operation |
 | Causal clock throughput | 2.93M ops/s | E4 causal clock subsystem |
 | End-to-end federation | 9.69ms | 10 nodes, 2 actively Byzantine |

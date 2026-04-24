@@ -5,6 +5,25 @@
 > See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
 
 
+## [0.9.8] - 2026-04-18 — Documentation Honesty Pass
+
+No runtime changes. Tightens documentation wording against prior art so downstream claims match the paper's more careful phrasing. The published arXiv paper (`paper/CRDT_Merge_ArXiv.tex`) is unchanged; this release only updates README, CHANGELOG, and `docs/`.
+
+### Changed
+- Byzantine-tolerance claim reframed across README, E4 docs, CHANGELOG, security guide, and federated-model-merging guide: **34% is an empirical measurement under the SLT harness**, not a PBFT-style theoretical bound. SLT is a Byzantine-detection protocol; it is not a consensus protocol and is not comparable to PBFT's ≤n/3 consensus safety.
+- Product-lattice wording clarified (README, `docs/e4/E4-MASTER-ARCHITECTURE.md` §II): the product-of-join-semilattices construction is standard algebra (Birkhoff 1940); E4's contribution is the inclusion of Trust as a lattice dimension, not the product construction itself.
+- `docs/e4/E4-MASTER-ARCHITECTURE.md` §VI renamed from "Entanglement Proof" to "Dependency Analysis (not a formal proof)". Content was a coupling / dependency argument; the heading now reflects that.
+- `docs/guides/security-guide.md`: "Statistical Lattice Trust" → "Symbiotic Lattice Trust" (acronym unification).
+- 156/156 CRDT axiom trials re-labelled with method context (commutativity / associativity / idempotency × 26 strategies × both opt model sizes on real weight tensors) in CHANGELOG, `docs/ARCHITECTURE_MAP.md`, `docs/e4/README.md`, and `docs/e4/E4-COMPUTATIONAL-EVIDENCE.md`.
+
+### Fixed (roadmap drift)
+- `docs/e4/E4-CHANGELOG.md` Future Work: removed "Formal TLA+ specification of convergence" -- it shipped in 0.9.5 (resilience subsystem, 5/5 properties / 700 states).
+- `docs/CRDT_ARCHITECTURE.md` §11 Future Work: 11.3 (Conflict Resolution Policies) and 11.4 (Streaming Merge) marked **SHIPPED** -- `MergeStrategy`/`MergeSchema` (v0.3.0) and `merge_stream`/`merge_sorted_stream` (v0.3.0) are public API today. Added §11.6 forward-reference to v0.9.9 alignment bounds.
+
+### Compatibility
+- Zero breaking changes. No code paths touched. Test suite pass count unchanged.
+
+
 ## [0.9.7] - 2026-04-17 — Patch Release
 
 Bundles fixes and test-coverage additions that landed after the v0.9.6 tag. Contains the E4 hardening work from v0.9.6 (see below) plus the changes listed here.
@@ -85,7 +104,7 @@ Patents: UK Application No. GB 2607132.4, GB2608127.3
 - Trust-bound Merkle verification (256-ary, depth 4 at 1B leaves, perfect 0.500 bit diffusion)
 - Causal trust clocks -- 2.93M ops/s vector clock with trust dimension binding
 - Adaptive verification controller -- scales verification depth by trust level (97K-109K ops/s)
-- Symbiotic Lattice Trust (SLT) Byzantine protocol -- 34% fault tolerance, no coordinator
+- Symbiotic Lattice Trust (SLT) Byzantine-detection protocol -- empirical 34% adversarial-participant tolerance under the evaluated harness (not PBFT consensus), no coordinator
 - Trust-weighted conflict resolution strategies (LWW, averaging, acceptance gating)
 - Dual-hash compatibility mode for incremental migration from pre-E4 peers
 - Integration bridges: gossip (trust metadata in messages), streaming (per-chunk validation), agentic (trust-weighted memory sync)
@@ -93,7 +112,7 @@ Patents: UK Application No. GB 2607132.4, GB2608127.3
 - Trust homeostasis -- conserved-budget normalisation prevents trust inflation
 - Circuit breaker -- sigma-based anomaly detection with automatic cooldown
 - End-to-end federation pipeline validated at 9.69ms for 10-node cluster with 2 Byzantine actors
-- Large-scale validation: facebook/opt-1.3b and facebook/opt-6.7b (6.7B parameters) -- 156/156 PASS
+- Large-scale validation on facebook/opt-1.3b and facebook/opt-6.7b (6.7B parameters): 156/156 CRDT axiom trials pass (commutativity / associativity / idempotency across all 26 strategies on real weight tensors)
 - Agent memory trust synchronisation (3 agents, 4 models, full convergence proven)
 
 ### Changed
