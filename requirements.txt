@@ -4,4 +4,4 @@ huggingface_hub>=0.25.0
 plotly>=5.18.0
 numpy>=1.24.0
 datasets>=2.14.0
-safetensors>=0.4.0
+safetensors>=0.7.0
