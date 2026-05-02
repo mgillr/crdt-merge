@@ -70,11 +70,11 @@ The strategy itself does not need to be a CRDT. SLERP remains SLERP. TIES remain
 
 Standard weight merging requires models to share the same architecture -- identical key names, identical tensor shapes. A Qwen attention block and a Mistral attention block use different parameter names, different head dimensions, and different FFN layouts. Naive interpolation between them does not even type-check.
 
-crdt-merge's canonical key namespace solves the first problem. The Layer 1 collection treats each model's tensors as contributions to a shared namespace, mapping architecture-specific parameter names (e.g. `model.layers.0.self_attn.q_proj.weight` in Qwen vs `model.layers.0.attention.wq.weight` in other families) to canonical roles. Ten architecture families are covered: GPT-2, BERT, RoBERTa, Llama/Qwen, Pythia, OPT, Phi, T5, Mistral, and w2v-bert.
+crdt-merge's canonical key namespace solves the first problem. The Layer 1 collection treats each model's tensors as contributions to a shared namespace, mapping architecture-specific parameter names (e.g. `model.layers.0.self_attn.q_proj.weight` in Qwen vs `model.layers.0.attention.wq.weight` in other families) to canonical roles. Ten architecture families are covered: BERT, RoBERTa, Llama/Qwen, Mistral, Pythia, OPT, Phi, T5, w2v-bert, and more.
 
 With tensors in a shared namespace, Layer 2's deterministic resolution can apply per-tensor Procrustes alignment (orthogonal rotation via SVD) to map each donor's basis onto the anchor's, then absorb filtered deltas. The result is a single merged checkpoint in the anchor's native format -- standard `safetensors`, loadable by any HuggingFace-compatible stack.
 
-[**Qwen2.5-7B-Instruct-borg-merge-v1**](https://huggingface.co/Optitransfer/Qwen2.5-7B-Instruct-borg-merge-v1) is the first published model built on this pipeline. Nine models from four architecture families (Qwen, Mistral, Phi, NeoX, OPT) merged into a single checkpoint -- no fine-tuning, no distillation, no router:
+[**Qwen2.5-7B-Instruct-borg-merge-v1**](https://huggingface.co/Optitransfer/Qwen2.5-7B-Instruct-borg-merge-v1) is the first published model built on this pipeline. Nine models from four architecture families (Llama, Phi, NeoX, OPT) merged into a single checkpoint -- no fine-tuning, no distillation, no router:
 
 | Benchmark | Anchor (Qwen2.5-7B-Instruct) | Merged | Δ |
 |---|---:|---:|---:|
