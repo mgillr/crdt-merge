@@ -68,7 +68,7 @@ The strategy itself does not need to be a CRDT. SLERP remains SLERP. TIES remain
 
 ### Cross-family merge result
 
-[**Qwen2.5-7B-Instruct-borg-merge-v1**](https://huggingface.co/Optitransfer/Qwen2.5-7B-Instruct-borg-merge-v1) is a training-free cross-family weight merge built on crdt-merge's canonical key namespace and per-tensor Procrustes alignment. Nine models from four architecture families (Qwen, Mistral, Phi, NeoX, OPT) are merged into a single drop-in `safetensors` checkpoint — no fine-tuning, no distillation, no router.
+[**Qwen2.5-7B-Instruct-borg-merge-v1**](https://huggingface.co/Optitransfer/Qwen2.5-7B-Instruct-borg-merge-v1) is a training-free cross-family weight merge built on crdt-merge's canonical key namespace and per-tensor Procrustes alignment. Nine models from four architecture families (Qwen, Mistral, Phi, NeoX, OPT) are merged into a single drop-in `safetensors` checkpoint -- no fine-tuning, no distillation, no router.
 
 | Benchmark | Anchor (Qwen2.5-7B-Instruct) | Merged | Δ |
 |---|---:|---:|---:|
@@ -76,7 +76,7 @@ The strategy itself does not need to be a CRDT. SLERP remains SLERP. TIES remain
 | ARC-Challenge | 0.5256 | **0.5572** | **+3.2 pp** |
 | IFEval | 0.6547 | **0.6811** | **+2.6 pp** |
 
-Evaluated with `lm-eval-harness` 0.4.4 on a single A100 80 GB. Full 8-task surface and methodology on the [model card](https://huggingface.co/Optitransfer/Qwen2.5-7B-Instruct-borg-merge-v1). Deep-dive write-up: [**We Merged 9 Models from 4 Architecture Families into One — and It Beats the Anchor on Real Benchmarks**](https://medium.com/@rgillespie83/we-merged-9-models-from-4-architecture-families-into-one-and-it-beats-the-anchor-on-real-e6537dfa9252).
+Evaluated with `lm-eval-harness` 0.4.4 on a single A100 80 GB. Full 8-task surface and methodology on the [model card](https://huggingface.co/Optitransfer/Qwen2.5-7B-Instruct-borg-merge-v1). Deep-dive write-up: [**We Merged 9 Models from 4 Architecture Families into One -- and It Beats the Anchor on Real Benchmarks**](https://medium.com/@rgillespie83/we-merged-9-models-from-4-architecture-families-into-one-and-it-beats-the-anchor-on-real-e6537dfa9252).
 
 ---
 
