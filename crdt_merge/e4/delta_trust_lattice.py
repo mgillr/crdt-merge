@@ -356,10 +356,14 @@ class DeltaTrustLattice:
         self._trust_scores[target] = new_trust
         self._evidence_log.append(evidence)
 
-        # 3. Homeostasis normalization
-        self._trust_scores = self._homeostasis.normalize(
-            self._trust_scores, len(self._trust_scores),
-        )
+        # NOTE (convergence fix): homeostasis is NOT applied to the stored
+        # lattice. The conserved-budget rescale is global, peer-set-dependent,
+        # and non-monotone -- applying it here breaks the GCounter join and
+        # thus Strong Eventual Consistency. The stored lattice holds only the
+        # raw monotone join; the homeostasis view is a DERIVED read, computed
+        # deterministically from the converged state in get_trust() /
+        # normalized_scores() (a pure function of converged state).
+
 
         # 4. Circuit breaker tracking
         self._circuit_breaker.record_trust_change(target, old_trust, new_trust)
@@ -436,10 +440,8 @@ class DeltaTrustLattice:
         new_trust = old_trust.merge(updated)
         self._trust_scores[target] = new_trust
 
-        # 6. Homeostasis
-        self._trust_scores = self._homeostasis.normalize(
-            self._trust_scores, len(self._trust_scores),
-        )
+        # Homeostasis is a derived read (see convergence-fix note above).
+
 
         # 7. Circuit breaker
         self._circuit_breaker.record_trust_change(target, old_trust, new_trust)
@@ -452,8 +454,27 @@ class DeltaTrustLattice:
     # -- trust lookup -------------------------------------------------------
 
     def get_trust(self, peer_id: str) -> TypedTrustScore:
-        """Current typed trust score for *peer_id*."""
+        """Current typed trust score for *peer_id* -- the raw, evidence-based,
+        convergent lattice value.
+
+        This is the score security decisions (verification level, gating) and the
+        causal-trust clock must use: it reflects the peer's own accumulated
+        evidence and converges by the GCounter join. Homeostasis (conserved-budget
+        redistribution across peers) is a fairness/allocation concept, not a
+        security gate, and is exposed separately via :meth:`normalized_scores`; it
+        is deliberately NOT applied here, because rescaling a lone peer's trust up
+        to a conserved budget would mask its evidence.
+        """
         return self._trust_scores.get(peer_id, TypedTrustScore.probationary())
+
+    def normalized_scores(self) -> Dict[str, TypedTrustScore]:
+        """Conserved-budget (homeostasis) view over all peers, DERIVED from the
+        converged raw lattice as a pure deterministic function -- for allocation
+        and display, not for security decisions. Recomputed on read so it never
+        mutates (and never breaks) the underlying CRDT join."""
+        return self._homeostasis.normalize(
+            self._trust_scores, len(self._trust_scores),
+        )
 
     # -- trust root (aggregate hash of all trust state) ---------------------
 
@@ -471,8 +492,8 @@ class DeltaTrustLattice:
     def merge(self, other: DeltaTrustLattice) -> DeltaTrustLattice:
         """CRDT merge of two trust lattices.
 
-        Element-wise merge of per-peer TypedTrustScores followed by
-        homeostasis normalization.
+        Element-wise (GCounter) join of per-peer TypedTrustScores. Homeostasis is
+        NOT applied here; it is a derived read (get_trust / normalized_scores).
         """
         result = DeltaTrustLattice(
             self._peer_id,
@@ -489,9 +510,9 @@ class DeltaTrustLattice:
             other_t = other._trust_scores.get(peer, TypedTrustScore.probationary())
             result._trust_scores[peer] = self_t.merge(other_t)
 
-        result._trust_scores = result._homeostasis.normalize(
-            result._trust_scores, len(result._trust_scores),
-        )
+        # Pure GCounter join only -- no homeostasis mutation (see get_trust).
+        # This is what restores merge to a commutative/associative/idempotent
+        # join and hence Strong Eventual Consistency.
         return result
 
     # -- introspection ------------------------------------------------------

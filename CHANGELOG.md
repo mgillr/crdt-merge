@@ -5,6 +5,22 @@
 > See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
 
 
+## [Unreleased] -- Fixed
+
+### Fixed
+- **E4 convergence (Strong Eventual Consistency):** `DeltaTrustLattice.merge`
+  (and the evidence-recording paths) no longer apply `TrustHomeostasis.normalize`
+  to the stored lattice. The conserved-budget rescale is global, peer-set-dependent
+  and non-monotone; applying it inside `merge` overwrote the GCounter join and made
+  the merged state order-dependent, so replicas that merged the same evidence in
+  different orders / from different peer subsets could diverge. The stored lattice
+  is now a pure GCounter join (commutative, associative, idempotent), and
+  homeostasis is exposed as a deterministic **derived read** via the new
+  `normalized_scores()` (conserved-budget view for allocation/display). `get_trust`
+  now returns the raw, evidence-based, convergent score used by security and causal
+  decisions; the conserved-budget is a separate fairness view, not a security gate.
+  Regression: `tests/e4/test_homeostasis_convergence_fix.py`.
+
 ## [0.9.8] - 2026-04-18 — Documentation Honesty Pass
 
 No runtime changes. Tightens documentation wording against prior art so downstream claims match the paper's more careful phrasing. The published arXiv paper (`paper/CRDT_Merge_ArXiv.tex`) is unchanged; this release only updates README, CHANGELOG, and `docs/`.
