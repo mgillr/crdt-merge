@@ -5,7 +5,20 @@
 > See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
 
 
-## [Unreleased] -- Fixed
+## [0.10.0] - 2026-07-25 — E4 convergence correction
+
+**Minor version, not a patch: `get_trust()` changes what it returns.** The correction is
+behavioural for anyone reading trust scores, and it fixes a real convergence defect present in
+every published release that ships E4 (0.9.5, 0.9.6, 0.9.7). E4 is enabled by default, so this
+affects installations that never opted into it explicitly.
+
+### Behaviour change (action required if you read trust scores)
+- `DeltaTrustLattice.get_trust(peer)` now returns the **raw, evidence-based, convergent** score.
+  It previously returned a homeostasis-normalized (conserved-budget) value. Numbers will differ.
+- If you were using `get_trust` for **allocation, display, or fair-share** purposes, switch to the
+  new `normalized_scores()`, which returns the conserved-budget view.
+- If you were using `get_trust` for **security decisions** (verification level, gating, quarantine),
+  no change is needed -- it now returns the value those decisions always required.
 
 ### Fixed
 - **E4 convergence (Strong Eventual Consistency):** `DeltaTrustLattice.merge`
@@ -22,6 +35,9 @@
   Regression: `tests/e4/test_homeostasis_convergence_fix.py`.
 
 ## [0.9.8] - 2026-04-18 — Documentation Honesty Pass
+
+> **Never published to PyPI.** 0.9.8 was tagged in the changelog but no release was cut, so the
+> published sequence goes 0.9.7 -> 0.10.0. The documentation changes below shipped as part of 0.10.0.
 
 No runtime changes. Tightens documentation wording against prior art so downstream claims match the paper's more careful phrasing. The published arXiv paper (`paper/CRDT_Merge_ArXiv.tex`) is unchanged; this release only updates README, CHANGELOG, and `docs/`.
 

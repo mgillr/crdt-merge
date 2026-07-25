@@ -67,7 +67,7 @@ The result: an attacker must simultaneously compromise all four subsystems to go
 | **Causal regression** (clock manipulation) | Trust-weighted clocks (E2) | §3.2 |
 | **Invalid delta injection** | Aggregate PCO verification (E3) | §3.3 |
 | **Trust manipulation** (forged trust state) | Trust-as-data pipeline (E4) | §3.4 |
-| **Sybil attacks** (fake peer identities) | Probation trust + homeostasis budget | §5 |
+| **Sybil attacks** (fake peer identities) | Probation trust + per-observer evidence bound + six-dimension independence | §5 |
 | **Trust flooding** (rapid trust changes) | Circuit breaker velocity monitoring | §6 |
 | **Coordinated swarm attacks** | Circuit breaker + full verification escalation | §6 |
 | **Trust inflation/deflation** | Homeostatic budget conservation | §6, §7 |
@@ -88,7 +88,7 @@ The result: an attacker must simultaneously compromise all four subsystems to go
 | Actor | Capabilities | E4 Response |
 |-------|-------------|-------------|
 | **Naive attacker** | Single compromised peer, no coordination | Evidence + trust degradation to quarantine |
-| **Sophisticated attacker** | Multiple Sybil identities, coordinated | Probation trust + homeostasis + circuit breaker |
+| **Sophisticated attacker** | Multiple Sybil identities, coordinated | Probation trust + per-observer evidence bound + circuit breaker |
 | **Insider** | High initial trust, gradual misbehaviour | Six-dimension tracking catches dimensional violations |
 | **Network adversary** | Can delay/reorder messages | CRDT convergence; causal trust clocks detect regression |
 
@@ -164,7 +164,7 @@ Four properties, one hash, one signature. Independent derivation means a verifie
 
 1. **`observe_and_propagate()`**: Local evidence → local trust update → encode as ProjectionDelta with PCO → send through pipeline
 2. **`receive_trust_delta()`**: Incoming delta → verify PCO at adaptive depth (determined by sender's trust) → decode evidence → verify evidence → apply trust update → update Merkle context
-3. **`merge()`**: Lattice-level CRDT merge → element-wise max of per-peer trust → homeostasis normalization
+3. **`merge()`**: Lattice-level CRDT merge → element-wise (GCounter) join of per-peer trust. **No homeostasis normalization** — see the note under §5, Layer 2. Normalization is a derived read (`normalized_scores()`), never a merge step.
 
 **The recursive loop in `receive_trust_delta()`:**
 ```
@@ -260,15 +260,25 @@ Every new peer starts at `PROBATION_TRUST = 0.5` (Level 1 verification). This me
 - New peers are immediately more expensive to verify than established peers
 - A swarm of Sybil peers is a swarm of Level 1 peers — each requiring signature + root checks
 
-**Layer 2: Homeostatic Budget Conservation**
+**Layer 2: Homeostatic Budget Conservation — a fairness view, NOT a security control**
 
-`TrustHomeostasis.normalize()` ensures that total trust per dimension is conserved:
+> ⚠️ **Changed in 0.10.0.** Homeostasis is **not** a security gate and must not be relied on as one.
+> The conserved-budget rescale is global, peer-set-dependent and non-monotone, so it cannot be applied
+> inside `merge` without breaking Strong Eventual Consistency (it was, before 0.10.0, and replicas
+> could diverge). It is now a **derived read** — `normalized_scores()` — computed from the converged
+> lattice for allocation and display. Security decisions (verification level, gating, quarantine) use
+> `get_trust()`, the raw evidence-based convergent score. Treat the budget view as fair-share
+> accounting, and treat Layers 1, 3 and 4 below as the actual Sybil defence.
+
+`normalized_scores()` exposes a conserved total per dimension:
 
 ```
 sum(trust_d for all peers) == peer_count
 ```
 
-Adding Sybil peers doesn't increase total trust — it dilutes it. If an attacker adds 100 Sybil peers, the trust budget is spread across 100 more entries, each with low individual trust.
+Read as an allocation view, adding Sybil peers doesn't increase the total budget — it dilutes each
+share. This bounds a Sybil swarm's *fair-share claim*, but it does not bound the evidence a Sybil can
+fabricate; that is what Layers 1, 3 and 4 do.
 
 **Layer 3: Six-Dimensional Independence**
 
@@ -282,10 +292,9 @@ Trust scores use GCounters keyed by `(dimension, observer)`. A single observer's
 
 For a Sybil swarm to manipulate trust:
 1. Each Sybil starts at probation (Level 1)
-2. Homeostasis prevents trust inflation
-3. Each Sybil's observations are bounded
-4. Circuit breaker trips if trust changes too fast
-5. Honest peers' counter-evidence is weighted equally
+2. Each Sybil's observations are bounded (per-observer GCounter cap, Layer 4)
+3. Circuit breaker trips if trust changes too fast
+4. Honest peers' counter-evidence is weighted equally
 
 The attacker needs to maintain Sybil peers that **consistently behave honestly** (to avoid evidence against them) while also generating **fabricated evidence against targets** (which requires valid proofs). This is a contradiction: honest behaviour means not fabricating evidence.
 
@@ -324,23 +333,39 @@ class TrustCircuitBreaker:
 
 ### TrustHomeostasis
 
-Budget conservation normalization:
+Budget conservation normalization, exposed as a **derived read** over the converged lattice:
 
 ```python
-TrustHomeostasis.normalize(scores, peer_count)
+lattice.normalized_scores()        # conserved-budget view (allocation / display)
+lattice.get_trust(peer_id)         # raw convergent score (security decisions)
 ```
 
-After every observation cycle, trust per dimension is rescaled so that `sum(trust_d) == peer_count`. This means:
-- Total trust in the system is conserved
-- An attacker can't inflate trust by adding peers
-- An attacker can't deflate trust by targeting many peers simultaneously
+The view rescales trust per dimension so that `sum(trust_d) == peer_count`. Read as an allocation:
+- The total budget is conserved, so shares dilute as peers are added
 - Rank order is preserved (relative trust unchanged)
 
-The homeostatic property ensures the system finds a **fixed point**: a state where trust(state) = state. See §7 for the convergence argument.
+> ⚠️ **Changed in 0.10.0.** This is deliberately **not** applied inside `merge`, and is **not** a
+> security control. The rescale is global, peer-set-dependent and non-monotone; applying it to the
+> stored lattice destroyed the GCounter join and with it Strong Eventual Consistency, so replicas
+> merging the same evidence in a different order could diverge. It is now recomputed on read from
+> converged state and never mutates the lattice. Do not gate security decisions on it — use
+> `get_trust()`. Sybil resistance rests on probation trust, per-observer evidence bounds, and
+> six-dimension independence (§5), not on the budget.
 
 ---
 
 ## 7. Trust Budget Conservation Proof Sketch
+
+> ⚠️ **Scope note (0.10.0).** This sketch describes the pre-0.10.0 operator
+> `F(s) = homeostasis(merge(s, evidence(s)))`, in which normalization was applied to the stored
+> lattice. **That operator is not what ships.** Property 4's monotonicity claim is precisely what
+> failed in practice: the conserved-budget rescale is peer-set-dependent and non-monotone, so `F`
+> was not monotone on the product lattice and replicas could reach different states from the same
+> evidence. Since 0.10.0 the stored operator is `F(s) = merge(s, evidence(s))` — a pure GCounter
+> join, whose convergence follows directly from Properties 1 and 4 without needing this argument —
+> and conservation is a property of the derived `normalized_scores()` view only. Properties 1 and 3
+> still hold as written; Property 2 now describes the derived view, not the stored state. This
+> section is retained for historical context and is due a rewrite against the shipped operator.
 
 **Theorem:** The E4 trust system converges to a fixed point where trust is conserved.
 

@@ -5,7 +5,7 @@
 
 <p><strong>Deterministic, order-independent merge for distributed models, data, and agent state.</strong></p>
 
-[![PyPI version](https://img.shields.io/badge/pypi-v0.9.6-orange)](https://pypi.org/project/crdt-merge/)
+[![PyPI version](https://img.shields.io/pypi/v/crdt-merge)](https://pypi.org/project/crdt-merge/)
 [![Downloads](https://img.shields.io/pypi/dm/crdt-merge?label=downloads&color=brightgreen)](https://pypi.org/project/crdt-merge/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![Tests](https://img.shields.io/badge/tests-7%2C945%20passing-brightgreen)](TEST_RESULTS.md)

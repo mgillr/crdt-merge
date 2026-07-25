@@ -134,7 +134,15 @@ print(new_score.trust_for_dimension("integrity"))  # 0.2
 
 ### `class TrustHomeostasis`
 
-Conserved-budget normalization across all peers. After every observation cycle, total trust per dimension is rescaled so `sum(trust_d) == peer_count`.
+Conserved-budget normalization across all peers: total trust per dimension is rescaled so
+`sum(trust_d) == peer_count`.
+
+> ⚠️ **Changed in 0.10.0.** This is an **allocation/display view, not a security control, and not a
+> merge step.** The rescale is global, peer-set-dependent and non-monotone, so applying it to the
+> stored lattice broke Strong Eventual Consistency (replicas merging the same evidence in different
+> orders diverged). Prefer `DeltaTrustLattice.normalized_scores()`, which applies it as a derived
+> read over converged state. Calling `normalize()` directly and persisting the result re-introduces
+> the defect.
 
 #### Static Methods
 
@@ -477,9 +485,10 @@ class DeltaTrustLattice:
 |--------|-----------|---------|-------------|
 | `observe_and_propagate(evidence)` | `evidence: TrustEvidence` | `ProjectionDelta` | Observe misbehaviour, update trust, return delta for propagation. Raises `CircuitBreakerTripped`, `ValueError`. |
 | `receive_trust_delta(delta, state=None)` | `delta: ProjectionDelta, state: Optional[object]` | `bool` | Receive trust delta from another peer with adaptive verification |
-| `get_trust(peer_id)` | `peer_id: str` | `TypedTrustScore` | Current trust score for peer (defaults to probationary) |
+| `get_trust(peer_id)` | `peer_id: str` | `TypedTrustScore` | **Raw, evidence-based, convergent** trust score (defaults to probationary). Use this for security decisions. **Changed in 0.10.0** — previously returned the homeostasis-normalized value. |
+| `normalized_scores()` | — | `Dict[str, TypedTrustScore]` | **New in 0.10.0.** Conserved-budget (homeostasis) view over all peers, derived from the converged lattice as a pure function. For allocation and display — **not** for security decisions. Recomputed on read; never mutates state. |
 | `compute_trust_root()` | — | `str` | Aggregate SHA-256 hash across all peer trust vectors |
-| `merge(other)` | `other: DeltaTrustLattice` | `DeltaTrustLattice` | CRDT merge of two lattices with homeostasis |
+| `merge(other)` | `other: DeltaTrustLattice` | `DeltaTrustLattice` | CRDT merge of two lattices: element-wise GCounter join, commutative/associative/idempotent. **Changed in 0.10.0** — homeostasis is no longer applied here (it broke SEC); it is a derived read via `normalized_scores()`. |
 | `drain_async_queue()` | — | `List[ProjectionDelta]` | Return and clear pending async verification items |
 
 #### Properties

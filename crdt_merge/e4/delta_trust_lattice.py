@@ -493,7 +493,9 @@ class DeltaTrustLattice:
         """CRDT merge of two trust lattices.
 
         Element-wise (GCounter) join of per-peer TypedTrustScores. Homeostasis is
-        NOT applied here; it is a derived read (get_trust / normalized_scores).
+        NOT applied here; it is a derived read, exposed by :meth:`normalized_scores`.
+        (:meth:`get_trust` deliberately does not apply it either -- it returns the
+        raw convergent score.)
         """
         result = DeltaTrustLattice(
             self._peer_id,

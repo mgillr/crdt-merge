@@ -170,7 +170,7 @@ Continues from existing specification (100–700 series).
 | 1030 | Trust validation gate (validates incoming data deltas) |
 | 1031 | Data validation gate (validates incoming trust deltas via Merkle) |
 | 1040 | Recursive dependency arrow (circular: trust → validates → data → validates → trust) |
-| 1050 | Trust homeostasis normalization (total budget = N) |
+| 1050 | Trust homeostasis view (total budget = N) — derived read since 0.10.0, not a stored-state step |
 | 1060 | Circuit breaker (trust velocity monitor) |
 
 ### Figure 6 — Trust-Weighted Conflict Resolution (E3 Entanglement)
@@ -184,7 +184,7 @@ Continues from existing specification (100–700 series).
 | R5 | Step (c-i): YES — accept higher-trust modification (trust-weighted LWW) |
 | R6 | Step (c-ii): NO — apply trust-weighted averaging of modifications |
 | R7 | Step (d): record resolution evidence in trust lattice |
-| R8 | Step (e): apply trust homeostasis normalization |
+| R8 | Step (e): *(removed in 0.10.0 — homeostasis normalization was applied here and broke SEC; it is now a derived read via `normalized_scores()`, never a pipeline step)* |
 | R9 | Step (f): compute new trust-bound Merkle hash for resolved state |
 | R10 | Output: deterministic merged state with trust provenance |
 
@@ -196,7 +196,7 @@ Continues from existing specification (100–700 series).
 | 1110 | Projection delta encoding via high-arity Merkle (810) |
 | 1120 | Aggregate PCO attachment (880) |
 | 1130 | Adaptive immune verification (895) — selects depth by trust |
-| 1135 | Trust homeostasis check (828) — normalize if needed |
+| 1135 | *(removed in 0.10.0 — trust homeostasis check (828) mutated stored state; now a derived read)* |
 | 1140 | Trust evidence generation (observation of peer behavior) |
 | 1150 | Trust delta encoding (841) — trust changes become projection deltas |
 | 1160 | Same pipeline (842) — trust deltas enter same path as data deltas |
@@ -295,9 +295,10 @@ class TypedTrustScore:
     Mathematical structure: Vector of GCounters (one per dimension).
     This is itself a CRDT: merge = element-wise max per dimension per observer.
     
-    Trust Homeostasis: After every observation cycle, trust scores are normalized
-    so the total trust budget across all peers = N (peer count). This prevents
-    trust inflation while preserving the partial order (ranking is maintained).
+    Trust Homeostasis (0.10.0): a DERIVED READ, not a stored-state mutation. The
+    conserved-budget view rescales so the total across all peers = N (peer count),
+    preserving the partial order. It is computed on read by normalized_scores();
+    applying it to the stored lattice is non-monotone and breaks SEC.
     """
     _evidence: Dict[str, Dict[str, float]]
     
@@ -374,9 +375,11 @@ class TrustHomeostasis:
     This prevents trust inflation in long-running clusters while preserving
     the partial order (ranking). High trust is RELATIVE, not absolute.
     
-    Normalization is CRDT-compatible: preserves lattice partial order within
-    each node's view. Convergence maintained because all nodes apply the
-    same deterministic normalization after every observation cycle.
+    (0.10.0) CORRECTION: normalization is NOT CRDT-compatible as stored state.
+    "All nodes apply the same deterministic normalization" does not give
+    convergence -- the rescale depends on the peer SET each node has heard from,
+    so nodes at different delivery points normalize by different divisors and
+    diverge. It is applied only as a derived read over converged state.
     """
     
     @staticmethod
@@ -637,10 +640,11 @@ class DeltaTrustLattice:
         )
         self._trust_scores[evidence.target] = new_trust
         
-        # 3. Apply homeostasis normalization
-        self._trust_scores = self._homeostasis.normalize(
-            self._trust_scores, len(self._trust_scores)
-        )
+        # 3. (0.10.0) NO homeostasis here. Writing
+        #    self._trust_scores = self._homeostasis.normalize(...)
+        #    back to stored state is the SEC defect fixed in 0.10.0: the rescale is
+        #    peer-set-dependent and non-monotone, so replicas diverge. The
+        #    conserved-budget view is a derived read -- see normalized_scores().
         
         # 4. Update circuit breaker velocity tracking
         self._circuit_breaker.record_trust_change(evidence.target, old_trust, new_trust)
@@ -711,10 +715,8 @@ class DeltaTrustLattice:
         )
         self._trust_scores[target] = new_trust
         
-        # 6. Homeostasis
-        self._trust_scores = self._homeostasis.normalize(
-            self._trust_scores, len(self._trust_scores)
-        )
+        # 6. (0.10.0) NO homeostasis write-back here -- removed, it broke SEC.
+        #    The conserved-budget view is normalized_scores(), a derived read.
         
         # 7. Circuit breaker tracking
         self._circuit_breaker.record_trust_change(target, old_trust, new_trust)
@@ -736,10 +738,8 @@ class DeltaTrustLattice:
             self_trust = self._trust_scores.get(peer, TypedTrustScore.probationary())
             other_trust = other._trust_scores.get(peer, TypedTrustScore.probationary())
             result._trust_scores[peer] = self_trust.merge(other_trust)
-        # Post-merge homeostasis
-        result._trust_scores = result._homeostasis.normalize(
-            result._trust_scores, len(result._trust_scores)
-        )
+        # (0.10.0) Pure GCounter join ONLY -- the post-merge homeostasis that used to
+        # sit here is what broke Strong Eventual Consistency. Do not reintroduce it.
         return result
 
 
