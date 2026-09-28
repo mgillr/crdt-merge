@@ -68,44 +68,126 @@ def _load_ed25519():
     return ed25519, InvalidSignature
 
 
+def _derive_key_id(public_key: bytes, scheme: str) -> str:
+    """Key id bound to (scheme, key bytes).
+
+    Ed25519 keeps the historical ``sha256(public_key)[:16]`` so existing
+    Ed25519 key ids are unchanged; every other scheme is domain-separated,
+    so the same bytes never share an id across schemes.
+    """
+    if scheme == SCHEME_ED25519:
+        material = public_key
+    else:
+        material = scheme.encode("ascii") + b"\x00" + public_key
+    return hashlib.sha256(material).hexdigest()[:16]
+
+
 @dataclass(frozen=True)
 class KeyPair:
-    """Cryptographic key pair for peer authentication.
+    """Cryptographic key for peer authentication.
 
-    Two schemes, fixed per key and never mixed:
+    Two schemes, fixed per key, carried with the key, bound into
+    ``key_id`` and never mixed:
 
-    - ``"ed25519"`` (default): real Ed25519 via the ``cryptography``
-      package.  Sign, verify and generate raise ``Ed25519Unavailable``
-      when the package is missing; verification accepts only a valid
-      64-byte Ed25519 signature and never falls back to anything else.
-    - ``"hmac-sha256"``: explicit opt-in only.  The public key is
-      ``sha256(private)`` and the tag is ``HMAC(public_key, message)``.
-      This is NOT a signature: anyone holding the public key can produce
-      a valid tag.  Use it only where every holder of the public key is
-      trusted.
+    - ``"ed25519"``: real Ed25519 via the ``cryptography`` package (a
+      core dependency).  Sign, verify and generate raise
+      ``Ed25519Unavailable`` if the package is missing; verification
+      accepts only a valid 64-byte Ed25519 signature and never falls back
+      to anything else.  Exchange the public half with
+      :meth:`export_public` and rebuild it with :meth:`from_public`.
+    - ``"hmac-sha256"``: explicit opt-in only.  A shared-secret MAC, not
+      a signature: the key is one secret, held in both ``public_key`` and
+      ``private_key``, and whoever holds it can sign as well as verify, so
+      it is never a public key.  Build it only with
+      :meth:`from_shared_secret` (or ``generate(scheme="hmac-sha256")``)
+      from a secret agreed out of band; never from key bytes received from
+      the peer.  :meth:`export_public` refuses it.
+
+    Constructing a key from public bytes alone requires an explicit
+    ``scheme``; with a private key and no scheme, Ed25519 is assumed.
 
     Attributes
     ----------
-    public_key  : Raw public key bytes (32 bytes).
-    private_key : Raw private key bytes (32 bytes).  None for remote peers.
+    public_key  : Ed25519 public key (32 bytes), or the HMAC shared secret.
+    private_key : Ed25519 private key, or the HMAC shared secret.  None for
+                  a remote Ed25519 peer.
     created_at  : Unix timestamp of key creation.
-    key_id      : Deterministic identifier derived from the public key.
-    scheme      : ``"ed25519"`` (default) or ``"hmac-sha256"`` (opt-in).
+    key_id      : Identifier derived from (scheme, public_key).
+    scheme      : ``"ed25519"`` or ``"hmac-sha256"``.
     """
     public_key: bytes
     private_key: Optional[bytes] = field(default=None, repr=False)
     created_at: float = field(default_factory=_time.time)
     key_id: str = ""
-    scheme: str = SCHEME_ED25519
+    scheme: Optional[str] = None
 
     def __post_init__(self) -> None:
+        if self.scheme is None:
+            if self.private_key is None:
+                raise TypeError(
+                    "a KeyPair built from public key bytes needs an explicit "
+                    "scheme; use KeyPair.from_public(public_key, scheme)"
+                )
+            object.__setattr__(self, "scheme", SCHEME_ED25519)
         if self.scheme not in _SCHEMES:
             raise ValueError(
                 f"unknown key scheme {self.scheme!r}; expected one of {_SCHEMES}"
             )
+        if self.scheme == SCHEME_HMAC and (
+            not self.private_key or self.private_key != self.public_key
+        ):
+            raise ValueError(
+                "hmac-sha256 keys are a shared secret, not a public key: build "
+                "them with KeyPair.from_shared_secret(secret) from a secret "
+                "agreed out of band, never from key bytes received from a peer"
+            )
+        derived = _derive_key_id(self.public_key, self.scheme)
         if not self.key_id:
-            kid = hashlib.sha256(self.public_key).hexdigest()[:16]
-            object.__setattr__(self, "key_id", kid)
+            object.__setattr__(self, "key_id", derived)
+        elif self.key_id != derived:
+            raise ValueError(
+                f"key_id {self.key_id!r} does not match the key and scheme "
+                f"(expected {derived!r})"
+            )
+
+    @classmethod
+    def from_public(
+        cls, public_key: bytes, scheme: str, key_id: Optional[str] = None,
+    ) -> KeyPair:
+        """Rebuild a peer's verification key from exchanged public data.
+
+        *scheme* is required and must be a public-key scheme; a *key_id*,
+        when given, must match the one derived from (scheme, public_key).
+        """
+        if scheme == SCHEME_HMAC:
+            raise ValueError(
+                "hmac-sha256 keys are a shared secret and cannot be rebuilt "
+                "from exchanged public data; use KeyPair.from_shared_secret "
+                "with a secret agreed out of band"
+            )
+        return cls(public_key=public_key, scheme=scheme, key_id=key_id or "")
+
+    @classmethod
+    def from_shared_secret(cls, secret: bytes) -> KeyPair:
+        """An HMAC-mode key from a secret agreed out of band."""
+        if not secret:
+            raise ValueError("the shared secret must be non-empty")
+        return cls(public_key=secret, private_key=secret, scheme=SCHEME_HMAC)
+
+    def export_public(self) -> Dict[str, object]:
+        """The data a peer needs to verify this key's signatures:
+        ``{"public_key", "scheme", "key_id"}``.  Refused for HMAC keys,
+        which are shared secrets."""
+        if self.scheme == SCHEME_HMAC:
+            raise ValueError(
+                "hmac-sha256 keys are a shared secret and are never exported "
+                "as a public key"
+            )
+        return {
+            "public_key": self.public_key,
+            "scheme": self.scheme,
+            "key_id": self.key_id,
+        }
 
     def sign(self, message: bytes) -> bytes:
         """Sign *message* with the private key under this key's scheme.
@@ -117,7 +199,7 @@ class KeyPair:
         if self.private_key is None:
             raise ValueError("cannot sign without private key")
         if self.scheme == SCHEME_HMAC:
-            return hmac.new(self.public_key, message, hashlib.sha256).digest()
+            return hmac.new(self.private_key, message, hashlib.sha256).digest()
         ed25519, _ = _load_ed25519()
         if len(self.private_key) != 32:
             raise ValueError("not an Ed25519 private key (expected 32 raw bytes)")
@@ -155,14 +237,12 @@ class KeyPair:
         """Generate a fresh random key pair.
 
         Ed25519 by default (raises ``Ed25519Unavailable`` without the
-        cryptography package).  ``scheme="hmac-sha256"`` generates an
-        HMAC-mode key (public = sha256(private)); it is never chosen
+        cryptography package).  ``scheme="hmac-sha256"`` generates a random
+        shared secret (see :meth:`from_shared_secret`); it is never chosen
         implicitly.
         """
         if scheme == SCHEME_HMAC:
-            private = os.urandom(32)
-            public = hashlib.sha256(private).digest()
-            return cls(public_key=public, private_key=private, scheme=SCHEME_HMAC)
+            return cls.from_shared_secret(os.urandom(32))
         if scheme != SCHEME_ED25519:
             raise ValueError(
                 f"unknown key scheme {scheme!r}; expected one of {_SCHEMES}"
@@ -172,6 +252,7 @@ class KeyPair:
         return cls(
             public_key=sk.public_key().public_bytes_raw(),
             private_key=sk.private_bytes_raw(),
+            scheme=SCHEME_ED25519,
         )
 
 
@@ -244,7 +325,19 @@ class PeerKeyRegistry:
         self._revocations: Set[RevocationEntry] = set()
 
     def register(self, peer_id: str, key: KeyPair) -> None:
-        """Register a public key for *peer_id*."""
+        """Register a key for *peer_id*.
+
+        A peer's scheme is fixed by its first registered key; a key with a
+        different scheme is refused (ValueError), so a scheme cannot be
+        swapped under an existing peer.  An HMAC key must be a secret
+        agreed with the peer out of band.
+        """
+        chain = self._keys.get(peer_id, [])
+        if chain and chain[0].scheme != key.scheme:
+            raise ValueError(
+                f"peer {peer_id!r} is recorded with scheme {chain[0].scheme!r}; "
+                f"refusing a {key.scheme!r} key"
+            )
         chain = self._keys.setdefault(peer_id, [])
         # Avoid duplicates
         if not any(k.key_id == key.key_id for k in chain):
@@ -392,7 +485,13 @@ class KeyManager:
         message: bytes,
         signature: bytes,
     ) -> bool:
-        """Verify a message signature from a peer."""
+        """Verify a message signature from a peer.
+
+        Uses the peer's registered key under its recorded scheme.  For an
+        HMAC-mode peer that key must be a secret agreed out of band
+        (``KeyPair.from_shared_secret``); a key the peer sent over the
+        channel being authenticated would let anyone who saw it forge.
+        """
         key = self._registry.current_key(peer_id)
         if key is None:
             return False

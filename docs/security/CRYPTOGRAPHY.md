@@ -118,7 +118,9 @@ if has_real_pq():
 
 Used when no registry is configured + cryptography not available, or as an explicit shared-secret backend. Provides integrity but not non-repudiation.
 
-`KeyPair` (E4 key manager) never selects HMAC implicitly. Keys are Ed25519 by default: `generate`, `sign` and `verify` raise `Ed25519Unavailable` when `cryptography` is missing, and `verify` on an Ed25519 key accepts only a valid Ed25519 signature. HMAC mode is opt-in per key with `scheme="hmac-sha256"` (`KeyPair.generate(scheme=...)`, `KeyManager(..., scheme=...)`). Its tag is keyed by the public key, so anyone holding the public key can produce a valid tag; use it only where every holder of the public key is trusted.
+`KeyPair` (E4 key manager) never selects HMAC implicitly. Keys are Ed25519 by default, and `cryptography` is a core dependency. `generate`, `sign` and `verify` still raise `Ed25519Unavailable` if it is missing, and `verify` on an Ed25519 key accepts only a valid Ed25519 signature. Every key carries its `scheme`, which is bound into its `key_id`. Exchange an Ed25519 key with `export_public()` and rebuild it with `KeyPair.from_public(public_key, scheme)`; building a key from public bytes without a scheme is refused, and `PeerKeyRegistry` refuses a key whose scheme differs from the one recorded for that peer.
+
+HMAC mode (`scheme="hmac-sha256"`) is opt-in and is a shared-secret MAC, not a signature: whoever holds the key can create valid tags. An HMAC key must never be distributed as a public key, and `export_public()` refuses it. Both parties build it with `KeyPair.from_shared_secret(secret)` from a secret agreed out of band, so `KeyManager.verify_peer` for an HMAC peer uses that secret and never a key received from the peer.
 
 ### DilithiumLite (DEPRECATED for PQ)
 
