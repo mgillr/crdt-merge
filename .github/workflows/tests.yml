@@ -29,6 +29,7 @@ jobs:
 
       - name: Run full test suite
         run: |
+          set -o pipefail
           pytest tests/ -v --tb=short -q 2>&1 | tail -40
 
       - name: Run property-based tests
