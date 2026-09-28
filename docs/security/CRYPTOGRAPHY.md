@@ -118,6 +118,8 @@ if has_real_pq():
 
 Used when no registry is configured + cryptography not available, or as an explicit shared-secret backend. Provides integrity but not non-repudiation.
 
+`KeyPair` (E4 key manager) never selects HMAC implicitly. Keys are Ed25519 by default: `generate`, `sign` and `verify` raise `Ed25519Unavailable` when `cryptography` is missing, and `verify` on an Ed25519 key accepts only a valid Ed25519 signature. HMAC mode is opt-in per key with `scheme="hmac-sha256"` (`KeyPair.generate(scheme=...)`, `KeyManager(..., scheme=...)`). Its tag is keyed by the public key, so anyone holding the public key can produce a valid tag; use it only where every holder of the public key is trusted.
+
 ### DilithiumLite (DEPRECATED for PQ)
 
 **Not post-quantum despite the name.** This is a hash-based construction using SHAKE-256 that was kept for backward compatibility. Security level is 128 bits classical, and it would degrade under Grover's algorithm. Use `Dilithium3Scheme` for real PQ security.
