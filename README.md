@@ -237,7 +237,7 @@ The rest of the library -- 26 merge strategies, E4 trust scoring, Merkle provena
 ## Installation
 
 ```bash
-pip install crdt-merge            # Core -- zero dependencies
+pip install crdt-merge            # Core -- one dependency (cryptography)
 pip install crdt-merge[fast]      # DuckDB + Polars (38.8x speedup on A100)
 pip install crdt-merge[model]     # PyTorch model weights
 pip install crdt-merge[crypto]    # AEAD encryption + real Ed25519 signatures

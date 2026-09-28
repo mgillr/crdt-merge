@@ -60,10 +60,10 @@ def _load_ed25519():
         from cryptography.hazmat.primitives.asymmetric import ed25519
     except ImportError as exc:
         raise Ed25519Unavailable(
-            "Ed25519 keys require the cryptography package "
-            "(pip install 'crdt-merge[crypto]'). There is no implicit "
-            "fallback; HMAC mode must be requested explicitly with "
-            "scheme='hmac-sha256'."
+            "Ed25519 keys require the cryptography package, a core "
+            "dependency of crdt-merge; this environment is missing it "
+            "(pip install 'cryptography>=41'). There is no implicit "
+            "fallback."
         ) from exc
     return ed25519, InvalidSignature
 
