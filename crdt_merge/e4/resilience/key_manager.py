@@ -45,13 +45,44 @@ from dataclasses import dataclass, field
 from typing import Dict, FrozenSet, List, Optional, Set, Tuple
 
 
+SCHEME_ED25519 = "ed25519"
+SCHEME_HMAC = "hmac-sha256"
+_SCHEMES = (SCHEME_ED25519, SCHEME_HMAC)
+
+
+class Ed25519Unavailable(RuntimeError):
+    """Raised when an Ed25519 key is used without the ``cryptography`` package."""
+
+
+def _load_ed25519():
+    try:
+        from cryptography.exceptions import InvalidSignature
+        from cryptography.hazmat.primitives.asymmetric import ed25519
+    except ImportError as exc:
+        raise Ed25519Unavailable(
+            "Ed25519 keys require the cryptography package "
+            "(pip install 'crdt-merge[crypto]'). There is no implicit "
+            "fallback; HMAC mode must be requested explicitly with "
+            "scheme='hmac-sha256'."
+        ) from exc
+    return ed25519, InvalidSignature
+
+
 @dataclass(frozen=True)
 class KeyPair:
     """Cryptographic key pair for peer authentication.
 
-    In production, this wraps Ed25519 keys.  The implementation here
-    uses HMAC-SHA256 for portability (no native Ed25519 in stdlib).
-    The interface is identical for either backend.
+    Two schemes, fixed per key and never mixed:
+
+    - ``"ed25519"`` (default): real Ed25519 via the ``cryptography``
+      package.  Sign, verify and generate raise ``Ed25519Unavailable``
+      when the package is missing; verification accepts only a valid
+      64-byte Ed25519 signature and never falls back to anything else.
+    - ``"hmac-sha256"``: explicit opt-in only.  The public key is
+      ``sha256(private)`` and the tag is ``HMAC(public_key, message)``.
+      This is NOT a signature: anyone holding the public key can produce
+      a valid tag.  Use it only where every holder of the public key is
+      trusted.
 
     Attributes
     ----------
@@ -59,71 +90,89 @@ class KeyPair:
     private_key : Raw private key bytes (32 bytes).  None for remote peers.
     created_at  : Unix timestamp of key creation.
     key_id      : Deterministic identifier derived from the public key.
+    scheme      : ``"ed25519"`` (default) or ``"hmac-sha256"`` (opt-in).
     """
     public_key: bytes
     private_key: Optional[bytes] = field(default=None, repr=False)
     created_at: float = field(default_factory=_time.time)
     key_id: str = ""
+    scheme: str = SCHEME_ED25519
 
     def __post_init__(self) -> None:
+        if self.scheme not in _SCHEMES:
+            raise ValueError(
+                f"unknown key scheme {self.scheme!r}; expected one of {_SCHEMES}"
+            )
         if not self.key_id:
             kid = hashlib.sha256(self.public_key).hexdigest()[:16]
             object.__setattr__(self, "key_id", kid)
 
     def sign(self, message: bytes) -> bytes:
-        """Sign *message* with the private key.
+        """Sign *message* with the private key under this key's scheme.
 
-        When the cryptography package is available and the private key
-        is 32 bytes, uses real Ed25519 signing. Falls back to HMAC-SHA256
-        otherwise.
+        Ed25519 keys raise ``Ed25519Unavailable`` without the cryptography
+        package and ``ValueError`` when the private key is not the Ed25519
+        private key of ``public_key``.
         """
         if self.private_key is None:
             raise ValueError("cannot sign without private key")
-        try:
-            from cryptography.hazmat.primitives.asymmetric import ed25519 as _ed
-            if len(self.private_key) == 32:
-                pk = _ed.Ed25519PrivateKey.from_private_bytes(self.private_key)
-                return pk.sign(message)
-        except (ImportError, ValueError, Exception):
-            pass
-        return hmac.new(self.public_key, message, hashlib.sha256).digest()
+        if self.scheme == SCHEME_HMAC:
+            return hmac.new(self.public_key, message, hashlib.sha256).digest()
+        ed25519, _ = _load_ed25519()
+        if len(self.private_key) != 32:
+            raise ValueError("not an Ed25519 private key (expected 32 raw bytes)")
+        sk = ed25519.Ed25519PrivateKey.from_private_bytes(self.private_key)
+        if sk.public_key().public_bytes_raw() != self.public_key:
+            raise ValueError(
+                "public key is not the Ed25519 public key of this private key"
+            )
+        return sk.sign(message)
 
     def verify(self, message: bytes, signature: bytes) -> bool:
-        """Verify *signature* against *message* using the public key.
+        """Verify *signature* against *message* under this key's scheme.
 
-        When the cryptography package is available and the public key
-        is 32 bytes, uses real Ed25519 verification. Falls back to
-        HMAC-SHA256 otherwise.
+        Ed25519 keys: True only for a valid 64-byte Ed25519 signature;
+        any failure returns False and nothing else is tried.  Raises
+        ``Ed25519Unavailable`` without the cryptography package.
         """
+        if not isinstance(signature, (bytes, bytearray)):
+            return False
+        if self.scheme == SCHEME_HMAC:
+            expected = hmac.new(self.public_key, message, hashlib.sha256).digest()
+            return hmac.compare_digest(expected, bytes(signature))
+        ed25519, InvalidSignature = _load_ed25519()
+        if len(self.public_key) != 32 or len(signature) != 64:
+            return False
         try:
-            from cryptography.hazmat.primitives.asymmetric import ed25519 as _ed
-            from cryptography.exceptions import InvalidSignature
-            if len(self.public_key) == 32 and len(signature) == 64:
-                pk = _ed.Ed25519PublicKey.from_public_bytes(self.public_key)
-                pk.verify(signature, message)
-                return True
-        except (ImportError, Exception):
-            pass
-        expected = hmac.new(self.public_key, message, hashlib.sha256).digest()
-        return hmac.compare_digest(expected, signature[:32] if len(signature) >= 32 else signature)
+            pk = ed25519.Ed25519PublicKey.from_public_bytes(self.public_key)
+            pk.verify(bytes(signature), message)
+        except (InvalidSignature, ValueError):
+            return False
+        return True
 
     @classmethod
-    def generate(cls) -> KeyPair:
+    def generate(cls, scheme: str = SCHEME_ED25519) -> KeyPair:
         """Generate a fresh random key pair.
 
-        Uses real Ed25519 when cryptography is available. Falls back to
-        HMAC-compatible key derivation (sha256(private) = public) otherwise.
+        Ed25519 by default (raises ``Ed25519Unavailable`` without the
+        cryptography package).  ``scheme="hmac-sha256"`` generates an
+        HMAC-mode key (public = sha256(private)); it is never chosen
+        implicitly.
         """
-        try:
-            from cryptography.hazmat.primitives.asymmetric import ed25519 as _ed
-            pk = _ed.Ed25519PrivateKey.generate()
-            private = pk.private_bytes_raw()
-            public = pk.public_key().public_bytes_raw()
-            return cls(public_key=public, private_key=private)
-        except (ImportError, Exception):
+        if scheme == SCHEME_HMAC:
             private = os.urandom(32)
             public = hashlib.sha256(private).digest()
-            return cls(public_key=public, private_key=private)
+            return cls(public_key=public, private_key=private, scheme=SCHEME_HMAC)
+        if scheme != SCHEME_ED25519:
+            raise ValueError(
+                f"unknown key scheme {scheme!r}; expected one of {_SCHEMES}"
+            )
+        ed25519, _ = _load_ed25519()
+        sk = ed25519.Ed25519PrivateKey.generate()
+        return cls(
+            public_key=sk.public_key().public_bytes_raw(),
+            private_key=sk.private_bytes_raw(),
+        )
 
 
 @dataclass(frozen=True)
@@ -261,6 +310,9 @@ class KeyManager:
         Seconds between automatic key rotations (default: 86400 = 24h).
     max_chain_length :
         Maximum key chain length before forced pruning (default: 10).
+    scheme :
+        Key scheme for generated and rotated keys: ``"ed25519"``
+        (default) or the explicit opt-in ``"hmac-sha256"`` (see KeyPair).
     """
 
     def __init__(
@@ -269,12 +321,14 @@ class KeyManager:
         *,
         rotation_interval: float = 86400.0,
         max_chain_length: int = 10,
+        scheme: str = SCHEME_ED25519,
     ) -> None:
         self._peer_id = peer_id
         self._rotation_interval = rotation_interval
         self._max_chain_length = max_chain_length
+        self._scheme = scheme
         self._registry = PeerKeyRegistry()
-        self._current_key = KeyPair.generate()
+        self._current_key = KeyPair.generate(scheme=scheme)
         self._registry.register(peer_id, self._current_key)
         self._last_rotation = _time.time()
 
@@ -297,7 +351,7 @@ class KeyManager:
         Returns the new key pair and the revocation entry for the old key.
         """
         old_key = self._current_key
-        new_key = KeyPair.generate()
+        new_key = KeyPair.generate(scheme=self._scheme)
 
         # Old key signs revocation payload (matches RevocationEntry.verify format)
         payload = (

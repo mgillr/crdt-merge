@@ -35,6 +35,9 @@ from crdt_merge.e4.resilience.domain_hash import (
     HashDomain,
 )
 from crdt_merge.e4.resilience.key_manager import (
+    SCHEME_ED25519,
+    SCHEME_HMAC,
+    Ed25519Unavailable,
     KeyManager,
     KeyPair,
     PeerKeyRegistry,
@@ -133,6 +136,7 @@ __all__ = [
     # Round 1
     "DomainSeparatedHasher", "HashDomain",
     "KeyManager", "KeyPair", "PeerKeyRegistry", "RevocationEntry",
+    "Ed25519Unavailable", "SCHEME_ED25519", "SCHEME_HMAC",
     "EpochManager", "EpochState", "EpochTransition",
     "ConvergenceBound", "ConvergenceMonitor",
     "TrustPrivacyFilter", "ByzantineThresholdAnalyzer",
