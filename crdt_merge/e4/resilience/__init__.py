@@ -93,6 +93,7 @@ from crdt_merge.e4.resilience.longcon_sybil import (
     SybilAlert,
 )
 from crdt_merge.e4.resilience.pq_signatures import (
+    Ed25519Scheme,
     HmacScheme,
     DilithiumLite,
     HybridScheme,
@@ -151,7 +152,7 @@ __all__ = [
     # Round 2
     "E4FormalSpec", "PropertyVerifier", "SpecBounds", "TemporalProperty",
     "LongConDetector", "LongConConfig", "SybilAlert",
-    "HmacScheme", "DilithiumLite", "HybridScheme",
+    "Ed25519Scheme", "HmacScheme", "DilithiumLite", "HybridScheme",
     "register_scheme", "get_scheme", "available_schemes",
     "TrustConvergenceAnalyser", "HeterogeneityProfile", "WarmupSchedule",
     "TrustInheritanceManager", "VouchRecord", "DeviceCluster",

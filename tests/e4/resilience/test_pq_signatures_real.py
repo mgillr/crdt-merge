@@ -101,10 +101,10 @@ class TestRealDilithium3:
 
 class TestRegistryIntegration:
 
-    def test_hmac_still_registered(self):
-        """Existing schemes remain registered."""
-        scheme = get_scheme("hmac-sha256")
-        assert scheme is not None
+    def test_hmac_not_registered_by_default(self):
+        """HMAC is a shared-secret MAC, available only by explicit construction."""
+        with pytest.raises(ValueError):
+            get_scheme("hmac-sha256")
 
     def test_dilithium_lite_still_registered(self):
         scheme = get_scheme("dilithium-lite")
@@ -115,7 +115,8 @@ class TestRegistryIntegration:
         scheme = get_scheme("dilithium-3")
         assert isinstance(scheme, Dilithium3Scheme)
 
-    def test_available_schemes_list_includes_legacy(self):
+    def test_available_schemes_default_list(self):
         names = available_schemes()
-        assert "hmac-sha256" in names
+        assert "ed25519" in names
+        assert "hmac-sha256" not in names
         assert "dilithium-lite" in names

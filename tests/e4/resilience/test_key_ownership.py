@@ -111,13 +111,13 @@ class TestRevocationProof:
         )
         assert entry.verify(registry=reg) is False
 
-    def test_revocation_backward_compat_no_registry(self):
-        """Without registry, any non-empty proof passes (backward compat)."""
+    def test_revocation_without_registry_fails_closed(self):
+        """Without a registry there is no key to check the proof against."""
         entry = RevocationEntry(
             key_id="k", peer_id="p",
             revoked_at=1.0, proof=b"\x01",
         )
-        assert entry.verify() is True
+        assert entry.verify() is False
 
     def test_revocation_empty_proof_fails(self):
         entry = RevocationEntry(

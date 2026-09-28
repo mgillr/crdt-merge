@@ -116,7 +116,7 @@ if has_real_pq():
 
 ### HMAC-SHA256 (Symmetric, Fallback)
 
-Used when no registry is configured + cryptography not available, or as an explicit shared-secret backend. Provides integrity but not non-repudiation.
+A shared-secret MAC (`HmacScheme`), available only by constructing it explicitly: it is not registered by default and is not the classical half of `HybridScheme` (Ed25519 is). No verification path falls back to HMAC. Provides integrity between holders of the secret, not non-repudiation.
 
 `KeyPair` (E4 key manager) never selects HMAC implicitly. Keys are Ed25519 by default, and `cryptography` is a core dependency. `generate`, `sign` and `verify` still raise `Ed25519Unavailable` if it is missing, and `verify` on an Ed25519 key accepts only a valid Ed25519 signature. Every key carries its `scheme`, which is bound into its `key_id`. Exchange an Ed25519 key with `export_public()` and rebuild it with `KeyPair.from_public(public_key, scheme)`; building a key from public bytes without a scheme is refused, and `PeerKeyRegistry` refuses a key whose scheme differs from the one recorded for that peer.
 
@@ -130,23 +130,24 @@ HMAC mode (`scheme="hmac-sha256"`) is opt-in and is a shared-secret MAC, not a s
 
 | Deployment | Required level | Recommended backend |
 |---|---|---|
-| Closed federation, single org | Integrity only | HMAC-SHA256 (default) |
-| Development / testing | Minimal | Stub (default, no configuration) |
-| Multi-org production | Non-repudiation | Ed25519 (`[crypto]`) |
-| Regulated industry | Non-repudiation | Ed25519 (`[crypto]`) |
+| Closed federation, single org | Integrity only | Ed25519 with a key registry; HMAC-SHA256 only as an explicit shared secret |
+| Development / testing | Minimal | Explicit unsigned mode (`allow_unsigned=True`, `allow_unauthenticated=True`) |
+| Multi-org production | Non-repudiation | Ed25519 |
+| Regulated industry | Non-repudiation | Ed25519 |
 | Long-lived attestations | PQ resistance | ML-DSA-65 (`[security]`) |
 | Government / defense | FIPS / PQ | ML-DSA-65 (`[security]`) |
 
 ## Upgrade Path
 
-Upgrading from HMAC-SHA256 to Ed25519 requires:
+Ed25519 is the default and `cryptography` is a core dependency. To turn
+verification on:
 
 1. Generate a keypair per peer (one-time setup)
-2. Set `CRDT_E4_SIGNATURE_SCHEME=ed25519` environment variable
-3. Distribute public keys to all peers (out-of-band)
+2. Distribute public keys to all peers out of band (`KeyPair.export_public()` / `KeyPair.from_public()`)
+3. Call `configure_ed25519_verification(registry)` and `configure_evidence_verification(registry)`
 
-No E4 logic changes. No API changes. The trust lattice, evidence
-records, and Merkle trees work identically regardless of backend.
+Until step 3, verification raises `SignatureVerificationNotConfigured`
+rather than accepting anything.
 
 ## Merkle Hashing
 
@@ -163,8 +164,8 @@ critical hash computations.
 
 | Deployment Type | Recommended Backend |
 |-----------------|---------------------|
-| Single machine / local | HMAC-SHA256 (default) |
-| Closed federation (trusted peers) | HMAC-SHA256 |
-| Open federation | Ed25519 (when hardened) |
+| Single machine / local | Ed25519 (default) |
+| Closed federation (trusted peers) | Ed25519, or HMAC-SHA256 as an explicit shared secret |
+| Open federation | Ed25519 |
 | Long-term archival / compliance | Ed25519 + key rotation |
 | Post-quantum threat model | Dilithium (when stable) |

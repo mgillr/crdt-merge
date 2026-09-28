@@ -50,22 +50,8 @@ SCHEME_HMAC = "hmac-sha256"
 _SCHEMES = (SCHEME_ED25519, SCHEME_HMAC)
 
 
-class Ed25519Unavailable(RuntimeError):
-    """Raised when an Ed25519 key is used without the ``cryptography`` package."""
-
-
-def _load_ed25519():
-    try:
-        from cryptography.exceptions import InvalidSignature
-        from cryptography.hazmat.primitives.asymmetric import ed25519
-    except ImportError as exc:
-        raise Ed25519Unavailable(
-            "Ed25519 keys require the cryptography package, a core "
-            "dependency of crdt-merge; this environment is missing it "
-            "(pip install 'cryptography>=41'). There is no implicit "
-            "fallback."
-        ) from exc
-    return ed25519, InvalidSignature
+from crdt_merge.e4.signing import Ed25519Unavailable  # noqa: E402,F401  (re-exported)
+from crdt_merge.e4.signing import load_ed25519 as _load_ed25519  # noqa: E402
 
 
 def _derive_key_id(public_key: bytes, scheme: str) -> str:
@@ -279,14 +265,15 @@ class RevocationEntry:
     def verify(self, registry: Optional[PeerKeyRegistry] = None) -> bool:
         """Verify the revocation proof.
 
-        When a registry is provided, the proof is validated as a real
-        signature from the revoked key over the revocation payload.
-        Without a registry, falls back to non-empty check (backward compat).
+        The proof must be a valid signature from the revoked key over the
+        revocation payload, with the key looked up in *registry*.  Without
+        a registry there is nothing to verify against, so this returns
+        False.
         """
         if not self.proof:
             return False
         if registry is None:
-            return len(self.proof) > 0
+            return False
 
         # Look up the revoked key in the registry
         chain = registry._keys.get(self.peer_id, [])
