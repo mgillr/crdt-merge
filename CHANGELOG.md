@@ -5,6 +5,28 @@
 > See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
 
 
+## [Unreleased]
+
+### Added
+- **`CRDTMergeState` opt-in extension protocol** (`CRDTMergeState.EXTENSION_PROTOCOL = 1`). A strategy
+  registered with `register_strategy` (or through the `crdt_merge.model_strategies` entry-point group) whose
+  class sets `crdt_extension = True` can be used by name in `CRDTMergeState`. Its class declares what
+  `resolve()` passes it beside the tensors and weights, which arrive in the canonical (`model_id`) order as
+  for every strategy:
+  - `requires_base = True`: the state's `base` (refused at resolve when the state has none);
+  - `stochastic = True`: the state's `seed`;
+  - `reads_contributions = True`: the contributions' `model_ids` and `metadata`, in the same order.
+- **`strategy_kwargs`** (a new `CRDTMergeState` argument, extension strategies only). It takes a dict of
+  strict-JSON values, frozen at construction, and is passed to every `resolve()`. It is part of the state's
+  identity: `merge()` and `merge_many()` refuse replicas that disagree on it, `__eq__` compares it, and it
+  round-trips through `to_dict()` / `from_dict()`. The keys `tensors`, `weights`, `base`, `seed`, `model_ids`
+  and `metadata` are reserved. Regression: `tests/test_crdt_extension_protocol.py`.
+
+### Compatibility
+- Built-in strategies and states built without `strategy_kwargs` are unchanged. `KNOWN_STRATEGIES`,
+  `BASE_REQUIRED` and `STOCHASTIC` keep their meaning, `to_dict()` emits the same keys, and a name that is not
+  registered, or is registered without the marker, is refused with the same error as before.
+
 ## [0.10.0] - 2026-07-25 — E4 convergence correction
 
 **Minor version, not a patch: `get_trust()` changes what it returns.** The correction is

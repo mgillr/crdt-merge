@@ -243,6 +243,7 @@ class CRDTMergeState:
         'strategy_name', 'base', 'conflict_resolution', 'seed',
         '_contributions', '_tombstones',
         '_active_cache', '_cache_valid',
+        'strategy_kwargs',
     )
 
     # All 25 built-in registered strategy names
@@ -270,19 +271,43 @@ class CRDTMergeState:
         'dare', 'della', 'dare_ties', 'evolutionary_merge', 'genetic_merge',
     })
 
+    # Extension strategies (opt-in, protocol 1). A strategy registered through
+    # ``crdt_merge.model.strategies.register_strategy`` (or the
+    # ``crdt_merge.model_strategies`` entry-point group) whose class sets
+    # ``crdt_extension = True`` is accepted by name. Its class declares what
+    # ``resolve()`` passes it, beside the tensors and weights in canonical
+    # (model_id) order:
+    #
+    #   requires_base = True        base=  (refused at resolve when None)
+    #   stochastic = True           seed=self.seed
+    #   reads_contributions = True  model_ids=[...] and metadata=[...], in the
+    #                               same canonical order as the tensors
+    #
+    # and every key of ``strategy_kwargs`` (a JSON-serialisable dict fixed at
+    # construction, part of the state's identity: replicas must agree on it).
+    # Built-in names are untouched: KNOWN_STRATEGIES, BASE_REQUIRED and
+    # STOCHASTIC keep their meaning, and a state built without
+    # ``strategy_kwargs`` serialises, compares and resolves exactly as before.
+    EXTENSION_PROTOCOL = 1
+    EXTENSION_RESERVED_KWARGS = frozenset({
+        'tensors', 'weights', 'base', 'seed', 'model_ids', 'metadata',
+    })
+
     def __init__(
         self,
         strategy_name: str,
         base: Any = None,
         conflict_resolution: ConflictResolution = ConflictResolution.HIGHEST_VERSION,
         seed: Optional[int] = None,
+        strategy_kwargs: Optional[Dict[str, Any]] = None,
     ):
-        # Validate strategy name
-        if strategy_name not in self.KNOWN_STRATEGIES:
+        # Validate strategy name: a built-in, or an opt-in extension strategy
+        if strategy_name not in self.KNOWN_STRATEGIES and self._extension_class(strategy_name) is None:
             raise ValueError(
                 f"Unknown strategy '{strategy_name}'. "
                 f"Known strategies: {sorted(self.KNOWN_STRATEGIES)}"
             )
+        self.strategy_kwargs = self._checked_strategy_kwargs(strategy_name, strategy_kwargs)
 
         self.strategy_name = strategy_name
         self.conflict_resolution = conflict_resolution
@@ -543,6 +568,7 @@ class CRDTMergeState:
                 f"Cannot merge states with different strategies: "
                 f"{self.strategy_name} vs {other.strategy_name}"
             )
+        self._check_same_strategy_kwargs(other)
 
         # OR-Set union: expand tombstones first so we can filter below
         self._tombstones = self._tombstones | other._tombstones
@@ -627,6 +653,7 @@ class CRDTMergeState:
                     f"Cannot merge states with different strategies: "
                     f"{first.strategy_name!r} vs {s.strategy_name!r}"
                 )
+            first._check_same_strategy_kwargs(s)
 
         # Pick the first available base
         base = None
@@ -640,6 +667,7 @@ class CRDTMergeState:
             base=base,
             conflict_resolution=first.conflict_resolution,
             seed=first.seed,
+            strategy_kwargs=first.strategy_kwargs,
         )
 
         # Union of all tombstones
@@ -714,6 +742,23 @@ class CRDTMergeState:
         tensors = [active[mid].tensor for mid in sorted_ids]
         weights = [active[mid].weight for mid in sorted_ids]
 
+        ext = self._extension_class(self.strategy_name) if self.strategy_name not in self.KNOWN_STRATEGIES else None
+        if ext is not None:
+            # ARCHITECTURAL INVARIANT, as for the built-ins: one call over the full sorted visible set.
+            ext_kwargs: Dict[str, Any] = dict(self.strategy_kwargs or {})
+            if getattr(ext, 'stochastic', False) is True:
+                ext_kwargs['seed'] = self.seed
+            if getattr(ext, 'reads_contributions', False) is True:
+                ext_kwargs['model_ids'] = list(sorted_ids)
+                ext_kwargs['metadata'] = [dict(active[mid].metadata) for mid in sorted_ids]
+            if getattr(ext, 'requires_base', False) is True:
+                if self.base is None:
+                    raise ValueError(
+                        f"Strategy '{self.strategy_name}' requires base= but none provided"
+                    )
+                return strategy.merge(tensors, weights=weights, base=self.base, **ext_kwargs)
+            return strategy.merge(tensors, weights=weights, **ext_kwargs)
+
         # Build kwargs
         kwargs: Dict[str, Any] = {}
         if self.strategy_name in self.STOCHASTIC:
@@ -753,12 +798,18 @@ class CRDTMergeState:
     @property
     def needs_base(self) -> bool:
         """Whether this state's strategy requires a base model."""
-        return self.strategy_name in self.BASE_REQUIRED
+        if self.strategy_name in self.BASE_REQUIRED:
+            return True
+        ext = self._extension_class(self.strategy_name) if self.strategy_name not in self.KNOWN_STRATEGIES else None
+        return ext is not None and getattr(ext, 'requires_base', False) is True
 
     @property
     def is_stochastic(self) -> bool:
         """Whether this state's strategy has internal RNG."""
-        return self.strategy_name in self.STOCHASTIC
+        if self.strategy_name in self.STOCHASTIC:
+            return True
+        ext = self._extension_class(self.strategy_name) if self.strategy_name not in self.KNOWN_STRATEGIES else None
+        return ext is not None and getattr(ext, 'stochastic', False) is True
 
     @property
     def state_hash(self) -> str:
@@ -866,6 +917,7 @@ class CRDTMergeState:
                 for mid, c in self._contributions.items()
             },
             "tombstones": sorted(self._tombstones),
+            **({"strategy_kwargs": self.strategy_kwargs} if self.strategy_kwargs is not None else {}),
         }
 
     @classmethod
@@ -876,6 +928,7 @@ class CRDTMergeState:
             base=d.get("base"),
             conflict_resolution=ConflictResolution(d.get("conflict_resolution", "highest_version")),
             seed=d.get("seed", 42),
+            strategy_kwargs=d.get("strategy_kwargs"),
         )
         for mid, cd in d.get("contributions", {}).items():
             contrib = MergeContribution.from_dict(cd)
@@ -894,6 +947,7 @@ class CRDTMergeState:
             return NotImplemented
         return (
             self.strategy_name == other.strategy_name
+            and self.strategy_kwargs == other.strategy_kwargs
             and self._active_ids() == other._active_ids()
             and all(
                 self._contributions[mid].merkle_hash
@@ -921,6 +975,45 @@ class CRDTMergeState:
     # ------------------------------------------------------------------
     # Private helpers
     # ------------------------------------------------------------------
+
+    @staticmethod
+    def _extension_class(name: str):
+        """The registered class of an opt-in extension strategy (``crdt_extension = True``), else None."""
+        from crdt_merge.model import strategies as _strategies
+        discover = getattr(_strategies, '_discover_plugins', None)   # the entry-point group, loaded once
+        if discover is not None:
+            discover()
+        cls = _strategies._REGISTRY.get(name)
+        return cls if cls is not None and getattr(cls, 'crdt_extension', False) is True else None
+
+    @classmethod
+    def _checked_strategy_kwargs(cls, strategy_name: str, strategy_kwargs: Optional[Dict[str, Any]]):
+        """``strategy_kwargs`` for an extension strategy: a dict of strict-JSON values (no NaN or infinity, which
+        would break replica equality) whose keys are not the reserved resolve() arguments, frozen through a JSON
+        round trip. Refused for a built-in name."""
+        if strategy_kwargs is None:
+            return None
+        if strategy_name in cls.KNOWN_STRATEGIES:
+            raise ValueError(
+                f"strategy_kwargs is accepted only for extension strategies, not the built-in '{strategy_name}'"
+            )
+        if not isinstance(strategy_kwargs, dict) or not all(isinstance(k, str) for k in strategy_kwargs):
+            raise ValueError("strategy_kwargs must be a dict with string keys")
+        reserved = sorted(set(strategy_kwargs) & cls.EXTENSION_RESERVED_KWARGS)
+        if reserved:
+            raise ValueError(f"strategy_kwargs may not set the reserved resolve() arguments {reserved}")
+        try:
+            return json.loads(json.dumps(strategy_kwargs, sort_keys=True, allow_nan=False))
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"strategy_kwargs must be JSON-serialisable: {exc}") from exc
+
+    def _check_same_strategy_kwargs(self, other: "CRDTMergeState") -> None:
+        """Replicas of one extension state agree on its strategy_kwargs (both None for every other state)."""
+        if self.strategy_kwargs != other.strategy_kwargs:
+            raise ValueError(
+                f"Cannot merge states with different strategy_kwargs: "
+                f"{self.strategy_kwargs!r} vs {other.strategy_kwargs!r}"
+            )
 
     def _active_contributions(self) -> Dict[str, MergeContribution]:
         """Get contributions not in tombstones.
