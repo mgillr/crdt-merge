@@ -91,15 +91,15 @@ def test_a_registered_extension_is_accepted_and_one_without_the_marker_is_refuse
 
 def test_resolve_passes_what_the_extension_declares_in_canonical_order():
     name, calls = _make(requires_base=True, stochastic=True, reads=True)
-    st = CRDTMergeState(name, base=np.zeros(3), seed=7, strategy_kwargs={"part": "mlp", "orient": "with_base"})
-    st.add(np.full(3, 2.0), model_id="donor:b", weight=0.5, metadata={"role": "donor"})
-    st.add(np.ones(3), model_id="donor:a", weight=1.0, metadata={"role": "donor"})
-    st.add(np.full(3, 4.0), model_id="root", metadata={"role": "root"})
+    st = CRDTMergeState(name, base=np.zeros(3), seed=7, strategy_kwargs={"mode": "fast", "level": 2})
+    st.add(np.full(3, 2.0), model_id="m:b", weight=0.5, metadata={"tag": "x"})
+    st.add(np.ones(3), model_id="m:a", weight=1.0, metadata={"tag": "x"})
+    st.add(np.full(3, 4.0), model_id="m:c", metadata={"tag": "y"})
     out = st.resolve()
     c = calls[-1]
-    assert c["kwargs"]["model_ids"] == ["donor:a", "donor:b", "root"] and c["weights"] == [1.0, 0.5, 1.0]
-    assert c["kwargs"]["metadata"] == [{"role": "donor"}, {"role": "donor"}, {"role": "root"}]
-    assert c["kwargs"]["seed"] == 7 and c["kwargs"]["part"] == "mlp" and c["kwargs"]["orient"] == "with_base"
+    assert c["kwargs"]["model_ids"] == ["m:a", "m:b", "m:c"] and c["weights"] == [1.0, 0.5, 1.0]
+    assert c["kwargs"]["metadata"] == [{"tag": "x"}, {"tag": "x"}, {"tag": "y"}]
+    assert c["kwargs"]["seed"] == 7 and c["kwargs"]["mode"] == "fast" and c["kwargs"]["level"] == 2
     assert np.array_equal(c["base"], np.zeros(3)) and np.allclose(out, 1.0 + 1.0 + 4.0)
     assert st.needs_base and st.is_stochastic
 
@@ -134,18 +134,18 @@ def test_strategy_kwargs_are_checked_and_frozen():
             CRDTMergeState(name, strategy_kwargs={"x": bad})
     with pytest.raises(ValueError, match="string keys"):
         CRDTMergeState(name, strategy_kwargs={1: 2})
-    kw = {"lam": 0.5, "nested": {"a": [1, 2]}}
+    kw = {"alpha": 0.5, "nested": {"a": [1, 2]}}
     st = CRDTMergeState(name, strategy_kwargs=kw)
-    kw["lam"] = 9.0
+    kw["alpha"] = 9.0
     kw["nested"]["a"].append(3)
     st.add(np.ones(2), model_id="a")
     st.resolve()
-    assert calls[-1]["kwargs"] == {"lam": 0.5, "nested": {"a": [1, 2]}}
+    assert calls[-1]["kwargs"] == {"alpha": 0.5, "nested": {"a": [1, 2]}}
 
 
 def test_the_crdt_laws_hold_for_an_extension_state():
     name, _ = _make(requires_base=True, reads=True)
-    kw = {"part": "attn"}
+    kw = {"mode": "a"}
 
     def replica(*items):
         st = CRDTMergeState(name, base=np.zeros(2), strategy_kwargs=kw)
@@ -160,18 +160,18 @@ def test_the_crdt_laws_hold_for_an_extension_state():
     many = CRDTMergeState.merge_many([a, b, c])
     assert many.strategy_kwargs == kw and np.array_equal(many.resolve(), ab_c.resolve())
     with pytest.raises(ValueError, match="different strategy_kwargs"):
-        CRDTMergeState(name, base=np.zeros(2), strategy_kwargs={"part": "mlp"}).merge(a)
+        CRDTMergeState(name, base=np.zeros(2), strategy_kwargs={"mode": "b"}).merge(a)
     with pytest.raises(ValueError, match="different strategy_kwargs"):
         CRDTMergeState.merge_many([a, CRDTMergeState(name, base=np.zeros(2))])
-    assert CRDTMergeState(name, strategy_kwargs={"part": "mlp"}) != CRDTMergeState(name, strategy_kwargs=kw)
+    assert CRDTMergeState(name, strategy_kwargs={"mode": "b"}) != CRDTMergeState(name, strategy_kwargs=kw)
 
 
 def test_serialisation_round_trips_the_kwargs_and_leaves_every_other_state_unchanged():
     name, _ = _make()
-    st = CRDTMergeState(name, strategy_kwargs={"orient": "toward_seed"})
+    st = CRDTMergeState(name, strategy_kwargs={"mode": "slow"})
     st.add(np.ones(2), model_id="a")
     back = CRDTMergeState.from_dict(json.loads(json.dumps(st.to_dict())))
-    assert back.strategy_kwargs == {"orient": "toward_seed"} and back == st
+    assert back.strategy_kwargs == {"mode": "slow"} and back == st
     plain = CRDTMergeState("weight_average")
     plain.add(np.ones(2), model_id="a")
     d = plain.to_dict()
