@@ -287,7 +287,7 @@ trust, the later timestamp wins (LWW fallback).
 |--------|-----------|---------|-------------|
 | `get(key)` | `key: str` | `Optional[TrustAnnotatedEntry]` | Retrieve an entry |
 | `put(key, value, peer_id, *, timestamp=0.0)` | `key: str, value: Any, peer_id: str` | `TrustAnnotatedEntry` | Write an entry. Trust is looked up from the lattice. Conflicts resolved automatically. |
-| `delete(key)` | `key: str` | `Optional[TrustAnnotatedEntry]` | Remove an entry |
+| `delete(key)` | `key: str` | `Optional[TrustAnnotatedEntry]` | Observed-remove: tombstones the tags seen for `key`; the delete replicates on `merge_context`. Returns the removed entry or `None` |
 | `merge_context(other)` | `other: TrustAgentState` | `TrustAgentState` | CRDT merge of two agent states |
 | `snapshot()` | -- | `Dict[str, TrustAnnotatedEntry]` | Export all entries |
 | `load_snapshot(entries)` | `entries: Dict[str, TrustAnnotatedEntry]` | `None` | Restore from a snapshot |

@@ -74,10 +74,10 @@ Usage
 from __future__ import annotations
 
 import hashlib
-import itertools
 import json
 import sys
 import time
+import uuid
 from collections import OrderedDict
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
@@ -102,7 +102,7 @@ class MergeContribution:
     """
     __slots__ = (
         'model_id', 'tensor', 'weight', 'version',
-        'metadata', '_merkle_hash_cached', 'timestamp', '_tag', '_tag_counter',
+        'metadata', '_merkle_hash_cached', 'timestamp', '_tag',
     )
 
     def __init__(
@@ -113,6 +113,7 @@ class MergeContribution:
         version: int = 1,
         metadata: Optional[Dict[str, Any]] = None,
         timestamp: Optional[float] = None,
+        tag: Optional[str] = None,
     ):
         self.model_id = model_id
         self.weight = weight
@@ -136,10 +137,14 @@ class MergeContribution:
         # hot path.
         self._merkle_hash_cached = None
 
-        # Unique tag uses a cheap counter (still unique per add operation)
-        import itertools
-        self._tag_counter = next(CRDTMergeState._tag_seq)
-        self._tag = f"{self.model_id}:v{self.version}:t{self._tag_counter}"
+        # The OR-Set tag identifies one add operation across every replica.
+        # It must therefore be globally unique and restart-safe: a random
+        # 128-bit identifier needs no coordination and no persisted counter.
+        # (A process-local counter restarts at 0 in every process, so two
+        # unrelated adds of the same model_id/version collided and a remove
+        # of one tombstoned the other.)  A tag received over the wire is kept
+        # as-is, so tombstones keep matching the contribution they removed.
+        self._tag = tag if tag else f"{self.model_id}:v{self.version}:t{uuid.uuid4().hex}"
 
     @property
     def merkle_hash(self) -> str:
@@ -178,6 +183,7 @@ class MergeContribution:
             "metadata": self.metadata,
             "timestamp": self.timestamp,
             "merkle_hash": self.merkle_hash,
+            "tag": self._tag,
         }
 
     @classmethod
@@ -190,6 +196,7 @@ class MergeContribution:
             version=d.get("version", 1),
             metadata=d.get("metadata", {}),
             timestamp=d.get("timestamp"),
+            tag=d.get("tag"),
         )
 
     def __repr__(self) -> str:
@@ -199,7 +206,6 @@ class MergeContribution:
         )
 
 class CRDTMergeState:
-    _tag_seq = itertools.count()
     """Conflict-Free Replicated merge state for model merging.
 
     This is the CRDT wrapper that makes ALL 25 merge strategies satisfy
