@@ -5,12 +5,24 @@ on:
     branches: [main, develop]
     paths:
       - 'crdt_merge/model/**'
-      - 'benchmarks/a100_v080/test_crdt_laws_granular.py'
+      - 'crdt_merge/core.py'
+      - 'crdt_merge/e4/integration/agent_bridge.py'
+      - 'tests/test_crdt_properties.py'
+      - 'tests/test_crdt_state.py'
+      - 'tests/test_orset_lwwmap_correctness.py'
+      - 'tests/test_trust_agent_state_delete.py'
+      - 'tests/test_crdt_state_tag_uniqueness.py'
   pull_request:
     branches: [main]
     paths:
       - 'crdt_merge/model/**'
-      - 'benchmarks/a100_v080/test_crdt_laws_granular.py'
+      - 'crdt_merge/core.py'
+      - 'crdt_merge/e4/integration/agent_bridge.py'
+      - 'tests/test_crdt_properties.py'
+      - 'tests/test_crdt_state.py'
+      - 'tests/test_orset_lwwmap_correctness.py'
+      - 'tests/test_trust_agent_state_delete.py'
+      - 'tests/test_crdt_state_tag_uniqueness.py'
 
 jobs:
   crdt-law-check:
@@ -29,18 +41,11 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -e ".[model]"
-          pip install numpy
+          pip install -e ".[model,dev,crypto]"
 
-      - name: Run CRDT law diagnostic suite
+      - name: Run CRDT law tests
         run: |
-          python benchmarks/a100_v080/test_crdt_laws_granular.py
-
-      - name: Upload diagnostics
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: crdt-diagnostics-py${{ matrix.python-version }}
-          path: |
-            benchmarks/a100_v080/crdt_law_diagnostics.json
-            benchmarks/a100_v080/CRDT_LAW_DIAGNOSTICS.md
+          pytest tests/test_crdt_properties.py tests/test_crdt_state.py \
+            tests/test_orset_lwwmap_correctness.py \
+            tests/test_trust_agent_state_delete.py \
+            tests/test_crdt_state_tag_uniqueness.py -q --tb=short
