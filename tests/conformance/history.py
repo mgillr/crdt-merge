@@ -293,7 +293,7 @@ class Run:
     history: History
     states: List[Any]
     snapshots: List[List[dict]]
-    #: tags created by adds, and tags observed and removed (ORSet and TrustAgentState oracle)
+    #: tags created by adds, and tags observed and removed (oracle for ORSet, AgentState tags, TrustAgentState)
     added: Dict[str, Any] = field(default_factory=dict)
     removed: set = field(default_factory=set)
     delivered: int = 0
@@ -309,6 +309,8 @@ def _tags_of(subsystem: str, state, key: str) -> set:
         return set(state._elements.get(key, ()))
     if subsystem == "trustagentstate":
         return set(state._versions(key))
+    if subsystem == "agentstate":
+        return set(state._tags._elements.get(key, ()))
     return set()
 
 
@@ -328,15 +330,18 @@ def run_history(history: History) -> Run:
         snapshots[dst].append(ad.dump(states[dst]))
         run.delivered += 1
 
-    for step, ev in enumerate(history.events):
+    ordinal = -1  # operations are numbered, so inserting restarts or sends never shifts a timestamp
+    for ev in history.events:
         kind = ev[0]
         if kind == "op":
+            ordinal += 1
+            step = ordinal
             _, r, op, key = ev
             before = _tags_of(history.subsystem, states[r], key)
             ts = _timestamp(history, step, r)
             states[r] = ad.apply(states[r], r, op, key, step, ts)
             after = _tags_of(history.subsystem, states[r], key)
-            if history.subsystem in ("orset", "trustagentstate"):
+            if history.subsystem in ("orset", "trustagentstate", "agentstate"):
                 for tag in after - before:
                     run.added[tag] = key
                 run.removed |= before - after  # tags this replica observed and then dropped
@@ -379,7 +384,33 @@ def assert_converged(subsystem: str, states: List[Any], history: History) -> Non
 
 
 def orset_oracle(run: Run) -> tuple:
-    """Elements an observed-remove set must hold once every replica has seen everything:
-    an element is live iff some add of it was never observed and removed."""
+    """Keys an observed-remove structure must hold once every replica has seen everything:
+    a key is live iff some add of it was never observed and removed. Used for ORSet, the tags
+    of AgentState and the keys of TrustAgentState."""
     live = {key for tag, key in run.added.items() if tag not in run.removed}
     return tuple(sorted(live))
+
+
+def lwwmap_oracle(history: History) -> tuple:
+    """The LWWMap view once every replica has seen every write, computed from the events alone.
+
+    Per key the write with the highest (timestamp, node id) wins, and the key is live iff that
+    timestamp is strictly newer than the latest delete.
+    """
+    best: Dict[str, tuple] = {}
+    deleted: Dict[str, float] = {}
+    step = -1
+    for ev in history.events:
+        if ev[0] != "op":
+            continue
+        step += 1
+        _, r, op, key = ev
+        ts = _timestamp(history, step, r)
+        if op == "set":
+            cand = (ts, f"r{r}", step)
+            if key not in best or cand[:2] > best[key][:2]:
+                best[key] = cand
+        else:
+            deleted[key] = max(deleted.get(key, ts), ts)
+    live = {k: v[2] for k, v in best.items() if k not in deleted or v[0] > deleted[k]}
+    return tuple(sorted(live.items()))
