@@ -133,7 +133,8 @@ class TestPcoFailsClosed:
             p.verify(None, None, verification_level=0)
 
     def test_unsigned_mode_is_explicit_opt_in(self, strict):
-        configure_ed25519_verification(None, allow_unsigned=True)
+        with pytest.warns(UserWarning, match="INSECURE"):
+            configure_ed25519_verification(None, allow_unsigned=True)
         assert _pco("alice", lambda h: b"\x00" * 64).verify(
             None, None, verification_level=0) is True
         configure_ed25519_verification(None)
@@ -170,7 +171,8 @@ class TestEvidenceFailsClosed:
 
     def test_embedded_key_not_trusted_without_registry(self, strict):
         mallory = ed25519.Ed25519PrivateKey.generate()
-        configure_evidence_verification(None, allow_unauthenticated=True)
+        with pytest.warns(UserWarning, match="INSECURE"):
+            configure_evidence_verification(None, allow_unauthenticated=True)
         ev = _evidence(observer="alice", signing_fn=mallory.sign,
                        public_key=mallory.public_key().public_bytes_raw())
         assert ev.verify(require_observer_auth=True) is False
@@ -202,7 +204,8 @@ class TestEvidenceFailsClosed:
             forged.verify(require_observer_auth=True)
 
     def test_unauthenticated_mode_is_explicit_opt_in(self, strict):
-        configure_evidence_verification(None, allow_unauthenticated=True)
+        with pytest.warns(UserWarning, match="INSECURE"):
+            configure_evidence_verification(None, allow_unauthenticated=True)
         assert _evidence().verify() is True
         configure_evidence_verification(None)
         with pytest.raises(RuntimeError, match="not configured"):

@@ -20,15 +20,17 @@ and helper factories used across all test modules.
 
 import hashlib
 import struct
+import warnings
 
 import pytest
 
 from crdt_merge.e4.pco import configure_ed25519_verification
 from crdt_merge.e4.proof_evidence import configure_evidence_verification
+from crdt_merge.e4.signing import InsecureConfigurationWarning
 
 
 @pytest.fixture(autouse=True)
-def _explicit_legacy_unsigned_mode():
+def _explicit_legacy_unsigned_mode(monkeypatch):
     """Opt the E4 functional tests into the legacy unsigned modes.
 
     The library default is fail-closed: with no key registry, verifying a
@@ -38,8 +40,12 @@ def _explicit_legacy_unsigned_mode():
     registry or reset to the strict default themselves
     (see test_strict_signature_surfaces.py).
     """
-    configure_ed25519_verification(None, allow_unsigned=True)
-    configure_evidence_verification(None, allow_unauthenticated=True)
+    # The legacy modes are refused unless the test-mode guard is set.
+    monkeypatch.setenv("CRDT_MERGE_INSECURE_TEST_MODE", "1")
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", InsecureConfigurationWarning)
+        configure_ed25519_verification(None, allow_unsigned=True)
+        configure_evidence_verification(None, allow_unauthenticated=True)
     yield
     configure_ed25519_verification(None)
     configure_evidence_verification(None)
