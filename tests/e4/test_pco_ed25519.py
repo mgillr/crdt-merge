@@ -232,12 +232,14 @@ class TestConfiguration:
         with pytest.raises(SignatureVerificationNotConfigured):
             _verify_ed25519(b"\x00" * 64, b"m", "unknown")
 
-        configure_ed25519_verification(None, allow_unsigned=True)
+        with pytest.warns(UserWarning, match="INSECURE"):
+            configure_ed25519_verification(None, allow_unsigned=True)
         assert _verify_ed25519(b"\x00" * 64, b"m", "unknown") is True
 
     def test_backward_compat_default_behavior(self):
         """Stub behaviour exists only as the explicit unsigned mode."""
-        configure_ed25519_verification(None, allow_unsigned=True)
+        with pytest.warns(UserWarning, match="INSECURE"):
+            configure_ed25519_verification(None, allow_unsigned=True)
         assert _verify_ed25519(b"\x00" * 64, b"msg", "any") is True
         configure_ed25519_verification(None)
         with pytest.raises(SignatureVerificationNotConfigured):

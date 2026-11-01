@@ -22,6 +22,18 @@ trying anything else.
 
 from __future__ import annotations
 
+import logging
+import os
+import warnings
+
+#: Environment variable that must be exactly ``"1"`` before an insecure
+#: legacy mode (``allow_unsigned`` / ``allow_unauthenticated``) can be
+#: switched on.  It exists so tests can opt in deliberately; production
+#: code should never set it.
+INSECURE_TEST_MODE_ENV = "CRDT_MERGE_INSECURE_TEST_MODE"
+
+_logger = logging.getLogger("crdt_merge.e4.security")
+
 
 class Ed25519Unavailable(RuntimeError):
     """Raised when Ed25519 is needed and the ``cryptography`` package is missing."""
@@ -29,6 +41,37 @@ class Ed25519Unavailable(RuntimeError):
 
 class SignatureVerificationNotConfigured(RuntimeError):
     """Raised when a signature must be checked but no key registry is configured."""
+
+
+class InsecureModeNotPermitted(RuntimeError):
+    """Raised when an insecure legacy mode is requested without the guard."""
+
+
+class InsecureConfigurationWarning(UserWarning):
+    """Category of the warning emitted when an insecure legacy mode is enabled."""
+
+
+def require_insecure_opt_in(option: str, effect: str) -> None:
+    """Guard for the legacy modes that switch signature checks off.
+
+    Raises :class:`InsecureModeNotPermitted` unless the environment variable
+    ``CRDT_MERGE_INSECURE_TEST_MODE`` is exactly ``"1"``.  When it is, emits
+    an :class:`InsecureConfigurationWarning` and a ``logging.WARNING`` record
+    so the configuration is visible in test output and logs.
+    """
+    if os.environ.get(INSECURE_TEST_MODE_ENV) != "1":
+        raise InsecureModeNotPermitted(
+            f"{option}=True switches signature verification off and is refused: "
+            f"{effect}. It is meant for tests only; set "
+            f"{INSECURE_TEST_MODE_ENV}=1 to enable it deliberately, or configure "
+            "a key registry instead."
+        )
+    message = (
+        f"INSECURE: {option}=True is active; {effect}. "
+        "Do not use this outside tests."
+    )
+    _logger.warning(message)
+    warnings.warn(message, InsecureConfigurationWarning, stacklevel=3)
 
 
 def load_ed25519():
