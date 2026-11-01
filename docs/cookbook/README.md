@@ -10,5 +10,6 @@ Ready-to-use recipes for common merge scenarios.
 | [Distributed Sync](distributed-sync.md) | Gossip, Merkle, delta sync |
 | [Model Merging](model-merging.md) | ML model merge recipes |
 | [Enterprise Patterns](enterprise-patterns.md) | Audit, encryption, RBAC |
+| [E4 Cryptographic Hardening](e4-cryptographic-hardening.md) | Real Ed25519 + ML-DSA-65 (new in 0.9.6) |
 | [Agent State](agent-state.md) | Agentic AI state management |
 | [Accelerators](accelerators.md) | DuckDB, Polars, Flight recipes |

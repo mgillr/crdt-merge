@@ -133,7 +133,10 @@ class TypedTrustScore:
         2 -- trust < 0.4  : full aggregate PCO, O(k log n)
         3 -- trust < 0.1  : reject, O(1)
         """
-        t = self.overall_trust()
+        # Round to 12 decimal places to avoid floating-point boundary errors.
+        # Without this, overall_trust() returning 0.7999999999999999 instead
+        # of 0.8 would cause a trust level downgrade on an exact boundary.
+        t = round(self.overall_trust(), 12)
         if t < QUARANTINE_THRESHOLD:
             return 3
         if t < LOW_TRUST_THRESHOLD:

@@ -4,9 +4,11 @@
 
 # E4 Integration Guide
 
-> **Version:** 0.9.5 &middot; **Module:** `crdt_merge.e4` &middot; **Author:** Ryan Gillespie / mgillr
+> **Version:** 0.9.6 &middot; **Module:** `crdt_merge.e4` &middot; **Author:** Ryan Gillespie / mgillr
 
 How to integrate E4 into existing crdt-merge deployments. Covers zero-downtime migration, configuration, bridge setup, single-node and multi-peer operation, and performance tuning.
+
+**v0.9.6 adds real cryptographic primitives (Ed25519, ML-DSA-65) as opt-in upgrades.** See the [Enabling Real Cryptography](#enabling-real-cryptography) section.
 
 **Related documents:** [API Reference](E4-API-REFERENCE.md) · [Developer Guide](E4-DEVELOPER-GUIDE.md) · [Security Model](E4-SECURITY-MODEL.md) · [Changelog](E4-CHANGELOG.md)
 
@@ -638,6 +640,101 @@ The CRDT layer continues to work without E4. Operations use standard hashes, sta
 ### Step 4: Return to Pre-E4
 
 Since E4 introduces **no breaking changes** (see [Changelog](E4-CHANGELOG.md)), the rollback path is simply disabling the E4 features. Pre-E4 peers never knew about E4 in the first place.
+
+---
+
+## Enabling Real Cryptography
+
+New in v0.9.6. Real Ed25519 signatures and NIST ML-DSA-65 post-quantum signatures are available as opt-in upgrades over the v0.9.5 stub verification.
+
+### Verification modes
+
+| Mode | When active | Signature check |
+|---|---|---|
+| Not configured (default) | No registry configured | Verification raises `SignatureVerificationNotConfigured` |
+| Explicit legacy opt-in | `allow_unsigned=True` / `allow_unauthenticated=True`, no registry | 64-byte length check only; nothing authenticated |
+| Registry | Registry configured (`cryptography` is a core dependency) | Ed25519 under the registered key; no HMAC or embedded-key fallback |
+| Registry + `[security]` | As above, plus ML-DSA-65 where used | Ed25519 + ML-DSA-65 |
+
+### Installation
+
+```bash
+pip install crdt-merge[crypto]    # real Ed25519
+pip install crdt-merge[security]  # Ed25519 + NIST ML-DSA-65 post-quantum
+```
+
+### Minimum Configuration
+
+```python
+from crdt_merge.e4.pco import configure_ed25519_verification
+from crdt_merge.e4.proof_evidence import configure_evidence_verification
+
+class PeerRegistry:
+    def __init__(self):
+        self._keys = {}
+
+    def register(self, peer_id: str, public_key: bytes):
+        self._keys[peer_id] = public_key
+
+    def get_public_key(self, peer_id: str):
+        return self._keys.get(peer_id)
+
+registry = PeerRegistry()
+# Register peer public keys (Ed25519 raw 32-byte format)
+registry.register("alice", alice_public_key_bytes)
+registry.register("bob", bob_public_key_bytes)
+
+configure_ed25519_verification(registry)     # enforce PCO signatures
+configure_evidence_verification(registry)    # enforce evidence observer auth
+```
+
+### Signing Evidence as an Observer
+
+```python
+from crdt_merge.e4.proof_evidence import TrustEvidence
+from cryptography.hazmat.primitives.asymmetric import ed25519
+
+observer_key = ed25519.Ed25519PrivateKey.generate()
+
+evidence = TrustEvidence.create(
+    observer="alice",
+    target="eve",
+    evidence_type="invalid_delta",
+    dimension="integrity",
+    amount=0.1,
+    proof=proof_bytes,
+    observer_signing_fn=lambda payload: observer_key.sign(payload),
+)
+
+# Verify with timestamp binding (replay protection)
+assert evidence.verify(max_age_seconds=3600, require_observer_auth=True)
+```
+
+### Using Real ML-DSA-65 (Post-Quantum)
+
+```python
+from crdt_merge.e4.resilience.pq_signatures import Dilithium3Scheme, has_real_pq
+
+if has_real_pq():
+    scheme = Dilithium3Scheme()
+    private_key, public_key = scheme.generate_keypair()
+    signature = scheme.sign(private_key, b"message")
+    assert scheme.verify(public_key, b"message", signature)
+```
+
+Requires `pip install crdt-merge[security]` and a working liboqs install.
+
+### Migration Path from v0.9.5
+
+1. **Phase 0**: Current v0.9.5 users run without any changes -- v0.9.6 is a drop-in replacement with identical default behavior.
+2. **Phase 1**: Install `[crypto]` extra alongside existing code. No configuration change yet. Verify tests still pass.
+3. **Phase 2**: Generate Ed25519 keys for each peer. Distribute public keys via existing out-of-band channels.
+4. **Phase 3**: Configure the peer registry. Real signature verification activates for all NEW operations.
+5. **Phase 4**: Re-sign any long-lived evidence or deltas that must survive the transition. Old stub signatures are automatically rejected once the registry is live.
+
+### Rollback
+
+Calling `configure_ed25519_verification(None)` and `configure_evidence_verification(None)` returns to the fail-closed default: verification raises until a registry is configured. The unsigned behaviour of v0.9.5 is available only through the explicit `allow_unsigned=True` / `allow_unauthenticated=True` opt-in, which authenticates nothing.
 
 ---
 

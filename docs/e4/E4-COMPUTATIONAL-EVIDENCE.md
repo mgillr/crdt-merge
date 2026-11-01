@@ -58,15 +58,17 @@ Proof-carrying operations (PCO) wrap each merge operation in a fixed-size proof 
 
 ---
 
-## 6. Byzantine Tolerance
+## 6. Adversarial-Participant Tolerance (SLT harness)
 
 The Symbiotic Lattice Trust (SLT) protocol detects and isolates Byzantine actors through trust distance metrics. Honest nodes naturally cluster; Byzantine nodes diverge.
 
-- **Fault tolerance**: 34% (exceeds the 33.3% BFT theoretical threshold)
+SLT is not a consensus protocol and is not being compared to PBFT's ≤n/3 safety bound -- that bound is a theoretical guarantee over binary-value consensus, while SLT is an empirical measurement of CRDT trust-state convergence under adversarial peers.
+
+- **Adversarial-participant tolerance (this harness)**: 34% -- honest peers continued to converge on identical trust state with up to 34% of peers actively Byzantine
 - **Honest node distance**: 49.5
 - **Byzantine node distance**: 165.0
 - **End-to-end pipeline**: 9.69ms (10-node federation including 2 Byzantine actors)
-- **Method**: Federation of 10 nodes, 2 configured as Byzantine (arbitrary message injection). Pipeline time measured from initial merge request to full convergence with Byzantine nodes isolated.
+- **Method**: Federation of 10 nodes, 2 configured as Byzantine (arbitrary message injection). Pipeline time measured from initial merge request to full convergence with Byzantine nodes isolated. Number is a single-configuration empirical observation, not a theoretical bound.
 
 ---
 
@@ -95,7 +97,7 @@ Delta encoding and clock operations tested at scale to verify throughput does no
 E4 trust pipeline validated end-to-end on production-scale language models.
 
 - **Models**: facebook/opt-1.3b (1.3B parameters), facebook/opt-6.7b (6.7B parameters)
-- **Result**: 156/156 PASS
+- **Result**: 156/156 CRDT axiom trials pass (commutativity / associativity / idempotency × 26 strategies × both model sizes, on real weight tensors)
 - **Method**: Full CRDT axiom verification (commutativity, associativity, idempotency) across all 26 strategies on actual model weight tensors. Each test loads real model weights, applies the merge strategy with trust scoring, and verifies algebraic law compliance.
 
 ---
@@ -120,10 +122,10 @@ Trust-weighted memory synchronisation across multiple agents using different mod
 | Merkle verification | Bit diffusion | 0.500 |
 | Clock throughput | ops/s | 2.93M |
 | PCO wire format | Envelope size | 128 bytes |
-| Byzantine tolerance | Fault threshold | 34% |
+| Adversarial-participant tolerance | SLT harness (not PBFT) | 34% |
 | Strategy validation | Trust-weighted influence | 55.9% |
 | Delta/clock scaling | ops/s at scale | 1.45M / 3.08M |
-| Large-scale models | Tests passed | 156/156 |
+| Large-scale models -- CRDT axiom trials on weight tensors | Tests passed | 156/156 |
 | Agent memory | Convergence | 3 agents, 4 models |
 | **Total proofs** | | **328** |
 | **Total test functions** | E4 + core | **6,179** |

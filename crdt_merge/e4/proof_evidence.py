@@ -52,20 +52,112 @@ EVIDENCE_TYPES = {
 
 # -- TrustEvidence (ref 831) -------------------------------------------
 
+# ── Signature verification configuration ───────────────────────────────
+
+from crdt_merge.e4.signing import (  # noqa: E402
+    SignatureVerificationNotConfigured,
+    ed25519_verify,
+    load_ed25519,
+)
+
+# Module-level registry for observer and attestation authentication.
+_OBSERVER_KEY_REGISTRY = None
+_ALLOW_UNAUTHENTICATED = False
+
+#: Domain prefix for attestation signatures (see :func:`sign_attestation`).
+ATTESTATION_DOMAIN = b"crdt-merge/e4/attestation/v1\x00"
+
+
+def configure_evidence_verification(
+    registry=None, *, allow_unauthenticated: bool = False,
+) -> None:
+    """Configure authentication of trust evidence.
+
+    Args:
+        registry: object with ``get_public_key(peer_id) -> bytes``.  Every
+            evidence record must then carry a valid Ed25519 observer
+            signature under the observer's registered key, and the
+            attestations inside an equivocation proof must be signed by
+            the accused peer's registered key (``cryptography`` required).
+        allow_unauthenticated: explicit opt-in to the legacy mode, valid
+            only with ``registry=None``: observer signatures are not
+            checked and attestation signatures are only length-checked.
+            Never the default.
+
+    With neither (the default), :meth:`TrustEvidence.verify` raises
+    :class:`SignatureVerificationNotConfigured`.  A key embedded in the
+    evidence (``observer_public_key``) is never used for verification.
+    """
+    global _OBSERVER_KEY_REGISTRY, _ALLOW_UNAUTHENTICATED
+    if registry is not None and allow_unauthenticated:
+        raise ValueError("allow_unauthenticated cannot be combined with a key registry")
+    _OBSERVER_KEY_REGISTRY = registry
+    _ALLOW_UNAUTHENTICATED = bool(allow_unauthenticated)
+
+
+def _registered_key(peer_id: str) -> Optional[bytes]:
+    try:
+        key = _OBSERVER_KEY_REGISTRY.get_public_key(peer_id)
+    except (KeyError, AttributeError):
+        return None
+    return key or None
+
+
+def sign_attestation(signer: str, sequence: int, content: str, signing_fn) -> bytes:
+    """Build a signed attestation blob for an equivocation proof.
+
+    Layout: ``signer\\0sequence\\0content\\0`` followed by a 64-byte
+    Ed25519 signature over ``ATTESTATION_DOMAIN`` + that text.
+    *signing_fn* is the signer's ``(bytes) -> 64-byte signature``.
+    """
+    text = f"{signer}\x00{sequence}\x00{content}\x00".encode("utf-8")
+    signature = signing_fn(ATTESTATION_DOMAIN + text)
+    if len(signature) != 64:
+        raise ValueError("attestation signature must be exactly 64 bytes")
+    return text + signature
+
+
+def _signed_payload(
+    observer: str, target: str, evidence_type: str,
+    dimension: str, amount: float, proof: bytes, timestamp: float,
+) -> bytes:
+    """Canonical byte representation of evidence for signing/verification.
+
+    Includes timestamp to prevent replay attacks.
+    """
+    import struct
+    parts = [
+        observer.encode("utf-8"),
+        b"\x00",
+        target.encode("utf-8"),
+        b"\x00",
+        evidence_type.encode("utf-8"),
+        b"\x00",
+        dimension.encode("utf-8"),
+        b"\x00",
+        struct.pack("!d", amount),
+        struct.pack("!d", timestamp),
+        proof,
+    ]
+    return b"".join(parts)
+
+
 @dataclass(frozen=True)
 class TrustEvidence:
     """Immutable evidence record backed by a cryptographic proof.
 
     Fields
     ------
-    observer : str       Peer that observed the misbehaviour.
-    target : str         Peer accused of misbehaviour.
-    evidence_type : str  One of the five canonical types.
-    dimension : str      Trust dimension affected.
-    amount : float       Severity (positive, added to GCounter).
-    proof : bytes        Opaque proof payload.
-    proof_type : str     Expected proof format for this evidence type.
-    timestamp : float    POSIX timestamp of observation.
+    observer : str              Peer that observed the misbehaviour.
+    target : str                Peer accused of misbehaviour.
+    evidence_type : str         One of the five canonical types.
+    dimension : str              Trust dimension affected.
+    amount : float               Severity (positive, added to GCounter).
+    proof : bytes                Opaque proof payload.
+    proof_type : str             Expected proof format for this evidence type.
+    timestamp : float            POSIX timestamp of observation.
+    observer_signature : bytes   Optional signature over the signed payload.
+    observer_public_key : bytes  Optional public key (for self-describing evidence).
     """
 
     observer: str
@@ -76,6 +168,8 @@ class TrustEvidence:
     proof: bytes
     proof_type: str
     timestamp: float
+    observer_signature: bytes = b""
+    observer_public_key: bytes = b""
 
     # -- construction helpers -------------------------------------------
 
@@ -90,10 +184,31 @@ class TrustEvidence:
         proof: bytes,
         *,
         timestamp: Optional[float] = None,
+        observer_signing_fn: Optional[object] = None,
+        observer_public_key: bytes = b"",
     ) -> TrustEvidence:
-        """Build an evidence record with validation."""
+        """Build an evidence record with validation.
+
+        If observer_signing_fn is provided, the evidence is cryptographically
+        signed by the observer. This binds the evidence to its source and
+        prevents spoofing.
+
+        Args:
+            observer_signing_fn: callable(payload_bytes) -> signature_bytes
+            observer_public_key: informational only; verification always
+                uses the key registered for *observer*
+        """
         if evidence_type not in EVIDENCE_TYPES:
             raise ValueError(f"unknown evidence type: {evidence_type}")
+        ts = timestamp if timestamp is not None else _time.time()
+
+        signature = b""
+        if observer_signing_fn is not None:
+            payload = _signed_payload(
+                observer, target, evidence_type, dimension, amount, proof, ts,
+            )
+            signature = observer_signing_fn(payload)
+
         return cls(
             observer=observer,
             target=target,
@@ -102,17 +217,47 @@ class TrustEvidence:
             amount=amount,
             proof=proof,
             proof_type=EVIDENCE_TYPES[evidence_type],
-            timestamp=timestamp if timestamp is not None else _time.time(),
+            timestamp=ts,
+            observer_signature=signature,
+            observer_public_key=observer_public_key,
         )
 
     # -- deterministic verification (ref 833) ---------------------------
 
-    def verify(self, merkle_root: Optional[str] = None) -> bool:
+    def verify(
+        self,
+        merkle_root: Optional[str] = None,
+        *,
+        max_age_seconds: Optional[float] = None,
+        require_observer_auth: bool = False,
+    ) -> bool:
         """Verify the proof without trusting the observer.
 
         Each evidence type dispatches to a type-specific verifier.
         Returns False on any structural or cryptographic failure.
+
+        Authentication is fail-closed (see
+        :func:`configure_evidence_verification`): with a registry, the
+        observer signature is always required; with no registry, this
+        raises SignatureVerificationNotConfigured unless unauthenticated
+        mode was explicitly enabled.
+
+        Args:
+            merkle_root: expected root for merkle_divergence evidence.
+            max_age_seconds: reject evidence older than this many seconds
+                (prevents replay of stale evidence).
+            require_observer_auth: if True, the observer signature must
+                verify; in unauthenticated mode this always fails.
         """
+        if _OBSERVER_KEY_REGISTRY is not None:
+            load_ed25519()  # raises Ed25519Unavailable; never a silent False
+        elif not _ALLOW_UNAUTHENTICATED:
+            raise SignatureVerificationNotConfigured(
+                "evidence verification is not configured: call "
+                "configure_evidence_verification(registry), or opt into "
+                "unauthenticated mode explicitly with "
+                "configure_evidence_verification(None, allow_unauthenticated=True)"
+            )
         if self.evidence_type not in EVIDENCE_TYPES:
             return False
         if self.proof_type != EVIDENCE_TYPES[self.evidence_type]:
@@ -121,6 +266,17 @@ class TrustEvidence:
             return False
         if self.amount > 1.0:
             return False
+
+        # Age check (replay prevention)
+        if max_age_seconds is not None:
+            age = _time.time() - self.timestamp
+            if age > max_age_seconds or age < -60:  # allow 60s clock skew
+                return False
+
+        # Observer authentication (always, once a registry is configured)
+        if _OBSERVER_KEY_REGISTRY is not None or require_observer_auth:
+            if not self._verify_observer_signature():
+                return False
 
         try:
             if self.evidence_type == "equivocation":
@@ -136,6 +292,24 @@ class TrustEvidence:
         except Exception:
             return False
         return False
+
+    def _verify_observer_signature(self) -> bool:
+        """Verify the observer's signature on this evidence.
+
+        Binds evidence to its claimed source.  The key is the one
+        registered for ``self.observer``; a key carried inside the
+        evidence is never used.  Strict Ed25519, no fallback.
+        """
+        if not self.observer_signature or _OBSERVER_KEY_REGISTRY is None:
+            return False
+        public_key = _registered_key(self.observer)
+        if public_key is None:
+            return False
+        payload = _signed_payload(
+            self.observer, self.target, self.evidence_type,
+            self.dimension, self.amount, self.proof, self.timestamp,
+        )
+        return ed25519_verify(public_key, payload, self.observer_signature)
 
     # -- per-type verifiers ---------------------------------------------
 
@@ -207,7 +381,8 @@ class TrustEvidence:
         if self.target.encode("utf-8") not in delta_bytes:
             return False
         actual_hash = hashlib.sha256(delta_bytes).digest()
-        return actual_hash != expected_hash
+        import hmac as _hmac
+        return not _hmac.compare_digest(actual_hash, expected_hash)
 
     def _verify_trust_consistency(self) -> bool:
         """Inconsistent trust state pair.
@@ -333,8 +508,18 @@ def _decode_attestation(raw: bytes) -> Optional[dict]:
 
 
 def _verify_attestation_sig(op: dict) -> bool:
-    """Stub: in production, verify Ed25519 over (signer||seq||content)."""
-    return op is not None and len(op.get("signature", b"")) == 64
+    """Ed25519 over ATTESTATION_DOMAIN + the attestation text, under the
+    signer's registered key.  In the explicit unauthenticated mode only
+    the signature length is checked."""
+    if op is None:
+        return False
+    signature = op.get("signature", b"")
+    if _OBSERVER_KEY_REGISTRY is None:
+        return _ALLOW_UNAUTHENTICATED and len(signature) == 64
+    public_key = _registered_key(op["signer"])
+    if public_key is None:
+        return False
+    return ed25519_verify(public_key, ATTESTATION_DOMAIN + op["raw"][:-64], signature)
 
 
 def _unpack_merkle_path(

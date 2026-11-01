@@ -467,8 +467,10 @@ def observe_and_propagate(self, evidence: TrustEvidence) -> ProjectionDelta:
     old_trust = self.get_trust(target)
     new_trust = old_trust.record_evidence(...)
 
-    # 4. Homeostasis normalization
-    self._trust_scores = self._homeostasis.normalize(...)
+    # 4. (0.10.0) NO homeostasis normalization here -- assigning
+    #    self._trust_scores = self._homeostasis.normalize(...) back to stored state
+    #    is the SEC defect fixed in 0.10.0 (non-monotone rescale breaks the join).
+    #    Use lattice.normalized_scores() as a derived read instead.
 
     # 5. Circuit breaker tracking
     self._circuit_breaker.record_trust_change(...)

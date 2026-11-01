@@ -530,7 +530,7 @@ compliance policies and generating audit reports.
 
 v0.9.5 extends the security architecture with the E4 trust layer, providing four interlocking defence mechanisms against Byzantine and Sybil attacks in distributed merge networks.
 
-**Byzantine defence.** The SLT (Statistical Lattice Trust) protocol tolerates up to 34% Byzantine participants in any merge federation. Participants whose behaviour diverges from the lattice consensus are automatically excluded, and the exclusion is cryptographically logged.
+**Byzantine defence.** The SLT (Symbiotic Lattice Trust) protocol is a lattice-native Byzantine-detection layer, not a PBFT-style consensus protocol. Under the evaluated harness, honest peers continued to converge on identical trust state with up to 34% actively Byzantine participants (empirical measurement, not a theoretical bound). Participants whose behaviour diverges from the lattice are automatically excluded via trust decay, and the exclusion is cryptographically logged.
 
 **Sybil detection.** The resilience subsystem detects coordinated identity fabrication by correlating trust evidence patterns across peers. New identities start at a baseline trust level and must accumulate genuine evidence before gaining merge influence.
 

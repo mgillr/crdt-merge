@@ -281,12 +281,70 @@ def _build_metadata(version: int = 1, flags: int = 0) -> bytes:
     return struct.pack("!HHQ", version, flags, ts) + b"\x00" * 20
 
 
-def _verify_ed25519(signature: bytes, message: bytes, peer_id: str) -> bool:
-    """Ed25519 verification stub.
+# ── Signature verification ────────────────────────────────────────────────
 
-    In production this resolves *peer_id* to a public key via the peer
-    registry and performs real Ed25519 verification.  The stub accepts
-    any 64-byte signature to allow integration testing without a full
-    key infrastructure.
+from crdt_merge.e4.signing import (  # noqa: E402
+    SignatureVerificationNotConfigured,
+    ed25519_verify,
+    has_ed25519,
+    load_ed25519,
+)
+
+# Module-level peer key registry.  Verification is strict Ed25519 against
+# the registered key.  With no registry, verification raises unless the
+# caller explicitly opted into unsigned mode.
+_PEER_KEY_REGISTRY = None
+_ALLOW_UNSIGNED = False
+
+
+def configure_ed25519_verification(registry=None, *, allow_unsigned: bool = False) -> None:
+    """Configure PCO signature verification.
+
+    Args:
+        registry: object with ``get_public_key(peer_id) -> bytes``.  Every
+            PCO signature is then checked as Ed25519 under the originator's
+            registered key (``cryptography`` required).
+        allow_unsigned: explicit opt-in to the legacy unsigned mode, valid
+            only with ``registry=None``: any 64-byte value is accepted as a
+            signature, so nothing is authenticated.  Never the default.
+
+    With neither (the default), verifying a PCO signature raises
+    :class:`SignatureVerificationNotConfigured`.
     """
-    return len(signature) == 64
+    global _PEER_KEY_REGISTRY, _ALLOW_UNSIGNED
+    if registry is not None and allow_unsigned:
+        raise ValueError("allow_unsigned cannot be combined with a key registry")
+    _PEER_KEY_REGISTRY = registry
+    _ALLOW_UNSIGNED = bool(allow_unsigned)
+
+
+def has_real_crypto() -> bool:
+    """Return True if the cryptography package is available."""
+    return has_ed25519()
+
+
+def _verify_ed25519(signature: bytes, message: bytes, peer_id: str) -> bool:
+    """Strict Ed25519 verification of *signature* under *peer_id*'s key.
+
+    No registry: raises SignatureVerificationNotConfigured, unless unsigned
+    mode was explicitly enabled.  Registry: True only for a valid Ed25519
+    signature under the registered 32-byte key; raises Ed25519Unavailable
+    when the cryptography package is missing.  There is no other path.
+    """
+    if _PEER_KEY_REGISTRY is None:
+        if _ALLOW_UNSIGNED:
+            return isinstance(signature, (bytes, bytearray)) and len(signature) == 64
+        raise SignatureVerificationNotConfigured(
+            "PCO signature verification is not configured: call "
+            "configure_ed25519_verification(registry), or opt into unsigned "
+            "mode explicitly with configure_ed25519_verification(None, "
+            "allow_unsigned=True)"
+        )
+    load_ed25519()  # raises Ed25519Unavailable before any lookup
+    try:
+        public_key = _PEER_KEY_REGISTRY.get_public_key(peer_id)
+    except (KeyError, AttributeError):
+        return False
+    if not public_key:
+        return False
+    return ed25519_verify(public_key, message, signature)

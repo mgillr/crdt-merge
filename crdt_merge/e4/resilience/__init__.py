@@ -35,6 +35,9 @@ from crdt_merge.e4.resilience.domain_hash import (
     HashDomain,
 )
 from crdt_merge.e4.resilience.key_manager import (
+    SCHEME_ED25519,
+    SCHEME_HMAC,
+    Ed25519Unavailable,
     KeyManager,
     KeyPair,
     PeerKeyRegistry,
@@ -90,6 +93,7 @@ from crdt_merge.e4.resilience.longcon_sybil import (
     SybilAlert,
 )
 from crdt_merge.e4.resilience.pq_signatures import (
+    Ed25519Scheme,
     HmacScheme,
     DilithiumLite,
     HybridScheme,
@@ -133,6 +137,7 @@ __all__ = [
     # Round 1
     "DomainSeparatedHasher", "HashDomain",
     "KeyManager", "KeyPair", "PeerKeyRegistry", "RevocationEntry",
+    "Ed25519Unavailable", "SCHEME_ED25519", "SCHEME_HMAC",
     "EpochManager", "EpochState", "EpochTransition",
     "ConvergenceBound", "ConvergenceMonitor",
     "TrustPrivacyFilter", "ByzantineThresholdAnalyzer",
@@ -147,7 +152,7 @@ __all__ = [
     # Round 2
     "E4FormalSpec", "PropertyVerifier", "SpecBounds", "TemporalProperty",
     "LongConDetector", "LongConConfig", "SybilAlert",
-    "HmacScheme", "DilithiumLite", "HybridScheme",
+    "Ed25519Scheme", "HmacScheme", "DilithiumLite", "HybridScheme",
     "register_scheme", "get_scheme", "available_schemes",
     "TrustConvergenceAnalyser", "HeterogeneityProfile", "WarmupSchedule",
     "TrustInheritanceManager", "VouchRecord", "DeviceCluster",

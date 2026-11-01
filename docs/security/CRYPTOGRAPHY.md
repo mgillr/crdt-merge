@@ -46,38 +46,108 @@ secret can produce valid signatures).
 - Scenarios requiring non-repudiation (provable attribution)
 - Multi-organisation deployments with trust boundaries
 
-## Defined Backends (Not Yet Hardened)
+## Production Backends (v0.9.6)
 
-### Ed25519
+### Ed25519 (Asymmetric, Production Ready)
 
-The Ed25519 adapter (`e4/resilience/signature_schemes.py`) provides
-asymmetric signatures with per-peer keypairs. Each peer signs evidence
-with their private key; other peers verify using the public key.
+Real Ed25519 signatures via the `cryptography` library. Available when `crdt-merge[crypto]` is installed and a peer key registry is configured.
 
-**Current status:** The interface is defined and the adapter compiles,
-but it has not been hardened for production. Specifically:
-- Key generation uses Python's `cryptography` library (adequate)
-- Key storage and rotation are not implemented
-- The adapter has unit tests but no adversarial testing
+**What it protects:**
+- PCO signatures -- prevents forgery of operation attestations
+- Observer signatures on `TrustEvidence` -- prevents spoofed accusations
+- Revocation entries -- prevents unauthorized key revocation
+- KeyPair sign/verify operations in the key manager
 
-### Post-Quantum (Dilithium)
+**How to enable:**
 
-The post-quantum adapter provides lattice-based signatures resistant
-to quantum computing attacks. It follows the NIST FIPS 204 standard.
+```python
+from crdt_merge.e4.pco import configure_ed25519_verification
+from crdt_merge.e4.proof_evidence import configure_evidence_verification
 
-**Current status:** Interface defined. Depends on a PQ cryptography
-library that is not yet stable. This is a forward-looking placeholder.
+class Registry:
+    def __init__(self):
+        self._keys = {}
+    def register(self, peer_id, public_key):
+        self._keys[peer_id] = public_key
+    def get_public_key(self, peer_id):
+        return self._keys.get(peer_id)
+
+reg = Registry()
+reg.register("alice", alice_public_key_32_bytes)
+configure_ed25519_verification(reg)
+configure_evidence_verification(reg)
+```
+
+Without a registry, behaviour falls back to v0.9.5 stub (length check only) for backward compatibility.
+
+**Verification cost:**
+- Ed25519 verify: ~100μs per signature on modern hardware
+- Full PCO verification at level 0: signature + hash comparison
+- Full PCO verification at level 2: signature + Merkle + clock + trust derivation
+
+### ML-DSA-65 (Post-Quantum, Production Ready)
+
+Real NIST-standardised Dilithium3 (aka ML-DSA-65) via liboqs. This is the lattice-based signature scheme selected by NIST for FIPS 204.
+
+**What it protects:**
+- Long-lived signatures that must survive the arrival of fault-tolerant quantum computers
+- Trust evidence and revocations where non-repudiation must extend beyond ~15 years
+
+**How to enable:**
+
+```bash
+pip install crdt-merge[security]
+```
+
+```python
+from crdt_merge.e4.resilience.pq_signatures import Dilithium3Scheme, has_real_pq
+
+if has_real_pq():
+    scheme = Dilithium3Scheme()
+    private_key, public_key = scheme.generate_keypair()
+    signature = scheme.sign(private_key, message)
+    assert scheme.verify(public_key, message, signature)
+```
+
+**Signature sizes:**
+- Public key: 1952 bytes
+- Signature: 3293 bytes
+- Security level: 192 bits (NIST Level 3)
+
+### HMAC-SHA256 (Symmetric, Fallback)
+
+A shared-secret MAC (`HmacScheme`), available only by constructing it explicitly: it is not registered by default and is not the classical half of `HybridScheme` (Ed25519 is). No verification path falls back to HMAC. Provides integrity between holders of the secret, not non-repudiation.
+
+`KeyPair` (E4 key manager) never selects HMAC implicitly. Keys are Ed25519 by default, and `cryptography` is a core dependency. `generate`, `sign` and `verify` still raise `Ed25519Unavailable` if it is missing, and `verify` on an Ed25519 key accepts only a valid Ed25519 signature. Every key carries its `scheme`, which is bound into its `key_id`. Exchange an Ed25519 key with `export_public()` and rebuild it with `KeyPair.from_public(public_key, scheme)`; building a key from public bytes without a scheme is refused, and `PeerKeyRegistry` refuses a key whose scheme differs from the one recorded for that peer.
+
+HMAC mode (`scheme="hmac-sha256"`) is opt-in and is a shared-secret MAC, not a signature: whoever holds the key can create valid tags. An HMAC key must never be distributed as a public key, and `export_public()` refuses it. Both parties build it with `KeyPair.from_shared_secret(secret)` from a secret agreed out of band, so `KeyManager.verify_peer` for an HMAC peer uses that secret and never a key received from the peer.
+
+### DilithiumLite (DEPRECATED for PQ)
+
+**Not post-quantum despite the name.** This is a hash-based construction using SHAKE-256 that was kept for backward compatibility. Security level is 128 bits classical, and it would degrade under Grover's algorithm. Use `Dilithium3Scheme` for real PQ security.
+
+## Selection Guide
+
+| Deployment | Required level | Recommended backend |
+|---|---|---|
+| Closed federation, single org | Integrity only | Ed25519 with a key registry; HMAC-SHA256 only as an explicit shared secret |
+| Development / testing | Minimal | Explicit unsigned mode (`allow_unsigned=True`, `allow_unauthenticated=True`) |
+| Multi-org production | Non-repudiation | Ed25519 |
+| Regulated industry | Non-repudiation | Ed25519 |
+| Long-lived attestations | PQ resistance | ML-DSA-65 (`[security]`) |
+| Government / defense | FIPS / PQ | ML-DSA-65 (`[security]`) |
 
 ## Upgrade Path
 
-Upgrading from HMAC-SHA256 to Ed25519 requires:
+Ed25519 is the default and `cryptography` is a core dependency. To turn
+verification on:
 
 1. Generate a keypair per peer (one-time setup)
-2. Set `CRDT_E4_SIGNATURE_SCHEME=ed25519` environment variable
-3. Distribute public keys to all peers (out-of-band)
+2. Distribute public keys to all peers out of band (`KeyPair.export_public()` / `KeyPair.from_public()`)
+3. Call `configure_ed25519_verification(registry)` and `configure_evidence_verification(registry)`
 
-No E4 logic changes. No API changes. The trust lattice, evidence
-records, and Merkle trees work identically regardless of backend.
+Until step 3, verification raises `SignatureVerificationNotConfigured`
+rather than accepting anything.
 
 ## Merkle Hashing
 
@@ -94,8 +164,8 @@ critical hash computations.
 
 | Deployment Type | Recommended Backend |
 |-----------------|---------------------|
-| Single machine / local | HMAC-SHA256 (default) |
-| Closed federation (trusted peers) | HMAC-SHA256 |
-| Open federation | Ed25519 (when hardened) |
+| Single machine / local | Ed25519 (default) |
+| Closed federation (trusted peers) | Ed25519, or HMAC-SHA256 as an explicit shared secret |
+| Open federation | Ed25519 |
 | Long-term archival / compliance | Ed25519 + key rotation |
 | Post-quantum threat model | Dilithium (when stable) |

@@ -351,18 +351,22 @@ class LWWRegister:
 class ORSet:
     """Observed-Remove Set — add and remove elements without conflicts.
     
-    Each element is tagged with a unique ID on add. Remove kills specific tags,
-    so concurrent add+remove of the same element resolves correctly (add wins
-    over concurrent remove — the "add-wins" semantics).
-    
+    Each element is tagged with a unique ID on add. Remove kills the tags it
+    has *observed* and records them as removed (tombstones), so concurrent
+    add+remove of the same element resolves correctly (add wins over a
+    concurrent remove — the "add-wins" semantics) and a stale replica that
+    still carries the removed tags cannot resurrect the element on merge.
+
     Perfect for: membership lists, tag sets, deduplication sets.
     """
-    __slots__ = ('_elements',)
+    __slots__ = ('_elements', '_tombstones')
 
     def __init__(self):
         """Initialize an empty observed-remove set."""
-        # element -> set of unique tags
+        # element -> set of live unique tags
         self._elements: Dict[Hashable, Set[str]] = {}
+        # tags that have been observed and removed (never live again)
+        self._tombstones: Set[str] = set()
 
     @property
     def value(self) -> set:
@@ -395,17 +399,22 @@ class ORSet:
         return tag
 
     def remove(self, element: Hashable) -> None:
-        """Remove an element by clearing all of its associated tags.
+        """Remove an element by clearing all of its currently observed tags.
 
+        The removed tags are recorded as tombstones, so merging a stale
+        replica that still holds them does not bring the element back.
         After this call the element will no longer appear in :attr:`value`.
-        However, a concurrent ``add`` on another replica may re-introduce
-        the element upon merge (add-wins semantics).
+        However, a concurrent ``add`` on another replica (a tag this replica
+        has not observed) may re-introduce the element upon merge
+        (add-wins semantics).
 
         Args:
             element: The element to remove. No error is raised if the
                 element is absent.
         """
-        if element in self._elements:
+        tags = self._elements.get(element)
+        if tags:
+            self._tombstones |= tags
             self._elements[element] = set()
 
     def remove_tag(self, element: Hashable, tag: str) -> None:
@@ -424,6 +433,7 @@ class ORSet:
         """
         if element not in self._elements:
             raise KeyError(f"{element!r} not found in ORSet")
+        self._tombstones.add(tag)
         self._elements[element].discard(tag)
 
     def contains(self, element: Hashable) -> bool:
@@ -443,10 +453,12 @@ class ORSet:
     def merge(self, other: ORSet) -> ORSet:
         """Merge this set with another, returning a new ORSet.
 
-        Tags for each element are combined via set union so that an
-        element is live in the result if it is live in *either* replica.
-        This guarantees add-wins semantics and is commutative, associative,
-        and idempotent.
+        Tombstones are combined by set union; the live tags of each element
+        are the union of both replicas' tags minus every tombstone. An element
+        is therefore live if either replica holds a tag for it that no replica
+        has observed-and-removed. This guarantees add-wins semantics against
+        concurrent removes, prevents resurrection of removed elements by stale
+        replicas, and is commutative, associative, and idempotent.
 
         Args:
             other: The remote ORSet state to merge with.
@@ -455,11 +467,12 @@ class ORSet:
             A new ``ORSet`` representing the merged state.
         """
         result = ORSet()
+        result._tombstones = self._tombstones | other._tombstones
         all_elements = set(self._elements) | set(other._elements)
         for e in all_elements:
             tags_a = self._elements.get(e, set())
             tags_b = other._elements.get(e, set())
-            result._elements[e] = tags_a | tags_b
+            result._elements[e] = (tags_a | tags_b) - result._tombstones
         return result
 
     def to_dict(self) -> dict:
@@ -471,8 +484,11 @@ class ORSet:
 
         Returns:
             A dict with key ``"type"`` (``"or_set"``), ``"elements"``
-            (mapping of stringified keys to tag lists), and optionally
-            ``"element_types"`` for non-string keys.
+            (mapping of stringified keys to tag lists), optionally
+            ``"element_types"`` for non-string keys, and ``"tombstones"``
+            (sorted list of removed tags) once anything has been removed.
+            Dicts without ``"tombstones"`` (written by earlier versions)
+            still load.
         """
         import json
         elements = {}
@@ -486,6 +502,8 @@ class ORSet:
         result = {"type": "or_set", "elements": elements}
         if type_map:
             result["element_types"] = type_map
+        if self._tombstones:
+            result["tombstones"] = sorted(self._tombstones)
         return result
 
     @classmethod
@@ -510,6 +528,9 @@ class ORSet:
             else:
                 restored_key = k
             s._elements[restored_key] = set(tags)
+        s._tombstones = set(d.get("tombstones", ()))
+        for tags in s._elements.values():
+            tags -= s._tombstones
         return s
 
     def __repr__(self):
@@ -557,8 +578,9 @@ class LWWMap:
     def get(self, key: str, default: Any = None) -> Any:
         """Retrieve the value for a key.
 
-        Returns ``default`` if the key has been deleted (tombstoned) or was
-        never set.
+        Returns ``default`` if the key was never set or its tombstone is at
+        least as new as its register (the same rule :attr:`value` applies, so
+        the two views always agree).
 
         Args:
             key: The map key to look up.
@@ -569,10 +591,15 @@ class LWWMap:
             The current value for ``key``, or ``default`` if absent or
             tombstoned.
         """
-        if key in self._tombstones:
-            return default
         reg = self._registers.get(key)
-        return reg.value if reg else default
+        if reg is None or not self._is_live(key, reg):
+            return default
+        return reg.value
+
+    def _is_live(self, key: str, reg: LWWRegister) -> bool:
+        """A key is live unless a tombstone is at least as new as its register."""
+        ts = self._tombstones.get(key)
+        return ts is None or reg.timestamp > ts
 
     def delete(self, key: str, timestamp: Optional[float] = None) -> None:
         """Mark a key as deleted by recording a tombstone timestamp.
@@ -601,7 +628,7 @@ class LWWMap:
         """
         result = {}
         for k, reg in self._registers.items():
-            if k not in self._tombstones or reg.timestamp > self._tombstones[k]:
+            if self._is_live(k, reg):
                 result[k] = reg.value
         return result
 
@@ -632,11 +659,8 @@ class LWWMap:
                 result._registers[k] = LWWRegister(b.value, b.timestamp, b._node_id)
         # Merge tombstones -- latest deletion wins
         for k in set(self._tombstones) | set(other._tombstones):
-            ts_a = self._tombstones.get(k, 0)
-            ts_b = other._tombstones.get(k, 0)
-            max_ts = max(ts_a, ts_b)
-            if max_ts > 0:
-                result._tombstones[k] = max_ts
+            known = [t[k] for t in (self._tombstones, other._tombstones) if k in t]
+            result._tombstones[k] = max(known)
         return result
 
     def to_dict(self) -> dict:

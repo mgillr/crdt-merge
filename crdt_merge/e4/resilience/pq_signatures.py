@@ -22,7 +22,10 @@ resistance are preferable.
 
 Architecture:
   - ``SignatureScheme`` abstract base defines sign/verify interface.
-  - ``HmacScheme`` wraps current HMAC-SHA256 (backwards compatible).
+  - ``Ed25519Scheme`` real Ed25519 via ``cryptography`` (the classical
+    default; raises ``Ed25519Unavailable`` when the package is missing).
+  - ``HmacScheme`` shared-secret HMAC-SHA256.  Not a signature, not
+    registered by default, never selected implicitly.
   - ``DilithiumLite`` provides a Dilithium-inspired lattice-based
     scheme using SHAKE-256 for the hash and structured lattice
     commitments.  Not a full CRYSTALS-Dilithium implementation
@@ -49,6 +52,8 @@ import struct
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Optional, Tuple
+
+from crdt_merge.e4.signing import ed25519_verify, load_ed25519
 
 
 # -- Abstract signature scheme ---------------------------------------------
@@ -85,26 +90,72 @@ class SignatureScheme(ABC):
         ...
 
 
-# -- HMAC-SHA256 (current scheme, backwards compatible) --------------------
+# -- Ed25519 (classical default) ------------------------------------------
+
+class Ed25519Scheme(SignatureScheme):
+    """Real Ed25519 through the ``cryptography`` package.
+
+    ``generate_keypair``, ``sign`` and ``verify`` raise
+    ``Ed25519Unavailable`` when the package is missing; ``verify``
+    returns True only for a valid 64-byte signature under a 32-byte key.
+    """
+
+    def name(self) -> str:
+        return "ed25519"
+
+    def generate_keypair(self, seed: Optional[bytes] = None) -> Tuple[bytes, bytes]:
+        ed25519, _ = load_ed25519()
+        if seed is None:
+            sk = ed25519.Ed25519PrivateKey.generate()
+        else:
+            raw = seed if len(seed) == 32 else hashlib.sha256(seed).digest()
+            sk = ed25519.Ed25519PrivateKey.from_private_bytes(raw)
+        return sk.private_bytes_raw(), sk.public_key().public_bytes_raw()
+
+    def sign(self, private_key: bytes, message: bytes) -> bytes:
+        ed25519, _ = load_ed25519()
+        if len(private_key) != 32:
+            raise ValueError("not an Ed25519 private key (expected 32 raw bytes)")
+        return ed25519.Ed25519PrivateKey.from_private_bytes(private_key).sign(message)
+
+    def verify(self, public_key: bytes, message: bytes, signature: bytes) -> bool:
+        return ed25519_verify(public_key, message, signature)
+
+    @property
+    def signature_size(self) -> int:
+        return 64
+
+    @property
+    def public_key_size(self) -> int:
+        return 32
+
+    @property
+    def security_level(self) -> int:
+        return 128
+
+
+# -- HMAC-SHA256 (explicit shared-secret MAC) -------------------------------
 
 class HmacScheme(SignatureScheme):
-    """HMAC-SHA256 symmetric authentication (current E4 default).
+    """HMAC-SHA256 message authentication with a shared secret.
 
-    Uses shared key model: public_key = SHA256(private_key).
-    Both parties derive the HMAC key from the public key.
+    Not a signature scheme: whoever can verify can also sign.
+    ``generate_keypair`` returns the same secret twice, ``sign`` and
+    ``verify`` key HMAC with that secret, and the "public" half must be
+    distributed only to parties allowed to sign.  It is not registered
+    by default and is never HybridScheme's default classical half; use
+    it only by constructing it explicitly.
     """
 
     def name(self) -> str:
         return "hmac-sha256"
 
     def generate_keypair(self, seed: Optional[bytes] = None) -> Tuple[bytes, bytes]:
-        private = seed or os.urandom(32)
-        public = hashlib.sha256(private).digest()
-        return private, public
+        secret = seed or os.urandom(32)
+        return secret, secret
 
     def sign(self, private_key: bytes, message: bytes) -> bytes:
-        public = hashlib.sha256(private_key).digest()
-        return hmac.new(public, message, hashlib.sha256).digest()
+        return hmac.new(private_key, message, hashlib.sha256).digest()
 
     def verify(self, public_key: bytes, message: bytes, signature: bytes) -> bool:
         expected = hmac.new(public_key, message, hashlib.sha256).digest()
@@ -126,16 +177,21 @@ class HmacScheme(SignatureScheme):
 # -- Lattice-based PQ scheme (Dilithium-inspired) -------------------------
 
 class DilithiumLite(SignatureScheme):
-    """Lattice-based post-quantum signature scheme.
+    """Hash-based signature scheme using SHAKE-256.
 
-    Simplified construction inspired by CRYSTALS-Dilithium (NIST PQC
-    standard).  Uses SHAKE-256 for the commitment hash and structured
-    rejection sampling for signature generation.
+    WARNING: Despite the name, this is NOT a lattice-based post-quantum
+    signature. It is a hash-based construction using SHAKE-256, which
+    does not provide post-quantum security against Grover's algorithm.
 
-    Security model: based on the Module-LWE hardness assumption.
-    This implementation prioritises API compatibility and correct
-    security structure over cryptographic optimality — production
-    deployments should use the NIST reference implementation.
+    Use cases: API compatibility layer, testing, deployments that do not
+    need quantum resistance. For real post-quantum security, install
+    the ``oqs-python`` package and use ``Dilithium3Scheme`` instead:
+
+        pip install crdt-merge[security]
+
+    Security level: 128 bits classical (not 192), degrades to 64 bits
+    under Grover's algorithm. Real NIST Level 3 requires Dilithium3
+    which is provided via the optional oqs-python dependency.
     """
 
     SEED_SIZE = 64
@@ -188,7 +244,90 @@ class DilithiumLite(SignatureScheme):
 
     @property
     def security_level(self) -> int:
-        return 192  # NIST Level 3 equivalent
+        # Honest assessment: 128 bits classical, NOT post-quantum.
+        # Previous value of 192 was aspirational -- this is a hash-based
+        # stub, not real Dilithium. For real NIST Level 3 use Dilithium3Scheme.
+        return 128
+
+
+# -- Real Dilithium3 (optional, requires oqs-python) ---------------------
+
+try:
+    import oqs as _oqs
+    _HAS_OQS = True
+except ImportError:
+    _oqs = None
+    _HAS_OQS = False
+
+
+class Dilithium3Scheme(SignatureScheme):
+    """Real NIST Level 3 post-quantum signatures via liboqs.
+
+    Requires the optional ``oqs-python`` package:
+
+        pip install crdt-merge[security]
+
+    Unlike DilithiumLite (which is hash-based and not actually PQ),
+    this scheme uses the real CRYSTALS-Dilithium Level 3 reference
+    implementation with proven lattice-based security against both
+    classical and quantum adversaries.
+    """
+
+    def __init__(self):
+        if not _HAS_OQS:
+            raise RuntimeError(
+                "Dilithium3Scheme requires oqs-python. "
+                "Install with: pip install crdt-merge[security]"
+            )
+        # NIST PQC Level 3. In liboqs 0.15+ this is the standardized
+        # ML-DSA-65 name; older versions use Dilithium3. Try both.
+        available = _oqs.get_enabled_sig_mechanisms()
+        for candidate in ("ML-DSA-65", "Dilithium3"):
+            if candidate in available:
+                self._alg_name = candidate
+                return
+        raise RuntimeError(
+            "Neither ML-DSA-65 nor Dilithium3 available in this liboqs build"
+        )
+
+    def name(self) -> str:
+        return "dilithium-3"
+
+    def generate_keypair(self, seed: Optional[bytes] = None) -> Tuple[bytes, bytes]:
+        # Note: oqs doesn't support deterministic seed-based generation
+        # in the public API. Seed is ignored.
+        with _oqs.Signature(self._alg_name) as sig:
+            public_key = sig.generate_keypair()
+            private_key = sig.export_secret_key()
+            return private_key, public_key
+
+    def sign(self, private_key: bytes, message: bytes) -> bytes:
+        with _oqs.Signature(self._alg_name, secret_key=private_key) as sig:
+            return sig.sign(message)
+
+    def verify(self, public_key: bytes, message: bytes, signature: bytes) -> bool:
+        try:
+            with _oqs.Signature(self._alg_name) as sig:
+                return sig.verify(message, signature, public_key)
+        except Exception:
+            return False
+
+    @property
+    def signature_size(self) -> int:
+        return 3293  # Dilithium3 signature size in bytes
+
+    @property
+    def public_key_size(self) -> int:
+        return 1952  # Dilithium3 public key size in bytes
+
+    @property
+    def security_level(self) -> int:
+        return 192  # Real NIST Level 3
+
+
+def has_real_pq() -> bool:
+    """Return True if real post-quantum signatures are available."""
+    return _HAS_OQS
 
 
 # -- Hybrid scheme (classical + PQ) ---------------------------------------
@@ -208,7 +347,7 @@ class HybridScheme(SignatureScheme):
         classical: Optional[SignatureScheme] = None,
         pq: Optional[SignatureScheme] = None,
     ) -> None:
-        self._classical = classical or HmacScheme()
+        self._classical = classical or Ed25519Scheme()
         self._pq = pq or DilithiumLite()
 
     def name(self) -> str:
@@ -283,10 +422,17 @@ def available_schemes() -> list[str]:
     return sorted(_REGISTRY)
 
 
-# register defaults
-register_scheme(HmacScheme())
+# register defaults (HmacScheme is deliberately not registered)
+register_scheme(Ed25519Scheme())
 register_scheme(DilithiumLite())
 register_scheme(HybridScheme())
+
+# Register real Dilithium3 only if oqs-python is available
+if _HAS_OQS:
+    try:
+        register_scheme(Dilithium3Scheme())
+    except Exception:
+        pass  # oqs-python installed but Dilithium3 not available
 
 
 # -- util ------------------------------------------------------------------

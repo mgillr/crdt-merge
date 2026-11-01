@@ -5,17 +5,19 @@
 
 <p><strong>Deterministic, order-independent merge for distributed models, data, and agent state.</strong></p>
 
-[![PyPI version](https://img.shields.io/badge/pypi-v0.9.5-orange)](https://pypi.org/project/crdt-merge/)
+[![PyPI version](https://img.shields.io/pypi/v/crdt-merge)](https://pypi.org/project/crdt-merge/)
 [![Downloads](https://img.shields.io/pypi/dm/crdt-merge?label=downloads&color=brightgreen)](https://pypi.org/project/crdt-merge/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Tests](https://img.shields.io/badge/tests-7%2C855%20passing-brightgreen)](TEST_RESULTS.md)
+[![Tests](https://img.shields.io/badge/tests-7%2C945%20passing-brightgreen)](TEST_RESULTS.md)
 [![CRDT Compliance](https://img.shields.io/badge/CRDT%20compliance-26%2F26%20strategies-blue)](docs/CRDT_ARCHITECTURE.md)
+[![Crypto](https://img.shields.io/badge/crypto-Ed25519%20%2B%20ML--DSA--65-blue)](docs/security/CRYPTOGRAPHY.md)
 [![License: BSL 1.1](https://img.shields.io/badge/license-BSL%201.1%20%E2%86%92%20Apache%202.0-orange)](LICENSE)
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-crdt--merge-yellow)](https://huggingface.co/spaces/optitransfer/crdt-merge)
 [![Data Merge](https://img.shields.io/badge/Data%20Merge-crdt--merge--data-yellow)](https://huggingface.co/spaces/optitransfer/crdt-merge-data)
 [![Federation](https://img.shields.io/badge/Federation-crdt--merge--federation-yellow)](https://huggingface.co/spaces/optitransfer/crdt-merge-federation)
 [![Convergence Lab](https://img.shields.io/badge/Convergence%20Lab-convergence--lab-yellow)](https://huggingface.co/spaces/Optitransfer/convergence-lab)
+[![Merged Model](https://img.shields.io/badge/Merged%20Model-Qwen2.5--7B--borg--merge--v1-blue)](https://huggingface.co/Optitransfer/Qwen2.5-7B-Instruct-borg-merge-v1)
 
 ```
 pip install crdt-merge
@@ -62,13 +64,31 @@ The strategy itself does not need to be a CRDT. SLERP remains SLERP. TIES remain
 
 > **Research Paper** -- *Conflict-Free Replicated Data Types for Neural Network Model Merging.*
 > Proves that 25 of 26 strategies are structurally incompatible with direct CRDT application, then presents the two-layer architecture that achieves compliance for all 26.
-> **[Read the paper ->](paper/CRDT_Merge_ArXiv.pdf)** -- **[LaTeX source](paper/)**
+> **[Read the paper ->](paper/CRDT_Merge_ArXiv.pdf)** -- **[LaTeX source](paper/)** -- **[SSRN](https://ssrn.com/abstract=6545518)**
+
+### Why this enables cross-family merging
+
+Standard weight merging requires models to share the same architecture -- identical key names, identical tensor shapes. A Qwen attention block and a Mistral attention block use different parameter names, different head dimensions, and different FFN layouts. Naive interpolation between them does not even type-check.
+
+crdt-merge's canonical key namespace solves the first problem. The Layer 1 collection treats each model's tensors as contributions to a shared namespace, mapping architecture-specific parameter names (e.g. `model.layers.0.self_attn.q_proj.weight` in Qwen vs `model.layers.0.attention.wq.weight` in other families) to canonical roles. Ten architecture families are covered: BERT, RoBERTa, Llama/Qwen, Mistral, Pythia, OPT, Phi, T5, w2v-bert, and more.
+
+With tensors in a shared namespace, Layer 2's deterministic resolution can apply per-tensor Procrustes alignment (orthogonal rotation via SVD) to map each donor's basis onto the anchor's, then absorb filtered deltas. The result is a single merged checkpoint in the anchor's native format -- standard `safetensors`, loadable by any HuggingFace-compatible stack.
+
+[**Qwen2.5-7B-Instruct-borg-merge-v1**](https://huggingface.co/Optitransfer/Qwen2.5-7B-Instruct-borg-merge-v1) is the first published model built on this pipeline. Nine models from four architecture families (Llama, Phi, NeoX, OPT) merged into a single checkpoint -- no fine-tuning, no distillation, no router:
+
+| Benchmark | Anchor (Qwen2.5-7B-Instruct) | Merged | Δ |
+|---|---:|---:|---:|
+| GSM8K | 0.8120 | **0.8446** | **+3.3 pp** |
+| ARC-Challenge | 0.5256 | **0.5572** | **+3.2 pp** |
+| IFEval | 0.6547 | **0.6811** | **+2.6 pp** |
+
+Evaluated with `lm-eval-harness` 0.4.4 on a single A100 80 GB. Full 8-task surface and methodology on the [model card](https://huggingface.co/Optitransfer/Qwen2.5-7B-Instruct-borg-merge-v1). Deep-dive write-up: [**We Merged 9 Models from 4 Architecture Families into One -- and It Beats the Anchor on Real Benchmarks**](https://medium.com/@rgillespie83/we-merged-9-models-from-4-architecture-families-into-one-and-it-beats-the-anchor-on-real-e6537dfa9252).
 
 ---
 
 ## E4: trust as a CRDT dimension
 
-v0.9.5 introduces E4 Recursive Trust-Delta Entanglement -- a protocol that makes trust a first-class algebraic dimension of the CRDT, entangled with data at the lattice level.
+v0.9.5 introduced E4 Recursive Trust-Delta Entanglement -- a protocol that makes trust a first-class algebraic dimension of the CRDT, entangled with data at the lattice level. **v0.9.6 hardens the cryptographic foundation with real Ed25519 signatures and NIST ML-DSA-65 post-quantum support.**
 
 In every existing distributed merge system, trust and data are separate concerns. Authentication sits in front of the merge pipeline, but the merge itself is trust-blind. A malicious peer that passes the gate poisons the shared state, and the system has no mechanism to detect, score, or recover from the damage within the merge semantics themselves.
 
@@ -78,7 +98,28 @@ E4 eliminates this separation. Trust, data, causal clock, and Merkle hash form a
 E4State = Data x Trust x Clock x Hash
 ```
 
-Each dimension is a join-semilattice. The product of join-semilattices is a join-semilattice. Convergence is algebraic -- not a property that needs to be tested, but one that is inherited from the structure.
+Each dimension is a join-semilattice. The product of join-semilattices is a join-semilattice -- a standard result (Birkhoff 1940). The E4 contribution is **including Trust as a lattice dimension** alongside Data and letting it propagate through the same delta pipeline, not reinventing the product construction. Convergence of the unified system is then inherited from that standard result, so it does not need a separate proof.
+
+### Cryptographic hardening (v0.9.6)
+
+Every signature is now real cryptography when the optional `[crypto]` or `[security]` extras are installed:
+
+- **Real Ed25519** on all PCO operations via the `cryptography` library. The previous v0.9.5 stub (which accepted any 64-byte blob) is preserved for backward compatibility when no key registry is configured.
+- **Observer authentication** on `TrustEvidence` -- evidence is signed by its observer, preventing spoofed accusations. Timestamp is part of the signed payload, blocking replay.
+- **NIST ML-DSA-65** post-quantum signatures via liboqs (`Dilithium3Scheme`). Real lattice-based cryptography, not the `DilithiumLite` hash-based placeholder.
+- **Structured revocation proofs** -- `RevocationEntry.verify(registry=...)` validates real signatures over key_id + peer_id + reason + successor, rejecting the previous "any non-empty bytes passes" behaviour.
+
+Opt in by configuring a key registry:
+
+```python
+from crdt_merge.e4.pco import configure_ed25519_verification
+from crdt_merge.e4.proof_evidence import configure_evidence_verification
+
+configure_ed25519_verification(my_registry)       # real Ed25519 on PCOs
+configure_evidence_verification(my_registry)      # observer auth on evidence
+```
+
+Without a registry, behaviour is identical to v0.9.5. Upgrade at your own pace.
 
 ### What makes this different
 
@@ -90,7 +131,7 @@ No existing literature combines all six. Delta-state CRDTs handle P1-P2 (Almeida
 
 The Symbiotic Lattice Trust (SLT) protocol replaces BFT consensus with lattice-native Byzantine detection. Each peer maintains a five-dimensional trust vector (integrity, causality, consistency, gossip, model) as per-dimension GCounters with homeostatic budget normalisation. Malicious behaviour triggers monotonic trust decay that propagates as CRDT deltas -- every honest peer converges on the same trust state without coordination.
 
-SLT's threat model differs from classical BFT (Castro and Liskov, 1999). Classical BFT guarantees safety below n/3 through voting rounds. SLT operates without voting -- Byzantine detection emerges from trust score convergence across the lattice. The 34% tolerance threshold was measured empirically with actively Byzantine peers performing data injection, trust inflation, and selective withholding. The guarantee is CRDT convergence of trust state among honest peers, which then gates data application. End-to-end federation across 10 nodes with 2 Byzantine peers: 9.69ms.
+SLT is not a consensus protocol and does not claim PBFT equivalence. Classical BFT (Castro and Liskov, 1999) guarantees consensus safety below n/3 through voting rounds; SLT has no voting. Instead, Byzantine detection emerges from trust score convergence across the lattice, and the trust state gates data application. Under our evaluated harness -- 10 nodes, actively Byzantine peers performing data injection, trust inflation, and selective withholding -- honest peers continued to converge on identical trust state with up to 34% adversarial participation. This is an empirical measurement of the specific harness, not a theoretical bound. End-to-end federation across 10 nodes with 2 Byzantine peers: 9.69ms.
 
 ### Delta encoding at scale
 
@@ -196,14 +237,15 @@ The rest of the library -- 26 merge strategies, E4 trust scoring, Merkle provena
 ## Installation
 
 ```bash
-pip install crdt-merge            # Core -- zero dependencies
+pip install crdt-merge            # Core -- one dependency (cryptography)
 pip install crdt-merge[fast]      # DuckDB + Polars (38.8x speedup on A100)
 pip install crdt-merge[model]     # PyTorch model weights
-pip install crdt-merge[crypto]    # AEAD encryption backends
+pip install crdt-merge[crypto]    # AEAD encryption + real Ed25519 signatures
+pip install crdt-merge[security]  # Ed25519 + NIST ML-DSA-65 post-quantum (new in 0.9.6)
 pip install crdt-merge[all]       # Everything
 ```
 
-Zero required dependencies. Python 3.9-3.12. Linux, macOS, Windows.
+One required dependency (`cryptography`, for Ed25519). Python 3.9-3.12. Linux, macOS, Windows.
 
 **[All install options ->](docs/getting-started/quickstart.md)**
 
@@ -215,7 +257,7 @@ Zero required dependencies. Python 3.9-3.12. Linux, macOS, Windows.
 |--------|--------|---------|
 | CRDT axiom compliance | 78/78 | All 26 strategies, all 3 laws |
 | Test suite | 6,179 passing, 0 failures | Core + E4 + resilience |
-| Byzantine fault tolerance | 34% | SLT protocol, empirically measured |
+| Adversarial-participant tolerance | 34% | SLT harness; honest peers still converge (not PBFT consensus) |
 | Proof-carrying operation wire size | 128 bytes | Fixed cost per operation |
 | Causal clock throughput | 2.93M ops/s | E4 causal clock subsystem |
 | End-to-end federation | 9.69ms | 10 nodes, 2 actively Byzantine |

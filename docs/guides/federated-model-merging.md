@@ -271,7 +271,7 @@ crdt-merge eliminates all of these. The merged model is a pure function of the c
 
 ## E4 Trust-Weighted Federation
 
-v0.9.5 adds the SLT Byzantine protocol to federated model merging, tolerating up to 34% Byzantine participants in a federation round. Trust scores propagate alongside model deltas, and a 10-node federation pipeline completes in 9.69ms end-to-end.
+v0.9.5 adds the SLT Byzantine-detection protocol to federated model merging. Under our evaluated harness, honest peers continued to converge on identical trust state with up to 34% actively Byzantine participants in a federation round (empirical measurement, not a PBFT-style theoretical bound). Trust scores propagate alongside model deltas, and a 10-node federation pipeline completes in 9.69ms end-to-end.
 
 ```python
 from crdt_merge.e4.integration.federation_bridge import TrustFederationRound

@@ -367,6 +367,81 @@ def verify_crdt(
         convergence=conv, total_trials=total, total_duration_ms=total_ms,
     )
 
+
+def verify_crdt_concurrent(
+    merge_fn: Callable[[Any, Any], Any],
+    gen_fn: Callable[[], Any],
+    trials: int = 1000,
+    eq_fn: Optional[Callable[[Any, Any], bool]] = None,
+    include_convergence: bool = True,
+    workers: int = 4,
+) -> CRDTVerification:
+    """
+    Concurrent CRDT verification — runs each property's trials across `workers`
+    threads in parallel. Additive to :func:`verify_crdt`; the sequential path
+    is unchanged.
+
+    Useful for detecting law violations that only manifest under concurrent
+    merges. Uses :class:`concurrent.futures.ThreadPoolExecutor` so the merge
+    function and any CRDT state it closes over are shared across threads.
+
+    ``duration_ms`` is wall-clock (max across threads), unlike :func:`verify_crdt`
+    which sums sequential durations.
+    """
+    import concurrent.futures
+
+    if workers < 1:
+        raise ValueError("workers must be >= 1")
+
+    def _split(n: int, k: int) -> List[int]:
+        base, rem = divmod(n, k)
+        return [base + (1 if i < rem else 0) for i in range(k)]
+
+    def _run(fn: Callable, trials_per_worker: List[int]) -> List[VerificationResult]:
+        shards = [t for t in trials_per_worker if t > 0]
+        if not shards:
+            return []
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(shards)) as ex:
+            futures = [
+                ex.submit(fn, merge_fn, gen_fn, trials=t, eq_fn=eq_fn)
+                for t in shards
+            ]
+            return [f.result() for f in futures]
+
+    def _combine(results: List[VerificationResult], prop_name: str) -> Optional[VerificationResult]:
+        if not results:
+            return None
+        first_failure = next((r.first_failure for r in results if r.first_failure), None)
+        error = next((r.error for r in results if r.error), None)
+        return VerificationResult(
+            property_name=prop_name,
+            passed=all(r.passed for r in results),
+            trials=sum(r.trials for r in results),
+            failures=sum(r.failures for r in results),
+            first_failure=first_failure,
+            duration_ms=max(r.duration_ms for r in results),
+            error=error,
+        )
+
+    comm_shards = _split(trials, workers)
+    assoc_shards = _split(trials, workers)
+    idemp_shards = _split(trials, workers)
+    conv_shards = _split(min(trials, 500), workers) if include_convergence else []
+
+    comm = _combine(_run(verify_commutative, comm_shards), "commutativity")
+    assoc = _combine(_run(verify_associative, assoc_shards), "associativity")
+    idemp = _combine(_run(verify_idempotent, idemp_shards), "idempotency")
+    conv = _combine(_run(verify_convergence, conv_shards), "convergence") if conv_shards else None
+
+    total_trials = comm.trials + assoc.trials + idemp.trials + (conv.trials if conv else 0)
+    total_duration_ms = comm.duration_ms + assoc.duration_ms + idemp.duration_ms + (conv.duration_ms if conv else 0)
+
+    return CRDTVerification(
+        commutativity=comm, associativity=assoc, idempotency=idemp,
+        convergence=conv, total_trials=total_trials, total_duration_ms=total_duration_ms,
+    )
+
+
 # ─── v0.4.0: @verified_merge decorator ───────────────────────────────────────
 
 from functools import wraps

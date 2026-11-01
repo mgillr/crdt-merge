@@ -5,6 +5,195 @@
 > See [LICENSE](https://github.com/mgillr/crdt-merge/blob/main/LICENSE) for details.
 
 
+## [Unreleased]
+
+### Added
+- **`CRDTMergeState` opt-in extension protocol** (`CRDTMergeState.EXTENSION_PROTOCOL = 1`). A strategy
+  registered with `register_strategy` (or through the `crdt_merge.model_strategies` entry-point group) whose
+  class sets `crdt_extension = True` can be used by name in `CRDTMergeState`. Its class declares what
+  `resolve()` passes it beside the tensors and weights, which arrive in the canonical (`model_id`) order as
+  for every strategy:
+  - `requires_base = True`: the state's `base` (refused at resolve when the state has none);
+  - `stochastic = True`: the state's `seed`;
+  - `reads_contributions = True`: the contributions' `model_ids` and `metadata`, in the same order.
+- **`strategy_kwargs`** (a new `CRDTMergeState` argument, extension strategies only). It takes a dict of
+  strict-JSON values, frozen at construction, and is passed to every `resolve()`. It is part of the state's
+  identity: `merge()` and `merge_many()` refuse replicas that disagree on it, `__eq__` compares it, and it
+  round-trips through `to_dict()` / `from_dict()`. The keys `tensors`, `weights`, `base`, `seed`, `model_ids`
+  and `metadata` are reserved. Regression: `tests/test_crdt_extension_protocol.py`.
+
+### Changed
+- **`FlightMergeServer` binds to `127.0.0.1` by default** (it has since "Default flight server to localhost
+  only"; the CLI default is the same). The API reference signatures and `tests/test_accelerator_flight.py` now
+  say so. To serve other hosts, pass `host="0.0.0.0"` (or `--host 0.0.0.0`) explicitly and use TLS.
+
+### Fixed
+- **`ORSet` resurrection by a stale replica.** `remove()` and `remove_tag()` now record the tags they observed
+  as tombstones, and `merge()` takes the union of tombstones and drops every tombstoned tag. Before, `remove()`
+  only emptied the local tag set, so merging a replica that still held the old tags brought the element back.
+  Add-wins against a concurrent (unobserved) add is unchanged. Regression: `tests/test_orset_lwwmap_correctness.py`.
+- **`LWWMap.get()` disagreed with `LWWMap.value`.** After merging an older delete with a newer write `value`
+  showed the key but `get()` returned the default, because `get()` treated any tombstone as a delete. Both now use
+  one rule: a key is live unless its tombstone is at least as new as its register.
+- **`TrustAgentState.delete()` did not replicate.** It was a local `dict.pop`, so a merge brought the key back.
+  Every `put()` now carries a unique tag; `delete()` tombstones the tags it observed (observed-remove), and
+  `merge_context()` unions tombstones, so deletes replicate, stale replicas cannot resurrect a key, and a
+  concurrent put survives. A peer's newer write supersedes that peer's earlier write. Exact timestamp ties now
+  break on `(peer_id, tag)` so `merge_context` is commutative. Regression: `tests/test_trust_agent_state_delete.py`.
+- **`CRDTMergeState` contribution tags collided across processes and restarts.** Tags came from a process-local
+  counter (`...:t0`, `...:t1`), so unrelated adds in two processes shared a tag and one replica's remove could
+  tombstone the other's add. Tags now carry a random 128-bit id (`<model_id>:v<version>:t<uuid4 hex>`), and the
+  tag is serialised with each contribution so tombstones keep matching after a `to_dict()` / `from_dict()` round
+  trip (previously `from_dict()` minted a new tag). Regression: `tests/test_crdt_state_tag_uniqueness.py`.
+- **Pre-existing test failures.**
+  - `tests/test_encryption_backends.py` did not import on Python 3.9 (`bytes | None` in annotations evaluated at
+    import time); it now uses `from __future__ import annotations`, and every `crdt_merge` module imports on 3.9.
+    `test_empty_plaintext` for AES-GCM-SIV skips when the installed `cryptography` is older than 45, which rejects
+    zero-length data. Python 3.9 stays supported and is still in the CI matrix.
+  - `security/tests/test_byzantine_fault_injection.py`: the four E4 trust tests failed with "evidence proof failed
+    verification". Cause: evidence verification binds `invalid_delta` and `trust_manipulation` proofs to the
+    accused peer (the proof must name the target), but the test fixtures built proofs that did not. The fixtures
+    now name the target. Verification is unchanged and still fail-closed; two new tests check that a proof naming
+    another peer is rejected. CI now runs `security/`.
+  - `tests/test_polars_engine.py::TestPerformance::test_polars_faster_than_python` was timing-flaky. It now warms
+    up, takes the median of five runs and uses 50K rows; the 5× threshold is unchanged.
+
+### Migration / serialisation compatibility
+- All changes are additive on the wire. `ORSet.to_dict()` gains an optional `"tombstones"` list (omitted until
+  something is removed); `TrustAgentState` gains `to_dict()` / `from_dict()` (new); `MergeContribution.to_dict()`
+  gains `"tag"`.
+- Old data loads unchanged: an `ORSet` dict without `"tombstones"`, a `CRDTMergeState` contribution without
+  `"tag"` (it gets a fresh unique tag, as `from_dict()` always did), and `TrustAnnotatedEntry` built without a
+  `tag` (it gets a deterministic content-derived `legacy:` tag).
+- Removes recorded by an older version were never retained, so a stale replica can still resurrect an element
+  that was removed before upgrading; removes made after upgrading are protected. Old readers ignore the new keys,
+  but an old replica merging new state does not honour new tombstones until it upgrades.
+- `CRDTMergeState._tag_seq` and `MergeContribution._tag_counter` (private) are removed.
+
+### Compatibility
+- Built-in strategies and states built without `strategy_kwargs` are unchanged. `KNOWN_STRATEGIES`,
+  `BASE_REQUIRED` and `STOCHASTIC` keep their meaning, `to_dict()` emits the same keys, and a name that is not
+  registered, or is registered without the marker, is refused with the same error as before.
+
+## [0.10.0] - 2026-07-25 — E4 convergence correction
+
+**Minor version, not a patch: `get_trust()` changes what it returns.** The correction is
+behavioural for anyone reading trust scores, and it fixes a real convergence defect present in
+every published release that ships E4 (0.9.5, 0.9.6, 0.9.7). E4 is enabled by default, so this
+affects installations that never opted into it explicitly.
+
+### Behaviour change (action required if you read trust scores)
+- `DeltaTrustLattice.get_trust(peer)` now returns the **raw, evidence-based, convergent** score.
+  It previously returned a homeostasis-normalized (conserved-budget) value. Numbers will differ.
+- If you were using `get_trust` for **allocation, display, or fair-share** purposes, switch to the
+  new `normalized_scores()`, which returns the conserved-budget view.
+- If you were using `get_trust` for **security decisions** (verification level, gating, quarantine),
+  no change is needed -- it now returns the value those decisions always required.
+
+### Fixed
+- **E4 convergence (Strong Eventual Consistency):** `DeltaTrustLattice.merge`
+  (and the evidence-recording paths) no longer apply `TrustHomeostasis.normalize`
+  to the stored lattice. The conserved-budget rescale is global, peer-set-dependent
+  and non-monotone; applying it inside `merge` overwrote the GCounter join and made
+  the merged state order-dependent, so replicas that merged the same evidence in
+  different orders / from different peer subsets could diverge. The stored lattice
+  is now a pure GCounter join (commutative, associative, idempotent), and
+  homeostasis is exposed as a deterministic **derived read** via the new
+  `normalized_scores()` (conserved-budget view for allocation/display). `get_trust`
+  now returns the raw, evidence-based, convergent score used by security and causal
+  decisions; the conserved-budget is a separate fairness view, not a security gate.
+  Regression: `tests/e4/test_homeostasis_convergence_fix.py`.
+
+## [0.9.8] - 2026-04-18 — Documentation Honesty Pass
+
+> **Never published to PyPI.** 0.9.8 was tagged in the changelog but no release was cut, so the
+> published sequence goes 0.9.7 -> 0.10.0. The documentation changes below shipped as part of 0.10.0.
+
+No runtime changes. Tightens documentation wording against prior art so downstream claims match the paper's more careful phrasing. The published arXiv paper (`paper/CRDT_Merge_ArXiv.tex`) is unchanged; this release only updates README, CHANGELOG, and `docs/`.
+
+### Changed
+- Byzantine-tolerance claim reframed across README, E4 docs, CHANGELOG, security guide, and federated-model-merging guide: **34% is an empirical measurement under the SLT harness**, not a PBFT-style theoretical bound. SLT is a Byzantine-detection protocol; it is not a consensus protocol and is not comparable to PBFT's ≤n/3 consensus safety.
+- Product-lattice wording clarified (README, `docs/e4/E4-MASTER-ARCHITECTURE.md` §II): the product-of-join-semilattices construction is standard algebra (Birkhoff 1940); E4's contribution is the inclusion of Trust as a lattice dimension, not the product construction itself.
+- `docs/e4/E4-MASTER-ARCHITECTURE.md` §VI renamed from "Entanglement Proof" to "Dependency Analysis (not a formal proof)". Content was a coupling / dependency argument; the heading now reflects that.
+- `docs/guides/security-guide.md`: "Statistical Lattice Trust" → "Symbiotic Lattice Trust" (acronym unification).
+- 156/156 CRDT axiom trials re-labelled with method context (commutativity / associativity / idempotency × 26 strategies × both opt model sizes on real weight tensors) in CHANGELOG, `docs/ARCHITECTURE_MAP.md`, `docs/e4/README.md`, and `docs/e4/E4-COMPUTATIONAL-EVIDENCE.md`.
+
+### Fixed (roadmap drift)
+- `docs/e4/E4-CHANGELOG.md` Future Work: removed "Formal TLA+ specification of convergence" -- it shipped in 0.9.5 (resilience subsystem, 5/5 properties / 700 states).
+- `docs/CRDT_ARCHITECTURE.md` §11 Future Work: 11.3 (Conflict Resolution Policies) and 11.4 (Streaming Merge) marked **SHIPPED** -- `MergeStrategy`/`MergeSchema` (v0.3.0) and `merge_stream`/`merge_sorted_stream` (v0.3.0) are public API today. Added §11.6 forward-reference to v0.9.9 alignment bounds.
+
+### Compatibility
+- Zero breaking changes. No code paths touched. Test suite pass count unchanged.
+
+
+## [0.9.7] - 2026-04-17 — Patch Release
+
+Bundles fixes and test-coverage additions that landed after the v0.9.6 tag. Contains the E4 hardening work from v0.9.6 (see below) plus the changes listed here.
+
+### Added
+- `verify_crdt_concurrent` — threaded CRDT law verification harness using `concurrent.futures` (issue #44)
+- Full unicode normalization test matrix — NFC/NFD/NFKC/NFKD across both keys and values, surrogate pairs, combining characters, zero-width joiners (issue #92)
+
+### Fixed
+- SQLite accelerator: `# nosec` annotations placed inside SQL string literals caused `sqlite3.OperationalError: unrecognized token: "#"`, blocking `SQLiteCRDTMerge()` instantiation
+- `_make_composite_key` now NFC-normalizes string keys, matching the NFC-before-comparison policy already applied to string values
+- `test_version_consistency` reads the version from `pyproject.toml` dynamically instead of pinning a literal
+- `_resolve_dotted_path` tests aligned with the hardened `crdt_merge.*` namespace allowlist
+
+### CI
+- Bumped GitHub Actions across all workflows: actions/checkout v4→v6, actions/setup-python v5→v6, actions/upload-artifact v4→v7, github/codeql-action v3→v4
+
+### Compatibility
+- Zero breaking changes. All 6,287 existing tests continue to pass.
+
+
+## [0.9.6] - 2026-04-16 — E4 Hardening Release
+
+**Stubs replaced with real cryptography.** Every security gap in v0.9.5 is now backed by real primitives with zero breaking changes.
+
+### Added
+- Real Ed25519 signature verification in PCO via the `cryptography` package (optional dep)
+- `configure_ed25519_verification(registry)` public API for opt-in real crypto
+- Observer authentication on `TrustEvidence` via `observer_signing_fn` parameter
+- Timestamp binding on evidence with `max_age_seconds` replay protection
+- `configure_evidence_verification(registry)` for evidence source validation
+- Real NIST ML-DSA-65 (Dilithium3) post-quantum signatures via liboqs (optional dep)
+- `Dilithium3Scheme` class using the NIST PQC reference implementation
+- `KeyPair` now uses real Ed25519 when cryptography is available
+- `RevocationEntry.verify(registry=...)` validates real signatures over structured payload
+- 70+ new tests covering real crypto paths and attack vectors
+
+### Changed
+- `DilithiumLite` honestly documented as hash-based, NOT post-quantum (security_level 192 -> 128)
+- `verification_level()` now rounds to 12 decimal places to prevent float boundary bugs
+- Key rotation and emergency revoke now sign structured revocation payloads
+
+### Fixed
+- Float precision bug in `verification_level()` — exact trust 0.8 now maps to level 1 (was level 0)
+- Float precision bug at 0.4 boundary — exact 0.4 now maps to level 1 (was level 2)
+
+### Security
+- Signature verification no longer accepts any 64-byte blob when a registry is configured
+- Evidence source is cryptographically verified when `require_observer_auth=True` or registry is set
+- Replay attacks on stale evidence blocked via `max_age_seconds`
+- Revocation entries require valid signatures from the revoked key, not just non-empty proof
+
+### Compatibility
+- Zero breaking changes — default (no registry configured) behavior is identical to v0.9.5
+- Nord SNN integration (129 tests): zero regressions
+- AIPG integration (49 tests): zero regressions
+- All 7,000+ existing tests continue to pass
+
+### Installation
+```bash
+pip install crdt-merge            # zero-dep core (legacy behavior)
+pip install crdt-merge[crypto]    # real Ed25519 only
+pip install crdt-merge[security]  # Ed25519 + ML-DSA-65 post-quantum
+```
+
+Patents: UK Application No. GB 2607132.4, GB2608127.3
+
+
 ## [0.9.5] - 2026-04-08 — E4 Recursive Trust-Delta Protocol
 
 **Trust is data. Data is trust.** Every merge operation now carries cryptographic proof of provenance, and every delta propagates trust as a first-class CRDT dimension.
@@ -17,7 +206,7 @@
 - Trust-bound Merkle verification (256-ary, depth 4 at 1B leaves, perfect 0.500 bit diffusion)
 - Causal trust clocks -- 2.93M ops/s vector clock with trust dimension binding
 - Adaptive verification controller -- scales verification depth by trust level (97K-109K ops/s)
-- Symbiotic Lattice Trust (SLT) Byzantine protocol -- 34% fault tolerance, no coordinator
+- Symbiotic Lattice Trust (SLT) Byzantine-detection protocol -- empirical 34% adversarial-participant tolerance under the evaluated harness (not PBFT consensus), no coordinator
 - Trust-weighted conflict resolution strategies (LWW, averaging, acceptance gating)
 - Dual-hash compatibility mode for incremental migration from pre-E4 peers
 - Integration bridges: gossip (trust metadata in messages), streaming (per-chunk validation), agentic (trust-weighted memory sync)
@@ -25,7 +214,7 @@
 - Trust homeostasis -- conserved-budget normalisation prevents trust inflation
 - Circuit breaker -- sigma-based anomaly detection with automatic cooldown
 - End-to-end federation pipeline validated at 9.69ms for 10-node cluster with 2 Byzantine actors
-- Large-scale validation: facebook/opt-1.3b and facebook/opt-6.7b (6.7B parameters) -- 156/156 PASS
+- Large-scale validation on facebook/opt-1.3b and facebook/opt-6.7b (6.7B parameters): 156/156 CRDT axiom trials pass (commutativity / associativity / idempotency across all 26 strategies on real weight tensors)
 - Agent memory trust synchronisation (3 agents, 4 models, full convergence proven)
 
 ### Changed
