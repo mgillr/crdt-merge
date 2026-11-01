@@ -121,10 +121,13 @@ class TestSchemeRegistry:
         assert isinstance(schemes, list)
         assert len(schemes) >= 2
 
-    def test_get_hmac(self):
-        s = get_scheme("hmac-sha256")
-        assert s is not None
-        assert s.name() == "hmac-sha256"
+    def test_hmac_not_registered_by_default(self):
+        with pytest.raises(ValueError):
+            get_scheme("hmac-sha256")
+
+    def test_get_ed25519(self):
+        s = get_scheme("ed25519")
+        assert s.name() == "ed25519"
 
     def test_sign_throughput(self):
         """1000 HMAC signs must complete quickly."""

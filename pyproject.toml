@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "crdt-merge"
 version = "0.11.0"
-description = "Mathematically proven conflict-free merge for AI model weights, datasets, and agent memory with recursive trust-delta entanglement. Zero dependencies. Patent protected."
+description = "Mathematically proven conflict-free merge for AI model weights, datasets, and agent memory with recursive trust-delta entanglement. One dependency (cryptography, for Ed25519). Patent protected."
 readme = "README.md"
 license = {text = "BUSL-1.1"}
 requires-python = ">=3.9"
@@ -35,10 +35,12 @@ classifiers = [
     "Operating System :: OS Independent",
     "Typing :: Typed",
 ]
-dependencies = []
+# cryptography provides Ed25519 for E4 key management and signature checks.
+# 41 is the floor already used by the crypto/security extras.
+dependencies = ["cryptography>=41"]
 
 [project.optional-dependencies]
-# Zero deps core. Optional accelerators for heavy workloads:
+# Core needs only cryptography. Optional accelerators for heavy workloads:
 fast = ["polars>=0.19", "orjson>=3.9", "xxhash>=3.0"]
 pandas = ["pandas>=1.5"]
 polars = ["polars>=0.19"]

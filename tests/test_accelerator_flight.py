@@ -45,7 +45,7 @@ from crdt_merge.accelerators import ACCELERATOR_REGISTRY
 class TestFlightMergeServer:
     def test_init_defaults(self):
         server = FlightMergeServer()
-        assert server._host == "0.0.0.0"
+        assert server._host == "127.0.0.1"
         assert server._port == 8815
         assert server._running is False
 

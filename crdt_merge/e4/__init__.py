@@ -47,10 +47,15 @@ from crdt_merge.e4.proof_evidence import (
     pack_delta_proof,
     pack_merkle_path,
     pack_state_pair,
+    sign_attestation,
 )
 from crdt_merge.e4.pco import (
     AggregateProofCarryingOperation,
     SubtreeRef,
+)
+from crdt_merge.e4.signing import (
+    Ed25519Unavailable,
+    SignatureVerificationNotConfigured,
 )
 from crdt_merge.e4.projection_delta import (
     FrozenDict,
@@ -83,6 +88,9 @@ __all__ = [
     "pack_delta_proof",
     "pack_merkle_path",
     "pack_state_pair",
+    "sign_attestation",
+    "Ed25519Unavailable",
+    "SignatureVerificationNotConfigured",
     "AggregateProofCarryingOperation",
     "SubtreeRef",
     "ProjectionDelta",

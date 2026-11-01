@@ -15,7 +15,7 @@ pip install crdt-merge[security]  # Ed25519 + ML-DSA-65 post-quantum
 
 ## 2. Enable real Ed25519 verification
 
-Without configuration, v0.9.6 keeps the v0.9.5 stub behaviour (any 64-byte blob passes as a signature). To enable real verification, configure a peer key registry.
+Verification is fail-closed. Without a peer key registry, verifying a PCO signature or a piece of evidence raises `SignatureVerificationNotConfigured`. Configure a registry to verify: PCO signatures, evidence observer signatures and the attestation signatures inside equivocation proofs are then all checked as Ed25519 under the registered key, and there is no HMAC or embedded-key fallback.
 
 ```python
 from crdt_merge.e4.pco import configure_ed25519_verification
@@ -151,30 +151,29 @@ assert real_pco.verify(None, None, verification_level=0) is True  # ACCEPTED
 
 ---
 
-## 7. Rollback to v0.9.5 behaviour
+## 7. Legacy unsigned mode (explicit opt-in)
 
-If you need to disable the hardening temporarily:
+For tests or closed experiments that use unsigned fixtures, the old behaviour is available only by asking for it:
 
 ```python
-configure_ed25519_verification(None)
-configure_evidence_verification(None)
+configure_ed25519_verification(None, allow_unsigned=True)       # any 64-byte value passes
+configure_evidence_verification(None, allow_unauthenticated=True)  # observer not authenticated
 ```
 
-All verification reverts immediately to stub behaviour. No data migration needed.
+Nothing is authenticated in this mode. It cannot be combined with a registry, and calling either function with `None` alone returns to the fail-closed default.
 
 ---
 
 ## 8. What gets verified at each tier
 
-| Operation | Tier 0 (no registry) | Tier 1 (HMAC) | Tier 2 (Ed25519) | Tier 3 (+ ML-DSA-65) |
-|---|---|---|---|---|
-| PCO signature check | Length == 64 | HMAC-SHA256 | Real Ed25519 | Real Ed25519 |
-| Evidence observer auth | None | HMAC over payload | Ed25519 over payload | Ed25519 over payload |
-| Evidence timestamp | Accepted | Accepted | Age check enforced | Age check enforced |
-| Revocation proof | Non-empty | HMAC verify | Ed25519 verify | Ed25519 verify |
-| Long-lived attestations | Stub | Symmetric | Classical | Post-quantum |
+| Operation | Default (no registry) | Explicit legacy opt-in | Registry configured |
+|---|---|---|---|
+| PCO signature check | Raises (not configured) | Length == 64 | Ed25519 under the registered key |
+| Evidence observer auth | Raises (not configured) | None | Ed25519 under the registered key, always required |
+| Equivocation attestations | Raises (not configured) | Length == 64 | Ed25519 under the accused peer's registered key |
+| Revocation proof (`RevocationEntry.verify`) | Fails without a registry | n/a | Signature from the revoked key |
 
-Default is Tier 0 for backward compat. Configure a registry to move up.
+`HybridScheme` defaults to Ed25519 as its classical half. `HmacScheme` is a shared-secret MAC and is not registered by default.
 
 ---
 

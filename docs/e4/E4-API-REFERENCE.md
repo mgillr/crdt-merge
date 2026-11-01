@@ -965,7 +965,7 @@ class TrustAgentState:
 | `bind_trust_lattice(lattice)` | `lattice: DeltaTrustLattice` | `None` | Set lattice post-init |
 | `put(key, value, peer_id, timestamp=None)` | `key: str, value: Any, peer_id: str, timestamp: Optional[float]` | `TrustAnnotatedEntry` | Store entry with trust annotation |
 | `get(key)` | `key: str` | `Optional[TrustAnnotatedEntry]` | Retrieve entry or None |
-| `delete(key)` | `key: str` | `Optional[TrustAnnotatedEntry]` | Remove and return entry, or None |
+| `delete(key)` | `key: str` | `Optional[TrustAnnotatedEntry]` | Observed-remove: tombstones the tags seen for `key` (replicates on `merge_context`); returns the removed entry, or None |
 | `merge_context(other)` | `other: TrustAgentState` | `TrustAgentState` | Merge two states; conflicts resolved by trust weight |
 | `snapshot()` | — | `Dict[str, TrustAnnotatedEntry]` | Export all entries |
 | `load_snapshot(snap)` | `snap: Dict[str, TrustAnnotatedEntry]` | `None` | Replace all entries |

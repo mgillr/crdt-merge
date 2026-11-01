@@ -22,6 +22,54 @@
   round-trips through `to_dict()` / `from_dict()`. The keys `tensors`, `weights`, `base`, `seed`, `model_ids`
   and `metadata` are reserved. Regression: `tests/test_crdt_extension_protocol.py`.
 
+### Changed
+- **`FlightMergeServer` binds to `127.0.0.1` by default** (it has since "Default flight server to localhost
+  only"; the CLI default is the same). The API reference signatures and `tests/test_accelerator_flight.py` now
+  say so. To serve other hosts, pass `host="0.0.0.0"` (or `--host 0.0.0.0`) explicitly and use TLS.
+
+### Fixed
+- **`ORSet` resurrection by a stale replica.** `remove()` and `remove_tag()` now record the tags they observed
+  as tombstones, and `merge()` takes the union of tombstones and drops every tombstoned tag. Before, `remove()`
+  only emptied the local tag set, so merging a replica that still held the old tags brought the element back.
+  Add-wins against a concurrent (unobserved) add is unchanged. Regression: `tests/test_orset_lwwmap_correctness.py`.
+- **`LWWMap.get()` disagreed with `LWWMap.value`.** After merging an older delete with a newer write `value`
+  showed the key but `get()` returned the default, because `get()` treated any tombstone as a delete. Both now use
+  one rule: a key is live unless its tombstone is at least as new as its register.
+- **`TrustAgentState.delete()` did not replicate.** It was a local `dict.pop`, so a merge brought the key back.
+  Every `put()` now carries a unique tag; `delete()` tombstones the tags it observed (observed-remove), and
+  `merge_context()` unions tombstones, so deletes replicate, stale replicas cannot resurrect a key, and a
+  concurrent put survives. A peer's newer write supersedes that peer's earlier write. Exact timestamp ties now
+  break on `(peer_id, tag)` so `merge_context` is commutative. Regression: `tests/test_trust_agent_state_delete.py`.
+- **`CRDTMergeState` contribution tags collided across processes and restarts.** Tags came from a process-local
+  counter (`...:t0`, `...:t1`), so unrelated adds in two processes shared a tag and one replica's remove could
+  tombstone the other's add. Tags now carry a random 128-bit id (`<model_id>:v<version>:t<uuid4 hex>`), and the
+  tag is serialised with each contribution so tombstones keep matching after a `to_dict()` / `from_dict()` round
+  trip (previously `from_dict()` minted a new tag). Regression: `tests/test_crdt_state_tag_uniqueness.py`.
+- **Pre-existing test failures.**
+  - `tests/test_encryption_backends.py` did not import on Python 3.9 (`bytes | None` in annotations evaluated at
+    import time); it now uses `from __future__ import annotations`, and every `crdt_merge` module imports on 3.9.
+    `test_empty_plaintext` for AES-GCM-SIV skips when the installed `cryptography` is older than 45, which rejects
+    zero-length data. Python 3.9 stays supported and is still in the CI matrix.
+  - `security/tests/test_byzantine_fault_injection.py`: the four E4 trust tests failed with "evidence proof failed
+    verification". Cause: evidence verification binds `invalid_delta` and `trust_manipulation` proofs to the
+    accused peer (the proof must name the target), but the test fixtures built proofs that did not. The fixtures
+    now name the target. Verification is unchanged and still fail-closed; two new tests check that a proof naming
+    another peer is rejected. CI now runs `security/`.
+  - `tests/test_polars_engine.py::TestPerformance::test_polars_faster_than_python` was timing-flaky. It now warms
+    up, takes the median of five runs and uses 50K rows; the 5× threshold is unchanged.
+
+### Migration / serialisation compatibility
+- All changes are additive on the wire. `ORSet.to_dict()` gains an optional `"tombstones"` list (omitted until
+  something is removed); `TrustAgentState` gains `to_dict()` / `from_dict()` (new); `MergeContribution.to_dict()`
+  gains `"tag"`.
+- Old data loads unchanged: an `ORSet` dict without `"tombstones"`, a `CRDTMergeState` contribution without
+  `"tag"` (it gets a fresh unique tag, as `from_dict()` always did), and `TrustAnnotatedEntry` built without a
+  `tag` (it gets a deterministic content-derived `legacy:` tag).
+- Removes recorded by an older version were never retained, so a stale replica can still resurrect an element
+  that was removed before upgrading; removes made after upgrading are protected. Old readers ignore the new keys,
+  but an old replica merging new state does not honour new tombstones until it upgrades.
+- `CRDTMergeState._tag_seq` and `MergeContribution._tag_counter` (private) are removed.
+
 ### Compatibility
 - Built-in strategies and states built without `strategy_kwargs` are unchanged. `KNOWN_STRATEGIES`,
   `BASE_REQUIRED` and `STOCHASTIC` keep their meaning, `to_dict()` emits the same keys, and a name that is not

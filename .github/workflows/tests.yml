@@ -25,11 +25,16 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev,all,crypto]"
+          pip install -e ".[dev,all]"
 
       - name: Run full test suite
         run: |
+          set -o pipefail
           pytest tests/ -v --tb=short -q 2>&1 | tail -40
+
+      - name: Run security tests
+        run: |
+          pytest security/ -v --tb=short -q
 
       - name: Run property-based tests
         run: |
