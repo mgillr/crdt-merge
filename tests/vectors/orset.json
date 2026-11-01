@@ -1,0 +1,243 @@
+{
+  "canonical_form": "UTF-8 JSON, keys sorted, two-space indent, trailing newline, or_set tag lists sorted",
+  "merges": [
+    {
+      "a": {
+        "elements": {
+          "x": [
+            "0000000000a1"
+          ]
+        },
+        "type": "or_set"
+      },
+      "b": {
+        "elements": {
+          "x": []
+        },
+        "tombstones": [
+          "0000000000a1"
+        ],
+        "type": "or_set"
+      },
+      "description": "a replica that still holds a removed tag cannot bring the element back",
+      "name": "stale_replica_does_not_resurrect",
+      "result": {
+        "elements": {
+          "x": []
+        },
+        "tombstones": [
+          "0000000000a1"
+        ],
+        "type": "or_set"
+      }
+    },
+    {
+      "a": {
+        "elements": {
+          "x": []
+        },
+        "tombstones": [
+          "0000000000a1"
+        ],
+        "type": "or_set"
+      },
+      "b": {
+        "elements": {
+          "x": [
+            "0000000000a1",
+            "0000000000b2"
+          ]
+        },
+        "type": "or_set"
+      },
+      "description": "a remove only removes the tags its replica had seen",
+      "name": "concurrent_add_survives_remove",
+      "result": {
+        "elements": {
+          "x": [
+            "0000000000b2"
+          ]
+        },
+        "tombstones": [
+          "0000000000a1"
+        ],
+        "type": "or_set"
+      }
+    },
+    {
+      "a": {
+        "elements": {
+          "x": [
+            "0000000000a1"
+          ]
+        },
+        "type": "or_set"
+      },
+      "b": {
+        "elements": {
+          "y": [
+            "0000000000b2"
+          ]
+        },
+        "type": "or_set"
+      },
+      "description": "elements from both sides stay",
+      "name": "disjoint_elements_union",
+      "result": {
+        "elements": {
+          "x": [
+            "0000000000a1"
+          ],
+          "y": [
+            "0000000000b2"
+          ]
+        },
+        "type": "or_set"
+      }
+    },
+    {
+      "a": {
+        "elements": {
+          "x": [
+            "0000000000a1"
+          ]
+        },
+        "type": "or_set"
+      },
+      "b": {
+        "elements": {
+          "x": [
+            "0000000000a1"
+          ]
+        },
+        "type": "or_set"
+      },
+      "description": "merging a state with itself changes nothing",
+      "name": "identical_states",
+      "result": {
+        "elements": {
+          "x": [
+            "0000000000a1"
+          ]
+        },
+        "type": "or_set"
+      }
+    }
+  ],
+  "schema": "protocol-vectors/1",
+  "type": "orset",
+  "vectors": [
+    {
+      "description": "no elements",
+      "name": "empty",
+      "state": {
+        "elements": {},
+        "type": "or_set"
+      },
+      "value": []
+    },
+    {
+      "description": "one element with one tag",
+      "name": "single_element",
+      "state": {
+        "elements": {
+          "x": [
+            "0000000000a1"
+          ]
+        },
+        "type": "or_set"
+      },
+      "value": [
+        "x"
+      ]
+    },
+    {
+      "description": "concurrent adds of one element",
+      "name": "two_tags_for_one_element",
+      "state": {
+        "elements": {
+          "x": [
+            "0000000000a1",
+            "0000000000b2"
+          ]
+        },
+        "type": "or_set"
+      },
+      "value": [
+        "x"
+      ]
+    },
+    {
+      "description": "the only tag was removed, so nothing is live",
+      "name": "removed_element",
+      "state": {
+        "elements": {
+          "x": []
+        },
+        "tombstones": [
+          "0000000000a1"
+        ],
+        "type": "or_set"
+      },
+      "value": []
+    },
+    {
+      "description": "element names are UTF-8",
+      "name": "non_ascii_element",
+      "state": {
+        "elements": {
+          "naïve-ключ-日本": [
+            "0000000000a1"
+          ]
+        },
+        "type": "or_set"
+      },
+      "value": [
+        "naïve-ключ-日本"
+      ]
+    },
+    {
+      "description": "a non-string element records its type",
+      "name": "integer_element",
+      "state": {
+        "element_types": {
+          "7": "int"
+        },
+        "elements": {
+          "7": [
+            "0000000000a1"
+          ]
+        },
+        "type": "or_set"
+      },
+      "value": [
+        "7"
+      ]
+    },
+    {
+      "description": "live and removed elements together",
+      "name": "several_elements",
+      "state": {
+        "elements": {
+          "a": [
+            "0000000000a1"
+          ],
+          "b": [
+            "0000000000b2",
+            "0000000000c3"
+          ],
+          "c": []
+        },
+        "tombstones": [
+          "0000000000a100"
+        ],
+        "type": "or_set"
+      },
+      "value": [
+        "a",
+        "b"
+      ]
+    }
+  ],
+  "wire_type": "or_set"
+}

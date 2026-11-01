@@ -1,0 +1,688 @@
+{
+  "canonical_form": "UTF-8 JSON, keys sorted, two-space indent, trailing newline, or_set tag lists sorted",
+  "merges": [
+    {
+      "a": {
+        "agent_id": "agent-a",
+        "counters": {},
+        "created_at": 1700000000.5,
+        "facts": {
+          "registers": {
+            "color": {
+              "node_id": "agent-a",
+              "timestamp": 1700000010.5,
+              "type": "lww_register",
+              "value": {
+                "confidence": 0.75,
+                "source_agent": "agent-a",
+                "timestamp": 1700000010.5,
+                "value": "blue"
+              }
+            }
+          },
+          "tombstones": {},
+          "type": "lww_map"
+        },
+        "messages": [],
+        "tags": {
+          "elements": {},
+          "type": "or_set"
+        },
+        "type": "agent_state"
+      },
+      "b": {
+        "agent_id": "agent-b",
+        "counters": {},
+        "created_at": 1700000000.5,
+        "facts": {
+          "registers": {
+            "color": {
+              "node_id": "agent-b",
+              "timestamp": 1700000011.5,
+              "type": "lww_register",
+              "value": {
+                "confidence": 0.5,
+                "source_agent": "agent-b",
+                "timestamp": 1700000011.5,
+                "value": "green"
+              }
+            }
+          },
+          "tombstones": {},
+          "type": "lww_map"
+        },
+        "messages": [],
+        "tags": {
+          "elements": {},
+          "type": "or_set"
+        },
+        "type": "agent_state"
+      },
+      "description": "the newer fact wins, whichever side holds it",
+      "name": "later_fact_wins",
+      "result": {
+        "agent_id": "agent-a+agent-b",
+        "counters": {},
+        "created_at": 1700000000.5,
+        "facts": {
+          "registers": {
+            "color": {
+              "node_id": "agent-b",
+              "timestamp": 1700000011.5,
+              "type": "lww_register",
+              "value": {
+                "confidence": 0.5,
+                "source_agent": "agent-b",
+                "timestamp": 1700000011.5,
+                "value": "green"
+              }
+            }
+          },
+          "tombstones": {},
+          "type": "lww_map"
+        },
+        "messages": [],
+        "tags": {
+          "elements": {},
+          "type": "or_set"
+        },
+        "type": "agent_state"
+      }
+    },
+    {
+      "a": {
+        "agent_id": "agent-a",
+        "counters": {
+          "visits": {
+            "neg": {
+              "counts": {},
+              "type": "g_counter"
+            },
+            "pos": {
+              "counts": {
+                "agent-a": 3,
+                "agent-b": 1
+              },
+              "type": "g_counter"
+            },
+            "type": "pn_counter"
+          }
+        },
+        "created_at": 1700000000.5,
+        "facts": {
+          "registers": {},
+          "tombstones": {},
+          "type": "lww_map"
+        },
+        "messages": [],
+        "tags": {
+          "elements": {},
+          "type": "or_set"
+        },
+        "type": "agent_state"
+      },
+      "b": {
+        "agent_id": "agent-b",
+        "counters": {
+          "visits": {
+            "neg": {
+              "counts": {
+                "agent-b": 1
+              },
+              "type": "g_counter"
+            },
+            "pos": {
+              "counts": {
+                "agent-a": 2,
+                "agent-b": 4
+              },
+              "type": "g_counter"
+            },
+            "type": "pn_counter"
+          }
+        },
+        "created_at": 1700000000.5,
+        "facts": {
+          "registers": {},
+          "tombstones": {},
+          "type": "lww_map"
+        },
+        "messages": [],
+        "tags": {
+          "elements": {},
+          "type": "or_set"
+        },
+        "type": "agent_state"
+      },
+      "description": "counts are merged per node by maximum, so a repeated delivery adds nothing",
+      "name": "counters_take_the_larger_count_per_node",
+      "result": {
+        "agent_id": "agent-a+agent-b",
+        "counters": {
+          "visits": {
+            "neg": {
+              "counts": {
+                "agent-b": 1
+              },
+              "type": "g_counter"
+            },
+            "pos": {
+              "counts": {
+                "agent-a": 3,
+                "agent-b": 4
+              },
+              "type": "g_counter"
+            },
+            "type": "pn_counter"
+          }
+        },
+        "created_at": 1700000000.5,
+        "facts": {
+          "registers": {},
+          "tombstones": {},
+          "type": "lww_map"
+        },
+        "messages": [],
+        "tags": {
+          "elements": {},
+          "type": "or_set"
+        },
+        "type": "agent_state"
+      }
+    },
+    {
+      "a": {
+        "agent_id": "agent-a",
+        "counters": {},
+        "created_at": 1700000000.5,
+        "facts": {
+          "registers": {},
+          "tombstones": {},
+          "type": "lww_map"
+        },
+        "messages": [],
+        "tags": {
+          "elements": {
+            "urgent": [
+              "0000000000a1"
+            ]
+          },
+          "type": "or_set"
+        },
+        "type": "agent_state"
+      },
+      "b": {
+        "agent_id": "agent-b",
+        "counters": {},
+        "created_at": 1700000000.5,
+        "facts": {
+          "registers": {},
+          "tombstones": {},
+          "type": "lww_map"
+        },
+        "messages": [],
+        "tags": {
+          "elements": {
+            "urgent": []
+          },
+          "tombstones": [
+            "0000000000a1"
+          ],
+          "type": "or_set"
+        },
+        "type": "agent_state"
+      },
+      "description": "an observed removal wins over the tag it saw",
+      "name": "tags_union_and_removal",
+      "result": {
+        "agent_id": "agent-a+agent-b",
+        "counters": {},
+        "created_at": 1700000000.5,
+        "facts": {
+          "registers": {},
+          "tombstones": {},
+          "type": "lww_map"
+        },
+        "messages": [],
+        "tags": {
+          "elements": {
+            "urgent": []
+          },
+          "tombstones": [
+            "0000000000a1"
+          ],
+          "type": "or_set"
+        },
+        "type": "agent_state"
+      }
+    },
+    {
+      "a": {
+        "agent_id": "agent-a",
+        "counters": {},
+        "created_at": 1700000100.5,
+        "facts": {
+          "registers": {},
+          "tombstones": {},
+          "type": "lww_map"
+        },
+        "messages": [],
+        "tags": {
+          "elements": {},
+          "type": "or_set"
+        },
+        "type": "agent_state"
+      },
+      "b": {
+        "agent_id": "agent-b",
+        "counters": {},
+        "created_at": 1700000050.5,
+        "facts": {
+          "registers": {},
+          "tombstones": {},
+          "type": "lww_map"
+        },
+        "messages": [],
+        "tags": {
+          "elements": {},
+          "type": "or_set"
+        },
+        "type": "agent_state"
+      },
+      "description": "the merged agent id is the sorted union and created_at is the earlier time",
+      "name": "identity_and_creation_time",
+      "result": {
+        "agent_id": "agent-a+agent-b",
+        "counters": {},
+        "created_at": 1700000050.5,
+        "facts": {
+          "registers": {},
+          "tombstones": {},
+          "type": "lww_map"
+        },
+        "messages": [],
+        "tags": {
+          "elements": {},
+          "type": "or_set"
+        },
+        "type": "agent_state"
+      }
+    },
+    {
+      "a": {
+        "agent_id": "agent-a",
+        "counters": {},
+        "created_at": 1700000000.5,
+        "facts": {
+          "registers": {},
+          "tombstones": {},
+          "type": "lww_map"
+        },
+        "messages": [
+          {
+            "agent_id": "agent-a",
+            "content": "hello",
+            "metadata": {},
+            "role": "agent",
+            "timestamp": 1700000020.5
+          }
+        ],
+        "tags": {
+          "elements": {},
+          "type": "or_set"
+        },
+        "type": "agent_state"
+      },
+      "b": {
+        "agent_id": "agent-b",
+        "counters": {},
+        "created_at": 1700000000.5,
+        "facts": {
+          "registers": {},
+          "tombstones": {},
+          "type": "lww_map"
+        },
+        "messages": [
+          {
+            "agent_id": "agent-a",
+            "content": "hello",
+            "metadata": {},
+            "role": "agent",
+            "timestamp": 1700000020.5
+          },
+          {
+            "agent_id": "agent-b",
+            "content": "reply",
+            "metadata": {},
+            "role": "agent",
+            "timestamp": 1700000022.5
+          }
+        ],
+        "tags": {
+          "elements": {},
+          "type": "or_set"
+        },
+        "type": "agent_state"
+      },
+      "description": "the same message on both sides appears once",
+      "name": "messages_are_deduplicated",
+      "result": {
+        "agent_id": "agent-a+agent-b",
+        "counters": {},
+        "created_at": 1700000000.5,
+        "facts": {
+          "registers": {},
+          "tombstones": {},
+          "type": "lww_map"
+        },
+        "messages": [
+          {
+            "agent_id": "agent-a",
+            "content": "hello",
+            "metadata": {},
+            "role": "agent",
+            "timestamp": 1700000020.5
+          },
+          {
+            "agent_id": "agent-b",
+            "content": "reply",
+            "metadata": {},
+            "role": "agent",
+            "timestamp": 1700000022.5
+          }
+        ],
+        "tags": {
+          "elements": {},
+          "type": "or_set"
+        },
+        "type": "agent_state"
+      }
+    }
+  ],
+  "schema": "protocol-vectors/1",
+  "type": "agentstate",
+  "vectors": [
+    {
+      "description": "a new state",
+      "name": "empty",
+      "state": {
+        "agent_id": "agent-a",
+        "counters": {},
+        "created_at": 1700000000.5,
+        "facts": {
+          "registers": {},
+          "tombstones": {},
+          "type": "lww_map"
+        },
+        "messages": [],
+        "tags": {
+          "elements": {},
+          "type": "or_set"
+        },
+        "type": "agent_state"
+      },
+      "value": {
+        "counters": {},
+        "facts": {},
+        "messages": 0,
+        "tags": []
+      }
+    },
+    {
+      "description": "a fact carries value, confidence, source and time",
+      "name": "one_fact",
+      "state": {
+        "agent_id": "agent-a",
+        "counters": {},
+        "created_at": 1700000000.5,
+        "facts": {
+          "registers": {
+            "color": {
+              "node_id": "agent-a",
+              "timestamp": 1700000010.5,
+              "type": "lww_register",
+              "value": {
+                "confidence": 0.75,
+                "source_agent": "agent-a",
+                "timestamp": 1700000010.5,
+                "value": "blue"
+              }
+            }
+          },
+          "tombstones": {},
+          "type": "lww_map"
+        },
+        "messages": [],
+        "tags": {
+          "elements": {},
+          "type": "or_set"
+        },
+        "type": "agent_state"
+      },
+      "value": {
+        "counters": {},
+        "facts": {
+          "color": {
+            "confidence": 0.75,
+            "source_agent": "agent-a",
+            "timestamp": 1700000010.5,
+            "value": "blue"
+          }
+        },
+        "messages": 0,
+        "tags": []
+      }
+    },
+    {
+      "description": "tags are an observed-remove set",
+      "name": "tags",
+      "state": {
+        "agent_id": "agent-a",
+        "counters": {},
+        "created_at": 1700000000.5,
+        "facts": {
+          "registers": {},
+          "tombstones": {},
+          "type": "lww_map"
+        },
+        "messages": [],
+        "tags": {
+          "elements": {
+            "seen": [
+              "0000000000b2",
+              "0000000000c3"
+            ],
+            "urgent": [
+              "0000000000a1"
+            ]
+          },
+          "type": "or_set"
+        },
+        "type": "agent_state"
+      },
+      "value": {
+        "counters": {},
+        "facts": {},
+        "messages": 0,
+        "tags": [
+          "seen",
+          "urgent"
+        ]
+      }
+    },
+    {
+      "description": "a counter has a positive and a negative part",
+      "name": "counters",
+      "state": {
+        "agent_id": "agent-a",
+        "counters": {
+          "visits": {
+            "neg": {
+              "counts": {
+                "agent-a": 1
+              },
+              "type": "g_counter"
+            },
+            "pos": {
+              "counts": {
+                "agent-a": 3,
+                "agent-b": 2
+              },
+              "type": "g_counter"
+            },
+            "type": "pn_counter"
+          }
+        },
+        "created_at": 1700000000.5,
+        "facts": {
+          "registers": {},
+          "tombstones": {},
+          "type": "lww_map"
+        },
+        "messages": [],
+        "tags": {
+          "elements": {},
+          "type": "or_set"
+        },
+        "type": "agent_state"
+      },
+      "value": {
+        "counters": {
+          "visits": 4
+        },
+        "facts": {},
+        "messages": 0,
+        "tags": []
+      }
+    },
+    {
+      "description": "an append-only message log",
+      "name": "messages",
+      "state": {
+        "agent_id": "agent-a",
+        "counters": {},
+        "created_at": 1700000000.5,
+        "facts": {
+          "registers": {},
+          "tombstones": {},
+          "type": "lww_map"
+        },
+        "messages": [
+          {
+            "agent_id": "agent-a",
+            "content": "hello",
+            "metadata": {},
+            "role": "agent",
+            "timestamp": 1700000020.5
+          },
+          {
+            "agent_id": "agent-a",
+            "content": "naïve 日本",
+            "metadata": {},
+            "role": "agent",
+            "timestamp": 1700000021.5
+          }
+        ],
+        "tags": {
+          "elements": {},
+          "type": "or_set"
+        },
+        "type": "agent_state"
+      },
+      "value": {
+        "counters": {},
+        "facts": {},
+        "messages": 2,
+        "tags": []
+      }
+    },
+    {
+      "description": "facts, tags, counters and messages together",
+      "name": "all_components",
+      "state": {
+        "agent_id": "agent-a",
+        "counters": {
+          "visits": {
+            "neg": {
+              "counts": {},
+              "type": "g_counter"
+            },
+            "pos": {
+              "counts": {
+                "agent-a": 1
+              },
+              "type": "g_counter"
+            },
+            "type": "pn_counter"
+          }
+        },
+        "created_at": 1700000000.5,
+        "facts": {
+          "registers": {
+            "color": {
+              "node_id": "agent-a",
+              "timestamp": 1700000010.5,
+              "type": "lww_register",
+              "value": {
+                "confidence": 0.5,
+                "source_agent": "agent-a",
+                "timestamp": 1700000010.5,
+                "value": {
+                  "rgb": [
+                    0,
+                    0,
+                    255
+                  ]
+                }
+              }
+            }
+          },
+          "tombstones": {},
+          "type": "lww_map"
+        },
+        "messages": [
+          {
+            "agent_id": "agent-a",
+            "content": "hello",
+            "metadata": {},
+            "role": "agent",
+            "timestamp": 1700000020.5
+          }
+        ],
+        "tags": {
+          "elements": {
+            "urgent": [
+              "0000000000a1"
+            ]
+          },
+          "type": "or_set"
+        },
+        "type": "agent_state"
+      },
+      "value": {
+        "counters": {
+          "visits": 1
+        },
+        "facts": {
+          "color": {
+            "confidence": 0.5,
+            "source_agent": "agent-a",
+            "timestamp": 1700000010.5,
+            "value": {
+              "rgb": [
+                0,
+                0,
+                255
+              ]
+            }
+          }
+        },
+        "messages": 1,
+        "tags": [
+          "urgent"
+        ]
+      }
+    }
+  ],
+  "wire_type": "agent_state"
+}

@@ -1,0 +1,321 @@
+{
+  "canonical_form": "UTF-8 JSON, keys sorted, two-space indent, trailing newline, or_set tag lists sorted",
+  "merges": [
+    {
+      "a": {
+        "registers": {
+          "a": {
+            "node_id": "n1",
+            "timestamp": 1700000001.5,
+            "type": "lww_register",
+            "value": "early"
+          }
+        },
+        "tombstones": {},
+        "type": "lww_map"
+      },
+      "b": {
+        "registers": {
+          "a": {
+            "node_id": "n2",
+            "timestamp": 1700000002.5,
+            "type": "lww_register",
+            "value": "late"
+          }
+        },
+        "tombstones": {},
+        "type": "lww_map"
+      },
+      "description": "the higher timestamp wins",
+      "name": "later_write_wins",
+      "result": {
+        "registers": {
+          "a": {
+            "node_id": "n2",
+            "timestamp": 1700000002.5,
+            "type": "lww_register",
+            "value": "late"
+          }
+        },
+        "tombstones": {},
+        "type": "lww_map"
+      }
+    },
+    {
+      "a": {
+        "registers": {
+          "a": {
+            "node_id": "n1",
+            "timestamp": 1700000003.5,
+            "type": "lww_register",
+            "value": "from-n1"
+          }
+        },
+        "tombstones": {},
+        "type": "lww_map"
+      },
+      "b": {
+        "registers": {
+          "a": {
+            "node_id": "n2",
+            "timestamp": 1700000003.5,
+            "type": "lww_register",
+            "value": "from-n2"
+          }
+        },
+        "tombstones": {},
+        "type": "lww_map"
+      },
+      "description": "equal timestamps are settled by the higher node id, in either order",
+      "name": "equal_timestamp_node_id_breaks_tie",
+      "result": {
+        "registers": {
+          "a": {
+            "node_id": "n2",
+            "timestamp": 1700000003.5,
+            "type": "lww_register",
+            "value": "from-n2"
+          }
+        },
+        "tombstones": {},
+        "type": "lww_map"
+      }
+    },
+    {
+      "a": {
+        "registers": {
+          "a": {
+            "node_id": "n1",
+            "timestamp": 1700000004.5,
+            "type": "lww_register",
+            "value": "kept?"
+          }
+        },
+        "tombstones": {},
+        "type": "lww_map"
+      },
+      "b": {
+        "registers": {},
+        "tombstones": {
+          "a": 1700000005.5
+        },
+        "type": "lww_map"
+      },
+      "description": "a delete after the write hides it",
+      "name": "delete_beats_older_register",
+      "result": {
+        "registers": {
+          "a": {
+            "node_id": "n1",
+            "timestamp": 1700000004.5,
+            "type": "lww_register",
+            "value": "kept?"
+          }
+        },
+        "tombstones": {
+          "a": 1700000005.5
+        },
+        "type": "lww_map"
+      }
+    },
+    {
+      "a": {
+        "registers": {
+          "a": {
+            "node_id": "n1",
+            "timestamp": 1700000001.5,
+            "type": "lww_register",
+            "value": 1
+          }
+        },
+        "tombstones": {},
+        "type": "lww_map"
+      },
+      "b": {
+        "registers": {
+          "b": {
+            "node_id": "n2",
+            "timestamp": 1700000001.5,
+            "type": "lww_register",
+            "value": 2
+          }
+        },
+        "tombstones": {},
+        "type": "lww_map"
+      },
+      "description": "keys from both sides stay",
+      "name": "disjoint_keys_union",
+      "result": {
+        "registers": {
+          "a": {
+            "node_id": "n1",
+            "timestamp": 1700000001.5,
+            "type": "lww_register",
+            "value": 1
+          },
+          "b": {
+            "node_id": "n2",
+            "timestamp": 1700000001.5,
+            "type": "lww_register",
+            "value": 2
+          }
+        },
+        "tombstones": {},
+        "type": "lww_map"
+      }
+    }
+  ],
+  "schema": "protocol-vectors/1",
+  "type": "lwwmap",
+  "vectors": [
+    {
+      "description": "no registers",
+      "name": "empty",
+      "state": {
+        "registers": {},
+        "tombstones": {},
+        "type": "lww_map"
+      },
+      "value": {}
+    },
+    {
+      "description": "one live key",
+      "name": "single_register",
+      "state": {
+        "registers": {
+          "a": {
+            "node_id": "n1",
+            "timestamp": 1700000001.5,
+            "type": "lww_register",
+            "value": "one"
+          }
+        },
+        "tombstones": {},
+        "type": "lww_map"
+      },
+      "value": {
+        "a": "one"
+      }
+    },
+    {
+      "description": "values are arbitrary JSON",
+      "name": "nested_value",
+      "state": {
+        "registers": {
+          "a": {
+            "node_id": "n1",
+            "timestamp": 1700000002.5,
+            "type": "lww_register",
+            "value": {
+              "flag": true,
+              "list": [
+                1,
+                2,
+                {
+                  "x": null
+                }
+              ],
+              "ratio": 0.25,
+              "text": "café"
+            }
+          }
+        },
+        "tombstones": {},
+        "type": "lww_map"
+      },
+      "value": {
+        "a": {
+          "flag": true,
+          "list": [
+            1,
+            2,
+            {
+              "x": null
+            }
+          ],
+          "ratio": 0.25,
+          "text": "café"
+        }
+      }
+    },
+    {
+      "description": "keys are UTF-8",
+      "name": "non_ascii_key",
+      "state": {
+        "registers": {
+          "über-日本": {
+            "node_id": "n1",
+            "timestamp": 1700000003.5,
+            "type": "lww_register",
+            "value": 1
+          }
+        },
+        "tombstones": {},
+        "type": "lww_map"
+      },
+      "value": {
+        "über-日本": 1
+      }
+    },
+    {
+      "description": "a newer tombstone hides the register",
+      "name": "tombstone_hides_register",
+      "state": {
+        "registers": {
+          "a": {
+            "node_id": "n1",
+            "timestamp": 1700000004.5,
+            "type": "lww_register",
+            "value": "old"
+          }
+        },
+        "tombstones": {
+          "a": 1700000005.5
+        },
+        "type": "lww_map"
+      },
+      "value": {}
+    },
+    {
+      "description": "a tombstone as new as the register hides it",
+      "name": "equal_timestamp_tombstone_hides_register",
+      "state": {
+        "registers": {
+          "a": {
+            "node_id": "n1",
+            "timestamp": 1700000006.5,
+            "type": "lww_register",
+            "value": "old"
+          }
+        },
+        "tombstones": {
+          "a": 1700000006.5
+        },
+        "type": "lww_map"
+      },
+      "value": {}
+    },
+    {
+      "description": "a write after the delete is live",
+      "name": "newer_register_beats_tombstone",
+      "state": {
+        "registers": {
+          "a": {
+            "node_id": "n1",
+            "timestamp": 1700000008.5,
+            "type": "lww_register",
+            "value": "new"
+          }
+        },
+        "tombstones": {
+          "a": 1700000007.5
+        },
+        "type": "lww_map"
+      },
+      "value": {
+        "a": "new"
+      }
+    }
+  ],
+  "wire_type": "lww_map"
+}
