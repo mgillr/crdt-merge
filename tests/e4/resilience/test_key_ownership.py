@@ -4,6 +4,11 @@
 # Change Date: 2028-04-08, Change License: Apache License, Version 2.0
 
 """Key ownership and revocation hardening tests."""
+import hashlib
+import hmac
+import os
+import sys
+
 import pytest
 from crdt_merge.e4.resilience.key_manager import KeyPair, KeyManager, RevocationEntry, PeerKeyRegistry
 
@@ -51,7 +56,7 @@ class TestKeyPairRealCrypto:
     @pytest.mark.skipif(not _CRYPTO, reason="cryptography not installed")
     def test_sign_without_private_key_raises(self):
         kp = KeyPair.generate()
-        pub_only = KeyPair(public_key=kp.public_key)
+        pub_only = KeyPair.from_public(kp.public_key, "ed25519")
         with pytest.raises(ValueError):
             pub_only.sign(b"msg")
 
@@ -106,13 +111,13 @@ class TestRevocationProof:
         )
         assert entry.verify(registry=reg) is False
 
-    def test_revocation_backward_compat_no_registry(self):
-        """Without registry, any non-empty proof passes (backward compat)."""
+    def test_revocation_without_registry_fails_closed(self):
+        """Without a registry there is no key to check the proof against."""
         entry = RevocationEntry(
             key_id="k", peer_id="p",
             revoked_at=1.0, proof=b"\x01",
         )
-        assert entry.verify() is True
+        assert entry.verify() is False
 
     def test_revocation_empty_proof_fails(self):
         entry = RevocationEntry(
@@ -140,7 +145,7 @@ class TestKeyManagerLifecycle:
         mgr_b = KeyManager("bob")
 
         # Bob registers Alice's key
-        mgr_b.registry.register("alice", KeyPair(public_key=mgr_a.current_key.public_key))
+        mgr_b.registry.register("alice", KeyPair.from_public(**mgr_a.current_key.export_public()))
 
         # Alice signs a message
         sig = mgr_a.sign(b"from alice")
@@ -156,3 +161,183 @@ class TestKeyManagerLifecycle:
         assert entry.key_id == old_key_id
         assert mgr.registry.revocation_count >= 1
         assert mgr.registry.is_revoked(old_key_id)
+
+
+# -- Strict Ed25519: no HMAC fallback on a failed verification -------------
+#
+# KeyPair.verify used to fall back to HMAC-SHA256 keyed by the PUBLIC key
+# whenever Ed25519 verification raised (including InvalidSignature), and
+# KeyPair.sign / KeyPair.generate fell back to HMAC when cryptography was
+# missing. hmac(public_key, message) is computable by anyone holding the
+# public key, so it must never be accepted for an Ed25519 key.
+
+def _public_key_tag(public_key, message):
+    return hmac.new(public_key, message, hashlib.sha256).digest()
+
+
+def _block_cryptography(monkeypatch):
+    import cryptography.exceptions  # noqa: F401
+    from cryptography.hazmat.primitives.asymmetric import ed25519 as _e  # noqa: F401
+    for name in [m for m in sys.modules
+                 if m == "cryptography" or m.startswith("cryptography.")]:
+        monkeypatch.setitem(sys.modules, name, None)
+
+
+@pytest.mark.skipif(not _CRYPTO, reason="cryptography not installed")
+class TestStrictEd25519:
+
+    def test_padded_public_key_tag_rejected(self):
+        kp = KeyPair.generate()
+        pub_only = KeyPair.from_public(kp.public_key, "ed25519")
+        msg = b"attested update"
+        assert pub_only.verify(msg, _public_key_tag(kp.public_key, msg) + b"\x00" * 32) is False
+
+    def test_bare_public_key_tag_rejected(self):
+        kp = KeyPair.generate()
+        pub_only = KeyPair.from_public(kp.public_key, "ed25519")
+        msg = b"attested update"
+        assert pub_only.verify(msg, _public_key_tag(kp.public_key, msg)) is False
+
+    def test_verify_peer_rejects_public_key_tag(self):
+        alice = KeyManager("alice")
+        bob = KeyManager("bob")
+        bob.registry.register("alice", KeyPair.from_public(**alice.current_key.export_public()))
+        msg = b"from alice"
+        forged = _public_key_tag(alice.current_key.public_key, msg) + b"\x00" * 32
+        assert bob.verify_peer("alice", msg, forged) is False
+        assert bob.verify_peer("alice", msg, alice.sign(msg)) is True
+
+    def test_revocation_forged_from_public_key_rejected(self):
+        kp = KeyPair.generate()
+        reg = PeerKeyRegistry()
+        reg.register("alice", KeyPair.from_public(kp.public_key, "ed25519"))
+        payload = (
+            kp.key_id.encode("utf-8") + b"\x00" + b"alice" + b"\x00"
+            + b"compromise" + b"\x00" + b""
+        )
+        entry = RevocationEntry(
+            key_id=kp.key_id, peer_id="alice", revoked_at=1.0,
+            reason="compromise",
+            proof=_public_key_tag(kp.public_key, payload) + b"\x00" * 32,
+        )
+        assert entry.verify(registry=reg) is False
+
+    def test_sign_refuses_key_pair_that_is_not_ed25519(self):
+        private = os.urandom(32)
+        mismatched = KeyPair(public_key=hashlib.sha256(private).digest(), private_key=private)
+        with pytest.raises(ValueError, match="Ed25519"):
+            mismatched.sign(b"msg")
+
+    def test_honest_signature_still_verifies(self):
+        kp = KeyPair.generate()
+        sig = kp.sign(b"hello")
+        assert len(sig) == 64
+        ed25519.Ed25519PublicKey.from_public_bytes(kp.public_key).verify(sig, b"hello")
+        assert KeyPair.from_public(kp.public_key, "ed25519").verify(b"hello", sig) is True
+        assert KeyPair.from_public(kp.public_key, "ed25519").verify(b"hello", sig[:32]) is False
+
+    def test_missing_cryptography_generate_and_sign_fail_closed(self, monkeypatch):
+        kp = KeyPair.generate()
+        _block_cryptography(monkeypatch)
+        with pytest.raises(RuntimeError, match="cryptography"):
+            KeyPair.generate()
+        with pytest.raises(RuntimeError, match="cryptography"):
+            kp.sign(b"msg")
+
+    def test_missing_cryptography_verify_fails_closed(self, monkeypatch):
+        kp = KeyPair.generate()
+        msg = b"msg"
+        honest = kp.sign(msg)
+        forged = _public_key_tag(kp.public_key, msg) + b"\x00" * 32
+        _block_cryptography(monkeypatch)
+        for sig in (forged, honest):
+            with pytest.raises(RuntimeError, match="cryptography"):
+                kp.verify(msg, sig)
+
+    def test_hmac_mode_is_explicit_opt_in(self, monkeypatch):
+        from crdt_merge.e4.resilience.key_manager import SCHEME_ED25519, SCHEME_HMAC
+        _block_cryptography(monkeypatch)  # HMAC mode needs no cryptography
+        hk = KeyPair.generate(scheme=SCHEME_HMAC)
+        assert hk.scheme == SCHEME_HMAC
+        tag = hk.sign(b"msg")
+        assert len(tag) == 32
+        assert KeyPair.from_shared_secret(hk.private_key).verify(b"msg", tag) is True
+        assert hk.verify(b"msg", tag + b"\x00" * 32) is False  # exact tag only
+        monkeypatch.undo()
+        # the same bytes as an Ed25519 key never take the HMAC path
+        assert KeyPair.from_public(hk.public_key, SCHEME_ED25519).verify(b"msg", tag) is False
+        assert KeyManager("carol", scheme=SCHEME_HMAC).current_key.scheme == SCHEME_HMAC
+
+    def test_unknown_scheme_refused(self):
+        with pytest.raises(ValueError, match="scheme"):
+            KeyPair(public_key=b"x" * 32, scheme="none")
+
+
+# -- Key scheme travels with the key ---------------------------------------
+#
+# A KeyPair rebuilt from received public bytes used to default to Ed25519,
+# so the scheme was lost in exchange and HMAC-mode peers always failed
+# verify_peer. The scheme is now carried, bound into key_id, required for
+# public-only keys, and checked against the peer's recorded scheme. HMAC
+# keys are shared secrets: they are never rebuilt from public bytes and
+# never exported as public keys.
+
+@pytest.mark.skipif(not _CRYPTO, reason="cryptography not installed")
+class TestKeySchemeExchange:
+
+    def test_public_only_key_requires_scheme(self):
+        kp = KeyPair.generate()
+        with pytest.raises(TypeError, match="scheme"):
+            KeyPair(public_key=kp.public_key)
+
+    def test_scheme_is_bound_into_key_id(self):
+        from crdt_merge.e4.resilience.key_manager import SCHEME_ED25519, SCHEME_HMAC
+        secret = os.urandom(32)
+        as_ed = KeyPair(public_key=secret, scheme=SCHEME_ED25519)
+        as_hmac = KeyPair(public_key=secret, private_key=secret, scheme=SCHEME_HMAC)
+        assert as_ed.key_id != as_hmac.key_id
+
+    def test_registry_refuses_a_scheme_change_for_a_peer(self):
+        from crdt_merge.e4.resilience.key_manager import SCHEME_ED25519, SCHEME_HMAC
+        reg = PeerKeyRegistry()
+        reg.register("alice", KeyPair.generate())
+        secret = os.urandom(32)
+        with pytest.raises(ValueError, match="scheme"):
+            reg.register("alice", KeyPair(public_key=secret, private_key=secret,
+                                          scheme=SCHEME_HMAC))
+        assert reg.key_chain_length("alice") == 1
+
+    def test_hmac_key_cannot_be_rebuilt_from_public_bytes(self):
+        from crdt_merge.e4.resilience.key_manager import SCHEME_HMAC
+        hk = KeyPair.generate(scheme=SCHEME_HMAC)
+        with pytest.raises(ValueError, match="shared secret"):
+            KeyPair(public_key=hk.public_key, scheme=SCHEME_HMAC)
+
+    def test_hmac_key_is_never_exported_as_public(self):
+        from crdt_merge.e4.resilience.key_manager import SCHEME_HMAC
+        hk = KeyPair.generate(scheme=SCHEME_HMAC)
+        with pytest.raises(ValueError, match="shared secret"):
+            hk.export_public()
+
+    def test_hmac_peers_verify_with_an_out_of_band_secret(self):
+        from crdt_merge.e4.resilience.key_manager import SCHEME_HMAC
+        a = KeyManager("peer-a", scheme=SCHEME_HMAC)
+        b = KeyManager("peer-b", scheme=SCHEME_HMAC)
+        shared = a.current_key.private_key  # agreed out of band
+        b.registry.register("peer-a", KeyPair(public_key=shared, private_key=shared,
+                                              scheme=SCHEME_HMAC))
+        msg = b"from peer-a"
+        assert b.verify_peer("peer-a", msg, a.sign(msg)) is True
+        assert b.verify_peer("peer-a", b"tampered", a.sign(msg)) is False
+
+    def test_ed25519_key_exchange_round_trip(self):
+        a = KeyManager("peer-a")
+        b = KeyManager("peer-b")
+        exported = a.current_key.export_public()
+        assert exported["scheme"] == "ed25519"
+        imported = KeyPair.from_public(**exported)
+        assert imported.key_id == a.current_key.key_id
+        b.registry.register("peer-a", imported)
+        assert b.verify_peer("peer-a", b"m", a.sign(b"m")) is True
+        with pytest.raises(ValueError, match="key_id"):
+            KeyPair.from_public(exported["public_key"], exported["scheme"], key_id="0" * 16)

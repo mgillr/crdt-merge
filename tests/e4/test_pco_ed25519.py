@@ -14,12 +14,13 @@
 
 """Real Ed25519 verification tests for PCO.
 
-Validates the three-tier signature verification:
-  Tier 0: stub (legacy, no registry)
-  Tier 1: HMAC (registry configured, no cryptography)
-  Tier 2: Ed25519 (registry configured + cryptography available)
+Validates PCO signature verification:
+  No registry: verification raises SignatureVerificationNotConfigured,
+    unless unsigned mode is enabled explicitly (allow_unsigned=True)
+  Registry: strict Ed25519 against the registered key; no HMAC tier
 """
 import pytest
+from crdt_merge.e4.signing import SignatureVerificationNotConfigured
 from crdt_merge.e4.pco import (
     AggregateProofCarryingOperation,
     configure_ed25519_verification,
@@ -54,7 +55,7 @@ def reset_registry():
     configure_ed25519_verification(None)
 
 
-# ── Tier 0: Stub (backward compat) ─────────────────────────────────────────
+# ── Explicit unsigned mode (opted into by tests/e4/conftest.py) ─────────────
 
 class TestStubBehavior:
 
@@ -81,25 +82,20 @@ class TestStubBehavior:
         assert len(pco.to_wire()) == 128
 
 
-# ── Tier 1: HMAC fallback ──────────────────────────────────────────────────
+# ── No HMAC tier: a registered key is Ed25519 or nothing verifies ────────────
 
 class TestHMACTier:
 
-    def test_hmac_with_registry_verifies(self):
-        """Registry with HMAC key accepts matching HMAC signature."""
+    def test_hmac_keyed_by_registered_key_rejected(self):
+        """A non-Ed25519 registered key never falls back to HMAC."""
         import hmac, hashlib
-        reg = SimplePeerRegistry()
-        shared_secret = b"A" * 32
-        reg.register("peer-a", shared_secret)
-
-        # Make verify see "no cryptography" by using non-32-byte key
         reg_non_ed = SimplePeerRegistry()
-        reg_non_ed.register("peer-a", shared_secret + b"extra")  # 37 bytes, not Ed25519
+        reg_non_ed.register("peer-a", b"A" * 37)  # 37 bytes, not Ed25519
         configure_ed25519_verification(reg_non_ed)
 
         message = b"signed message"
-        valid_sig = hmac.new(shared_secret + b"extra", message, hashlib.sha256).digest() + b"\x00" * 32
-        assert _verify_ed25519(valid_sig, message, "peer-a") is True
+        tag = hmac.new(b"A" * 37, message, hashlib.sha256).digest() + b"\x00" * 32
+        assert _verify_ed25519(tag, message, "peer-a") is False
 
     def test_hmac_rejects_wrong_key(self):
         """Different HMAC key must fail verification."""
@@ -232,10 +228,17 @@ class TestConfiguration:
         assert _verify_ed25519(b"\x00" * 64, b"m", "unknown") is False
 
         configure_ed25519_verification(None)
-        # Back to stub behavior
+        # Back to the default: not configured, so verification refuses
+        with pytest.raises(SignatureVerificationNotConfigured):
+            _verify_ed25519(b"\x00" * 64, b"m", "unknown")
+
+        configure_ed25519_verification(None, allow_unsigned=True)
         assert _verify_ed25519(b"\x00" * 64, b"m", "unknown") is True
 
     def test_backward_compat_default_behavior(self):
-        """By default, stub behavior is preserved for legacy tests."""
-        # No registry configured — stub behavior
+        """Stub behaviour exists only as the explicit unsigned mode."""
+        configure_ed25519_verification(None, allow_unsigned=True)
         assert _verify_ed25519(b"\x00" * 64, b"msg", "any") is True
+        configure_ed25519_verification(None)
+        with pytest.raises(SignatureVerificationNotConfigured):
+            _verify_ed25519(b"\x00" * 64, b"msg", "any")

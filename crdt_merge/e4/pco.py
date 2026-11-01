@@ -281,83 +281,70 @@ def _build_metadata(version: int = 1, flags: int = 0) -> bytes:
     return struct.pack("!HHQ", version, flags, ts) + b"\x00" * 20
 
 
-# ── Crypto backend detection ─────────────────────────────────────────────
-try:
-    from cryptography.hazmat.primitives.asymmetric import ed25519 as _ed25519
-    from cryptography.exceptions import InvalidSignature as _InvalidSignature
-    _HAS_CRYPTO = True
-except ImportError:
-    _ed25519 = None
-    _InvalidSignature = Exception
-    _HAS_CRYPTO = False
+# ── Signature verification ────────────────────────────────────────────────
 
+from crdt_merge.e4.signing import (  # noqa: E402
+    SignatureVerificationNotConfigured,
+    ed25519_verify,
+    has_ed25519,
+    load_ed25519,
+)
 
-# Module-level peer key registry. When None, verification falls back to
-# stub behavior (length check only). When set, real Ed25519 verification
-# is performed if cryptography is available, HMAC fallback otherwise.
+# Module-level peer key registry.  Verification is strict Ed25519 against
+# the registered key.  With no registry, verification raises unless the
+# caller explicitly opted into unsigned mode.
 _PEER_KEY_REGISTRY = None
+_ALLOW_UNSIGNED = False
 
 
-def configure_ed25519_verification(registry=None) -> None:
-    """Configure a peer key registry for real signature verification.
+def configure_ed25519_verification(registry=None, *, allow_unsigned: bool = False) -> None:
+    """Configure PCO signature verification.
 
     Args:
-        registry: object with ``get_public_key(peer_id) -> bytes`` method,
-            or None to disable real verification (legacy stub behavior).
+        registry: object with ``get_public_key(peer_id) -> bytes``.  Every
+            PCO signature is then checked as Ed25519 under the originator's
+            registered key (``cryptography`` required).
+        allow_unsigned: explicit opt-in to the legacy unsigned mode, valid
+            only with ``registry=None``: any 64-byte value is accepted as a
+            signature, so nothing is authenticated.  Never the default.
 
-    When a registry is configured, signatures are verified using Ed25519
-    if the ``cryptography`` package is installed, or HMAC as fallback.
-
-    When no registry is configured (default), the stub behavior is used:
-    any 64-byte blob passes as a "signature". This preserves backward
-    compatibility with existing tests and integrations that use
-    ``signing_fn=lambda h: b"\\x00" * 64``.
+    With neither (the default), verifying a PCO signature raises
+    :class:`SignatureVerificationNotConfigured`.
     """
-    global _PEER_KEY_REGISTRY
+    global _PEER_KEY_REGISTRY, _ALLOW_UNSIGNED
+    if registry is not None and allow_unsigned:
+        raise ValueError("allow_unsigned cannot be combined with a key registry")
     _PEER_KEY_REGISTRY = registry
+    _ALLOW_UNSIGNED = bool(allow_unsigned)
 
 
 def has_real_crypto() -> bool:
     """Return True if the cryptography package is available."""
-    return _HAS_CRYPTO
+    return has_ed25519()
 
 
 def _verify_ed25519(signature: bytes, message: bytes, peer_id: str) -> bool:
-    """Ed25519 verification with three-tier fallback.
+    """Strict Ed25519 verification of *signature* under *peer_id*'s key.
 
-    Tier 2: real Ed25519 when registry configured + cryptography available
-    Tier 1: HMAC-SHA256 when registry configured + only stdlib available
-    Tier 0: stub (length check) when no registry configured
-
-    This preserves backward compatibility. Existing callers that don't
-    configure a registry get the stub behavior they always had. New
-    callers that configure a registry get real cryptographic verification.
+    No registry: raises SignatureVerificationNotConfigured, unless unsigned
+    mode was explicitly enabled.  Registry: True only for a valid Ed25519
+    signature under the registered 32-byte key; raises Ed25519Unavailable
+    when the cryptography package is missing.  There is no other path.
     """
-    # Tier 0: stub behavior (backward compatible)
     if _PEER_KEY_REGISTRY is None:
-        return len(signature) == 64
-
-    # Look up the peer's public key
+        if _ALLOW_UNSIGNED:
+            return isinstance(signature, (bytes, bytearray)) and len(signature) == 64
+        raise SignatureVerificationNotConfigured(
+            "PCO signature verification is not configured: call "
+            "configure_ed25519_verification(registry), or opt into unsigned "
+            "mode explicitly with configure_ed25519_verification(None, "
+            "allow_unsigned=True)"
+        )
+    load_ed25519()  # raises Ed25519Unavailable before any lookup
     try:
         public_key = _PEER_KEY_REGISTRY.get_public_key(peer_id)
     except (KeyError, AttributeError):
         return False
-    if public_key is None or len(public_key) == 0:
+    if not public_key:
         return False
-
-    # Tier 2: real Ed25519 if available
-    if _HAS_CRYPTO and len(public_key) == 32:
-        try:
-            pk = _ed25519.Ed25519PublicKey.from_public_bytes(public_key)
-            pk.verify(signature, message)
-            return True
-        except (_InvalidSignature, ValueError, Exception):
-            return False
-
-    # Tier 1: HMAC fallback (stdlib only)
-    import hmac as _hmac
-    expected = _hmac.new(public_key, message, hashlib.sha256).digest()
-    # Signature format for HMAC: 32-byte HMAC + 32 bytes padding
-    if len(signature) < 32:
-        return False
-    return _hmac.compare_digest(signature[:32], expected)
+    return ed25519_verify(public_key, message, signature)

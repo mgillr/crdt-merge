@@ -647,14 +647,14 @@ Since E4 introduces **no breaking changes** (see [Changelog](E4-CHANGELOG.md)), 
 
 New in v0.9.6. Real Ed25519 signatures and NIST ML-DSA-65 post-quantum signatures are available as opt-in upgrades over the v0.9.5 stub verification.
 
-### Three Verification Tiers
+### Verification modes
 
-| Tier | When active | Signature backend | Security |
-|---|---|---|---|
-| Tier 0 | No registry configured (default) | Stub (64-byte length check) | Legacy backward compat |
-| Tier 1 | Registry configured, cryptography not installed | HMAC-SHA256 | Symmetric, real integrity |
-| Tier 2 | Registry configured + `[crypto]` installed | Ed25519 (real) | Asymmetric, production |
-| Tier 3 | Registry + `[security]` installed | Ed25519 + ML-DSA-65 | Post-quantum ready |
+| Mode | When active | Signature check |
+|---|---|---|
+| Not configured (default) | No registry configured | Verification raises `SignatureVerificationNotConfigured` |
+| Explicit legacy opt-in | `allow_unsigned=True` / `allow_unauthenticated=True`, no registry | 64-byte length check only; nothing authenticated |
+| Registry | Registry configured (`cryptography` is a core dependency) | Ed25519 under the registered key; no HMAC or embedded-key fallback |
+| Registry + `[security]` | As above, plus ML-DSA-65 where used | Ed25519 + ML-DSA-65 |
 
 ### Installation
 
@@ -734,7 +734,7 @@ Requires `pip install crdt-merge[security]` and a working liboqs install.
 
 ### Rollback
 
-Call `configure_ed25519_verification(None)` and `configure_evidence_verification(None)`. All verification reverts to v0.9.5 stub behavior immediately. No data migration needed.
+Calling `configure_ed25519_verification(None)` and `configure_evidence_verification(None)` returns to the fail-closed default: verification raises until a registry is configured. The unsigned behaviour of v0.9.5 is available only through the explicit `allow_unsigned=True` / `allow_unauthenticated=True` opt-in, which authenticates nothing.
 
 ---
 

@@ -1,5 +1,7 @@
 """Tests for pluggable encryption backends in crdt_merge.encryption."""
 
+from __future__ import annotations
+
 import secrets
 
 import pytest
@@ -230,6 +232,15 @@ class TestAESGCMSIVBackend:
             self.backend.decrypt(secrets.token_bytes(32), ct, nonce, tag)
 
     def test_empty_plaintext(self):
+        # cryptography < 45 rejects zero-length data in AES-GCM-SIV
+        # ("data must not be zero length"); newer releases accept it
+        # (RFC 8452 allows it). That limit belongs to the installed
+        # dependency, so skip only when the dependency itself refuses.
+        from cryptography.hazmat.primitives.ciphers.aead import AESGCMSIV
+        try:
+            AESGCMSIV(self.key).encrypt(secrets.token_bytes(12), b"", None)
+        except ValueError:
+            pytest.skip("installed cryptography rejects empty AES-GCM-SIV plaintext (needs >=45)")
         ct, nonce, tag = self.backend.encrypt(self.key, b"")
         assert self.backend.decrypt(self.key, ct, nonce, tag) == b""
 

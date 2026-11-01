@@ -47,12 +47,22 @@ def make_clock_regression_proof(peer="bad"):
     return pack_clock_pair(before, after)
 
 
-def make_invalid_delta_proof():
-    return pack_delta_proof(b"\x00" * 32, b"bogus delta content")
+def make_invalid_delta_proof(target="bad"):
+    # Evidence verification binds a delta proof to its target: the delta
+    # bytes must name the accused peer, and the hash recorded in the proof
+    # must NOT match the delta (that mismatch is the violation).
+    return pack_delta_proof(
+        b"\x00" * 32, f"bogus delta content for {target}".encode("utf-8")
+    )
 
 
-def make_state_pair_proof():
-    return pack_state_pair(b"state_v1", b"state_v2")
+def make_state_pair_proof(target="bad"):
+    # Both snapshots must be non-trivial (>= 16 bytes), name the accused
+    # peer, and differ from each other (two trust views from one peer).
+    return pack_state_pair(
+        f"{target}:trust_view_v1".encode("utf-8"),
+        f"{target}:trust_view_v2".encode("utf-8"),
+    )
 
 
 def make_lattice(*peers):
@@ -153,7 +163,7 @@ class TestInvalidDelta:
         initial = lattice.get_trust("tamper_peer").overall_trust()
         ev = TrustEvidence.create(
             "observer", "tamper_peer", "invalid_delta", "consistency", 0.8,
-            make_invalid_delta_proof(),
+            make_invalid_delta_proof("tamper_peer"),
         )
         lattice.observe_and_propagate(ev)
         trust = lattice.get_trust("tamper_peer").overall_trust()
@@ -165,12 +175,35 @@ class TestInvalidDelta:
         for _ in range(10):
             ev = TrustEvidence.create(
                 "observer", "bad_peer", "invalid_delta", "consistency", 0.3,
-                make_invalid_delta_proof(),
+                make_invalid_delta_proof("bad_peer"),
             )
             lattice.observe_and_propagate(ev)
             trusts.append(lattice.get_trust("bad_peer").overall_trust())
         for i in range(1, len(trusts)):
             assert trusts[i] <= trusts[i - 1], f"Trust must not increase: step {i}"
+
+
+class TestProofsMustNameTheTarget:
+    """Evidence is bound to its target: a proof that does not name the
+    accused peer is rejected, so it cannot be replayed against another peer."""
+
+    def test_delta_proof_for_another_peer_is_rejected(self):
+        lattice = make_lattice("victim")
+        ev = TrustEvidence.create(
+            "observer", "victim", "invalid_delta", "consistency", 0.8,
+            make_invalid_delta_proof("someone_else"),
+        )
+        with pytest.raises(ValueError, match="evidence proof failed verification"):
+            lattice.observe_and_propagate(ev)
+
+    def test_state_pair_proof_for_another_peer_is_rejected(self):
+        lattice = make_lattice("victim")
+        ev = TrustEvidence.create(
+            "observer", "victim", "trust_manipulation", "consistency", 0.8,
+            make_state_pair_proof("someone_else"),
+        )
+        with pytest.raises(ValueError, match="evidence proof failed verification"):
+            lattice.observe_and_propagate(ev)
 
 
 # -- 5. Merkle Divergence Detection --------------------------------------------
@@ -213,7 +246,7 @@ class TestTrustManipulation:
         initial = lattice.get_trust("manipulator").overall_trust()
         ev = TrustEvidence.create(
             "observer", "manipulator", "trust_manipulation", "consistency", 0.8,
-            make_state_pair_proof(),
+            make_state_pair_proof("manipulator"),
         )
         lattice.observe_and_propagate(ev)
         trust = lattice.get_trust("manipulator").overall_trust()
@@ -224,8 +257,8 @@ class TestTrustManipulation:
         evidence_specs = [
             ("equivocation", "integrity", 0.8, make_equivocation_proof("target")),
             ("clock_regression", "causality", 0.8, make_clock_regression_proof("target")),
-            ("invalid_delta", "consistency", 0.8, make_invalid_delta_proof()),
-            ("trust_manipulation", "consistency", 0.8, make_state_pair_proof()),
+            ("invalid_delta", "consistency", 0.8, make_invalid_delta_proof("target")),
+            ("trust_manipulation", "consistency", 0.8, make_state_pair_proof("target")),
         ]
         for etype, dim, amt, proof in evidence_specs:
             lattice = make_lattice("target")
