@@ -55,8 +55,15 @@ E4 treats trust and data as a SINGLE LATTICE. For Nord's SNN, this means:
    trust then submitting poisoned weights. The correlation detector catches
    coordinated attacks across multiple fake nodes.
 
-6. POST-QUANTUM READY: Weight deltas are signed with hybrid classical+PQ
-   signatures. The training network is secure against quantum adversaries.
+6. SIGNED DELTAS: Every weight delta carries a proof-carrying operation
+   signed with the originating node's Ed25519 key and checked against a
+   peer key registry (``NordKeyRing``). A delta with a bad signature, or from
+   a node whose key is not registered, is rejected. (The example does not
+   claim post-quantum security; see ``crdt_merge.e4.resilience.pq_signatures``
+   for the ML-DSA option.)
+
+Keys are generated at runtime and kept in memory only. Nothing is read from
+or written to disk, and no key material is part of this repository.
 """
 
 import time
@@ -66,6 +73,8 @@ from typing import Dict, List, Optional, Tuple, Set, Any
 from dataclasses import dataclass
 
 from crdt_merge.core import GCounter, PNCounter, LWWMap, ORSet
+from crdt_merge.e4.pco import configure_ed25519_verification
+from crdt_merge.e4.signing import load_ed25519
 from crdt_merge.e4.typed_trust import TypedTrustScore, TRUST_DIMENSIONS
 from crdt_merge.e4.pco import AggregateProofCarryingOperation, SubtreeRef
 from crdt_merge.e4.projection_delta import ProjectionDelta, FrozenDict, ProjectionDeltaManager
@@ -84,8 +93,39 @@ from crdt_merge.e4.resilience.convergence_monitor import ConvergenceMonitor
 from crdt_merge.e4.resilience.deterministic_merge import DeterministicMerge
 
 
-def _sign_fn(data: bytes) -> bytes:
-    return hashlib.sha256(data).digest() + b"\x00" * 32
+class NordKeyRing:
+    """Ephemeral Ed25519 keys for the nodes of one example network.
+
+    Each node's key pair is generated at runtime and held in memory only. In
+    a real deployment every node keeps its own private key and only public
+    keys are exchanged; here one object stands in for all of them so the
+    example can run in a single process. It doubles as the peer key registry
+    that PCO verification asks for public keys
+    (``get_public_key(peer_id) -> bytes``).
+    """
+
+    def __init__(self) -> None:
+        self._private: Dict[str, Any] = {}
+        self._public: Dict[str, bytes] = {}
+
+    def ensure(self, peer_id: str) -> bytes:
+        """Create the key pair for *peer_id* if needed; return its public key."""
+        if peer_id not in self._private:
+            ed25519, _ = load_ed25519()
+            sk = ed25519.Ed25519PrivateKey.generate()
+            self._private[peer_id] = sk
+            self._public[peer_id] = sk.public_key().public_bytes_raw()
+        return self._public[peer_id]
+
+    def signer(self, peer_id: str):
+        """A ``signing_fn(data) -> 64-byte Ed25519 signature`` for *peer_id*."""
+        self.ensure(peer_id)
+        sk = self._private[peer_id]
+        return lambda data: sk.sign(data)
+
+    def get_public_key(self, peer_id: str) -> Optional[bytes]:
+        """Registry interface: the registered public key, or None."""
+        return self._public.get(peer_id)
 
 
 def _tensor_hash(arr: np.ndarray) -> str:
@@ -124,9 +164,11 @@ class NordE4TrustNetwork:
 
     def __init__(self, peer_id: str):
         self.peer_id = peer_id
+        self.keys = NordKeyRing()
+        self.keys.ensure(peer_id)
         self.lattice = DeltaTrustLattice(
             peer_id,
-            signing_fn=_sign_fn,
+            signing_fn=self.keys.signer(peer_id),
             initial_peers={peer_id},
         )
         self.clock = CausalTrustClock(peer_id)
@@ -146,6 +188,7 @@ class NordE4TrustNetwork:
     def register_peer(self, peer_id: str) -> float:
         """Register a new training peer. Starts at probationary trust (0.5)."""
         self._peers.add(peer_id)
+        self.keys.ensure(peer_id)
         self.convergence.update_peer_count(len(self._peers))
         trust = self.lattice.get_trust(peer_id)
         return trust.overall_trust()
@@ -160,7 +203,13 @@ class NordE4TrustNetwork:
         new_weights: Dict[str, np.ndarray],
         sparsity_threshold: float = 1e-7,
     ) -> ProjectionDelta:
-        """Create a proof-carrying weight delta from a training step."""
+        """Create a proof-carrying weight delta from a training step.
+
+        The PCO is signed with *peer_id*'s Ed25519 key (the peer must have
+        been registered with :meth:`register_peer`).
+        """
+        if self.keys.get_public_key(peer_id) is None:
+            raise ValueError(f"unknown peer {peer_id!r}: register_peer() first")
         self.clock = self.clock.increment()
 
         insertions = {}
@@ -192,7 +241,7 @@ class NordE4TrustNetwork:
 
         pco = AggregateProofCarryingOperation.build(
             originator_id=peer_id,
-            signing_fn=_sign_fn,
+            signing_fn=self.keys.signer(peer_id),
             merkle_root=self.lattice.compute_trust_root(),
             clock_snapshot=self.clock.serialize_compact(),
             trust_vector_hash=self.lattice.get_trust(peer_id).hash(),
@@ -242,7 +291,13 @@ class NordE4TrustNetwork:
         if len(wire) != 128:
             return False, f"REJECTED: invalid PCO wire size ({len(wire)} != 128)"
 
+        # Verify the Ed25519 signature against the registered key for the
+        # originating peer. Verification is configured process-wide, so
+        # point it at this network's registry first.
+        configure_ed25519_verification(self.keys)
         pco_ok = delta.pco.verify(None, None, verification_level=min(level, 1))
+        if not pco_ok:
+            return False, f"REJECTED: {peer} PCO failed signature verification"
 
         if level == 0:
             return True, f"ACCEPTED (L0 fast-path): {peer} trust={trust.overall_trust():.2f}"

@@ -291,6 +291,15 @@ class TestDeltaTrustLattice:
         assert len(root) > 0
 
 
+@pytest.fixture(autouse=True)
+def _reset_pco_verification():
+    """receive_delta points PCO verification at the network's key registry;
+    restore the fail-closed default so no test leaks that setting."""
+    yield
+    from crdt_merge.e4.pco import configure_ed25519_verification
+    configure_ed25519_verification(None)
+
+
 class TestNordE4TrustNetwork:
     """End-to-end trust network for distributed SNN training."""
 
@@ -331,6 +340,49 @@ class TestNordE4TrustNetwork:
         assert "rtx5070" in report["peers"]
         dims = report["peers"]["rtx5070"]["dimensions"]
         assert set(dims.keys()) == TRUST_DIMENSIONS
+
+    def test_tampered_signature_is_rejected(self):
+        """A delta whose PCO signature was altered fails verification."""
+        from dataclasses import replace
+        net = NordE4TrustNetwork("coordinator")
+        net.register_peer("node_a")
+        delta = net.create_weight_delta(
+            "node_a", make_state_dict(seed=1), make_state_dict(seed=2))
+        flipped = bytes([delta.pco.signature[0] ^ 0xFF]) + delta.pco.signature[1:]
+        forged = replace(delta, pco=replace(delta.pco, signature=flipped))
+        accepted, msg = net.receive_delta(forged)
+        assert not accepted
+        assert "REJECTED" in msg and "signature" in msg
+
+    def test_signature_from_another_nodes_key_is_rejected(self):
+        """node_b cannot pass a delta off as node_a's: wrong key, rejected."""
+        from dataclasses import replace
+        net = NordE4TrustNetwork("coordinator")
+        net.register_peer("node_a")
+        net.register_peer("node_b")
+        old, new = make_state_dict(seed=1), make_state_dict(seed=2)
+        delta_a = net.create_weight_delta("node_a", old, new)
+        delta_b = net.create_weight_delta("node_b", old, new)
+        # node_b's signature on a PCO that claims node_a as originator
+        pco = replace(delta_a.pco, signature=delta_b.pco.signature)
+        accepted, msg = net.receive_delta(replace(delta_a, pco=pco))
+        assert not accepted
+
+    def test_unregistered_node_cannot_create_a_delta(self):
+        net = NordE4TrustNetwork("coordinator")
+        with pytest.raises(ValueError, match="register_peer"):
+            net.create_weight_delta(
+                "stranger", make_state_dict(seed=1), make_state_dict(seed=2))
+
+    def test_unknown_originator_is_rejected(self):
+        """A delta from a node that is not in the key registry is rejected."""
+        net = NordE4TrustNetwork("coordinator")
+        other = NordE4TrustNetwork("someone_else")
+        other.register_peer("outsider")
+        delta = other.create_weight_delta(
+            "outsider", make_state_dict(seed=1), make_state_dict(seed=2))
+        accepted, msg = net.receive_delta(delta)
+        assert not accepted and "REJECTED" in msg
 
     def test_three_node_network(self):
         net = NordE4TrustNetwork("coordinator")
