@@ -11,7 +11,7 @@ jobs:
     name: Bandit SAST
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
@@ -32,7 +32,7 @@ jobs:
     container:
       image: semgrep/semgrep
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - run: semgrep scan --config=auto --json --output=semgrep-report.json crdt_merge/ || true
     - name: Upload Report
       uses: actions/upload-artifact@v7
