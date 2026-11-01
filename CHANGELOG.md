@@ -23,9 +23,6 @@
   and `metadata` are reserved. Regression: `tests/test_crdt_extension_protocol.py`.
 
 ### Changed
-- **Python 3.9 is no longer supported.** `requires-python` is now `>=3.10`, the 3.9 classifier is gone and 3.9
-  is removed from the CI test matrix. The test suite already used syntax that does not import on 3.9
-  (`tests/test_encryption_backends.py`), which the old `| tail` CI step hid.
 - **`FlightMergeServer` binds to `127.0.0.1` by default** (it has since "Default flight server to localhost
   only"; the CLI default is the same). The API reference signatures and `tests/test_accelerator_flight.py` now
   say so. To serve other hosts, pass `host="0.0.0.0"` (or `--host 0.0.0.0`) explicitly and use TLS.
@@ -49,6 +46,10 @@
   tag is serialised with each contribution so tombstones keep matching after a `to_dict()` / `from_dict()` round
   trip (previously `from_dict()` minted a new tag). Regression: `tests/test_crdt_state_tag_uniqueness.py`.
 - **Pre-existing test failures.**
+  - `tests/test_encryption_backends.py` did not import on Python 3.9 (`bytes | None` in annotations evaluated at
+    import time); it now uses `from __future__ import annotations`, and every `crdt_merge` module imports on 3.9.
+    `test_empty_plaintext` for AES-GCM-SIV skips when the installed `cryptography` is older than 45, which rejects
+    zero-length data. Python 3.9 stays supported and is still in the CI matrix.
   - `security/tests/test_byzantine_fault_injection.py`: the four E4 trust tests failed with "evidence proof failed
     verification". Cause: evidence verification binds `invalid_delta` and `trust_manipulation` proofs to the
     accused peer (the proof must name the target), but the test fixtures built proofs that did not. The fixtures
