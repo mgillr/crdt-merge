@@ -1,0 +1,39 @@
+name: CRDT conformance
+
+# History-based gate: random operation histories with drop, duplicate, reorder, restart and
+# partition faults are replayed against every shared state type, and the converged result is
+# compared with an oracle. A failure prints the seed that regenerates the history.
+# Replay locally with: CONFORMANCE_SEED=<seed> pytest tests/conformance
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  conformance:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run the conformance gate
+        env:
+          CONFORMANCE_EXAMPLES: '300'
+        run: |
+          pytest tests/conformance -v --tb=short

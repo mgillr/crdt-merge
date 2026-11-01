@@ -652,7 +652,7 @@ New in v0.9.6. Real Ed25519 signatures and NIST ML-DSA-65 post-quantum signature
 | Mode | When active | Signature check |
 |---|---|---|
 | Not configured (default) | No registry configured | Verification raises `SignatureVerificationNotConfigured` |
-| Explicit legacy opt-in | `allow_unsigned=True` / `allow_unauthenticated=True`, no registry | 64-byte length check only; nothing authenticated |
+| Explicit legacy opt-in (tests only) | `allow_unsigned=True` / `allow_unauthenticated=True`, no registry, and `CRDT_MERGE_INSECURE_TEST_MODE=1` in the environment (otherwise `InsecureModeNotPermitted`); emits an `InsecureConfigurationWarning` and a logging warning | 64-byte length check only; nothing authenticated |
 | Registry | Registry configured (`cryptography` is a core dependency) | Ed25519 under the registered key; no HMAC or embedded-key fallback |
 | Registry + `[security]` | As above, plus ML-DSA-65 where used | Ed25519 + ML-DSA-65 |
 
@@ -734,7 +734,7 @@ Requires `pip install crdt-merge[security]` and a working liboqs install.
 
 ### Rollback
 
-Calling `configure_ed25519_verification(None)` and `configure_evidence_verification(None)` returns to the fail-closed default: verification raises until a registry is configured. The unsigned behaviour of v0.9.5 is available only through the explicit `allow_unsigned=True` / `allow_unauthenticated=True` opt-in, which authenticates nothing.
+Calling `configure_ed25519_verification(None)` and `configure_evidence_verification(None)` returns to the fail-closed default: verification raises until a registry is configured. The unsigned behaviour of v0.9.5 is available only through the explicit `allow_unsigned=True` / `allow_unauthenticated=True` opt-in, which authenticates nothing, is refused unless `CRDT_MERGE_INSECURE_TEST_MODE=1` is set, and warns loudly when it is used. It is meant for tests, not as a rollback path for production.
 
 ---
 

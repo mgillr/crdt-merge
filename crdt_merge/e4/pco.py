@@ -288,6 +288,7 @@ from crdt_merge.e4.signing import (  # noqa: E402
     ed25519_verify,
     has_ed25519,
     load_ed25519,
+    require_insecure_opt_in,
 )
 
 # Module-level peer key registry.  Verification is strict Ed25519 against
@@ -307,6 +308,10 @@ def configure_ed25519_verification(registry=None, *, allow_unsigned: bool = Fals
         allow_unsigned: explicit opt-in to the legacy unsigned mode, valid
             only with ``registry=None``: any 64-byte value is accepted as a
             signature, so nothing is authenticated.  Never the default.
+            Refused (:class:`InsecureModeNotPermitted`) unless the
+            environment variable ``CRDT_MERGE_INSECURE_TEST_MODE`` is
+            ``"1"``; when allowed it emits an
+            :class:`InsecureConfigurationWarning` and a logging warning.
 
     With neither (the default), verifying a PCO signature raises
     :class:`SignatureVerificationNotConfigured`.
@@ -314,6 +319,11 @@ def configure_ed25519_verification(registry=None, *, allow_unsigned: bool = Fals
     global _PEER_KEY_REGISTRY, _ALLOW_UNSIGNED
     if registry is not None and allow_unsigned:
         raise ValueError("allow_unsigned cannot be combined with a key registry")
+    if allow_unsigned:
+        require_insecure_opt_in(
+            "allow_unsigned",
+            "any 64-byte value is accepted as a PCO signature and nothing is authenticated",
+        )
     _PEER_KEY_REGISTRY = registry
     _ALLOW_UNSIGNED = bool(allow_unsigned)
 
