@@ -245,7 +245,7 @@ pip install crdt-merge[security]  # Ed25519 + NIST ML-DSA-65 post-quantum (new i
 pip install crdt-merge[all]       # Everything
 ```
 
-Zero required dependencies. Python 3.9-3.12. Linux, macOS, Windows.
+One required dependency (`cryptography`, for Ed25519). Python 3.9-3.12. Linux, macOS, Windows.
 
 **[All install options ->](docs/getting-started/quickstart.md)**
 
