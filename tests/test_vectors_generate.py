@@ -3,8 +3,10 @@
 The vectors are the wire form of each type, written by the Python reference. Other editions copy
 the files at a pinned commit and must read every ``state`` and re-emit it byte-identically.
 
-Running this test regenerates ``tests/vectors/*.json`` in place. The generator is deterministic,
-so a clean checkout has no diff afterwards (``git diff --exit-code -- tests/vectors``).
+This test never writes into ``tests/vectors``. It runs the generator into a temporary directory and
+compares every file byte for byte with the committed one, so the test fails when the generator and the
+committed files drift apart. To refresh the files after an intended change, run
+``python tests/vectors/generate.py`` and commit the result.
 """
 import importlib.util
 import json
@@ -34,11 +36,33 @@ def gen():
     return _load_generator()
 
 
+def _read_all(directory):
+    return {t: open(os.path.join(directory, f"{t}.json"), "rb").read() for t in TYPES}
+
+
 @pytest.fixture(scope="module")
-def written(gen):
-    """Regenerate the three files in place and return their bytes."""
-    gen.write_all(VECTOR_DIR)
-    return {t: open(os.path.join(VECTOR_DIR, f"{t}.json"), "rb").read() for t in TYPES}
+def generated(gen, tmp_path_factory):
+    """Run the generator into a temporary directory and return the bytes of the three files."""
+    out = tmp_path_factory.mktemp("generated_vectors")
+    gen.write_all(str(out))
+    return _read_all(str(out))
+
+
+@pytest.fixture(scope="module")
+def written():
+    """The committed files, as they are on disk. Nothing here writes to them."""
+    return _read_all(VECTOR_DIR)
+
+
+def test_committed_vectors_match_the_generator(generated, written):
+    """The committed files are exactly what the generator writes, byte for byte."""
+    committed_json = sorted(n for n in os.listdir(VECTOR_DIR) if n.endswith(".json"))
+    assert committed_json == sorted(f"{t}.json" for t in TYPES), "unexpected or missing vector files"
+    for t in TYPES:
+        assert written[t] == generated[t], (
+            f"tests/vectors/{t}.json differs from the generator output; "
+            "run python tests/vectors/generate.py and commit the result, or revert the edit"
+        )
 
 
 def _walk(node):
@@ -57,13 +81,13 @@ def test_one_file_per_type_is_written(written):
         assert written[t].endswith(b"\n")
 
 
-def test_regeneration_is_byte_identical(gen, written, tmp_path):
+def test_regeneration_is_byte_identical(gen, generated, tmp_path):
     gen.write_all(str(tmp_path))
     for t in TYPES:
-        assert (tmp_path / f"{t}.json").read_bytes() == written[t], f"{t}.json changed on regeneration"
+        assert (tmp_path / f"{t}.json").read_bytes() == generated[t], f"{t}.json changed on regeneration"
 
 
-def test_regeneration_in_a_fresh_process_is_byte_identical(written, tmp_path):
+def test_regeneration_in_a_fresh_process_is_byte_identical(generated, tmp_path):
     """Nothing depends on hash randomisation or on the time of the run."""
     code = (
         "import importlib.util,sys;"
@@ -74,7 +98,7 @@ def test_regeneration_in_a_fresh_process_is_byte_identical(written, tmp_path):
     env = dict(os.environ, PYTHONHASHSEED="12345")
     subprocess.run([sys.executable, "-c", code, str(tmp_path)], check=True, env=env)
     for t in TYPES:
-        assert (tmp_path / f"{t}.json").read_bytes() == written[t]
+        assert (tmp_path / f"{t}.json").read_bytes() == generated[t]
 
 
 @pytest.mark.parametrize("t", TYPES)
