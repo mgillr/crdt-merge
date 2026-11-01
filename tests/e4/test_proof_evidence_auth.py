@@ -289,5 +289,6 @@ class TestConfiguration:
         # After reset: not configured, so verification refuses
         with pytest.raises(SignatureVerificationNotConfigured):
             ev.verify()
-        configure_evidence_verification(None, allow_unauthenticated=True)
+        with pytest.warns(UserWarning, match="INSECURE"):
+            configure_evidence_verification(None, allow_unauthenticated=True)
         assert ev.verify() is True  # explicit unauthenticated mode

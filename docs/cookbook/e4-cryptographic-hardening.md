@@ -153,14 +153,22 @@ assert real_pco.verify(None, None, verification_level=0) is True  # ACCEPTED
 
 ## 7. Legacy unsigned mode (explicit opt-in)
 
-For tests or closed experiments that use unsigned fixtures, the old behaviour is available only by asking for it:
+For tests that use unsigned fixtures, the old behaviour is available only by asking for it, and only when a test-mode guard is set:
 
 ```python
+import os
+os.environ["CRDT_MERGE_INSECURE_TEST_MODE"] = "1"   # the guard; exactly "1"
+
 configure_ed25519_verification(None, allow_unsigned=True)       # any 64-byte value passes
 configure_evidence_verification(None, allow_unauthenticated=True)  # observer not authenticated
 ```
 
-Nothing is authenticated in this mode. It cannot be combined with a registry, and calling either function with `None` alone returns to the fail-closed default.
+**Nothing is authenticated in this mode, and it is not for production.**
+
+- Without `CRDT_MERGE_INSECURE_TEST_MODE=1` in the environment, both calls raise `InsecureModeNotPermitted` and nothing is activated.
+- With the guard set, each call emits an `InsecureConfigurationWarning` (a `UserWarning`) and a `logging.WARNING` record on the `crdt_merge.e4.security` logger.
+- It cannot be combined with a registry (`ValueError`), and calling either function with `None` alone returns to the fail-closed default.
+- The guard is read when the opt-in is configured. It does not stop code that sets the variable itself, so it is a safeguard against accidental use, not an access control.
 
 ---
 

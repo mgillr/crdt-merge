@@ -131,7 +131,7 @@ HMAC mode (`scheme="hmac-sha256"`) is opt-in and is a shared-secret MAC, not a s
 | Deployment | Required level | Recommended backend |
 |---|---|---|
 | Closed federation, single org | Integrity only | Ed25519 with a key registry; HMAC-SHA256 only as an explicit shared secret |
-| Development / testing | Minimal | Explicit unsigned mode (`allow_unsigned=True`, `allow_unauthenticated=True`) |
+| Development / testing | Minimal | Explicit unsigned mode (`allow_unsigned=True`, `allow_unauthenticated=True`); tests only, refused unless `CRDT_MERGE_INSECURE_TEST_MODE=1`, and it warns when enabled. Authenticates nothing. |
 | Multi-org production | Non-repudiation | Ed25519 |
 | Regulated industry | Non-repudiation | Ed25519 |
 | Long-lived attestations | PQ resistance | ML-DSA-65 (`[security]`) |

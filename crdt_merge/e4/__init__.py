@@ -55,6 +55,8 @@ from crdt_merge.e4.pco import (
 )
 from crdt_merge.e4.signing import (
     Ed25519Unavailable,
+    InsecureConfigurationWarning,
+    InsecureModeNotPermitted,
     SignatureVerificationNotConfigured,
 )
 from crdt_merge.e4.projection_delta import (
@@ -91,6 +93,8 @@ __all__ = [
     "sign_attestation",
     "Ed25519Unavailable",
     "SignatureVerificationNotConfigured",
+    "InsecureModeNotPermitted",
+    "InsecureConfigurationWarning",
     "AggregateProofCarryingOperation",
     "SubtreeRef",
     "ProjectionDelta",

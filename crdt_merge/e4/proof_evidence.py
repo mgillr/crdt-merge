@@ -58,6 +58,7 @@ from crdt_merge.e4.signing import (  # noqa: E402
     SignatureVerificationNotConfigured,
     ed25519_verify,
     load_ed25519,
+    require_insecure_opt_in,
 )
 
 # Module-level registry for observer and attestation authentication.
@@ -82,7 +83,10 @@ def configure_evidence_verification(
         allow_unauthenticated: explicit opt-in to the legacy mode, valid
             only with ``registry=None``: observer signatures are not
             checked and attestation signatures are only length-checked.
-            Never the default.
+            Never the default.  Refused (:class:`InsecureModeNotPermitted`)
+            unless the environment variable ``CRDT_MERGE_INSECURE_TEST_MODE``
+            is ``"1"``; when allowed it emits an
+            :class:`InsecureConfigurationWarning` and a logging warning.
 
     With neither (the default), :meth:`TrustEvidence.verify` raises
     :class:`SignatureVerificationNotConfigured`.  A key embedded in the
@@ -91,6 +95,12 @@ def configure_evidence_verification(
     global _OBSERVER_KEY_REGISTRY, _ALLOW_UNAUTHENTICATED
     if registry is not None and allow_unauthenticated:
         raise ValueError("allow_unauthenticated cannot be combined with a key registry")
+    if allow_unauthenticated:
+        require_insecure_opt_in(
+            "allow_unauthenticated",
+            "observer signatures are not checked and attestation signatures are only "
+            "length-checked, so nothing is authenticated",
+        )
     _OBSERVER_KEY_REGISTRY = registry
     _ALLOW_UNAUTHENTICATED = bool(allow_unauthenticated)
 
