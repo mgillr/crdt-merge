@@ -90,7 +90,7 @@ def test_deletion_propagation(subsystem):
 
 
 @ALL
-def test_stale_replica_does_not_resurrect_a_removed_key(subsystem):
+def test_stale_replica(subsystem):
     """A replica that never saw the removal must not resurrect the key when it syncs late."""
     h = history(subsystem, [
         op(subsystem, 0, "add"), send(0, 1), send(0, 2),
@@ -108,7 +108,7 @@ def test_stale_replica_does_not_resurrect_a_removed_key(subsystem):
 
 
 @ALL
-def test_duplicate_delivery_is_harmless(subsystem):
+def test_duplicate_delivery(subsystem):
     """Delivering the same state twice, or ten times, gives the same result as once."""
     base = [
         op(subsystem, 0, "add", "a"), op(subsystem, 0, "add", "b"),
@@ -122,7 +122,7 @@ def test_duplicate_delivery_is_harmless(subsystem):
 
 
 @ALL
-def test_out_of_order_delivery_gives_the_same_result(subsystem):
+def test_out_of_order_delivery(subsystem):
     """An old snapshot arriving before or after the newest one does not change the outcome."""
     base = [op(subsystem, 0, "add", "a"), op(subsystem, 0, "add", "b"), op(subsystem, 0, "remove", "a")]
     old_then_new = run_history(history(subsystem, base + [send(0, 1, "stale", 2), send(0, 1)]))
@@ -133,7 +133,7 @@ def test_out_of_order_delivery_gives_the_same_result(subsystem):
 
 
 @ALL
-def test_process_restart_keeps_the_observable_state(subsystem):
+def test_process_restart(subsystem):
     """Saving and reloading a replica between any two events changes nothing a reader can see."""
     for seed in range(15):
         from history import generate_history
@@ -166,7 +166,7 @@ def test_restarted_replica_does_not_resurrect_a_removed_key(subsystem):
 
 
 @ALL
-def test_clock_skew_does_not_break_convergence(subsystem):
+def test_clock_skew(subsystem):
     """Replicas with clocks 30 seconds apart still end up identical, whatever the sync order."""
     h = history(
         subsystem,
@@ -185,7 +185,7 @@ def test_clock_skew_does_not_break_convergence(subsystem):
 
 
 @ALL
-def test_replica_id_collision_still_converges(subsystem):
+def test_replica_id_collision(subsystem):
     """Two replicas that share one identity and write concurrently still converge.
 
     The writes carry different timestamps, so a last-writer-wins structure has a defined winner.
