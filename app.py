@@ -638,57 +638,40 @@ def run_crdt_proof(
 
         crdt_rows = []
 
-        # GCounter
+        def _check(type_name, gen_fn, eq_fn=None):
+            """Run the law checks for one core type and record the real counts.
+
+            ``verify_crdt`` takes the merge function (not the class), so each
+            type is merged through its own ``merge`` method.
+            """
+            try:
+                r = verify_crdt(lambda a, b: a.merge(b), gen_fn,
+                                trials=int(trials), eq_fn=eq_fn)
+                for prop, res in [("commutativity", r.commutativity),
+                                  ("associativity", r.associativity),
+                                  ("idempotency", r.idempotency)]:
+                    crdt_rows.append({
+                        "type": type_name, "property": prop,
+                        "trials": res.trials, "failures": res.failures,
+                        "result": "PASS" if res.passed else "FAIL",
+                    })
+            except Exception as e:
+                crdt_rows.append({"type": type_name, "property": "all",
+                                  "trials": int(trials), "failures": "--",
+                                  "result": f"ERROR: {str(e)[:60]}"})
+
         def gen_gcounter():
             c = GCounter()
             c.increment(f"n{random.randint(0, 2)}", random.randint(1, 10))
             return c
 
-        try:
-            r = verify_crdt(GCounter, gen_gcounter, trials=int(trials))
-            crdt_rows.append({
-                "type": "GCounter",
-                "property": "commutativity",
-                "trials": int(trials),
-                "result": "PASS" if r.commutativity.passed else "FAIL",
-                "max_deviation": "0.0",
-            })
-            crdt_rows.append({
-                "type": "GCounter",
-                "property": "associativity",
-                "trials": int(trials),
-                "result": "PASS" if r.associativity.passed else "FAIL",
-                "max_deviation": "0.0",
-            })
-            crdt_rows.append({
-                "type": "GCounter",
-                "property": "idempotency",
-                "trials": int(trials),
-                "result": "PASS" if r.idempotency.passed else "FAIL",
-                "max_deviation": "0.0",
-            })
-        except Exception as e:
-            crdt_rows.append({"type": "GCounter", "property": "all", "trials": int(trials),
-                              "result": f"ERROR: {str(e)[:60]}", "max_deviation": "--"})
-
-        # PNCounter
         def gen_pncounter():
             c = PNCounter()
-            c.increment(f"n{random.randint(0,1)}", random.randint(1, 5))
+            c.increment(f"n{random.randint(0, 1)}", random.randint(1, 5))
             if random.random() > 0.5:
-                c.decrement(f"n{random.randint(0,1)}", random.randint(1, 3))
+                c.decrement(f"n{random.randint(0, 1)}", random.randint(1, 3))
             return c
 
-        try:
-            r = verify_crdt(PNCounter, gen_pncounter, trials=int(trials))
-            for prop, res in [("commutativity", r.commutativity), ("associativity", r.associativity), ("idempotency", r.idempotency)]:
-                crdt_rows.append({"type": "PNCounter", "property": prop, "trials": int(trials),
-                                  "result": "PASS" if res.passed else "FAIL", "max_deviation": "0.0"})
-        except Exception as e:
-            crdt_rows.append({"type": "PNCounter", "property": "all", "trials": int(trials),
-                              "result": f"ERROR: {str(e)[:60]}", "max_deviation": "--"})
-
-        # LWWRegister
         def gen_lww():
             return LWWRegister(
                 value=random.choice(["alpha", "beta", "gamma", "delta"]),
@@ -696,32 +679,17 @@ def run_crdt_proof(
                 node_id=f"node_{random.randint(0, 3)}",
             )
 
-        try:
-            r = verify_crdt(LWWRegister, gen_lww, trials=int(trials),
-                           eq_fn=lambda a, b: a.value == b.value)
-            for prop, res in [("commutativity", r.commutativity), ("associativity", r.associativity), ("idempotency", r.idempotency)]:
-                crdt_rows.append({"type": "LWWRegister", "property": prop, "trials": int(trials),
-                                  "result": "PASS" if res.passed else "FAIL", "max_deviation": "0.0"})
-        except Exception as e:
-            crdt_rows.append({"type": "LWWRegister", "property": "all", "trials": int(trials),
-                              "result": f"ERROR: {str(e)[:60]}", "max_deviation": "--"})
-
-        # ORSet
         def gen_orset():
             s = ORSet()
             for _ in range(random.randint(1, 3)):
                 s.add(random.choice(["x", "y", "z", "w"]))
             return s
 
-        try:
-            r = verify_crdt(ORSet, gen_orset, trials=int(trials),
-                           eq_fn=lambda a, b: a.value == b.value)
-            for prop, res in [("commutativity", r.commutativity), ("associativity", r.associativity), ("idempotency", r.idempotency)]:
-                crdt_rows.append({"type": "ORSet", "property": prop, "trials": int(trials),
-                                  "result": "PASS" if res.passed else "FAIL", "max_deviation": "0.0"})
-        except Exception as e:
-            crdt_rows.append({"type": "ORSet", "property": "all", "trials": int(trials),
-                              "result": f"ERROR: {str(e)[:60]}", "max_deviation": "--"})
+        _same_value = lambda a, b: a.value == b.value
+        _check("GCounter", gen_gcounter, _same_value)
+        _check("PNCounter", gen_pncounter, _same_value)
+        _check("LWWRegister", gen_lww, _same_value)
+        _check("ORSet", gen_orset, _same_value)
 
         df_crdt = pd.DataFrame(crdt_rows)
 
@@ -808,11 +776,11 @@ def run_crdt_proof(
         df_tensor = pd.DataFrame(tensor_rows)
 
         passed = [r for r in crdt_rows if r["result"] == "PASS"]
-        total = [r for r in crdt_rows if not r["result"].startswith("ERROR")]
+        errors = [r for r in crdt_rows if r["result"].startswith("ERROR")]
         summary = (
-            f"CRDT core types: **{len(passed)}/{len(total)} checks passed** "
-            f"({int(trials)} trials each) -- "
-            f"GCounter, PNCounter, LWWRegister, ORSet verified"
+            f"CRDT core types: **{len(passed)}/{len(crdt_rows)} checks passed** "
+            f"({int(trials)} trials each) -- GCounter, PNCounter, LWWRegister, ORSet"
+            + (f" -- {len(errors)} errored" if errors else "")
         )
 
         gc.collect()
