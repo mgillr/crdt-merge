@@ -500,7 +500,7 @@ Client for the Arrow Flight merge service.
 - `close(self) -> 'None'` — Close the client connection.
 - `merge(self, left: 'Any', right: 'Any', key: 'str' = 'id', strategies: 'Optional[Dict[str, str]]' = None) -> 'Any'` — Send two tables to the merge server and receive merged result.
 
-#### `FlightMergeServer(host: 'str' = '0.0.0.0', port: 'int' = 8815, default_schema: 'Optional[MergeSchema]' = None) -> 'None'`
+#### `FlightMergeServer(host: 'str' = '127.0.0.1', port: 'int' = 8815, default_schema: 'Optional[MergeSchema]' = None) -> 'None'`
 
 Arrow Flight server for merge-as-a-service.
 
