@@ -32,6 +32,10 @@ jobs:
           set -o pipefail
           pytest tests/ -v --tb=short -q 2>&1 | tail -40
 
+      - name: Run security tests
+        run: |
+          pytest security/ -v --tb=short -q
+
       - name: Run property-based tests
         run: |
           pytest tests/test_pbt_*.py tests/test_crdt_compliance.py tests/test_crdt_properties.py -v --tb=short -q
