@@ -41,7 +41,7 @@ class TestKeyPair:
         assert not kp.verify(b"tampered", sig)
 
     def test_sign_without_private_key_raises(self):
-        kp = KeyPair(public_key=b"x" * 32)
+        kp = KeyPair.from_public(b"x" * 32, "ed25519")
         with pytest.raises(ValueError):
             kp.sign(b"test")
 
@@ -107,7 +107,7 @@ class TestKeyManager:
         km1 = KeyManager("peer-1")
         km2 = KeyManager("peer-2")
         # Register peer-1's key with km2
-        km2.registry.register("peer-1", KeyPair(public_key=km1.current_key.public_key))
+        km2.registry.register("peer-1", KeyPair.from_public(**km1.current_key.export_public()))
         msg = b"hello"
         sig = km1.sign(msg)
         assert km2.verify_peer("peer-1", msg, sig)

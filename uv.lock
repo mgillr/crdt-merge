@@ -531,6 +531,11 @@ wheels = [
 name = "crdt-merge"
 version = "0.9.4"
 source = { editable = "." }
+dependencies = [
+    { name = "cryptography", version = "43.0.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9.2'" },
+    { name = "cryptography", version = "44.0.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9.2' and python_full_version < '3.10'" },
+    { name = "cryptography", version = "46.0.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+]
 
 [package.optional-dependencies]
 all = [
@@ -605,6 +610,7 @@ polars = [
 
 [package.metadata]
 requires-dist = [
+    { name = "cryptography", specifier = ">=41" },
     { name = "cryptography", marker = "extra == 'all'", specifier = ">=41" },
     { name = "cryptography", marker = "extra == 'crypto'", specifier = ">=41" },
     { name = "datasets", marker = "extra == 'all'", specifier = ">=2.0" },

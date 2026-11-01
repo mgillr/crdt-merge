@@ -19,6 +19,7 @@ preventing spoofing and replay attacks.
 """
 import time
 import pytest
+from crdt_merge.e4.signing import SignatureVerificationNotConfigured
 from crdt_merge.e4.proof_evidence import (
     TrustEvidence,
     configure_evidence_verification,
@@ -129,7 +130,8 @@ class TestTimestampBinding:
 
 class TestHMACObserverAuth:
 
-    def test_hmac_signed_evidence_verifies(self):
+    def test_hmac_signed_evidence_rejected(self):
+        """No HMAC tier: a tag keyed by the registered key never verifies."""
         import hmac, hashlib
         shared_secret = b"observer_secret" + b"\x00" * 24
 
@@ -146,7 +148,7 @@ class TestHMACObserverAuth:
             amount=0.1, proof=make_valid_proof(),
             observer_signing_fn=sign_fn,
         )
-        assert ev.verify(require_observer_auth=True) is True
+        assert ev.verify(require_observer_auth=True) is False
 
     def test_hmac_spoofed_observer_rejected(self):
         """Attacker claims to be observer X but signs with their own key."""
@@ -284,5 +286,8 @@ class TestConfiguration:
         assert ev.verify() is False  # bad signature caught
 
         configure_evidence_verification(None)
-        # After reset, signature presence alone doesn't trigger check
-        assert ev.verify() is True  # back to old behavior
+        # After reset: not configured, so verification refuses
+        with pytest.raises(SignatureVerificationNotConfigured):
+            ev.verify()
+        configure_evidence_verification(None, allow_unauthenticated=True)
+        assert ev.verify() is True  # explicit unauthenticated mode

@@ -23,6 +23,27 @@ import struct
 
 import pytest
 
+from crdt_merge.e4.pco import configure_ed25519_verification
+from crdt_merge.e4.proof_evidence import configure_evidence_verification
+
+
+@pytest.fixture(autouse=True)
+def _explicit_legacy_unsigned_mode():
+    """Opt the E4 functional tests into the legacy unsigned modes.
+
+    The library default is fail-closed: with no key registry, verifying a
+    PCO signature or a piece of evidence raises.  These tests exercise
+    trust dynamics with unsigned fixtures (``make_pco`` signs with zero
+    bytes), so they opt in explicitly.  Signature tests configure a
+    registry or reset to the strict default themselves
+    (see test_strict_signature_surfaces.py).
+    """
+    configure_ed25519_verification(None, allow_unsigned=True)
+    configure_evidence_verification(None, allow_unauthenticated=True)
+    yield
+    configure_ed25519_verification(None)
+    configure_evidence_verification(None)
+
 
 from crdt_merge.e4.typed_trust import (
     PROBATION_TRUST,
