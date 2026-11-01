@@ -22,6 +22,24 @@
   round-trips through `to_dict()` / `from_dict()`. The keys `tensors`, `weights`, `base`, `seed`, `model_ids`
   and `metadata` are reserved. Regression: `tests/test_crdt_extension_protocol.py`.
 
+### Security
+- **The unsigned / unauthenticated escape hatches are guarded and loud.** `configure_ed25519_verification(None,
+  allow_unsigned=True)` and `configure_evidence_verification(None, allow_unauthenticated=True)` accept any 64-byte
+  value as a signature and authenticate nothing. They now raise `InsecureModeNotPermitted` unless the environment
+  variable `CRDT_MERGE_INSECURE_TEST_MODE` is exactly `1`, and when it is, they emit an
+  `InsecureConfigurationWarning` (a `UserWarning`) and a `logging.WARNING` record on `crdt_merge.e4.security`.
+  They are for tests; the guard is a safeguard against accidental use, not an access control. The default is
+  unchanged: with no registry, verification raises `SignatureVerificationNotConfigured`, and with a registry an
+  arbitrary 64-byte value is rejected. The E4 test conftests set the guard; `security/tests/test_insecure_opt_in_guard.py`
+  runs without the opt-ins and checks all three behaviours.
+- **BREAKING (from the E4 fail-closed work): every E4 signature check now fails closed.** PCO signatures, evidence
+  authentication and attestations inside equivocation proofs raise `SignatureVerificationNotConfigured` without a
+  key registry instead of accepting any 64-byte value. `RevocationEntry.verify()` without a registry returns `False`,
+  and the Ed25519 scheme in `pq_signatures` is real Ed25519 (`Ed25519Unavailable` without `cryptography`).
+  `KeyPair(public_key=...)` without a private key or scheme raises `TypeError` (use `KeyPair.from_public(key, scheme)`);
+  HMAC keys are shared secrets (`KeyPair.from_shared_secret`) and are never exported as public keys; a peer's key
+  scheme cannot change once registered; `cryptography>=41` is a required dependency.
+
 ### Changed
 - **`FlightMergeServer` binds to `127.0.0.1` by default** (it has since "Default flight server to localhost
   only"; the CLI default is the same). The API reference signatures and `tests/test_accelerator_flight.py` now
