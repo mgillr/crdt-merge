@@ -22,6 +22,14 @@
   round-trips through `to_dict()` / `from_dict()`. The keys `tensors`, `weights`, `base`, `seed`, `model_ids`
   and `metadata` are reserved. Regression: `tests/test_crdt_extension_protocol.py`.
 
+### Changed
+- **Python 3.9 is no longer supported.** `requires-python` is now `>=3.10`, the 3.9 classifier is gone and 3.9
+  is removed from the CI test matrix. The test suite already used syntax that does not import on 3.9
+  (`tests/test_encryption_backends.py`), which the old `| tail` CI step hid.
+- **`FlightMergeServer` binds to `127.0.0.1` by default** (it has since "Default flight server to localhost
+  only"; the CLI default is the same). The API reference signatures and `tests/test_accelerator_flight.py` now
+  say so. To serve other hosts, pass `host="0.0.0.0"` (or `--host 0.0.0.0`) explicitly and use TLS.
+
 ### Fixed
 - **`ORSet` resurrection by a stale replica.** `remove()` and `remove_tag()` now record the tags they observed
   as tombstones, and `merge()` takes the union of tombstones and drops every tombstoned tag. Before, `remove()`
@@ -40,6 +48,14 @@
   tombstone the other's add. Tags now carry a random 128-bit id (`<model_id>:v<version>:t<uuid4 hex>`), and the
   tag is serialised with each contribution so tombstones keep matching after a `to_dict()` / `from_dict()` round
   trip (previously `from_dict()` minted a new tag). Regression: `tests/test_crdt_state_tag_uniqueness.py`.
+- **Pre-existing test failures.**
+  - `security/tests/test_byzantine_fault_injection.py`: the four E4 trust tests failed with "evidence proof failed
+    verification". Cause: evidence verification binds `invalid_delta` and `trust_manipulation` proofs to the
+    accused peer (the proof must name the target), but the test fixtures built proofs that did not. The fixtures
+    now name the target. Verification is unchanged and still fail-closed; two new tests check that a proof naming
+    another peer is rejected. CI now runs `security/`.
+  - `tests/test_polars_engine.py::TestPerformance::test_polars_faster_than_python` was timing-flaky. It now warms
+    up, takes the median of five runs and uses 50K rows; the 5× threshold is unchanged.
 
 ### Migration / serialisation compatibility
 - All changes are additive on the wire. `ORSet.to_dict()` gains an optional `"tombstones"` list (omitted until
