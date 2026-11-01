@@ -8,7 +8,7 @@ version = "0.11.0"
 description = "Mathematically proven conflict-free merge for AI model weights, datasets, and agent memory with recursive trust-delta entanglement. One dependency (cryptography, for Ed25519). Patent protected."
 readme = "README.md"
 license = {text = "BUSL-1.1"}
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [{name = "Ryan Gillespie", email = "rgillespie83@icloud.com"}]
 keywords = [
     "trust", "byzantine", "entanglement", "delta-state",
@@ -25,7 +25,6 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "License :: Other/Proprietary License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",

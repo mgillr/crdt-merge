@@ -7,7 +7,7 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/crdt-merge)](https://pypi.org/project/crdt-merge/)
 [![Downloads](https://img.shields.io/pypi/dm/crdt-merge?label=downloads&color=brightgreen)](https://pypi.org/project/crdt-merge/)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Tests](https://img.shields.io/badge/tests-7%2C945%20passing-brightgreen)](TEST_RESULTS.md)
 [![CRDT Compliance](https://img.shields.io/badge/CRDT%20compliance-26%2F26%20strategies-blue)](docs/CRDT_ARCHITECTURE.md)
 [![Crypto](https://img.shields.io/badge/crypto-Ed25519%20%2B%20ML--DSA--65-blue)](docs/security/CRYPTOGRAPHY.md)
@@ -245,7 +245,7 @@ pip install crdt-merge[security]  # Ed25519 + NIST ML-DSA-65 post-quantum (new i
 pip install crdt-merge[all]       # Everything
 ```
 
-Zero required dependencies. Python 3.9-3.12. Linux, macOS, Windows.
+One required dependency (`cryptography`, for Ed25519). Python 3.10-3.12. Linux, macOS, Windows.
 
 **[All install options ->](docs/getting-started/quickstart.md)**
 
