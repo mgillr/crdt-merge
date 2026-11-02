@@ -3,6 +3,6 @@ gradio>=5.29.0,<6.0.0
 huggingface_hub>=0.25.0
 plotly>=5.18.0
 numpy>=1.24.0
-datasets>=2.14.0
+datasets>=5.1.0
 safetensors>=0.4.0
 python-dotenv>=1.0.0
