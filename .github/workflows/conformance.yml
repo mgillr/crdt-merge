@@ -13,7 +13,8 @@ on:
 
 jobs:
   conformance:
-    runs-on: ubuntu-latest
+    # Python 3.9 is not built for the ubuntu-latest image (Ubuntu 26.04), so that one job runs on 24.04.
+    runs-on: ${{ matrix.python-version == '3.9' && 'ubuntu-24.04' || 'ubuntu-latest' }}
     strategy:
       fail-fast: false
       matrix:
