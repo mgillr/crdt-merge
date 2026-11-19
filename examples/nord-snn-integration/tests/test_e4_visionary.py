@@ -221,10 +221,11 @@ class TestEmergenceDetector:
 
     def test_stable_training_no_emergence(self):
         detector = EmergenceDetector(sigma_threshold=2.0, min_samples=3)
+        rng = np.random.RandomState(0)
         for step in range(0, 5000, 500):
             events = detector.record_activations({
-                "sensory": 0.07 + np.random.normal(0, 0.005),
-                "memory_cortex": 0.01 + np.random.normal(0, 0.002),
+                "sensory": 0.07 + rng.normal(0, 0.005),
+                "memory_cortex": 0.01 + rng.normal(0, 0.002),
             }, step=step)
         # Gradual change — should NOT trigger
         assert len(detector.events) == 0 or all(
@@ -234,11 +235,12 @@ class TestEmergenceDetector:
     def test_detects_memory_routing_shift(self):
         """The 0.5% -> 39% memory shift MUST be detected."""
         detector = EmergenceDetector(sigma_threshold=1.5, min_samples=3)
+        rng = np.random.RandomState(0)
 
         # Build baseline
         for step in range(0, 5000, 500):
             detector.record_activations({
-                "memory_cortex": 0.005 + np.random.normal(0, 0.001),
+                "memory_cortex": 0.005 + rng.normal(0, 0.001),
             }, step=step)
 
         # THE SHIFT
@@ -249,6 +251,26 @@ class TestEmergenceDetector:
         memory_events = [e for e in detector.events if e.zone == "memory_cortex"]
         assert len(memory_events) > 0, "Failed to detect 0.5%->39% memory shift"
         shift_event = memory_events[-1]
+        assert shift_event.shift_magnitude > 0.1
+
+    def test_shift_is_detected_after_an_earlier_event(self):
+        """A small event late in the baseline must not hide the real shift.
+
+        These baseline rates raise an event at step 4500. The detector used to
+        reset its breaker there, which emptied the window, and the 39% shift
+        that followed went undetected.
+        """
+        detector = EmergenceDetector(sigma_threshold=1.5, min_samples=3)
+        baseline = [0.003676, 0.003534, 0.00375, 0.005655, 0.006236,
+                    0.003878, 0.005415, 0.004807, 0.003252, 0.006688]
+        for step, rate in zip(range(0, 5000, 500), baseline):
+            detector.record_activations({"memory_cortex": rate}, step=step)
+        assert [e.step for e in detector.events] == [4500], "the baseline must raise its one small event"
+
+        detector.record_activations({"memory_cortex": 0.39}, step=25000)
+
+        shift_event = detector.events[-1]
+        assert shift_event.step == 25000, "the 0.5%->39% shift went undetected"
         assert shift_event.shift_magnitude > 0.1
 
     def test_simulate_full_nord_training(self):
