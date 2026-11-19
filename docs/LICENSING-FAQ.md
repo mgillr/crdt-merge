@@ -17,7 +17,7 @@ Change Date.
 
 ## When does it become fully open source?
 
-On 2028-04-08, the license automatically converts to Apache 2.0.
+On 2028-03-29, the license automatically converts to Apache 2.0.
 After that date, crdt-merge is free for all uses with no restrictions
 beyond standard Apache 2.0 terms.
 
@@ -37,7 +37,7 @@ Two UK patent applications cover the architecture:
 
 The patents protect the specific novel mechanisms described in the
 applications. They do not restrict use of the software under the
-license terms. After the Change Date (2028-04-08), Apache 2.0 includes
+license terms. After the Change Date (2028-03-29), Apache 2.0 includes
 an express patent grant.
 
 ## Can I contribute to crdt-merge?

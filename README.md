@@ -294,7 +294,7 @@ One required dependency (`cryptography`, for Ed25519). Python 3.9-3.12. Linux, m
 
 ## License
 
-**BSL 1.1** -- automatically converts to **Apache 2.0 on 8 April 2028**.
+**BSL 1.1** -- automatically converts to **Apache 2.0 on 29 March 2028**.
 
 Free for research, personal use, and most production use. Source-available. Not free for competing commercial merge-as-a-service.
 
