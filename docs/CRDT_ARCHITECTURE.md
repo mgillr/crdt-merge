@@ -7,7 +7,7 @@
 > Licensed under the **Business Source License 1.1** (BSL-1.1).
 > Licensor: Ryan Gillespie / Optitransfer
 > Licensed Work: crdt-merge
-> Change Date: 2028-04-08
+> Change Date: 2028-03-29
 > Change License: Apache License, Version 2.0
 >
 > You may use, modify, and deploy this work for any purpose — including commercial
