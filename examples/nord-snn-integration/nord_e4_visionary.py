@@ -72,7 +72,8 @@ E4 x Nord SNN -- four integration points where the math lines up.
 import time
 import hashlib
 import numpy as np
-from typing import Dict, List, Tuple, Optional
+from collections import deque
+from typing import Deque, Dict, List, Tuple, Optional
 from dataclasses import dataclass, field
 
 from crdt_merge.core import GCounter, PNCounter, LWWRegister, LWWMap, ORSet
@@ -335,15 +336,43 @@ class EmergenceDetector:
         self.events: List[EmergenceEvent] = []
         self.activation_history = LWWMap()
         self._step = 0
+        # Per zone, the (previous, new) activation pairs that did not raise an event.
+        self._baseline: Dict[str, Deque[Tuple[float, float]]] = {}
+
+    def _new_breaker(self) -> TrustCircuitBreaker:
+        return TrustCircuitBreaker(
+            window_size=self.window_size,
+            sigma_threshold=self.sigma_threshold,
+            min_samples=self.min_samples,
+        )
 
     def _get_breaker(self, zone: str) -> TrustCircuitBreaker:
         if zone not in self.breakers:
-            self.breakers[zone] = TrustCircuitBreaker(
-                window_size=self.window_size,
-                sigma_threshold=self.sigma_threshold,
-                min_samples=self.min_samples,
-            )
+            self.breakers[zone] = self._new_breaker()
         return self.breakers[zone]
+
+    @staticmethod
+    def _score(rate: float) -> TypedTrustScore:
+        return TypedTrustScore(_evidence={"model": {"obs": 1.0 - rate}})
+
+    def _rearm(self, zone: str) -> None:
+        """Give the zone a fresh breaker that already holds its baseline.
+
+        A reset breaker has an empty window and cannot trip again until
+        ``min_samples`` new changes arrive, so a real shift soon after an
+        earlier event went undetected. The baseline changes are replayed
+        into the new breaker; if a replay trips it, the oldest change is
+        dropped and the replay is tried again.
+        """
+        pairs = list(self._baseline.get(zone, ()))
+        while True:
+            breaker = self._new_breaker()
+            for prev, cur in pairs:
+                breaker.record_trust_change(zone, self._score(prev), self._score(cur))
+            if not pairs or not breaker.is_tripped():
+                break
+            pairs = pairs[1:]
+        self.breakers[zone] = breaker
 
     def record_activations(
         self,
@@ -361,8 +390,8 @@ class EmergenceDetector:
             prev_rate = self.activation_history.get(zone, 0.0)
 
             # Convert activation rates to TypedTrustScore for circuit breaker
-            old_ts = TypedTrustScore(_evidence={"model": {"obs": 1.0 - prev_rate}})
-            new_ts = TypedTrustScore(_evidence={"model": {"obs": 1.0 - rate}})
+            old_ts = self._score(prev_rate)
+            new_ts = self._score(rate)
 
             breaker.record_trust_change(zone, old_ts, new_ts)
 
@@ -383,7 +412,11 @@ class EmergenceDetector:
                 )
                 self.events.append(event)
                 detected.append(event)
-                breaker.reset()
+                self._rearm(zone)
+            else:
+                self._baseline.setdefault(
+                    zone, deque(maxlen=self.window_size)
+                ).append((prev_rate, rate))
 
             self.activation_history.set(
                 zone, rate, timestamp=time.time(), node_id="detector"
