@@ -51,6 +51,10 @@ How to read it:
   CPU with crdt-merge 0.9.2), so the limit is reached inside the test. The notebook catches the timeout as an ordinary
   error and returns zero counts, and zero of zero is printed as a pass. For these two strategies the 512x512 pass did
   not complete; their entries in the paper come from the 128x128 slices.
+- For `genetic_merge` on Mistral-7B the notebook prints "took 120.0s (completed)" and counts the strategy as verified.
+  120.0 s is the limit itself, so this is the same case. No mismatch is printed there because the 128x128 result for
+  that strategy on Mistral-7B is also three passes. The notebook's totals "Verified: 23/26" and "Verified: 25/26"
+  should be read with this in mind.
 
 ## Not here
 
