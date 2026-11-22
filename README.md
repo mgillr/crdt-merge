@@ -63,8 +63,8 @@ The strategy itself does not need to be a CRDT. SLERP remains SLERP. TIES remain
 **[Full architecture -- mathematical proofs and the 7 architectures evaluated ->](docs/CRDT_ARCHITECTURE.md)**
 
 > **Research Paper** -- *Conflict-Free Replicated Data Types for Neural Network Model Merging.*
-> Proves that 25 of 26 strategies are structurally incompatible with direct CRDT application, then presents the two-layer architecture that achieves compliance for all 26.
-> **[Read the paper ->](paper/CRDT_Merge_ArXiv.pdf)** -- **[LaTeX source](paper/)** -- **[SSRN](https://ssrn.com/abstract=6545518)**
+> Shows that all 26 strategies fail at least one CRDT property when applied directly (25 of 26 fail associativity), then presents the two-layer architecture that achieves compliance for all 26.
+> **[Read the paper ->](paper/CRDT_Merge_ArXiv.pdf)** -- **[arXiv:2605.19373](https://arxiv.org/abs/2605.19373)** -- **[LaTeX source](paper/)** -- **[Verification material](paper/verification/)** -- **[SSRN](https://ssrn.com/abstract=6545518)**
 
 ### Why this enables cross-family merging
 
