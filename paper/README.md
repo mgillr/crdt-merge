@@ -33,6 +33,7 @@ Verified at production scale on GPT-2-XL (1.5B parameters) and Mistral-7B
 | `CRDT_Merge_ArXiv.pdf` | Compiled paper (PDF) |
 | `CRDT_Merge_ArXiv.tex` | LaTeX source |
 | `references.bib` | Bibliography (37 entries) |
+| [`verification/`](./verification/) | The notebook and results behind the production-scale evaluation, and a script that repeats the controlled test |
 
 ## Citation
 
