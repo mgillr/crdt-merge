@@ -42,7 +42,7 @@
 A Two-Layer Architecture Enabling CRDT-Compliant Model Merging Across 26 Strategies}
 
 \author{Ryan Gillespie\\
-crdt-merge}
+Independent researcher}
 
 \date{}
 
@@ -61,8 +61,8 @@ To resolve this, we present a two-layer architecture---\CMS{}---that wraps \emph
 Layer~1 manages contributions via OR-Set CRDT semantics~\cite{shapiro2011comprehensive}, where the merge operation is set union---trivially commutative, associative, and idempotent.
 Layer~2 applies merge strategies as deterministic pure functions over a canonically-ordered contribution set, with randomness seeded from the Merkle root~\cite{sanjuan2020merkle}.
 We prove that this separation guarantees Strong Eventual Consistency~\cite{shapiro2011conflict}: all replicas receiving the same contributions compute identical merged models, regardless of message ordering.
-Empirical validation spans three tiers: controlled $4\times 4$ tensors (104/104 tests pass), production-scale models up to 7.24\,B parameters (208 strategy-level tests, 43{,}368 layer-level property checks at capped tensor resolution), and multi-node convergence under gossip and partition healing (100 nodes, 20 orderings), with CRDT overhead below 0.5\,ms.
-Because the wrapper is transparent, downstream performance is identical by construction, confirmed via byte-identical output verification.
+Empirical validation spans three tiers: controlled $4\times 4$ tensors (104/104 tests pass), production-scale models up to 7.24\,B parameters (208 strategy-level tests, 43{,}368 layer-level property checks at capped tensor resolution), and multi-node convergence on synthetic tensors of representative shape (100 nodes, 20 orderings, gossip and partition healing), with CRDT overhead below 0.5\,ms.
+Because the wrapper is transparent, downstream performance is identical by construction; we verified the implementation matches this construction byte-for-byte.
 The reference implementation is available as \texttt{crdt-merge} v0.9.4.
 \end{abstract}
 \vspace{1.5em}
@@ -85,7 +85,7 @@ This prevents decentralised model merging---where participants combine models pe
 \begin{enumerate}[leftmargin=*]\tolerance=2000\emergencystretch=1em
 \item A systematic algebraic audit of 26 neural network merge strategies revealing \emph{universal associativity failure} (25/26 strategies), together with a formal result (Proposition~\ref{prop:incompat}) proving that normalisation-based merges cannot satisfy all CRDT axioms simultaneously (Section~\ref{sec:problem}).
 
-\item A two-layer architecture---\CMS{}---achieving universal CRDT compliance by separating state management (Layer~1, OR-Set semantics) from strategy execution (Layer~2, deterministic pure functions).  Applying CRDTs directly to merge operations is impossible (Section~\ref{sec:problem}); the two-layer separation is the key architectural insight.  While CRDT composition is a known pattern~\cite{shapiro2011comprehensive}, the domain-specific challenges---stochastic strategies requiring Merkle-root-derived seeding, order-dependent reductions requiring canonical hashing, and high-dimensional floating-point determinism---required careful engineering detailed in Section~\ref{sec:solution}.
+\item A two-layer architecture---\CMS{}---achieving CRDT-compliant merging across all 26 evaluated strategies by separating state management (Layer~1, OR-Set semantics) from strategy execution (Layer~2, deterministic pure functions).  Applying CRDTs directly to merge operations is impossible (Section~\ref{sec:problem}); the two-layer separation is what enables this generality.  While CRDT composition is a known pattern~\cite{shapiro2011comprehensive}, the domain-specific challenges---stochastic strategies requiring Merkle-root-derived seeding, order-dependent reductions requiring canonical hashing, and high-dimensional floating-point determinism---required careful engineering detailed in Section~\ref{sec:solution}.
 
 \item Formal proofs that the architecture guarantees Strong Eventual Consistency for arbitrary merge strategies (Section~\ref{sec:proofs}), with explicit complexity bounds (Theorem~\ref{thm:complexity}).
 
@@ -122,7 +122,7 @@ Under OR-Set ``add-wins'' semantics, a concurrent add survives a concurrent remo
 
 Model merging combines the parameters of two or more neural networks.
 Let $\theta_{\mathrm{base}}$ denote base model parameters and $\tau_i = \theta_i - \theta_{\mathrm{base}}$ the task vector for fine-tune~$i$~\cite{ilharco2023editing}.
-We evaluate 26 strategies spanning weight averaging~\cite{wortsman2022model}, task arithmetic~\cite{ilharco2023editing}, TIES~\cite{yadav2023ties}, DARE~\cite{yu2024dare}, Fisher merging~\cite{matena2022merging}, SLERP~\cite{shoemake1985animating}, evolutionary methods~\cite{akiba2025evolutionary}, and others (Appendix~\ref{app:strategies}).\footnote{\label{fn:provenance}Of 26 strategies, 15 have peer-reviewed publications; 11 are derived/community strategies from MergeKit~\cite{goddard2024mergekit}.  We include all to demonstrate universality.}
+We evaluate 26 strategies spanning weight averaging~\cite{wortsman2022model}, task arithmetic~\cite{ilharco2023editing}, TIES~\cite{yadav2023ties}, DARE~\cite{yu2024dare}, Fisher merging~\cite{matena2022merging}, SLERP~\cite{shoemake1985animating}, evolutionary methods~\cite{akiba2025evolutionary}, and others (Appendix~\ref{app:strategies}).\footnote{\label{fn:provenance}Of 26 strategies, 15 have peer-reviewed publications; 11 are derived/community strategies from MergeKit~\cite{goddard2024mergekit}.  We include all 26 to cover the full strategy landscape used in practice.}
 Yang et al.~\cite{yang2024survey} provide a comprehensive taxonomy.
 Federated learning~\cite{mcmahan2017communication, kairouz2021advances}, the dominant framework for distributed model aggregation, relies on a central coordinator---creating a single point of failure~\cite{bonawitz2019towards}.
 A decentralised alternative requires the convergence guarantees that our CRDT wrapper provides.
@@ -271,7 +271,7 @@ Strategies with natural $n$-ary forms (e.g., weight averaging, TIES) use them di
 Binary-only strategies (e.g., SLERP) are reduced via sequential fold over the canonical order: $\mathrm{fold}(\sigma, [c_1, \ldots, c_k])$.
 The canonical ordering ensures this fold is identical on all replicas.
 Fold-based reduction introduces a weighting imbalance: for SLERP with $k=3$ and $t=0.5$, $c_3$ receives 50\% weight versus 25\% each for $c_1, c_2$~\cite{shoemake1985animating}.
-This does not affect CRDT compliance but may affect merge quality: for $k$ contributions, the last element receives weight $t$ while the first receives $t(1{-}t)^{k-2}$---exponential decay.
+This does not affect CRDT compliance but may affect merge quality: for $k$ contributions, the last element receives weight $t$ while the first receives $(1{-}t)^{k-1}$---exponential decay.
 Strategies with native $n$-ary forms avoid this issue.
 For binary-only strategies in large consortia, a balanced binary-tree reduction (depth $\lceil\log_2 k\rceil$) would equalise influence at the cost of a different---but still deterministic---reduction order.
 \end{remark}
@@ -306,7 +306,7 @@ All replicas execute $\sigma$ using identical ISA, library versions, and IEEE~75
 \end{assumption}
 
 \begin{assumption}[Collision Resistance]\label{ass:collision}
-SHA-256 is collision-resistant: for distinct $e_1 \neq e_2$, $\mathrm{SHA256}(e_1) \neq \mathrm{SHA256}(e_2)$ with probability at least $1 - 2^{-128}$.
+SHA-256 is collision-resistant: for any set of contributions of size up to $2^{64}$, the probability of any collision is at most $2^{-128}$ (the birthday bound).
 \end{assumption}
 
 Under these assumptions, we establish convergence through the following lemma and theorem (individual lemma proofs in Appendix~\ref{app:determinism_lemmas}).
@@ -374,14 +374,14 @@ We tested on two transformer language models with independently published fine-t
 
 \item \textbf{Mistral-7B-v0.1} (7.24\,B params, 224 eligible 2D layers)~\cite{jiang2023mistral} with three fine-tunes (\emph{instruct}, \emph{hermes}, \emph{zephyr}; Appendix~\ref{app:models}).
 \end{itemize}
-All weights stored in float16, cast to float64 for testing to isolate algebraic violations from rounding artefacts.
+All weights stored in float16, cast to float64 for testing to reduce rounding accumulation during the merge computation; this cast cannot recover precision lost to the source's fp16 quantisation, and we do not claim such isolation.
 Experiments ran on a single NVIDIA A100-SXM4-80GB with PyTorch~2.10.0 and CUDA~12.8.
 
 \subsubsection{Testing Methodology}\label{sec:methodology}
 
 For each strategy and model, CRDT properties are tested via slice-based evaluation: a representative $128\times 128$ slice per unique tensor shape, with results extrapolated to all layers sharing that shape.
 This approach tests the strategy's algebraic behaviour on realistic weight distributions from production models, though it does not exercise the full dimensionality of each layer.
-Capped verification at $512\times 512$ confirms consistency at higher resolution; mismatches are flagged (see \texttt{ada\_merging} discussion below, which demonstrates that this cross-resolution check catches real violations).
+Capped $512\times 512$ verification serves as a cross-resolution check; in one case (\texttt{ada\_merging}) it surfaced a sub-tolerance associativity violation invisible at $128\times 128$---a positive finding of the check (Section~\ref{sec:cross_scale}).
 Tolerance is $\mathrm{atol}=10^{-5}$.
 Phase~2 additionally tests 3-replica convergence over all six merge-order permutations.
 
@@ -437,7 +437,7 @@ The 2--3 strategies that newly pass associativity at production scale (and the 2
 
 All 26 strategies achieve 100\% CRDT compliance through the two-layer architecture on both models: 104 strategy-level tests per model (26 strategies $\times$ 4 properties), verified across 193 layers (GPT-2-XL) and 224 layers (Mistral-7B).
 In total, 43{,}368 layer-level property checks pass at capped tensor resolution ($128\times 128$ slices, with $512\times 512$ capped verification).
-Full-layer verification on a representative subset---6 strategies (weight averaging, task arithmetic, TIES, DARE, SLERP, Fisher merging) covering all strategy categories (linear, stochastic, binary-fold) across the 10 largest weight matrices per model (up to $6144\times 1600$ for Mistral-7B)---confirms consistency with the slice-based results (see the \texttt{ada\_merging} analysis in Section~\ref{sec:cross_scale}).
+Full-layer verification on a representative subset---6 strategies (weight averaging, task arithmetic, TIES, DARE, SLERP, Fisher merging) covering all strategy categories (linear, stochastic, binary-fold) across the 10 largest weight matrices per model (up to $6144\times 1600$ for Mistral-7B)---is consistent with the slice-based results, with the \texttt{ada\_merging} cross-resolution discrepancy (Section~\ref{sec:cross_scale}) as the sole exception captured by the check.
 Combined with Tier~1 (104 controlled tests), the architecture achieves 100\% compliance across 312 strategy-level tests and $43{,}368 + 104 = 43{,}472$ total layer-level evaluations.
 
 \subsection{Cross-Scale Analysis}\label{sec:cross_scale}
@@ -466,9 +466,9 @@ Commutativity (21/26) and idempotency (14/26) are stable across all three scales
 Associativity varies at the margin: 2--3 strategies that fail on controlled $4{\times}4$ tensors pass associativity within floating-point tolerance at production scale (1/26$\to$3/26 on GPT-2-XL; 1/26$\to$4/26 on Mistral-7B).
 The \texttt{ada\_merging} verification mismatch (marked $\ast$ in Table~\ref{tab:phase1_production})---where associativity passes within tolerance on $128\times 128$ slices but fails on $512\times 512$ slices of the same GPT-2-XL weight matrix---demonstrates that empirical compliance is resolution-dependent: the associativity violation is real but small enough to fall within $\mathrm{atol}=10^{-5}$ at low resolution, only surfacing at higher resolution where the accumulated error exceeds tolerance.
 This fragility is why \emph{algebraic guarantees} (Corollary~\ref{cor:universal}), not empirical coincidence, are necessary for distributed systems requiring hard convergence.
-The phenomenon itself---associativity violations that vanish in high-dimensional spaces---merits further investigation.
+The phenomenon itself---associativity violations that vanish in high-dimensional spaces---is worth characterising formally.
 One hypothesis is that weight distributions in large models concentrate near low-rank manifolds where the nonlinear components of merge operations (normalisation, projection) become approximately linear, reducing the left--right association gap below floating-point tolerance.
-A formal characterisation of when ``approximate associativity'' emerges could inform the design of strategies that are inherently closer to CRDT-compliant.
+A formal characterisation of when ``approximate associativity'' emerges would clarify which strategies can rely on it.
 
 \subsection{Performance Overhead}\label{sec:performance}
 
@@ -487,7 +487,7 @@ This all-pairs protocol is a \emph{prototype for validation purposes}, chosen as
 Full results appear in Appendix~\ref{app:convergence}.
 
 \paragraph{Multi-node convergence.}
-One hundred nodes each contribute a $512 \times 512$ tensor (26{,}214{,}400 parameters per contribution) using \texttt{slerp}.
+One hundred nodes each contribute a $512 \times 512$ tensor ($262{,}144$ parameters per contribution; $26{,}214{,}400$ in aggregate across the 100 nodes) using \texttt{slerp}.
 Across 20 random gossip orderings, all nodes converge to a bitwise-identical result (max element-wise difference $= 0$), with average gossip time 492.8\,ms and average resolve time ${\sim}19.7$\,s (Table~\ref{tab:convergence}).
 
 \paragraph{Partition healing.}
@@ -517,7 +517,7 @@ The CRDT wrapper does not modify the merged model.
 Layer~2 applies the identical merge strategy $\sigma$ to the identical ordered contribution set with the identical random seed (Theorem~\ref{thm:convergence}).
 Therefore, the downstream task performance of CRDT-wrapped merging is identical by construction to that of non-CRDT merging using the same strategy, contributions, and ordering.
 Evaluating downstream performance of specific strategies is a question about the strategies themselves---not the CRDT architecture, which is transparent to the merge computation.
-We verified this empirically: for representative strategy--model pairs, the CRDT-wrapped $\mathrm{resolve}()$ produces byte-identical output to a direct (unwrapped) strategy call on the same canonically-ordered inputs and seed, confirming that the wrapper introduces zero computational divergence.
+By construction, the CRDT-wrapped $\mathrm{resolve}()$ invokes the same strategy on the same inputs as a direct call; we verified the implementation matches this construction byte-for-byte for representative strategy--model pairs, confirming the wrapper introduces zero computational divergence.
 The extensive literature on merge strategy quality~\cite{yang2024survey, wortsman2022model, ilharco2023editing, yadav2023ties, yu2024dare, matena2022merging, akiba2025evolutionary, goddard2024mergekit} applies directly to CRDT-wrapped merges.
 A single downstream benchmark (e.g., MMLU or HellaSwag) would provide additional empirical confirmation of this transparency property; we defer such evaluation to follow-up work focused on strategy selection, as it is orthogonal to the convergence guarantees established here.
 \end{remark}
@@ -567,15 +567,9 @@ We have not empirically evaluated tombstone accumulation rates; for the consorti
 \paragraph{L4: Security and Conflict Resolution.}
 The OR-Set's add-wins policy means concurrent adds survive concurrent removes---problematic if removal represents discovery of a poisoned model.
 The architecture does not currently provide Byzantine fault tolerance.
-However, the two-layer separation creates a structural opportunity that goes beyond incremental hardening: trust metadata---such as evidence of equivocation (a node sending inconsistent states to different peers), Merkle-root divergence, or contribution-fingerprint anomalies---can itself be modelled as a monotonically-growing CRDT within Layer~1.
-A gated merge at the Layer~2 boundary would then reject contributions from nodes whose converged trust score falls below a configurable threshold.
-
-Critically, trust convergence would be guaranteed by the same join-semilattice proof as data convergence, enabling consensus-free Byzantine isolation at well-defined threat levels: given $n$ nodes with at most $f$ Byzantine actors, if evidence propagation reaches all honest nodes (guaranteed under eventual delivery), then all $n - f$ honest nodes converge to the same trust state, make identical gating decisions, and therefore converge to identical data states---without coordinators, external oracles, or cryptographic voting rounds.
-This would yield a promising structural pathway toward Byzantine exclusion at well-defined threat levels: rather than degrading gracefully, the system could provably exclude Byzantine contributions from the merged output once the evidence lattice has converged.
-The exclusion threshold, evidence types, and convergence bounds would be configurable parameters defining the exclusion level for a given deployment.
-
-This ``self-securing lattice'' pattern---where the system uses its own convergence guarantees to secure itself---is structurally enabled by the two-layer architecture and impossible in single-layer CRDT designs where trust and data are entangled.
-Preliminary analysis suggests this is structurally feasible; integration with existing Byzantine-resilient aggregation methods~\cite{blanchard2017machine} is also possible as a complementary defence layer.
+However, the two-layer separation suggests an extension: trust metadata---equivocation evidence, Merkle-root divergence, contribution-fingerprint anomalies---can itself be modelled as a monotonic CRDT within Layer~1, with a trust-gated merge at the Layer~2 boundary rejecting contributions whose converged trust score falls below a configurable threshold.
+Trust convergence would then follow from the same join-semilattice proof as data convergence: given $n$ nodes with at most $f$ Byzantine actors, if evidence propagation reaches all honest nodes, the $n - f$ honest nodes converge to the same trust state and gating decisions.
+Whether this pattern can deliver consensus-free Byzantine isolation in practice is open; it appears difficult to express in single-layer designs where trust and data share a lattice, and an obvious complement is integration with existing Byzantine-resilient aggregation~\cite{blanchard2017machine}.
 
 % ============================================================
 % 8. RELATED WORK
@@ -591,7 +585,7 @@ No prior work addresses the algebraic CRDT properties required for conflict-free
 \paragraph{Distributed Systems and CRDTs.}
 CRDTs~\cite{shapiro2011conflict, shapiro2011comprehensive} have been extensively studied~\cite{preguica2018conflict, kleppmann2017conflict}, with Merkle-CRDTs~\cite{sanjuan2020merkle} combining Merkle-DAGs with CRDT semantics.
 The pattern of composing CRDTs with deterministic functions is known~\cite{shapiro2011comprehensive}.
-Our contribution is (a)~identifying that model merging requires this pattern due to universal associativity failure, (b)~the specific construction combining OR-Set semantics with content-addressable hashing, Merkle trees, and seeded randomness for neural network parameters, and (c)~the systematic algebraic audit of 26 strategies motivating the architecture.
+Our contribution is (a)~identifying that model merging benefits from this pattern due to universal associativity failure, (b)~the specific construction combining OR-Set semantics with content-addressable hashing, Merkle trees, and seeded randomness for neural network parameters, and (c)~the systematic algebraic audit of 26 strategies motivating the architecture.
 Delta-state CRDTs~\cite{almeida2018delta} offer efficient synchronisation; adapting our architecture to delta-state propagation is a natural deployment optimisation.
 
 \paragraph{Federated Learning.}
@@ -599,7 +593,7 @@ All centralised FL systems~\cite{mcmahan2017communication, kairouz2021advances, 
 Decentralised FL via gossip protocols~\cite{lian2017decentralized, koloskova2019decentralized} focuses on training convergence, not the state convergence guarantees we establish.
 
 \paragraph{Patents.}
-The two-layer CRDT architecture is the subject of UK Patent Application No.\ 2607132.4~\cite{gillespie2026patent}.\footnote{Disclosed for transparency and to establish prior art; the theoretical contributions of this paper are independent of the patent application.}
+The two-layer CRDT architecture is the subject of UK Patent Application No.\ GB2607132.4~\cite{gillespie2026patent}.\footnote{The patent application is referenced for completeness; the contributions of this paper stand independently of it.}
 No prior patent or publication combines CRDT theory with neural network model merging.
 
 % ============================================================
@@ -607,12 +601,11 @@ No prior patent or publication combines CRDT theory with neural network model me
 % ============================================================
 \section{Conclusion}
 
-We have shown that neural network model merging universally fails the algebraic requirements for conflict-free distributed operation---a structural impossibility for normalisation-based strategies, not merely an implementation limitation---and presented a two-layer architecture that resolves this by separating CRDT state management from deterministic strategy execution, achieving compliance across all 26 strategies tested.
-Our formal analysis established that no strategy satisfies the required commutativity, associativity, and idempotency, with Proposition~\ref{prop:incompat} providing a structural explanation through normalisation incompatibility.
-Our two-layer architecture---\CMS{}---resolves this by separating CRDT state management (Layer~1, OR-Set with version vectors and Merkle hashing) from deterministic strategy execution (Layer~2), with formal proofs of CvRDT compliance (Theorem~\ref{thm:crdt}), convergence (Theorem~\ref{thm:convergence}), and bounded overhead (Theorem~\ref{thm:complexity}).
-Empirical validation confirmed 100\% compliance across two tiers (312 strategy-level tests, 43{,}472 layer-level evaluations) with overhead below 0.5\,ms.
-This enables decentralised, coordinator-free model merging with formal convergence guarantees, advancing peer-to-peer model development~\cite{shapiro2011conflict, yang2024survey}.
-Future directions include Byzantine exclusion via trust-as-CRDT mechanisms---where trust evidence would converge through the same lattice guarantees as data, offering a promising pathway toward provable Byzantine exclusion at known threat levels without consensus protocols (Section~\ref{sec:limitations}, L4)---as well as delta-state optimisation, cross-hardware determinism validation, incremental resolve strategies for large contribution sets, and integration with federated learning pipelines.
+Of 26 widely-used neural network merge strategies, only one (Task Arithmetic) is associative on controlled $4\times 4$ tensors---and it fails idempotency.
+This is the central empirical finding behind Proposition~\ref{prop:incompat}, which traces the failure to a structural feature shared by virtually all merge methods: normalisation, projection, or thresholding each independently break the algebraic axioms a CRDT requires.
+The two-layer \CMS{} architecture sidesteps the problem rather than solving it within the merge: Layer~1 manages contributions through OR-Set semantics, where set union is trivially CRDT-compliant; Layer~2 applies the chosen merge strategy deterministically over the canonically-ordered visible set.
+We prove (Theorems~\ref{thm:crdt}--\ref{thm:complexity}) and empirically verify across three tiers (312 strategy-level tests, $43{,}472$ layer-level evaluations, 100-node convergence with bitwise-identical results across 20 orderings) that this composition satisfies Strong Eventual Consistency for arbitrary merge strategies under the stated preconditions, with CRDT overhead below 0.5\,ms.
+Open work includes delta-state propagation for billion-parameter deployment, cross-hardware determinism validation, incremental resolve for large contribution sets, and the trust-as-CRDT Byzantine extension sketched in Section~\ref{sec:limitations}, L4.
 
 
 
@@ -630,7 +623,7 @@ The complete test suite, including the Tier~1--3 verification scripts, will be o
 
 \section*{Acknowledgments}
 
-The author thanks the anonymous reviewers for their detailed feedback across three revision cycles.
+The author thanks early readers for feedback on prior drafts.
 
 \bibliographystyle{plain}
 \bibliography{references}
@@ -872,11 +865,11 @@ A remove-wins variant or explicit contribution validation (cryptographic attesta
 
 The architecture does not currently include Byzantine fault tolerance.
 The OR-Set accepts all properly formatted contributions; a malicious participant could inject poisoned parameters.
-As discussed in Section~\ref{sec:limitations} (L4), the two-layer architecture structurally enables a trust-as-CRDT extension: trust evidence (equivocation proofs, Merkle-root divergence, anomaly scores) would propagate through Layer~1 as a monotonic lattice, and a trust-gated merge at Layer~2 could provably exclude Byzantine contributions once the evidence lattice has converged.
-This offers a promising structural pathway toward Byzantine exclusion at known threat levels---all honest nodes would converge to identical trust states and therefore identical gated outputs---rather than the probabilistic tolerance offered by traditional robust aggregation.
-Integration with Byzantine-resilient aggregation~\cite{blanchard2017machine} remains possible as a complementary defence.
+As discussed in Section~\ref{sec:limitations} (L4), the two-layer separation suggests a trust-as-CRDT extension where trust evidence (equivocation proofs, Merkle-root divergence, anomaly scores) propagates through Layer~1 as a monotonic lattice, and a trust-gated merge at Layer~2 rejects contributions once the converged trust score falls below threshold.
+Whether such an extension can match the threat coverage of probabilistic robust aggregation in practice is open; integration with existing Byzantine-resilient methods~\cite{blanchard2017machine} is an obvious complement.
 
-\emph{Scale-dependent associativity:} The observation that strategies failing on controlled tensors pass within tolerance on production-scale weights (Section~\ref{sec:cross_scale}) raises theoretical questions about the relationship between algebraic properties and numerical tolerance in high-dimensional spaces.
+\paragraph{Scale-dependent associativity.}
+The observation that strategies failing on controlled tensors pass within tolerance on production-scale weights (Section~\ref{sec:cross_scale}) raises theoretical questions about the relationship between algebraic properties and numerical tolerance in high-dimensional spaces.
 Analysis of when associativity violations vanish at scale could inform design of ``nearly associative'' strategies.
 
 \section{Per-Strategy Formal Analyses}\label{app:strategy_analysis}
@@ -962,7 +955,7 @@ Every ordering produces a bitwise-identical resolved model, confirming that the 
 \begin{table}[htbp]
 \centering
 \caption{100-node convergence across 20 random gossip orderings.
-Strategy: \texttt{slerp}; tensor: $512\times 512$ (26{,}214{,}400 params); merges per ordering: 9{,}900.}
+Strategy: \texttt{slerp}; tensor: $512\times 512$ ($262{,}144$ params per contribution); merges per ordering: 9{,}900.}
 \label{tab:convergence}
 \footnotesize
 \begin{tabular}{rcccl}
@@ -1033,7 +1026,7 @@ Note that population-based strategies (\texttt{evolutionary\_merge}, \texttt{gen
 \centering
 \caption{Cross-strategy convergence: all 26 strategies on 10 nodes, $64\times 64$ tensors.
 All strategies produce the same canonical hash, confirming strategy-independent convergence.
-Note: \texttt{evolutionary\_merge} and \texttt{genetic\_merge} exhibit resolve times of ${\sim}24$\,h due to population-based search; all other strategies resolve in under 200\,ms.}
+Note: \texttt{evolutionary\_merge} and \texttt{genetic\_merge} exhibit resolve times approaching $90$\,s due to population-based search; all other strategies resolve in under $200$\,ms.}
 \label{tab:strategy_sweep}
 \footnotesize
 \begin{tabular}{lrrl}
